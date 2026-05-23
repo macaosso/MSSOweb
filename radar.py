@@ -48,7 +48,6 @@ ax.add_feature(cfeature.OCEAN.with_scale('10m'))
 title_text = (
     "Radar Map\n"
     f"Radar Time: {dt_object_cst.strftime('%H:%M CST %d/%m/%Y')}, "
-    "data from HKO, NMC and rainviewer, visualized by GHMWS"
 )
 ax.set_title(title_text, size=14, color='k')
 
