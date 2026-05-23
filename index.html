@@ -136,11 +136,11 @@ fetch("weatherforecast.txt")
     const parts = text.split(/\n\s*\n/);
 
     // ✅ part 0 → forecast time line
-    document.getElementById("forecastTime").innerText = parts[0] || "";
+    document.getElementById("forecastTime").innerText = parts[3] || "";
 
-    document.getElementById("futureText").innerHTML = (parts[1] || "").replace(/\n/g, "<br>");
-    document.getElementById("todayText").innerHTML = (parts[2] || "").replace(/\n/g, "<br>");
-    document.getElementById("tomorrowText").innerHTML = (parts[3] || "").replace(/\n/g, "<br>");
+    document.getElementById("futureText").innerHTML = (parts[0] || "").replace(/\n/g, "<br>");
+    document.getElementById("todayText").innerHTML = (parts[1] || "").replace(/\n/g, "<br>");
+    document.getElementById("tomorrowText").innerHTML = (parts[2] || "").replace(/\n/g, "<br>");
   })
   .catch(() => console.log("Cannot load weatherforecast.txt"));
 </script>
