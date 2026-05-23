@@ -27,9 +27,9 @@
 
 <div class="nav">
   <a href="#home" onclick="showPage('home')">首頁</a>
-  <a href="#weather" onclick="showPage('weather')">天氣資訊</a>
-  <a href="#cyclone" onclick="showPage('cyclone')">熱帶氣旋資訊</a>
-  <a href="#about" onclick="showPage('about')">關於我們</a>
+  <a href="https://macaosso.github.io/MSSOweb/weather.html">天氣資訊</a>
+  <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
+  <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
 </div>
 
 <div class="content">
@@ -37,21 +37,13 @@
     <h2>首頁</h2>
     <p>歡迎來到天氣資訊網站！</p>
   </div>
-
-  <div id="weather" style="display:none;">
-    <h2>天氣資訊</h2>
-    <p>今日天氣：晴朗，氣溫 28°C</p>
-  </div>
-
-  <div id="cyclone" style="display:none;">
-    <h2>熱帶氣旋資訊</h2>
-    <p>目前沒有活躍熱帶氣旋。</p>
-  </div>
-
-  <div id="about" style="display:none;">
-    <h2>關於我們</h2>
-    <p>本網站提供即時天氣資訊與氣旋報告。</p>
-  </div>
 </div>
 
 <script>
+function showPage(pageId) {
+  document.getElementById(pageId).style.display = 'block';
+}
+</script>
+
+</body>
+</html>
