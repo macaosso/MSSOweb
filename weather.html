@@ -1,8 +1,9 @@
 <h2>雷達圖</h2>
-<img id="radarImg">
+<img id="radarImg" width="100%">
 
 <script>
-document.getElementById("radarImg").src = "radar.png?" + new Date().getTime();
+setInterval(() => {
+  document.getElementById("radarImg").src =
+    "radar.png?" + new Date().getTime();
+}, 30000); // refresh every 30 sec
 </script>
-
-<img src="radar.png" style="width:100%; max-width:600px;">
