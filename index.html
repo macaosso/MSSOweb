@@ -21,7 +21,6 @@
     }
     .nav a:hover { background: #1f4f6d; }
 
-    /* Warning boxes */
     .box {
       display: none;
       margin: 20px;
@@ -30,60 +29,23 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
 
-    .header-orange {
-      background: #f39c12;
-      color: white;
-      padding: 15px;
-      font-size: 20px;
-      font-weight: bold;
-    }
+    .header-orange { background: #f39c12; color: white; padding: 15px; font-size: 20px; font-weight: bold; }
+    .header-red { background: #e1665c; color: white; padding: 15px; font-size: 20px; font-weight: bold; }
 
-    .header-red {
-      background: #e1665c;
-      color: white;
-      padding: 15px;
-      font-size: 20px;
-      font-weight: bold;
-    }
+    .content-yellow { background: #fff4cc; padding: 20px; }
+    .content-red { background: #f5d7d6; padding: 20px; }
 
-    .content-yellow {
-      background: #fff4cc;
-      padding: 20px;
-      color: #333;
-    }
+    .forecast-container { display: flex; margin: 20px; gap: 10px; }
+    .forecast-box { flex: 1; background: #d9e6e6; border-radius: 10px; overflow: hidden; }
+    .forecast-title { background: #4fa6a6; color: white; padding: 15px; text-align: center; font-size: 20px; }
+    .forecast-content { padding: 20px; }
 
-    .content-red {
-      background: #f5d7d6;
-      padding: 20px;
-      color: #333;
-    }
-
-    /* ✅ Forecast boxes */
-    .forecast-container {
-      display: flex;
-      margin: 20px;
-      gap: 10px;
-    }
-
-    .forecast-box {
-      flex: 1;
-      background: #d9e6e6;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .forecast-title {
-      background: #4fa6a6;
-      color: white;
-      padding: 15px;
-      text-align: center;
-      font-size: 20px;
-      font-weight: bold;
-    }
-
-    .forecast-content {
-      padding: 20px;
-      line-height: 1.6;
+    /* ✅ new line style */
+    .forecast-time {
+      margin: 0 20px;
+      text-align: right;
+      font-size: 14px;
+      color: #555;
     }
 
   </style>
@@ -98,12 +60,11 @@
 
 <div class="nav">
   <a href="#home">首頁</a>
-  <a href="https://macaosso.github.io/MSSOweb/weather.html">天氣資訊</a>
+  https://macaosso.github.io/MSSOweb/weather.html
   <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
   <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
 </div>
 
-<!-- ✅ Forecast Section -->
 <div class="forecast-container">
   <div class="forecast-box">
     <div class="forecast-title">今日天氣概況</div>
@@ -121,27 +82,27 @@
   </div>
 </div>
 
-<!-- 🟠 SWT.txt -->
+<!-- ✅ new right-aligned line -->
+<div class="forecast-time">
+  天氣預報 (2026-05-23 12:30 MST)
+</div>
+
 <div id="swtBox" class="box">
   <div class="header-orange">特別天氣提示</div>
   <div id="swtContent" class="content-yellow"></div>
 </div>
 
-<!-- 🔴 warn.txt -->
 <div id="warnBox" class="box">
   <div class="header-red">天氣警告</div>
   <div id="warnContent" class="content-red"></div>
 </div>
 
-<!-- 🔴 tc.txt -->
 <div id="tcBox" class="box">
   <div class="header-red">熱帶氣旋提示</div>
   <div id="tcContent" class="content-red"></div>
 </div>
 
 <script>
-
-// ✅ Warning boxes
 function loadBox(file, boxId, contentId) {
   fetch(file)
     .then(res => res.text())
@@ -161,24 +122,16 @@ loadBox("SWT.txt", "swtBox", "swtContent");
 loadBox("warn.txt", "warnBox", "warnContent");
 loadBox("tc.txt", "tcBox", "tcContent");
 
-
-// ✅ Forecast (3 sections from 1 txt)
 fetch("weatherforecast.txt")
   .then(res => res.text())
   .then(text => {
     const parts = text.split(/\n\s*\n/);
 
-    document.getElementById("todayText").innerHTML =
-      (parts[0] || "").replace(/\n/g, "<br>");
-
-    document.getElementById("tomorrowText").innerHTML =
-      (parts[1] || "").replace(/\n/g, "<br>");
-
-    document.getElementById("futureText").innerHTML =
-      (parts[2] || "").replace(/\n/g, "<br>");
+    document.getElementById("todayText").innerHTML = (parts[0] || "").replace(/\n/g, "<br>");
+    document.getElementById("tomorrowText").innerHTML = (parts[1] || "").replace(/\n/g, "<br>");
+    document.getElementById("futureText").innerHTML = (parts[2] || "").replace(/\n/g, "<br>");
   })
   .catch(() => console.log("Cannot load weatherforecast.txt"));
-
 </script>
 
 </body>
