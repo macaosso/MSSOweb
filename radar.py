@@ -57,5 +57,6 @@ gl.xlabels_bottom = True
 gl.ylabels_left = True
 
 plt.show()
-
+plt.savefig("radar.png")
+plt.close()
  
