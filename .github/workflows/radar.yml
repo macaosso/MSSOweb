@@ -20,7 +20,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install matplotlib requests pandas xarray cartopy
+          pip install matplotlib requests pandas xarray cartopy scipy
 
       - name: Run radar script
         run: python radar.py
