@@ -4,10 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>澳門民間氣象台 MSSO</title>
+
   <style>
     body { margin: 0; font-family: Arial, sans-serif; }
+
     .header { background: #1f3a4d; color: white; padding: 15px 20px; }
     .title { font-size: 24px; font-weight: bold; }
+
     .nav { background: #2d6c94; display: flex; }
     .nav a {
       color: white;
@@ -16,15 +19,44 @@
       display: block;
     }
     .nav a:hover { background: #1f4f6d; }
+
     .content { padding: 20px; }
+
+    /* 🔴 Weather Warning Box */
+    #warningBox {
+      display: none;
+      margin: 20px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    .warning-header {
+      background: #e1665c;
+      color: white;
+      padding: 15px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .warning-content {
+      background: #f5d7d6;
+      padding: 20px;
+      color: #333;
+      font-size: 16px;
+    }
+
   </style>
 </head>
+
 <body>
 
+<!-- Header -->
 <div class="header">
   <div class="title">澳門民間氣象台 MSSO</div>
 </div>
 
+<!-- Navbar -->
 <div class="nav">
   <a href="#home" onclick="showPage('home')">首頁</a>
   <a href="https://macaosso.github.io/MSSOweb/weather.html">天氣資訊</a>
@@ -32,6 +64,13 @@
   <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
 </div>
 
+<!-- 🔴 Weather Warning Box -->
+<div id="warningBox">
+  <div class="warning-header">🌪️ 天氣警告</div>
+  <div id="warningContent" class="warning-content"></div>
+</div>
+
+<!-- Content -->
 <div class="content">
   <div id="home">
     <h2>首頁</h2>
@@ -39,11 +78,30 @@
   </div>
 </div>
 
+<!-- Scripts -->
 <script>
 function showPage(pageId) {
   document.getElementById(pageId).style.display = 'block';
 }
+
+/* ✅ Load SWT.txt */
+fetch("SWT.txt")
+  .then(response => response.text())
+  .then(text => {
+    const content = text.trim();
+
+    if (content.length > 0) {
+      document.getElementById("warningBox").style.display = "block";
+      document.getElementById("warningContent").innerText = content;
+    } else {
+      document.getElementById("warningBox").style.display = "none";
+    }
+  })
+  .catch(err => {
+    console.log("Cannot load SWT.txt");
+  });
 </script>
 
 </body>
 </html>
+``
