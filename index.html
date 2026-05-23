@@ -71,12 +71,12 @@
   </div>
   
   <div class="forecast-box">
-    <div class="forecast-title">今日天氣概況</div>
+    <div class="forecast-title">今日天氣預測</div>
     <div id="todayText" class="forecast-content"></div>
   </div>
 
   <div class="forecast-box">
-    <div class="forecast-title">明日天氣概況</div>
+    <div class="forecast-title">明日天氣預測</div>
     <div id="tomorrowText" class="forecast-content"></div>
   </div>
 </div>
@@ -91,6 +91,7 @@
   <div id="alertContent" class="content-yellow"></div>
 </div>
 
+
 <div id="swtBox" class="box">
   <div class="header-orange">特別天氣提示</div>
   <div id="swtContent" class="content-yellow"></div>
@@ -102,7 +103,7 @@
 </div>
 
 <div id="tcBox" class="box">
-  <div class="header-red">熱帶氣旋警告</div>
+  <div class="header-red">熱帶氣旋提示</div>
   <div id="tcContent" class="content-red"></div>
 </div>
 
@@ -128,15 +129,18 @@ loadBox("SWT.txt", "swtBox", "swtContent");
 loadBox("warn.txt", "warnBox", "warnContent");
 loadBox("tc.txt", "tcBox", "tcContent");
 
-// forecast
+// forecast (now 4 parts: 0=time, 1=today, 2=tomorrow, 3=future)
 fetch("weatherforecast.txt")
   .then(res => res.text())
   .then(text => {
     const parts = text.split(/\n\s*\n/);
 
-    document.getElementById("futureText").innerHTML = (parts[0] || "").replace(/\n/g, "<br>");
-    document.getElementById("todayText").innerHTML = (parts[1] || "").replace(/\n/g, "<br>");
-    document.getElementById("tomorrowText").innerHTML = (parts[2] || "").replace(/\n/g, "<br>");
+    // ✅ part 0 → forecast time line
+    document.getElementById("forecastTime").innerText = parts[0] || "";
+
+    document.getElementById("futureText").innerHTML = (parts[1] || "").replace(/\n/g, "<br>");
+    document.getElementById("todayText").innerHTML = (parts[2] || "").replace(/\n/g, "<br>");
+    document.getElementById("tomorrowText").innerHTML = (parts[3] || "").replace(/\n/g, "<br>");
   })
   .catch(() => console.log("Cannot load weatherforecast.txt"));
 </script>
