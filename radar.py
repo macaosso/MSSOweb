@@ -25,8 +25,6 @@ lat = 22.1333
 
 url = f"https://tilecache.rainviewer.com{y}/1024/5/{lat}/{lon}/1/1_1.png"
 {'time': 1776757800, 'path': '/v2/radar/a778e41f9359'}
-2026-04-21 07:50:00+00:00
-2026-04-21 15:50:00+00:00
 image = np.array(Image.open(urlopen(url)))
 
 import matplotlib
