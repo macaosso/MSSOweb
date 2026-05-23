@@ -123,7 +123,8 @@ function loadBox(file, boxId, contentId) {
         document.getElementById(boxId).style.display = "block";
         document.getElementById(contentId).innerText = content;
       } else {
-        document.getElementById(boxId).style.display = "none";
+        document.getElementById(boxId).style.display = "block";
+        document.getElementById(contentId).innerText = content;
       }
     })
     .catch(() => console.log("Cannot load " + file));
