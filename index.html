@@ -20,10 +20,8 @@
     }
     .nav a:hover { background: #1f4f6d; }
 
-    .content { padding: 20px; }
-
-    /* 🔴 Weather Warning Box */
-    #warningBox {
+    /* Boxes */
+    .box {
       display: none;
       margin: 20px;
       border-radius: 10px;
@@ -31,7 +29,15 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
 
-    .warning-header {
+    .header-orange {
+      background: #f39c12;
+      color: white;
+      padding: 15px;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .header-red {
       background: #e1665c;
       color: white;
       padding: 15px;
@@ -39,61 +45,68 @@
       font-weight: bold;
     }
 
-    .warning-content {
+    .content-box {
       background: #f5d7d6;
       padding: 20px;
       color: #333;
-      font-size: 16px;
     }
-
   </style>
 </head>
 
 <body>
 
-<!-- Header -->
 <div class="header">
   <div class="title">澳門民間氣象台 MSSO</div>
 </div>
 
-<!-- Navbar -->
 <div class="nav">
-  <a href="#home" onclick="showPage('home')">首頁</a>
-  <a href="https://macaosso.github.io/MSSOweb/weather.html">天氣資訊</a>
+  <a href="#home">首頁</a>
+  https://macaosso.github.io/MSSOweb/weather.html
   <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
   <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
 </div>
 
-<!-- 🔴 Weather Warning Box -->
-<div id="warningBox">
-  <div class="warning-header">特別天氣提示</div>
-  <div id="warningContent" class="warning-content"></div>
+<!-- 🟠 SWT.txt -->
+<div id="swtBox" class="box">
+  <div class="header-orange">特別天氣提示</div>
+  <div id="swtContent" class="content-box"></div>
 </div>
 
-<!-- Scripts -->
+<!-- 🔴 warn.txt -->
+<div id="warnBox" class="box">
+  <div class="header-red">天氣警告</div>
+  <div id="warnContent" class="content-box"></div>
+</div>
+
+<!-- 🔴 tc.txt -->
+<div id="tcBox" class="box">
+  <div class="header-red">熱帶氣旋警告</div>
+  <div id="tcContent" class="content-box"></div>
+</div>
+
 <script>
-function showPage(pageId) {
-  document.getElementById(pageId).style.display = 'block';
+
+function loadBox(file, boxId, contentId) {
+  fetch(file)
+    .then(res => res.text())
+    .then(text => {
+      const content = text.trim();
+      if (content.length > 0) {
+        document.getElementById(boxId).style.display = "block";
+        document.getElementById(contentId).innerText = content;
+      } else {
+        document.getElementById(boxId).style.display = "none";
+      }
+    })
+    .catch(() => console.log("Cannot load " + file));
 }
 
-/* ✅ Load SWT.txt */
-fetch("SWT.txt")
-  .then(response => response.text())
-  .then(text => {
-    const content = text.trim();
+// Load all
+loadBox("SWT.txt", "swtBox", "swtContent");
+loadBox("warn.txt", "warnBox", "warnContent");
+loadBox("tc.txt", "tcBox", "tcContent");
 
-    if (content.length > 0) {
-      document.getElementById("warningBox").style.display = "block";
-      document.getElementById("warningContent").innerText = content;
-    } else {
-      document.getElementById("warningBox").style.display = "none";
-    }
-  })
-  .catch(err => {
-    console.log("Cannot load SWT.txt");
-  });
 </script>
 
 </body>
 </html>
-``
