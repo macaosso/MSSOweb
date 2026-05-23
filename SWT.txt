@@ -1,0 +1,19 @@
+<script>
+fetch("SWT.txt")
+  .then(response => response.text())
+  .then(text => {
+    const content = text.trim();
+    
+    if (content.length > 0) {
+      // show box
+      document.getElementById("warningBox").style.display = "block";
+      document.getElementById("warningContent").innerText = content;
+    } else {
+      // hide box
+      document.getElementById("warningBox").style.display = "none";
+    }
+  })
+  .catch(err => {
+    console.log("Cannot load SWT.txt");
+  });
+</script>
