@@ -19,7 +19,8 @@ jobs:
           python-version: "3.10"
 
       - name: Install dependencies
-        run: pip install matplotlib requests
+        run: |
+          pip install matplotlib requests
 
       - name: Run radar script
         run: python radar.py
