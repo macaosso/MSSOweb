@@ -45,7 +45,14 @@
       font-weight: bold;
     }
 
-    .content-box {
+    /* ✅ Updated: different content colors */
+    .content-yellow {
+      background: #fff4cc;
+      padding: 20px;
+      color: #333;
+    }
+
+    .content-red {
       background: #f5d7d6;
       padding: 20px;
       color: #333;
@@ -60,8 +67,8 @@
 </div>
 
 <div class="nav">
-  <a href="home">首頁</a>
-  <a href="https://macaosso.github.io/MSSOweb/weather.html">天氣資訊</a>
+  <a href="#home">首頁</a>
+  https://macaosso.github.io/MSSOweb/weather.html
   <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
   <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
 </div>
@@ -69,19 +76,19 @@
 <!-- 🟠 SWT.txt -->
 <div id="swtBox" class="box">
   <div class="header-orange">特別天氣提示</div>
-  <div id="swtContent" class="content-box"></div>
+  <div id="swtContent" class="content-yellow"></div>
 </div>
 
 <!-- 🔴 warn.txt -->
 <div id="warnBox" class="box">
   <div class="header-red">天氣警告</div>
-  <div id="warnContent" class="content-box"></div>
+  <div id="warnContent" class="content-red"></div>
 </div>
 
 <!-- 🔴 tc.txt -->
 <div id="tcBox" class="box">
-  <div class="header-red">熱帶氣旋警告</div>
-  <div id="tcContent" class="content-box"></div>
+  <div class="header-red">熱帶氣旋提示</div>
+  <div id="tcContent" class="content-red"></div>
 </div>
 
 <script>
