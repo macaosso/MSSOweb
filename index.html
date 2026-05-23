@@ -1,137 +1,79 @@
-<!DOCTYPE html>
-<html lang="zh-Hant">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>體感溫度計算器 | 澳門氣象中心</title>
 
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
+import React, { useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Cloud, Search } from "lucide-react";
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#1E88E5',
-                        secondary: '#E3F2FD'
-                    }
-                }
-            }
-        }
-    </script>
-</head>
+export default function WeatherApp() {
+  const [city, setCity] = useState("");
+  const [weather, setWeather] = useState(null);
+  const [error, setError] = useState("");
 
-<body class="bg-secondary min-h-screen text-gray-800">
+  const API_KEY = "YOUR_API_KEY_HERE"; // Replace with OpenWeather API key
 
-<!-- ✅ HEADER -->
-<header class="bg-white shadow-sm sticky top-0 z-50">
-    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+  const fetchWeather = async () => {
+    if (!city) return;
+    try {
+      setError("");
+      const res = await fetch(
+        `https://api.openweathermap.org/data/2.5/weather?q=${city}&units=metric&appid=${API_KEY}`
+      );
+      const data = await res.json();
+      if (res.ok) {
+        setWeather(data);
+      } else {
+        setWeather(null);
+        setError(data.message);
+      }
+    } catch (err) {
+      setError("Failed to fetch weather");
+    }
+  };
 
-        <div class="flex items-center gap-2">
-            <img src="mmclogo.jpg" class="w-8 h-8">
-            <h1 class="text-lg font-bold text-primary">澳門氣象中心</h1>
-        </div>
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-200 to-blue-500 flex flex-col items-center justify-center p-6">
+      <Card className="w-full max-w-md shadow-2xl rounded-2xl">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Cloud className="text-blue-600" />
+            <h1 className="text-xl font-bold">Meteorological Weather</h1>
+          </div>
 
-        <nav class="hidden md:flex gap-3">
-            <a href="index.html" class="text-primary font-medium">首頁</a>
-            <a href="heat-index.html">體感溫度</a>
-        </nav>
+          <div className="flex gap-2 mb-4">
+            <Input
+              placeholder="Enter city name"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+            />
+            <Button onClick={fetchWeather}>
+              <Search size={16} />
+            </Button>
+          </div>
 
+          {error && (
+            <p className="text-red-500 text-sm mb-2">{error}</p>
+          )}
+
+          {weather && (
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-semibold">
+                {weather.name}, {weather.sys.country}
+              </h2>
+              <p className="text-5xl font-bold">
+                {Math.round(weather.main.temp)}°C
+              </p>
+              <p className="capitalize text-gray-700">
+                {weather.weather[0].description}
+              </p>
+              <div className="flex justify-between mt-4 text-sm">
+                <p>Humidity: {weather.main.humidity}%</p>
+                <p>Wind: {weather.wind.speed} m/s</p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
-</header>
-
-<!-- ✅ MAIN -->
-<main class="container mx-auto px-4 py-8">
-
-    <h2 class="text-xl font-bold mb-4">體感溫度計算器</h2>
-
-    <!-- ✅ CARD -->
-    <div class="bg-white rounded-xl shadow-md p-6 max-w-md mx-auto">
-
-        <input id="temp" type="number"
-            placeholder="氣溫 (°C)"
-            class="w-full border p-3 rounded-lg mb-3">
-
-        <input id="humidity" type="number"
-            placeholder="相對濕度 (%)"
-            class="w-full border p-3 rounded-lg mb-3">
-
-        <button onclick="calculate()"
-            class="w-full bg-primary text-white py-3 rounded-lg hover:bg-blue-600">
-            計算
-        </button>
-
-        <div id="result" class="mt-4"></div>
-
-    </div>
-
-    <!-- ✅ WARNING CARD -->
-    <div id="warning" class="max-w-md mx-auto mt-4"></div>
-
-</main>
-
-<!-- ✅ SCRIPT -->
-<script>
-function calculate() {
-
-    let T = parseFloat(document.getElementById("temp").value);
-    let RH = parseFloat(document.getElementById("humidity").value);
-
-    if (isNaN(T) || isNaN(RH)) {
-        document.getElementById("result").innerHTML = "請輸入有效數字";
-        return;
-    }
-
-    let AT = -8.784695 +
-        1.61139411 * T +
-        2.338549 * RH +
-        -0.14611605 * T * RH +
-        -0.012308094 * T * T +
-        -0.016424828 * RH * RH +
-        0.002211732 * T * T * RH +
-        0.00072546 * T * RH * RH +
-        -0.000003582 * T * T * RH * RH;
-
-    document.getElementById("result").innerHTML =
-        `<b>體感溫度: ${AT.toFixed(2)}°C</b>`;
-
-    let box = "";
-
-    if (AT >= 38 && AT <= 39) {
-        box = `<div class="bg-orange-100 text-orange-700 p-4 rounded-lg mt-3">
-        🟠 特別注意<br><br>
-        長時間暴露在陽光下或進行體力活動可能導致中暑、肌肉抽筋和熱衰竭。建議市民減少戶外劇烈活動、穿著輕便及淺色的衣物、補充足夠水分。
-        </div>`;
-    }
-    else if (AT >= 33 && AT <= 37) {
-        box = `<div class="bg-yellow-100 text-yellow-700 p-4 rounded-lg mt-3">
-        🟡 注意<br><br>
-        長時間暴露在陽光下可能疲勞。
-        </div>`;
-    }
-    else if (AT >= 40 && AT <= 47) {
-        box = `<div class="bg-red-100 text-red-700 p-4 rounded-lg mt-3">
-        🔴 危險<br><br>
-        極可能發生中暑及熱衰竭。
-        </div>`;
-    }
-    else if (AT >= 48) {
-        box = `<div class="bg-purple-100 text-purple-700 p-4 rounded-lg mt-3">
-        🟣 極度危險<br><br>
-        可能發生熱射病，屬於生命危險。
-        </div>`;
-    }
-    else {
-        box = `<div class="bg-green-100 text-green-700 p-4 rounded-lg mt-3">
-        ✅ 正常
-        </div>`;
-    }
-
-    document.getElementById("warning").innerHTML = box;
+  );
 }
-</script>
-
-</body>
-</html>
-
