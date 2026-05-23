@@ -1,64 +1,57 @@
-
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-
-export default function WeatherSite() {
-  const [page, setPage] = useState("home");
-
-  const renderPage = () => {
-    switch (page) {
-      case "home":
-        return (
-          <Card>
-            <CardContent className="p-6 text-center">
-              <h1 className="text-2xl font-bold mb-4">歡迎來到天氣資訊網站</h1>
-              <p>提供最新天氣與熱帶氣旋資訊。</p>
-            </CardContent>
-          </Card>
-        );
-      case "weather":
-        return (
-          <Card>
-            <CardContent className="p-6">
-              <h1 className="text-xl font-bold mb-4">天氣資訊</h1>
-              <p>今日天氣：晴朗，氣溫 28°C</p>
-            </CardContent>
-          </Card>
-        );
-      case "cyclone":
-        return (
-          <Card>
-            <CardContent className="p-6">
-              <h1 className="text-xl font-bold mb-4">熱帶氣旋資訊</h1>
-              <p>目前沒有活躍的熱帶氣旋。</p>
-            </CardContent>
-          </Card>
-        );
-      case "about":
-        return (
-          <Card>
-            <CardContent className="p-6">
-              <h1 className="text-xl font-bold mb-4">關於我們</h1>
-              <p>本網站致力於提供準確及最新的天氣資訊。</p>
-            </CardContent>
-          </Card>
-        );
-      default:
-        return null;
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>天氣網站</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; }
+    .header { background: #1f3a4d; color: white; padding: 15px 20px; }
+    .title { font-size: 24px; font-weight: bold; }
+    .nav { background: #2d6c94; display: flex; }
+    .nav a {
+      color: white;
+      padding: 15px 20px;
+      text-decoration: none;
+      display: block;
     }
-  };
+    .nav a:hover { background: #1f4f6d; }
+    .content { padding: 20px; }
+  </style>
+</head>
+<body>
 
-  return (
-    <div className="p-6 space-y-4">
-      <div className="flex gap-2 justify-center">
-        <Button onClick={() => setPage("home")}>首頁</Button>
-        <Button onClick={() => setPage("weather")}>天氣資訊</Button>
-        <Button onClick={() => setPage("cyclone")}>熱帶氣旋資訊</Button>
-        <Button onClick={() => setPage("about")}>關於我們</Button>
-      </div>
+<div class="header">
+  <div class="title">澳門天文氣象追擊站</div>
+</div>
 
-      {renderPage()}
-    </div>
-  );
-}
+<div class="nav">
+  <a href="#home" onclick="showPage('home')">首頁</a>
+  <a href="#weather" onclick="showPage('weather')">天氣資訊</a>
+  <a href="#cyclone" onclick="showPage('cyclone')">熱帶氣旋資訊</a>
+  <a href="#about" onclick="showPage('about')">關於我們</a>
+</div>
+
+<div class="content">
+  <div id="home">
+    <h2>首頁</h2>
+    <p>歡迎來到天氣資訊網站！</p>
+  </div>
+
+  <div id="weather" style="display:none;">
+    <h2>天氣資訊</h2>
+    <p>今日天氣：晴朗，氣溫 28°C</p>
+  </div>
+
+  <div id="cyclone" style="display:none;">
+    <h2>熱帶氣旋資訊</h2>
+    <p>目前沒有活躍熱帶氣旋。</p>
+  </div>
+
+  <div id="about" style="display:none;">
+    <h2>關於我們</h2>
+    <p>本網站提供即時天氣資訊與氣旋報告。</p>
+  </div>
+</div>
+
+<script>
