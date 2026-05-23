@@ -66,6 +66,11 @@
 
 <div class="forecast-container">
   <div class="forecast-box">
+    <div class="forecast-title">天氣概況</div>
+    <div id="futureText" class="forecast-content"></div>
+  </div>
+  
+  <div class="forecast-box">
     <div class="forecast-title">今日天氣概況</div>
     <div id="todayText" class="forecast-content"></div>
   </div>
@@ -73,11 +78,6 @@
   <div class="forecast-box">
     <div class="forecast-title">明日天氣概況</div>
     <div id="tomorrowText" class="forecast-content"></div>
-  </div>
-
-  <div class="forecast-box">
-    <div class="forecast-title">天氣展望</div>
-    <div id="futureText" class="forecast-content"></div>
   </div>
 </div>
 
@@ -134,9 +134,9 @@ fetch("weatherforecast.txt")
   .then(text => {
     const parts = text.split(/\n\s*\n/);
 
-    document.getElementById("todayText").innerHTML = (parts[0] || "").replace(/\n/g, "<br>");
-    document.getElementById("tomorrowText").innerHTML = (parts[1] || "").replace(/\n/g, "<br>");
-    document.getElementById("futureText").innerHTML = (parts[2] || "").replace(/\n/g, "<br>");
+    document.getElementById("futureText").innerHTML = (parts[0] || "").replace(/\n/g, "<br>");
+    document.getElementById("todayText").innerHTML = (parts[1] || "").replace(/\n/g, "<br>");
+    document.getElementById("tomorrowText").innerHTML = (parts[2] || "").replace(/\n/g, "<br>");
   })
   .catch(() => console.log("Cannot load weatherforecast.txt"));
 </script>
