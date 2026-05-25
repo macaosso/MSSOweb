@@ -2,149 +2,150 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Distance from Macau + Map + Direction</title>
+<title>Macau Distance Calculator</title>
 
 <style>
   body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    background: #f5f5f5;
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
   }
 
-  .container {
+  .card {
     background: white;
-    padding: 20px;
-    border-radius: 10px;
-    max-width: 500px;
-    margin: auto;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    padding: 25px;
+    border-radius: 16px;
+    width: 400px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
   }
 
-  input, button {
-    padding: 10px;
-    margin: 5px 0;
+  h2 {
+    margin-top: 0;
+    text-align: center;
+  }
+
+  input {
     width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 14px;
   }
 
   button {
-    background: #0078D7;
-    color: white;
+    width: 100%;
+    padding: 12px;
+    background: #4facfe;
     border: none;
+    color: white;
+    font-size: 16px;
+    border-radius: 10px;
     cursor: pointer;
+    margin-top: 10px;
+  }
+
+  button:hover {
+    background: #3a8ce0;
+  }
+
+  #result {
+    margin-top: 15px;
+    white-space: pre-line;
+    font-weight: bold;
+    text-align: center;
   }
 
   img {
-    margin-top: 15px;
     width: 100%;
-    border-radius: 8px;
+    margin-top: 15px;
+    border-radius: 12px;
   }
 </style>
 </head>
 
 <body>
 
-<div class="container">
-  <h2>Distance from Macau</h2>
+<div class="card">
+  <h2>📍 Macau Distance Tool</h2>
 
-  <label>Latitude:</label>
-  <input type="number" id="lat" step="any" placeholder="Enter latitude">
+  <input type="number" id="lat" placeholder="Enter Latitude (e.g. 35.68)">
+  <input type="number" id="lon" placeholder="Enter Longitude (e.g. 139.69)">
 
-  <label>Longitude:</label>
-  <input type="number" id="lon" step="any" placeholder="Enter longitude">
+  <button onclick="calculate()">Calculate</button>
 
-  <button onclick="calculateDistance()">Calculate</button>
+  <div id="result"></div>
 
-  <h3 id="result"></h3>
-
-  <!-- Map -->
-  <img id="map" src="" alt="Map will appear here">
-
+  <!-- ✅ IMPORTANT: map element exists -->
+  <img id="map" src="">
 </div>
 
 <script>
-  const macauLat = 22.1987;
-  const macauLon = 113.5439;
-  const mapUrl = `https://staticmap.openstreetmap.de/staticmap.php?size=600x400&markers=${macauLat},${macauLon},red-pushpin&markers=${lat},${lon},blue-pushpin&zoom=4`;
+const macauLat = 22.1987;
+const macauLon = 113.5439;
 
-  function toRadians(deg) {
-    return deg * Math.PI / 180;
+function toRad(d){ return d * Math.PI / 180; }
+function toDeg(r){ return r * 180 / Math.PI; }
+
+// Distance
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+
+  const a = Math.sin(dLat/2)**2 +
+            Math.cos(toRad(lat1)) *
+            Math.cos(toRad(lat2)) *
+            Math.sin(dLon/2)**2;
+
+  return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+// Bearing
+function bearing(lat1, lon1, lat2, lon2) {
+  const dLon = toRad(lon2 - lon1);
+
+  const y = Math.sin(dLon) * Math.cos(toRad(lat2));
+  const x = Math.cos(toRad(lat1))*Math.sin(toRad(lat2)) -
+            Math.sin(toRad(lat1))*Math.cos(toRad(lat2))*Math.cos(dLon);
+
+  return (toDeg(Math.atan2(y, x)) + 360) % 360;
+}
+
+function compass(b) {
+  const dirs = ["N","NNE","NE","ENE","E","ESE","SE","SSE",
+                "S","SSW","SW","WSW","W","WNW","NW","NNW"];
+  return dirs[Math.round(b / 22.5) % 16];
+}
+
+function calculate() {
+  const lat = parseFloat(document.getElementById("lat").value);
+  const lon = parseFloat(document.getElementById("lon").value);
+
+  if (isNaN(lat) || isNaN(lon)) {
+    document.getElementById("result").innerText = "❗ Enter valid coordinates";
+    return;
   }
 
-  function toDegrees(rad) {
-    return rad * 180 / Math.PI;
-  }
+  const dist = haversine(macauLat, macauLon, lat, lon);
+  const b = bearing(macauLat, macauLon, lat, lon);
 
-  // Distance (Haversine)
-  function haversine(lat1, lon1, lat2, lon2) {
-    const R = 6371;
+  document.getElementById("result").innerText =
+    `Distance: ${dist.toFixed(2)} km\nDirection: ${compass(b)} (${b.toFixed(1)}°)`;
 
-    const dLat = toRadians(lat2 - lat1);
-    const dLon = toRadians(lon2 - lon1);
+  // ✅ WORKING MAP (no line breaks, no encoding issue)
+  const mapUrl =
+    "https://staticmap.openstreetmap.de/staticmap.php?size=600x400" +
+    "&markers=" + macauLat + "," + macauLon + ",red-pushpin" +
+    "&markers=" + lat + "," + lon + ",blue-pushpin" +
+    "&zoom=4";
 
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos(toRadians(lat1)) *
-      Math.cos(toRadians(lat2)) *
-      Math.sin(dLon / 2) ** 2;
-
-    return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  }
-
-  // Bearing calculation
-  function calculateBearing(lat1, lon1, lat2, lon2) {
-    const dLon = toRadians(lon2 - lon1);
-
-    const y = Math.sin(dLon) * Math.cos(toRadians(lat2));
-    const x =
-      Math.cos(toRadians(lat1)) * Math.sin(toRadians(lat2)) -
-      Math.sin(toRadians(lat1)) *
-      Math.cos(toRadians(lat2)) *
-      Math.cos(dLon);
-
-    let bearing = toDegrees(Math.atan2(y, x));
-    return (bearing + 360) % 360;
-  }
-
-  // Convert to compass direction
-  function getCompassDirection(bearing) {
-    const directions = [
-      "N","NNE","NE","ENE",
-      "E","ESE","SE","SSE",
-      "S","SSW","SW","WSW",
-      "W","WNW","NW","NNW"
-    ];
-
-    const index = Math.round(bearing / 22.5) % 16;
-    return directions[index];
-  }
-
-  function calculateDistance() {
-    const lat = parseFloat(document.getElementById("lat").value);
-    const lon = parseFloat(document.getElementById("lon").value);
-
-    if (isNaN(lat) || isNaN(lon)) {
-      document.getElementById("result").innerText = "Please enter valid numbers.";
-      return;
-    }
-
-    // Distance
-    const distance = haversine(macauLat, macauLon, lat, lon);
-
-    // Direction
-    const bearing = calculateBearing(macauLat, macauLon, lat, lon);
-    const direction = getCompassDirection(bearing);
-
-    document.getElementById("result").innerText =
-      `Distance: ${distance.toFixed(2)} km\nDirection: ${direction} (${bearing.toFixed(1)}°)`;
-
-    // Map PNG
-    const mapUrl = `https://staticmap.openstreetmap.de/staticmap.php?size=600x400
-      &markers=${macauLat},${macauLon},red-pushpin
-      &markers=${lat},${lon},blue-pushpin
-      &zoom=5`.replace(/\s/g, "");
-
-    document.getElementById("map").src = mapUrl;
-  }
+  document.getElementById("map").src = mapUrl;
+}
 </script>
 
 </body>
