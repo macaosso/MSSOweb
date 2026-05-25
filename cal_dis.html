@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Macau Distance Calculator</title>
+<title>Macau Distance Tool</title>
 
 <style>
   body {
@@ -19,13 +19,13 @@
     background: white;
     padding: 25px;
     border-radius: 16px;
-    width: 400px;
+    width: 420px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.2);
   }
 
   h2 {
-    margin-top: 0;
     text-align: center;
+    margin-bottom: 15px;
   }
 
   input {
@@ -46,7 +46,6 @@
     font-size: 16px;
     border-radius: 10px;
     cursor: pointer;
-    margin-top: 10px;
   }
 
   button:hover {
@@ -56,12 +55,14 @@
   #result {
     margin-top: 15px;
     white-space: pre-line;
-    font-weight: bold;
     text-align: center;
+    font-weight: bold;
   }
 
-  img {
+  iframe {
     width: 100%;
+    height: 300px;
+    border: none;
     margin-top: 15px;
     border-radius: 12px;
   }
@@ -73,15 +74,15 @@
 <div class="card">
   <h2>📍 Macau Distance Tool</h2>
 
-  <input type="number" id="lat" placeholder="Enter Latitude (e.g. 35.68)">
-  <input type="number" id="lon" placeholder="Enter Longitude (e.g. 139.69)">
+  <input type="number" id="lat" placeholder="Latitude (e.g. 35.68)">
+  <input type="number" id="lon" placeholder="Longitude (e.g. 139.69)">
 
   <button onclick="calculate()">Calculate</button>
 
   <div id="result"></div>
 
-  <!-- ✅ IMPORTANT: map element exists -->
-  <img id="map" src="">
+  <!-- ✅ Working map -->
+  <iframe id="map"></iframe>
 </div>
 
 <script>
@@ -116,6 +117,7 @@ function bearing(lat1, lon1, lat2, lon2) {
   return (toDeg(Math.atan2(y, x)) + 360) % 360;
 }
 
+// Direction text
 function compass(b) {
   const dirs = ["N","NNE","NE","ENE","E","ESE","SE","SSE",
                 "S","SSW","SW","WSW","W","WNW","NW","NNW"];
@@ -137,12 +139,11 @@ function calculate() {
   document.getElementById("result").innerText =
     `Distance: ${dist.toFixed(2)} km\nDirection: ${compass(b)} (${b.toFixed(1)}°)`;
 
-  // ✅ WORKING MAP (no line breaks, no encoding issue)
+  // ✅ Reliable map (iframe)
   const mapUrl =
-    "https://staticmap.openstreetmap.de/staticmap.php?size=600x400" +
-    "&markers=" + macauLat + "," + macauLon + ",red-pushpin" +
-    "&markers=" + lat + "," + lon + ",blue-pushpin" +
-    "&zoom=4";
+    "https://www.openstreetmap.org/export/embed.html?layer=mapnik" +
+    "&marker=" + macauLat + "," + macauLon +
+    "&marker=" + lat + "," + lon;
 
   document.getElementById("map").src = mapUrl;
 }
