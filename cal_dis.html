@@ -58,11 +58,13 @@
 
   <!-- Map -->
   <img id="map" src="" alt="Map will appear here">
+
 </div>
 
 <script>
   const macauLat = 22.1987;
   const macauLon = 113.5439;
+  const mapUrl = `https://staticmap.openstreetmap.de/staticmap.php?size=600x400&markers=${macauLat},${macauLon},red-pushpin&markers=${lat},${lon},blue-pushpin&zoom=4`;
 
   function toRadians(deg) {
     return deg * Math.PI / 180;
