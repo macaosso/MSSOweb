@@ -25,7 +25,6 @@
 
   h2 {
     text-align: center;
-    margin-bottom: 15px;
   }
 
   input {
@@ -34,7 +33,6 @@
     margin: 8px 0;
     border-radius: 8px;
     border: 1px solid #ccc;
-    font-size: 14px;
   }
 
   button {
@@ -74,14 +72,13 @@
 <div class="card">
   <h2>📍 Macau Distance Tool</h2>
 
-  <input type="number" id="lat" placeholder="Latitude (e.g. 22.1595)">
-  <input type="number" id="lon" placeholder="Longitude (e.g. 113.5685)">
+  <input type="number" id="lat" placeholder="Latitude">
+  <input type="number" id="lon" placeholder="Longitude">
 
   <button onclick="calculate()">Calculate</button>
 
   <div id="result"></div>
 
-  <!-- ✅ Working map -->
   <iframe id="map"></iframe>
 </div>
 
@@ -117,7 +114,7 @@ function bearing(lat1, lon1, lat2, lon2) {
   return (toDeg(Math.atan2(y, x)) + 360) % 360;
 }
 
-// Direction text
+// Compass
 function compass(b) {
   const dirs = ["N","NNE","NE","ENE","E","ESE","SE","SSE",
                 "S","SSW","SW","WSW","W","WNW","NW","NNW"];
@@ -139,9 +136,25 @@ function calculate() {
   document.getElementById("result").innerText =
     `Distance: ${dist.toFixed(2)} km\nDirection: ${compass(b)} (${b.toFixed(1)}°)`;
 
-  // ✅ Reliable map (iframe)
+  // ✅ AUTO-ZOOM BBOX CALCULATION
+  const minLat = Math.min(macauLat, lat);
+  const maxLat = Math.max(macauLat, lat);
+  const minLon = Math.min(macauLon, lon);
+  const maxLon = Math.max(macauLon, lon);
+
+  // Add padding (important!)
+  const padding = 2;
+
+  const bbox =
+    (minLon - padding) + "," +
+    (minLat - padding) + "," +
+    (maxLon + padding) + "," +
+    (maxLat + padding);
+
   const mapUrl =
-    "https://www.openstreetmap.org/export/embed.html?layer=mapnik" +
+    "https://www.openstreetmap.org/export/embed.html?bbox=" +
+    bbox +
+    "&layer=mapnik" +
     "&marker=" + macauLat + "," + macauLon +
     "&marker=" + lat + "," + lon;
 
