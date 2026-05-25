@@ -5,6 +5,22 @@
 <title>Macau Distance Tool</title>
 
 <style>
+
+  .header { background: #1f3a4d; color: white; padding: 25px 20px; display:flex; align-items:center; }
+  .title { font-size: 20px; font-weight: bold; margin-left:10px; }
+  .logo { height:40px; }
+
+  .forecast-time {font-weight: bold; }
+
+  .nav { background: #2d6c94; display: flex; }
+  .nav a {
+      color: white;
+      padding: 25px 20px;
+      font-size: 15px
+      text-decoration: none;
+      display: block;
+  }
+  .nav a:hover { background: #1f4f6d; }
   body {
     font-family: "Segoe UI", Arial, sans-serif;
     background: linear-gradient(135deg, #4facfe, #00f2fe);
@@ -68,6 +84,20 @@
 </head>
 
 <body>
+<div class="header">
+  <img src="icons/MSSO.png" class="logo">
+  <div class="title">澳門民間氣象台 MSSO</div>
+</div>
+  
+<!-- 🟠 NEW alertips box  <a href="https://macaosso.github.io/MSSOweb/weather.html">天氣資訊</ a>  -->
+  
+<div class="nav">
+  <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
+  <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
+  <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋距離計算工具</a> 
+  <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
+  <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+</div>
 
 <div class="card">
   <h2>📍 Macau Distance Tool</h2>
