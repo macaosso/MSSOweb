@@ -151,6 +151,63 @@ body {
   display: block;
 }
 .nav a:hover { background: #1f4f6d; }
+/* ================= MOBILE ================= */
+@media (max-width: 768px) {
+
+  /* header */
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 15px;
+  }
+
+  .logo {
+    height: 30px;
+    margin-bottom: 5px;
+  }
+
+  .title {
+    font-size: 16px;
+  }
+
+  /* navigation */
+  .nav {
+    flex-wrap: wrap;
+  }
+
+  .nav a {
+    flex: 1 1 50%;   /* 2 per row */
+    text-align: center;
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  /* content boxes */
+  .box,
+  .forecast-box {
+    margin: 10px;
+  }
+
+  .content-yellow,
+  .content-red,
+  .forecast-content {
+    font-size: 14px;   /* bigger text */
+    padding: 15px;
+  }
+
+  /* forecast titles */
+  .forecast-title {
+    font-size: 13px;
+    padding: 10px;
+  }
+
+  /* update time */
+  .forecast-time {
+    font-size: 12px;
+    margin: 10px;
+  }
+
+}
   
 </style>
 
