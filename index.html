@@ -69,25 +69,6 @@
   <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
 </div>
 
-<div class="forecast-container-vertical">
-  <div class="forecast-box">
-    <div class="forecast-title">天氣概況</div>
-    <div id="futureText" class="forecast-content"></div>
-  </div>
-  
-  <div class="forecast-box">
-    <div class="forecast-title">今日天氣</div>
-    <div id="todayText" class="forecast-content"></div>
-  </div>
-
-  <div class="forecast-box">
-    <div class="forecast-title">明日天氣</div>
-    <div id="tomorrowText" class="forecast-content"></div>
-  </div>
-</div>
-
-<div id="forecastTime" class="forecast-time"></div>
-
 <!-- 🟠 NEW alertips box -->
 <div id="alertBox" class="box">
   <div class="header-orange">預警提示</div>
@@ -109,6 +90,25 @@
   <div class="header-red">熱帶氣旋提示</div>
   <div id="tcContent" class="content-red"></div>
 </div>
+
+<div class="forecast-container-vertical">
+  <div class="forecast-box">
+    <div class="forecast-title">天氣概況</div>
+    <div id="futureText" class="forecast-content"></div>
+  </div>
+  
+  <div class="forecast-box">
+    <div class="forecast-title">今日天氣</div>
+    <div id="todayText" class="forecast-content"></div>
+  </div>
+
+  <div class="forecast-box">
+    <div class="forecast-title">明日天氣</div>
+    <div id="tomorrowText" class="forecast-content"></div>
+  </div>
+</div>
+
+<div id="forecastTime" class="forecast-time"></div>
 
 <script>
 function loadBox(file, boxId, contentId) {
