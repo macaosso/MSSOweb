@@ -309,7 +309,7 @@ function getTypeName(type) {
   }[type] || type;
 }
 function getTypeFromWind(wind) {
-  if (wind < 40) return "LPA";
+  if (wind <= 40) return "LPA";
   else if (wind <= 60) return "TD";
   else if (wind <= 87) return "TS";
   else if (wind <= 117) return "STS";
