@@ -214,9 +214,10 @@ body {
   background: rgba(255, 59, 48, 0.25);
 }
 .tc-info-box {
-  position: absolute;
+  position: fixed;   /* or fixed (see option below) */
+
+  top: 100px;           /* ✅ move to top */
   right: 15px;
-  bottom: 200px;   /* above legend */
 
   width: 220px;
   background: #000;
@@ -229,6 +230,7 @@ body {
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
   z-index: 1000;
 }
+
 
 .tc-title {
   font-size: 15px;
