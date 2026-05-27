@@ -4,7 +4,7 @@ const forecastInfo = {
 
 const pastPoints = [
   {lat:8.1, lon:137.3, time:"05-26 20H", wind: 45},
-  {lat:8.5, lon:137.5, time:"05-27 02H", wind: 55},
+  {lat:8.5, lon:137.5, time:"05-27 02H", wind: 50},
   {lat:9.1, lon:137.6, time:"05-27 08H", wind: 55},
   {lat:9.6, lon:137.5, time:"05-27 14H", wind: 65},
   {lat:10.2, lon:137.3, time:"05-27 20H", wind: 65},
