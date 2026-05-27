@@ -798,12 +798,10 @@ if (window.tcInfo && forecastPoints.length > 0) {
   const type = getTypeFromWind(p0.wind);
 
   document.getElementById("tcInfoBox").innerHTML = `
-    <div class="tc-title">${tcInfo.name}</div>
-    <div class="tc-row">強度: ${getTypeName(type)}</div>
+    <div class="tc-title">${getTypeName(type)} ${tcInfo.name}</div>
     <div class="tc-row">氣壓: ${tcInfo.pressure} hPa</div>
-    <div class="tc-row">距離澳門: ${dist} km ${dir}</div>
-    <div class="tc-row">移動方向: ${moveDir}</div>
-    <div class="tc-row">移動速度: ${speed} km/h</div>
+    <div class="tc-row">距離澳門: ${dir} ${dist} km </div>
+    <div class="tc-row">移動速度: ${moveDir}, ${speed} km/h</div>
   `;
 }
 
