@@ -103,14 +103,19 @@ body {
 /* cone preview */
 .box {
   display: inline-block;
-  width: 22px;
+  width: 24px;
   height: 16px;
 
+  background: rgba(255, 214, 80, 0.3);
   border: 2px solid rgb(255, 214, 80);
 
   margin-right: 6px;
   vertical-align: middle;
+
+  /* ✅ cone shape */
+  clip-path: polygon(20% 0%, 80% 0%, 100% 100%, 0% 100%);
 }
+
 
 
 /* ================= TOOLTIP (TIME LABEL) ================= */
