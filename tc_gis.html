@@ -375,6 +375,7 @@ body {
 </div>
 
 <script>
+
 // ================= MAP =================
 const map = L.map('map').setView([20,120],5);
 
@@ -426,6 +427,44 @@ function getIcon(type, size = 26) {
     iconAnchor: [size/2, size/2],
     popupAnchor: [0, -size/2]
   });
+}
+function getDirection(lat1, lon1, lat2, lon2) {
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+
+  const y = Math.sin(dLon) * Math.cos(lat2 * Math.PI / 180);
+  const x =
+    Math.cos(lat1 * Math.PI / 180) * Math.sin(lat2 * Math.PI / 180) -
+    Math.sin(lat1 * Math.PI / 180) *
+    Math.cos(lat2 * Math.PI / 180) * Math.cos(dLon);
+
+  let brng = Math.atan2(y, x) * 180 / Math.PI;
+  brng = (brng + 360) % 360;
+
+  const dirs = ["N","NNE","NE","ENE","E","ESE","SE","SSE",
+                "S","SSW","SW","WSW","W","WNW","NW","NNW"];
+
+  return dirs[Math.round(brng / 22.5) % 16];
+}
+  
+function getDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+
+  const a =
+    Math.sin(dLat/2)**2 +
+    Math.cos(lat1*Math.PI/180) *
+    Math.cos(lat2*Math.PI/180) *
+    Math.sin(dLon/2)**2;
+
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+function getSpeed(p1, p2) {
+  const dist = getDistance(p1.lat, p1.lon, p2.lat, p2.lon);
+  const hours = 12; // your dataset interval
+
+  return dist / hours;
 }
 
 
@@ -708,6 +747,51 @@ pastPoints.forEach(p => {
 });
 
 // ================= WIND RADII (+0H) =================
+const p0 = forecastPoints[0];
+const p1 = forecastPoints[1];
+
+// distance from Macau
+const dist = getDistance(
+  macau[0], macau[1],
+  p0.lat, p0.lon
+).toFixed(0);
+
+// direction from Macau
+const dir = getDirection(
+  macau[0], macau[1],
+  p0.lat, p0.lon
+);
+
+// movement direction
+const moveDir = getDirection(
+  p0.lat, p0.lon,
+  p1.lat, p1.lon
+);
+
+// speed
+const speed = getSpeed(p0, p1).toFixed(0);
+
+// type
+const type = getTypeFromWind(p0.wind);
+
+document.getElementById("tcInfoBox").innerHTML = `
+  <div class="tc-title">${tcInfo.name}</div>
+
+  <div class="tc-row">強度: ${getTypeName(type)}</div>
+  <div class="tc-row">氣壓: ${tcInfo.pressure} hPa</div>
+
+  <div class="tc-row">
+    距離澳門: ${dist} km ${dir}
+  </div>
+
+  <div class="tc-row">
+    移動方向: ${moveDir}
+  </div>
+
+  <div class="tc-row">
+    移動速度: ${speed} km/h
+  </div>
+`;
 
 const p0 = forecastPoints[0];
 
