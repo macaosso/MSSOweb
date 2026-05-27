@@ -294,6 +294,16 @@ const macau = [22.1595, 113.5685];
 
 
 // ================= UTILITIES =================
+function getIcon(type, size = 26) {
+  return L.icon({
+    iconUrl: `TC_logo/${type}.png`, // ✅ fixed folder
+    iconSize: [size, size],
+    iconAnchor: [size/2, size/2],
+    popupAnchor: [0, -size/2]
+  });
+}
+
+
 function getColor(type) {
   return colors[type] || "#FFFFFF";
 }
@@ -439,7 +449,6 @@ function createWindRadii(lat, lon, radii) {
   return turf.polygon([coords]);
 }
 
-
 // ================= STATIC =================
 [100,200,400,800].forEach(r=>{
   L.circle(macau,{
@@ -460,6 +469,13 @@ L.polyline(pastPoints.map(p=>[p.lat,p.lon]),{
   color:"#fff",
   weight:2
 }).addTo(map);
+
+const typhoonIcon = L.icon({
+  iconUrl: 'typhoon.png',
+  iconSize: [24, 24],      // size of icon
+  iconAnchor: [12, 12],    // center point
+  popupAnchor: [0, -12]
+});
 
 // ✅ 2. Cone
 const cone = makeCone(forecastPoints, hours, radii);
@@ -497,12 +513,8 @@ forecastPoints.forEach(p => {
 
   const type = getTypeFromWind(p.wind);
 
-  const marker = L.circleMarker([p.lat, p.lon], {
-    radius: 4.5,
-    color: getColor(type),
-    weight: 2,
-    fillColor: getColor(type),
-    fillOpacity: 1
+  let marker = L.marker([p.lat, p.lon], {
+    icon: getIcon(type, 26)
   }).addTo(map);
 
   const popupContent = `
@@ -518,17 +530,18 @@ forecastPoints.forEach(p => {
   marker.bindTooltip(p.time, {
     permanent: true,
     direction: "right",
-    offset: [5, 0],
+    offset: [8, 0],
     className: "time-label"
   });
 
+  // ✅ FIXED hover effect
   marker.on('mouseover', function(){
-    this.setStyle({ radius: 5 });
+    this.setIcon(getIcon(type, 32)); // bigger
     this.openPopup();
   });
 
   marker.on('mouseout', function(){
-    this.setStyle({ radius: 4.5 });
+    this.setIcon(getIcon(type, 26)); // back normal
     this.closePopup();
   });
 
@@ -549,7 +562,7 @@ pastPoints.forEach(p => {
   }).addTo(map);
 
   marker.bindPopup(`
-    <b>過去位置</b><br>
+    <b>實況位置</b><br>
     時間: ${p.time}<br>
     位置: ${p.lat.toFixed(1)}°N, ${p.lon.toFixed(1)}°E<br>
     強度: ${getTypeName(type)} (${type})<br>
