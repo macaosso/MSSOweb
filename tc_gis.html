@@ -135,6 +135,18 @@ body {
   display: none !important;
 }
 
+.macau-marker {
+  width: 10px;
+  height: 10px;
+  background: #ffffff;
+
+  border-radius: 2px;   /* slight rounding */
+  border: 1px solid #000;
+
+  box-shadow: 0 0 4px rgba(255,255,255,0.8);
+}
+
+
 
 /* ================= POPUP ================= */
 .leaflet-popup-content-wrapper {
@@ -314,6 +326,20 @@ L.tileLayer(
 document.getElementById("updateTime").innerHTML =
   "更新時間: " + forecastInfo.updated;
 
+// ================= MACAU MARKER =================
+const macauMarker = L.marker([22.1595, 113.5685], {
+  icon: L.divIcon({
+    className: "macau-marker",
+    iconSize: [12, 12],
+    iconAnchor: [6, 6]
+  })
+}).addTo(map);
+
+macauMarker.bindTooltip("澳門", {
+  permanent: false,
+  direction: "right",
+  offset: [8, 0]
+});
 
 // ================= CONSTANTS =================
 const colors = {
