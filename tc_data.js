@@ -23,8 +23,8 @@ const forecastPoints = [
   {lat:13.4, lon:135.6, time:"05-28 22H", wind: 85},
   {lat:16.0, lon:133.4, time:"05-29 22H", wind: 110},
   {lat:18.9, lon:130.9, time:"05-30 22H", wind: 130},
-  {lat:22.9, lon:130.3, time:"05-31 22H", wind: 165},
-  {lat:27.1, lon:131.2, time:"06-01 22H", wind: 165}
+  {lat:22.9, lon:130.3, time:"05-31 22H", wind: 155},
+  {lat:27.1, lon:131.2, time:"06-01 22H", wind: 140}
 ];
 
 
