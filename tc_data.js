@@ -14,7 +14,7 @@ const pastPoints = [
 const forecastPoints = [
   {lat: 10.4, lon: 136.9, time: "05-27 22H", wind: 65,
    
-    wind41: { ne: 200, se: 220, sw: 160, nw: 120 }, 
+    wind41: { ne: 200, se: 220, sw: 160, nw: 140 }, 
     wind88: { ne: 0, se: 0, sw: 0,  nw: 0 } 
    
   },
