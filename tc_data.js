@@ -1,17 +1,17 @@
 const forecastInfo = {
-  updated: "05-27 15:00 MST"
+  updated: "05-27 22:00 MST"
 };
 
 const pastPoints = [
   {lat:8.1, lon:137.3, time:"05-26 20H", wind: 45},
   {lat:8.5, lon:137.5, time:"05-27 02H", wind: 55},
   {lat:9.1, lon:137.6, time:"05-27 08H", wind: 55},
-  {lat:9.6, lon:137.3, time:"05-27 14H", wind: 65},
-  
+  {lat:9.6, lon:137.5, time:"05-27 14H", wind: 65},
+  {lat:10.2, lon:137.3, time:"05-27 20H", wind: 65},  
 ];
 
 const forecastPoints = [
-  {lat: 9.6, lon: 137.3, time: "05-27 14H", wind: 65,
+  {lat: 10.4, lon: 136.9, time: "05-27 14H", wind: 65,
    
     wind41: { ne: 200, se: 220, sw: 160, nw: 120 }, 
     wind88: { ne: 0, se: 0, sw: 0,  nw: 0 } 
