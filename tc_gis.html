@@ -419,35 +419,26 @@ function createWindRadii(lat, lon, radii) {
   const center = turf.point([lon, lat]);
   let coords = [];
 
-  // build full 360 shape
-  for (let angle = 0; angle <= 360; angle += 1) {
-
-    let r;
-
-    if (angle <= 90) {
-      r = radii.ne;
-    } else if (angle <= 180) {
-      r = radii.se;
-    } else if (angle <= 270) {
-      r = radii.sw;
-    } else {
-      r = radii.nw;
+  function arc(start, end, radius) {
+    for (let angle = start; angle <= end; angle += 2) {
+      const pt = turf.destination(center, radius, angle, {
+        units: "kilometers"
+      });
+      coords.push(pt.geometry.coordinates);
     }
-
-    const pt = turf.destination(center, r, angle, {
-      units: "kilometers"
-    });
-
-    coords.push(pt.geometry.coordinates);
   }
 
-  coords.push(coords[0]); // close polygon
+  // ✅ each quadrant has FIXED radius
+  arc(0, 90, radii.ne);
+  arc(90, 180, radii.se);
+  arc(180, 270, radii.sw);
+  arc(270, 360, radii.nw);
 
-  return turf.simplify(turf.polygon([coords]), {
-    tolerance: 0.0002,
-    highQuality: true
-  });
+  coords.push(coords[0]);
+
+  return turf.polygon([coords]);
 }
+
 
 // ================= STATIC =================
 [100,200,400,800].forEach(r=>{
