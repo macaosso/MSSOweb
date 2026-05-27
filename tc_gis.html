@@ -773,24 +773,34 @@ if (p0.wind88) {
 
 
 // ================= TC INFO =================
-if (typeof tcInfo !== "undefined") {
+if (window.tcInfo && forecastPoints.length > 0) {
 
-  const p1 = forecastPoints[1];
+  const p0 = forecastPoints[0];
+  const p1 = forecastPoints[1] || p0;  // ✅ fallback
 
-  const dist = getDistance(macau[0],macau[1],p0.lat,p0.lon).toFixed(0);
-  const dir = getDirection(macau[0],macau[1],p0.lat,p0.lon);
+  const dist = getDistance(
+    macau[0], macau[1],
+    p0.lat, p0.lon
+  ).toFixed(0);
 
-  const moveDir = getDirection(p0.lat,p0.lon,p1.lat,p1.lon);
-  const speed = getSpeed(p0,p1).toFixed(0);
+  const dir = getDirection(
+    macau[0], macau[1],
+    p0.lat, p0.lon
+  );
+
+  const moveDir = getDirection(
+    p0.lat, p0.lon,
+    p1.lat, p1.lon
+  );
+
+  const speed = getSpeed(p0, p1).toFixed(0);
 
   const type = getTypeFromWind(p0.wind);
 
   document.getElementById("tcInfoBox").innerHTML = `
     <div class="tc-title">${tcInfo.name}</div>
-
     <div class="tc-row">強度: ${getTypeName(type)}</div>
     <div class="tc-row">氣壓: ${tcInfo.pressure} hPa</div>
-
     <div class="tc-row">距離澳門: ${dist} km ${dir}</div>
     <div class="tc-row">移動方向: ${moveDir}</div>
     <div class="tc-row">移動速度: ${speed} km/h</div>
