@@ -417,23 +417,36 @@ function makeCone(points, hours, radii){
 function createWindRadii(lat, lon, radii) {
 
   const center = turf.point([lon, lat]);
+  let coords = [];
 
-  const sectors = [
-    turf.sector(center, radii.ne,   0,  90,  {units:"kilometers"}),
-    turf.sector(center, radii.se,  90, 180, {units:"kilometers"}),
-    turf.sector(center, radii.sw, 180, 270, {units:"kilometers"}),
-    turf.sector(center, radii.nw, 270, 360, {units:"kilometers"})
-  ];
+  // build full 360 shape
+  for (let angle = 0; angle <= 360; angle += 1) {
 
-  let merged = sectors[0];
+    let r;
 
-  for (let i = 1; i < sectors.length; i++) {
-    try {
-      merged = turf.union(merged, sectors[i]);
-    } catch(e){}
+    if (angle <= 90) {
+      r = radii.ne;
+    } else if (angle <= 180) {
+      r = radii.se;
+    } else if (angle <= 270) {
+      r = radii.sw;
+    } else {
+      r = radii.nw;
+    }
+
+    const pt = turf.destination(center, r, angle, {
+      units: "kilometers"
+    });
+
+    coords.push(pt.geometry.coordinates);
   }
 
-  return merged;
+  coords.push(coords[0]); // close polygon
+
+  return turf.simplify(turf.polygon([coords]), {
+    tolerance: 0.0002,
+    highQuality: true
+  });
 }
 
 // ================= STATIC =================
@@ -569,11 +582,11 @@ pastPoints.forEach(p => {
 
 const p0 = forecastPoints[0];
 
-// ✅ Yellow 34kt
-if (p0.wind34) {
-  const poly34 = createWindRadii(p0.lat, p0.lon, p0.wind34);
+// ✅ Yellow 41kt
+if (p0.wind41) {
+  const poly41 = createWindRadii(p0.lat, p0.lon, p0.wind41);
 
-  L.geoJSON(poly34, {
+  L.geoJSON(poly41, {
     style: {
       color: "#FFD700",
       weight: 1.5,
@@ -583,11 +596,11 @@ if (p0.wind34) {
   }).addTo(map);
 }
 
-// ✅ Red 64kt
-if (p0.wind64) {
-  const poly64 = createWindRadii(p0.lat, p0.lon, p0.wind64);
+// ✅ Red 88kt
+if (p0.wind88) {
+  const poly88 = createWindRadii(p0.lat, p0.lon, p0.wind88);
 
-  L.geoJSON(poly64, {
+  L.geoJSON(poly88, {
     style: {
       color: "#FF0000",
       weight: 1.5,
