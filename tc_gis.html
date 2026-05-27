@@ -604,7 +604,7 @@ pastPoints.forEach(p => {
     時間: ${p.time}<br>
     位置: ${p.lat.toFixed(1)}°N, ${p.lon.toFixed(1)}°E<br>
     強度: ${getTypeName(type)} (${type})<br>
-    中心風力: ${p.wind} kph
+    中心風力: ${p.wind} km/h
   `);
 
   marker.on("mouseover", function(){
