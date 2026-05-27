@@ -27,5 +27,10 @@ const forecastPoints = [
   {lat:27.1, lon:131.2, time:"06-01 22H", wind: 140}
 ];
 
+window.tcInfo = {
+  name: "薔薇 (2605)", 
+  wind: 65,
+  pressure: 996
+};
 
  
