@@ -13,8 +13,8 @@ const pastPoints = [
 const forecastPoints = [
   {lat: 9.6, lon: 137.3, time: "05-27 14H", wind: 65,
    
-    wind34: { ne: 250, se: 220, sw: 200, nw: 230 }, 
-    wind64: { ne: 120, se: 100, sw: 90,  nw: 110 } 
+    wind41: { ne: 200, se: 220, sw: 160, nw: 120 }, 
+    wind88: { ne: 0, se: 0, sw: 0,  nw: 0 } 
    
   },
 
