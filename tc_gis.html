@@ -634,12 +634,6 @@ L.polyline(pastPoints.map(p=>[p.lat,p.lon]),{
   weight:2
 }).addTo(map);
 
-const typhoonIcon = L.icon({
-  iconUrl: 'typhoon.png',
-  iconSize: [24, 24],      // size of icon
-  iconAnchor: [12, 12],    // center point
-  popupAnchor: [0, -12]
-});
 
 // ✅ 2. Cone
 const cone = makeCone(forecastPoints, hours, radii);
@@ -651,7 +645,7 @@ const smoothed = turf.simplify(cone,{
 
 const finalCone = smoothed && smoothed.geometry ? smoothed : cone;
 
-L.geoJSON(finalCone,{
+const coneLayer = L.geoJSON(finalCone,{
   style:{
     fillColor:"#d6b85c",
     fillOpacity:0.35,
@@ -659,6 +653,7 @@ L.geoJSON(finalCone,{
     weight:1
   }
 }).addTo(map);
+
 
 // ✅ 3. Forecast track
 const trackLine = L.curve(catmullRom2bezier(forecastPoints),{
@@ -672,7 +667,7 @@ const trackLine = L.curve(catmullRom2bezier(forecastPoints),{
 let forecastMarkers = [];
 let pastMarkers = [];
 
-// forecast
+// forecast markers
 forecastPoints.forEach(p => {
 
   const type = getTypeFromWind(p.wind);
@@ -681,48 +676,45 @@ forecastPoints.forEach(p => {
     icon: getIcon(type, 26)
   }).addTo(map);
 
-  const popupContent = `
+  marker.bindPopup(`
     <b>預報位置</b><br>
     預報時效: ${p.time}<br>
     位置: ${p.lat.toFixed(1)}°N, ${p.lon.toFixed(1)}°E<br>
     強度: ${getTypeName(type)} (${type})<br>
     中心風力: ${p.wind} km/h<br>
-  `;
+  `);
 
-  marker.bindPopup(popupContent);
-
-  marker.bindTooltip(p.time, {
-    permanent: true,
-    direction: "right",
-    offset: [8, 0],
-    className: "time-label"
+  marker.bindTooltip(p.time,{
+    permanent:true,
+    direction:"right",
+    offset:[8,0],
+    className:"time-label"
   });
 
-  // ✅ FIXED hover effect
   marker.on('mouseover', function(){
-    this.setIcon(getIcon(type, 32)); // bigger
+    this.setIcon(getIcon(type,32));
     this.openPopup();
   });
 
   marker.on('mouseout', function(){
-    this.setIcon(getIcon(type, 26)); // back normal
+    this.setIcon(getIcon(type,26));
     this.closePopup();
   });
 
   forecastMarkers.push(marker);
 });
 
-// past
+// past markers
 pastPoints.forEach(p => {
 
   const type = getTypeFromWind(p.wind);
 
-  const marker = L.circleMarker([p.lat, p.lon], {
-    radius: 3,
-    color: getColor(type),
-    weight: 2,
-    fillColor: getColor(type),
-    fillOpacity: 1
+  const marker = L.circleMarker([p.lat,p.lon],{
+    radius:3,
+    color:getColor(type),
+    weight:2,
+    fillColor:getColor(type),
+    fillOpacity:1
   }).addTo(map);
 
   marker.bindPopup(`
@@ -746,108 +738,72 @@ pastPoints.forEach(p => {
   pastMarkers.push(marker);
 });
 
-// ================= WIND RADII (+0H) =================
-const p0 = forecastPoints[0];
-const p1 = forecastPoints[1];
 
-// distance from Macau
-const dist = getDistance(
-  macau[0], macau[1],
-  p0.lat, p0.lon
-).toFixed(0);
-
-// direction from Macau
-const dir = getDirection(
-  macau[0], macau[1],
-  p0.lat, p0.lon
-);
-
-// movement direction
-const moveDir = getDirection(
-  p0.lat, p0.lon,
-  p1.lat, p1.lon
-);
-
-// speed
-const speed = getSpeed(p0, p1).toFixed(0);
-
-// type
-const type = getTypeFromWind(p0.wind);
-
-document.getElementById("tcInfoBox").innerHTML = `
-  <div class="tc-title">${tcInfo.name}</div>
-
-  <div class="tc-row">強度: ${getTypeName(type)}</div>
-  <div class="tc-row">氣壓: ${tcInfo.pressure} hPa</div>
-
-  <div class="tc-row">
-    距離澳門: ${dist} km ${dir}
-  </div>
-
-  <div class="tc-row">
-    移動方向: ${moveDir}
-  </div>
-
-  <div class="tc-row">
-    移動速度: ${speed} km/h
-  </div>
-`;
-
+// ================= WIND RADII =================
 const p0 = forecastPoints[0];
 
-// ✅ Yellow 41kt
 if (p0.wind41) {
   const poly41 = createWindRadii(p0.lat, p0.lon, p0.wind41);
 
-  L.geoJSON(poly41, {
-    style: {
-      color: "#FFD700",
-      weight: 1.5,
-      fillColor: "#FFD700",
-      fillOpacity: 0.18
+  L.geoJSON(poly41,{
+    style:{
+      color:"#FFD700",
+      weight:1.5,
+      fillColor:"#FFD700",
+      fillOpacity:0.18
     }
   }).addTo(map);
 }
 
-// ✅ Red 88kt
 if (p0.wind88) {
   const poly88 = createWindRadii(p0.lat, p0.lon, p0.wind88);
 
-  L.geoJSON(poly88, {
-    style: {
-      color: "#FF0000",
-      weight: 1.5,
-      fillColor: "#FF0000",
-      fillOpacity: 0.20
+  L.geoJSON(poly88,{
+    style:{
+      color:"#FF0000",
+      weight:1.5,
+      fillColor:"#FF0000",
+      fillOpacity:0.20
     }
   }).addTo(map);
 }
 
-// ================= FINAL ORDER =================
 
-// past dots above past line
+// ================= TC INFO =================
+if (typeof tcInfo !== "undefined") {
+
+  const p1 = forecastPoints[1];
+
+  const dist = getDistance(macau[0],macau[1],p0.lat,p0.lon).toFixed(0);
+  const dir = getDirection(macau[0],macau[1],p0.lat,p0.lon);
+
+  const moveDir = getDirection(p0.lat,p0.lon,p1.lat,p1.lon);
+  const speed = getSpeed(p0,p1).toFixed(0);
+
+  const type = getTypeFromWind(p0.wind);
+
+  document.getElementById("tcInfoBox").innerHTML = `
+    <div class="tc-title">${tcInfo.name}</div>
+
+    <div class="tc-row">強度: ${getTypeName(type)}</div>
+    <div class="tc-row">氣壓: ${tcInfo.pressure} hPa</div>
+
+    <div class="tc-row">距離澳門: ${dist} km ${dir}</div>
+    <div class="tc-row">移動方向: ${moveDir}</div>
+    <div class="tc-row">移動速度: ${speed} km/h</div>
+  `;
+}
+
+
+// ================= FINAL ORDER =================
+trackLine.bringToFront();
+forecastMarkers.forEach(m=>m.bringToFront());
 pastMarkers.forEach(m=>m.bringToFront());
 
-// forecast line above past dots
-trackLine.bringToFront();
-
-// forecast dots top
-forecastMarkers.forEach(m=>m.bringToFront());
-
-  // wind below markers
-map.eachLayer(layer => {
-  if (layer.feature && layer.feature.geometry) {
-    layer.bringToBack();
-  }
-});
-
-// keep important layers on top
-trackLine.bringToFront();
-forecastMarkers.forEach(m => m.bringToFront());
 
 // ================= FIT =================
 map.fitBounds([
-  [22.1987,113.5439],
+  macau,
   ...forecastPoints.map(p=>[p.lat,p.lon]),
   ...pastPoints.map(p=>[p.lat,p.lon])
 ]);
