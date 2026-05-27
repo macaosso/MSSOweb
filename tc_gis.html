@@ -608,6 +608,16 @@ trackLine.bringToFront();
 // forecast dots top
 forecastMarkers.forEach(m=>m.bringToFront());
 
+  // wind below markers
+map.eachLayer(layer => {
+  if (layer.feature && layer.feature.geometry) {
+    layer.bringToBack();
+  }
+});
+
+// keep important layers on top
+trackLine.bringToFront();
+forecastMarkers.forEach(m => m.bringToFront());
 
 // ================= FIT =================
 map.fitBounds([
