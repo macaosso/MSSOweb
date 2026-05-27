@@ -28,7 +28,7 @@ const forecastPoints = [
 ];
 
 window.tcInfo = {
-  name: "薔薇 (2605)", 
+  name: "薔薇 (2606)", 
   wind: 65,
   pressure: 996
 };
