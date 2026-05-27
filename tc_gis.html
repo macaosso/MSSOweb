@@ -214,22 +214,24 @@ body {
   background: rgba(255, 59, 48, 0.25);
 }
 .tc-info-box {
-  position: fixed;   /* or fixed (see option below) */
+  position: absolute;
 
-  top: 100px;           /* ✅ move to top */
-  right: 15px;
+  left: 15px;
+  bottom: 70px;   /* ✅ same as 更新時間 */
 
-  width: 220px;
-  background: #000;
+  width: 240px;
+
+  background: rgba(0,0,0,0.6);  /* match style */
   color: #fff;
 
   padding: 10px;
   border-radius: 10px;
+
   font-size: 13px;
 
-  box-shadow: 0 0 10px rgba(0,0,0,0.5);
   z-index: 1000;
 }
+
 
 
 .tc-title {
@@ -681,7 +683,7 @@ forecastPoints.forEach(p => {
 
   marker.bindPopup(`
     <b>預報位置</b><br>
-    預報時效: ${p.time}<br>
+    時間: ${p.time}<br>
     位置: ${p.lat.toFixed(1)}°N, ${p.lon.toFixed(1)}°E<br>
     強度: ${getTypeName(type)} (${type})<br>
     中心風力: ${p.wind} km/h<br>
@@ -775,6 +777,7 @@ if (p0.wind88) {
 // ================= TC INFO =================
 if (window.tcInfo && forecastPoints.length > 0) {
 
+  const p0 = forecastPoints[0];
   const p1 = forecastPoints[1] || p0;  // ✅ fallback
 
   const dist = getDistance(
@@ -798,9 +801,10 @@ if (window.tcInfo && forecastPoints.length > 0) {
 
   document.getElementById("tcInfoBox").innerHTML = `
     <div class="tc-title">${getTypeName(type)} ${tcInfo.name}</div>
+    <div class="tc-row">中心風力: ${tcInfo.wind} km/h</div>
     <div class="tc-row">氣壓: ${tcInfo.pressure} hPa</div>
-    <div class="tc-row">距離澳門: ${dist} km ${dir}</div>
-    <div class="tc-row">移動方向: ${moveDir} ${speed} km/h</div>
+    <div class="tc-row">距離澳門: ${dir} ${dist} km </div>
+    <div class="tc-row">移動方向: ${moveDir}, ${speed} km/h</div>
   `;
 }
 
