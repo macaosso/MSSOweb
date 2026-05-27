@@ -151,6 +151,25 @@ body {
   display: block;
 }
 .nav a:hover { background: #1f4f6d; }
+.wind {
+  display: inline-block;
+  width: 20px;
+  height: 14px;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+/* yellow wind field */
+.wind.yellow {
+  border: 2px solid #FFD700;
+  background: rgba(255, 215, 0, 0.25);
+}
+
+/* red wind field */
+.wind.red {
+  border: 2px solid #FF3B30;
+  background: rgba(255, 59, 48, 0.25);
+}
 /* ================= MOBILE ================= */
 @media (max-width: 768px) {
   .dot {
@@ -216,6 +235,7 @@ body {
     font-size: 12px;
     margin: 10px;
   }
+  
 
 }
   
@@ -262,6 +282,14 @@ body {
   <div><span class="line past"></span> 過去路徑</div>
   <div><span class="line forecast"></span> 預報路徑</div>
   <div><span class="box"></span> 誤差圈</div>
+  <div><span class="wind yellow"></span> 強風圈 </div>
+  <div><span class="wind red"></span> 暴風圈 </div>
+
+<div>
+  <span class="wind red"></span>
+  暴風圈 (88 kt / 118 km/h)
+</div>
+
   <br><b>強度</b><br>
 
   <div><span class="dot" style="background:#DDDFE2"></span> LPA 低壓區</div>
