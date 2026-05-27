@@ -414,6 +414,27 @@ function makeCone(points, hours, radii){
   return merged;
 }
 
+function createWindRadii(lat, lon, radii) {
+
+  const center = turf.point([lon, lat]);
+
+  const sectors = [
+    turf.sector(center, radii.ne,   0,  90,  {units:"kilometers"}),
+    turf.sector(center, radii.se,  90, 180, {units:"kilometers"}),
+    turf.sector(center, radii.sw, 180, 270, {units:"kilometers"}),
+    turf.sector(center, radii.nw, 270, 360, {units:"kilometers"})
+  ];
+
+  let merged = sectors[0];
+
+  for (let i = 1; i < sectors.length; i++) {
+    try {
+      merged = turf.union(merged, sectors[i]);
+    } catch(e){}
+  }
+
+  return merged;
+}
 
 // ================= STATIC =================
 [100,200,400,800].forEach(r=>{
@@ -544,6 +565,37 @@ pastPoints.forEach(p => {
   pastMarkers.push(marker);
 });
 
+// ================= WIND RADII (+0H) =================
+
+const p0 = forecastPoints[0];
+
+// ✅ Yellow 34kt
+if (p0.wind34) {
+  const poly34 = createWindRadii(p0.lat, p0.lon, p0.wind34);
+
+  L.geoJSON(poly34, {
+    style: {
+      color: "#FFD700",
+      weight: 1.5,
+      fillColor: "#FFD700",
+      fillOpacity: 0.18
+    }
+  }).addTo(map);
+}
+
+// ✅ Red 64kt
+if (p0.wind64) {
+  const poly64 = createWindRadii(p0.lat, p0.lon, p0.wind64);
+
+  L.geoJSON(poly64, {
+    style: {
+      color: "#FF0000",
+      weight: 1.5,
+      fillColor: "#FF0000",
+      fillOpacity: 0.20
+    }
+  }).addTo(map);
+}
 
 // ================= FINAL ORDER =================
 
