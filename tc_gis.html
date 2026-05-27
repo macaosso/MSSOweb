@@ -799,7 +799,7 @@ if (window.tcInfo && forecastPoints.length > 0) {
   document.getElementById("tcInfoBox").innerHTML = `
     <div class="tc-title">${getTypeName(type)} ${tcInfo.name}</div>
     <div class="tc-row">氣壓: ${tcInfo.pressure} hPa</div>
-    <div class="tc-row">距離澳門: ${dir} ${dist} km </div>
+    <div class="tc-row">距離澳門: ${dist} km ${dir}</div>
     <div class="tc-row">移動方向: ${moveDir} ${speed} km/h</div>
   `;
 }
