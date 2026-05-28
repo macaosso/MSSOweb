@@ -486,7 +486,18 @@ body {
   } 
 
 }
-  
+.country-label {
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+
+  white-space: nowrap;   /* ✅ KEY FIX */
+  display: inline-block; /* ✅ prevent stretch */
+
+  text-shadow: 0 0 4px rgba(0,0,0,0.8);
+  pointer-events: none;
+}
+ 
 </style>
 
 </head>
@@ -836,6 +847,21 @@ function makeSplitCone(points, hours, radii){
     second: cone2
   };
 }
+function addCountryLabel(name, lat, lon) {
+  L.marker([lat, lon], {
+    icon: L.divIcon({
+      className: 'country-label',
+      html: name,
+      iconSize: [0, 0]
+    })
+  }).addTo(map);
+}
+addCountryLabel("澳門", 22.1595, 113.5685);
+addCountryLabel("日本", 35.6895, 139.6917);
+addCountryLabel("南韓", 37.567, 126.967);
+addCountryLabel("菲律賓", 13, 122);
+addCountryLabel("越南", 16, 107);
+addCountryLabel("台灣", 25.033, 121.507);
 
 function createWindRadii(lat, lon, radii) {
 
