@@ -10,12 +10,13 @@ const pastPoints = [
   {lat:10.2, lon:137.3, time:"05-27 20H", wind: 55},
   {lat:11.3, lon:136.5, time: "05-28 02H", wind: 55},
   {lat:12.4, lon:135.9, time: "05-28 08H", wind: 65},  
-  {lat:13.5, lon:135.4, time: "05-28 14H", wind: 65},  
+  {lat:13.5, lon:135.4, time: "05-28 14H", wind: 65},
+  {lat:13.9, lon:135.4, time: "05-28 17H", wind: 65},
   
 ];
 
 const forecastPoints = [
-  {lat:13.5, lon:135.4, time: "05-28 14H", wind: 65,
+  {lat:13.9, lon:135.4, time: "05-28 17H", wind: 65,
    
     wind41: { ne: 220, se: 240, sw: 160, nw: 180 }, 
     wind88: { ne: 0, se: 0, sw: 0,  nw: 0 } 
