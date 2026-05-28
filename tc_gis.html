@@ -49,7 +49,7 @@ body {
   z-index: 1000;
   right: 15px;
   bottom: 15px;
-  width: 220px;
+  width: 180px;
   opacity: 0.9;
 
   background: #000;
@@ -167,6 +167,7 @@ body {
 .menu-container {
   position: relative;
   z-index: 3000;
+  margin-left: auto;
 }
 
 /* ✅ hamburger */
@@ -333,7 +334,27 @@ body {
 .tc-row {
   margin-bottom: 4px;
 }
+@media (max-width: 768px) {
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;  /* ✅ left + right layout */
 
+    padding: 10px 15px;
+    height: auto;
+  }
+
+  .title {
+    font-size: 16px;
+    margin-left: 8px;
+    flex: 1;   /* ✅ take space */
+  }
+
+  .logo {
+    height: 28px;
+    margin-right: 8px;
+  }
+}
 /* ================= MOBILE ================= */
 @media (max-width: 768px) {
   .dot {
@@ -352,6 +373,7 @@ body {
     flex-direction: column;
     align-items: flex-start;
     padding: 15px;
+    height: 80px;
   }
 
   .logo {
@@ -431,7 +453,7 @@ body {
 
   bottom: 20px;              /* ✅ float above bottom */
 
-  width: 180px;              /* ✅ box width */
+  width: 200px;              /* ✅ box width */
   max-width: 90vw;           /* ✅ responsive on phone */
   max-height: 150px;
 
@@ -471,7 +493,7 @@ body {
 
 <body>
   <div id="updateTime" style="
-  position:fixed;
+  position:absolute;
   left:15px;
   bottom:15px;
   color:white;
