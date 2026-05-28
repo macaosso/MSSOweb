@@ -8,18 +8,63 @@
   <style>
     body { margin: 0; font-family: Arial, sans-serif; }
 
-    .header { background: #1f3a4d; color: white; padding: 15px 20px; display:flex; align-items:center; }
+    .header {
+      background: #1f3a4d;
+      color: white;
+      padding: 15px 20px;
+      display:flex;
+      align-items:center;
+    }
+
     .title { font-size: 24px; font-weight: bold; margin-left:10px; }
     .logo { height:40px; }
 
-    .nav { background: #2d6c94; display: flex; } 
+    /* ✅ MENU SYSTEM */
+    .menu-container {
+      position: relative;
+      z-index: 3000;
+    }
+
+    .menu-toggle {
+      display: none;
+      font-size: 26px;
+      padding: 10px 15px;
+      cursor: pointer;
+      background: #2d6c94;
+      color: white;
+    }
+
+    .nav {
+      background: #2d6c94;
+      display: flex;
+    }
+
     .nav a {
       color: white;
       padding: 15px 20px;
       text-decoration: none;
       display: block;
     }
+
     .nav a:hover { background: #1f4f6d; }
+
+    /* ✅ MOBILE FIX */
+    @media (max-width: 768px) {
+
+      .menu-toggle {
+        display: block;
+      }
+
+      .nav {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .nav.active {
+        display: flex;   /* ✅ KEY */
+      }
+    }
 
     /* Warning boxes */
     .box {
@@ -30,14 +75,6 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     }
 
-    .header-orange {
-      background: #f39c12;
-      color: white;
-      padding: 15px;
-      font-size: 20px;
-      font-weight: bold;
-    }
-
     .header-red {
       background: #e1665c;
       color: white;
@@ -46,44 +83,10 @@
       font-weight: bold;
     }
 
-    .content-yellow {
-      background: #fff4cc;
-      padding: 20px;
-      color: #333;
-    }
-
     .content-red {
       background: #f5d7d6;
       padding: 20px;
       color: #333;
-    }
-
-    /* ✅ Forecast boxes */
-    .forecast-container {
-      display: flex;
-      margin: 20px;
-      gap: 10px;
-    }
-
-    .forecast-box {
-      flex: 1;
-      background: #d9e6e6;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .forecast-title {
-      background: #4fa6a6;
-      color: white;
-      padding: 15px;
-      text-align: center;
-      font-size: 20px;
-      font-weight: bold;
-    }
-
-    .forecast-content {
-      padding: 20px;
-      line-height: 1.6;
     }
 
   </style>
@@ -95,14 +98,17 @@
   <img src="icons/MSSO.png" class="logo">
   <div class="title">澳門民間氣象台 MSSO</div>
 </div>
-<!-- 🟠 NEW alertips box  <a href="https://macaosso.github.io/MSSOweb/weather.html">天氣資訊n</a>  -->
-<div class="nav">
-  <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a
-  <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊//</a> 
-  <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
-</div>
 
-<!-- ✅ Forecast Section -->
+<!-- ✅ MENU WRAPPER -->
+<div class="menu-container">
+  <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+
+  <div class="nav" id="navMenu">
+    <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
+    <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
+    <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+  </div>
+</div>
 
 <!-- 🔴 tc.txt -->
 <div id="tcBox" class="box">
@@ -112,7 +118,16 @@
 
 <script>
 
-// ✅ Warning boxes
+// ✅ MENU TOGGLE
+function toggleMenu() {
+  const nav = document.getElementById("navMenu");
+  const btn = document.querySelector(".menu-toggle");
+
+  nav.classList.toggle("active");
+  btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
+}
+
+// ✅ Load box
 function loadBox(file, boxId, contentId) {
   fetch(file)
     .then(res => res.text())
@@ -129,7 +144,6 @@ function loadBox(file, boxId, contentId) {
 }
 
 loadBox("tc.txt", "tcBox", "tcContent");
-
 
 </script>
 
