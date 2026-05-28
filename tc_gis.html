@@ -153,8 +153,8 @@ body {
   display: inline-block;
   width: 18px;
   height: 18px;
-  background: #766A49;
-  border: 1px solid rgb(255, 214, 80);
+  background: #bbbbbb;
+  border: 1px solid rgb(255, 255, 255);
 
   margin-right: 6px;
   vertical-align: middle;
@@ -309,7 +309,7 @@ body {
   left: 15px;
   bottom: 70px;   /* ✅ same as 更新時間 */
 
-  width: 240px;
+  width: 180px;
 
   background: rgba(0,0,0,0.6);  /* match style */
   color: #fff;
@@ -487,8 +487,7 @@ body {
   
 <div class="header">
   <img src="MSSO.png" class="logo">
-  <div class="title">澳門民間氣象台 MSSO</div>
-  <div class="navbar">熱帶氣旋路徑預測</div>
+  <div class="title">MSSO 熱帶氣旋路徑預測</div>
   
 <!-- 🟠 NEW alertips box  <a href="https://macaosso.github.io/MSSOweb/weather.html">天氣資訊</ a>  -->
   <div class="menu-container">
@@ -508,22 +507,22 @@ body {
 <div id="map"></div>
 
 <div class="legend">
-  <b style="font-size:16px;">圖例</b><br><br>
+  <b style="font-size:14px;">圖例</b><br>
 
   <div class="legend-grid">
 
-    <div><span class="line past"></span> 過去路徑</div>
-    <div><span class="box"></span> 誤差圈</div>
+    <div><span class="line past"></span> <b style="font-size:12px;">過去路徑</b></div>
+    <div><span class="box"></span> <b style="font-size:12px;">誤差圈</b></div>
 
-    <div><span class="line forecast"></span> 預報路徑</div>
-    <div><span class="wind yellow"></span> 強風圈</div>
+    <div><span class="line forecast"></span> <b style="font-size:12px;">預報路徑</b></div>
+    <div><span class="wind yellow"></span> <b style="font-size:12px;">強風圈</b></div>
 
-    <div><span class="macau-legend"></span> 澳門</div>
-    <div><span class="wind red"></span> 暴風圈</div>
+    <div><span class="macau-legend"></span> <b style="font-size:12px;">  澳門</b></div>
+    <div><span class="wind red"></span> <b style="font-size:12px;">暴風圈</b></div>
 
   </div>
 
-  <br><b style="font-size:16px;">強度</b><br><br>
+  <br><b style="font-size:16px;">強度</b><br>
 
   <div><span class="dot" style="background:#DDDFE2"></span> LPA 低壓區</div>
   <div><span class="dot" style="background:#6DD8FA"></span> TD 熱帶低氣壓</div>
@@ -537,7 +536,8 @@ body {
 <script>
 
 // ================= MAP =================
-const map = L.map('map').setView([20,120],5);
+const p0 = forecastPoints[0];
+const map = L.map('map').setView([p0.lat, p0.lon], 4);
 
 L.tileLayer(
   'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
@@ -989,8 +989,6 @@ pastPoints.forEach(p => {
 
 
 // ================= WIND RADII =================
-const p0 = forecastPoints[0];
-
 if (p0.wind41) {
   const poly41 = createWindRadii(p0.lat, p0.lon, p0.wind41);
 
@@ -1023,7 +1021,6 @@ if (p0.wind88) {
 // ================= TC INFO =================
 if (window.tcInfo && forecastPoints.length > 0) {
 
-  const p0 = forecastPoints[0];
   const p1 = forecastPoints[1] || p0;  // ✅ fallback
 
   const dist = getDistance(
