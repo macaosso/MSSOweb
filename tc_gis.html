@@ -907,10 +907,12 @@ forecastPoints.forEach(p => {
 
   const type = getTypeFromWind(p.wind);
 
+  // ✅ create marker
   let marker = L.marker([p.lat, p.lon], {
     icon: getIcon(type, isMobile ? 30 : 22)
   }).addTo(map);
 
+  // ✅ popup
   marker.bindPopup(`
     <b>預報位置</b><br>
     時間: ${p.time}<br>
@@ -919,36 +921,45 @@ forecastPoints.forEach(p => {
     中心風力: ${p.wind} km/h<br>
   `);
 
-  marker.bindTooltip(p.time,{
-    permanent:true,
-    direction:"right",
-    offset:[8,0],
-    className:"time-label"
+  // ✅ time label
+  marker.bindTooltip(p.time, {
+    permanent: true,
+    direction: "right",
+    offset: [8, 0],
+    className: "time-label"
   });
 
-  // ✅ ✅ DESKTOP
-    marker.on('mouseover', function(){
+  // ================= DESKTOP =================
+  if (!isMobile) {
+
+    marker.on('mouseover', function () {
       this.setIcon(getIcon(type, 32));
       this.openPopup();
     });
 
-    marker.on('mouseout', function(){
+    marker.on('mouseout', function () {
       this.setIcon(getIcon(type, 22));
     });
 
-  // ✅ ✅ MOBILE
-  if (!isMobile) {
-    marker.on('click', function(){
-      this.setIcon(getIcon(type, 40));  // bigger when tapped
+  }
+
+  // ================= MOBILE =================
+  else {
+
+    marker.on('click', function () {
+      this.setIcon(getIcon(type, 40));   // ✅ enlarge
       this.openPopup();
     });
 
-    marker.on('popupclose', function(){
-      this.setIcon(getIcon(type, 30));  // back to normal
+    marker.on('popupclose', function () {
+      this.setIcon(getIcon(type, 30));   // ✅ restore
     });
+
   }
 
+  // ✅ store marker
   forecastMarkers.push(marker);
+
 });
 
 
