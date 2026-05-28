@@ -453,9 +453,9 @@ body {
 
   bottom: 20px;              /* ✅ float above bottom */
 
-  width: 160px;              /* ✅ box width */
+  width: 200px;              /* ✅ box width */
   max-width: 90vw;           /* ✅ responsive on phone */
-  max-height: 160px;
+  max-height: 150px;
 
   overflow-y: auto;
   overflow-x: hidden;
@@ -936,7 +936,7 @@ forecastPoints.forEach(p => {
 
   // ✅ create marker
   let marker = L.marker([p.lat, p.lon], {
-    icon: getIcon(type, isMobile ? 30 : 22)
+    icon: getIcon(type, isMobile ? 24 : 22)
   }).addTo(map);
 
   // ✅ popup
@@ -974,12 +974,12 @@ forecastPoints.forEach(p => {
   else {
 
     marker.on('click', function () {
-      this.setIcon(getIcon(type, 40));   // ✅ enlarge
+      this.setIcon(getIcon(type, 30));   // ✅ enlarge
       this.openPopup();
     });
 
     marker.on('popupclose', function () {
-      this.setIcon(getIcon(type, 30));   // ✅ restore
+      this.setIcon(getIcon(type, 24));   // ✅ restore
     });
 
   }
@@ -997,7 +997,7 @@ pastPoints.forEach(p => {
   const isMobile = window.innerWidth <= 768;
   const marker = L.circleMarker([p.lat,p.lon],{
     radius:3,
-    radius: isMobile ? 5 : 3,
+    radius: isMobile ? 3.5 : 3,
     color:getColor(type),
     weight:2,
     fillColor:getColor(type),
@@ -1013,12 +1013,12 @@ pastPoints.forEach(p => {
   `);
 
   marker.on("mouseover", function(){
-    this.setStyle({radius:6});
+    this.setStyle({radius:5.5});
     this.openPopup();
   });
 
   marker.on("mouseout", function(){
-    this.setStyle({radius:5});
+    this.setStyle({radius:3.5});
     this.closePopup();
   });
 
