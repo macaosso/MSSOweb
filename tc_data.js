@@ -9,26 +9,27 @@ const pastPoints = [
   {lat:9.6, lon:137.5, time:"05-27 14H", wind: 50},
   {lat:10.2, lon:137.3, time:"05-27 20H", wind: 55},
   {lat:11.3, lon:136.5, time: "05-28 02H", wind: 55},
-  {lat:12.4, lon:135.9, time: "05-28 08H", wind: 65},  
-  {lat:13.5, lon:135.4, time: "05-28 14H", wind: 65},
-  {lat:13.9, lon:135.4, time: "05-28 17H", wind: 75},
+  {lat:12.4, lon:136.3, time: "05-28 08H", wind: 65},  
+  {lat:13.5, lon:136.0, time: "05-28 14H", wind: 65},
+  {lat:13.8, lon:135.5, time: "05-28 20H", wind: 75},  
+  {lat:14.1, lon:134.9, time: "05-29 00H", wind: 75},  
   
 ];
 
 const forecastPoints = [
-  {lat:13.9, lon:135.4, time: "05-28 17H", wind: 75,
+  {lat:14.1, lon:134.9, time: "05-29 00H", wind: 75,
    
     wind41: { ne: 220, se: 240, sw: 160, nw: 180 }, 
     wind88: { ne: 0, se: 0, sw: 0,  nw: 0 } 
    
   },
 
-  {lat:14.5, lon:134.8, time:"05-29 05H", wind: 85},
-  {lat:15.6, lon:133.3, time:"05-29 17H", wind: 105},
-  {lat:18.1, lon:130.5, time:"05-30 17H", wind: 130},
-  {lat:21.8, lon:129.1, time:"05-31 17H", wind: 155},
-  {lat:26.0, lon:129.2, time:"06-01 17H", wind: 155},
-  {lat:31.3, lon:134.0, time:"06-02 17H", wind: 120}
+  {lat:15.9, lon:133.0, time:"05-29 12H", wind: 85},
+  {lat:16.7, lon:131.2, time:"05-30 00H", wind: 105},
+  {lat:19.4, lon:128.5, time:"05-31 00H", wind: 155},
+  {lat:23.2, lon:127.7, time:"06-01 00H", wind: 155},
+  {lat:28.0, lon:129.1, time:"06-02 00H", wind: 120},
+  {lat:33.3, lon:136.0, time:"06-03 00H", wind: 120},
 ];
 
 window.tcInfo = {
