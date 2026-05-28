@@ -26,10 +26,10 @@ const forecastPoints = [
 
   {lat:15.9, lon:133.0, time:"05-29 12H", wind: 85},
   {lat:16.7, lon:131.2, time:"05-30 00H", wind: 105},
-  {lat:19.4, lon:128.5, time:"05-31 00H", wind: 155},
-  {lat:23.2, lon:127.7, time:"06-01 00H", wind: 155},
-  {lat:28.0, lon:129.1, time:"06-02 00H", wind: 120},
-  {lat:33.3, lon:136.0, time:"06-03 00H", wind: 120},
+  {lat:19.4, lon:128.5, time:"05-31 00H", wind: 145},
+  {lat:23.2, lon:127.7, time:"06-01 00H", wind: 175},
+  {lat:28.0, lon:129.1, time:"06-02 00H", wind: 155},
+  {lat:33.3, lon:136.0, time:"06-03 00H", wind: 130},
 ];
 
 window.tcInfo = {
