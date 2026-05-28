@@ -1,5 +1,5 @@
 const forecastInfo = {
-  updated: "05-28 17:00 MST"
+  updated: "05-29 00:00 MST"
 };
 
 const pastPoints = [
