@@ -16,7 +16,11 @@
 /* ================= BASE ================= */
 body {
   margin: 0;
-  font-family: Segoe UI;
+  font-family: 
+    -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto,
+    "Noto Sans", "Helvetica Neue",
+    Arial, sans-serif;
 }
 
 #map {
@@ -708,7 +712,7 @@ L.polyline(pastPoints.map(p=>[p.lat,p.lon]),{
 
 // ✅ 2. Cone
 const cones = makeSplitCone(forecastPoints, hours, radii);
-
+const isMobile = window.innerWidth <= 768;
 // ================= CONE PART 1 (<=72h) =================
 if (cones.first) {
   L.geoJSON(cones.first, {
@@ -755,7 +759,7 @@ forecastPoints.forEach(p => {
   const type = getTypeFromWind(p.wind);
   const iconSize = window.innerWidth <= 768 ? 36 : 26;
   let marker = L.marker([p.lat, p.lon], {
-    icon: getIcon(type, iconSize)
+    icon: getIcon(type, isMobile ? 40 : 26)
   }).addTo(map);
 
   marker.bindPopup(`
@@ -774,7 +778,7 @@ forecastPoints.forEach(p => {
   });
 
   marker.on('mouseover', function(){
-    this.setIcon(getIcon(type, isMobile ? 42 : 32));
+    this.setIcon(getIcon(type, isMobile ? 46 : 32));
     this.openPopup();
   });
 
