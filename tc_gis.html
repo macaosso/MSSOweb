@@ -387,6 +387,14 @@ L.tileLayer(
   'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
 ).addTo(map);
 
+map.createPane('conePane');
+map.getPane('conePane').style.zIndex = 300;
+
+map.createPane('wind41Pane');
+map.getPane('wind41Pane').style.zIndex = 350;
+
+map.createPane('wind88Pane');
+map.getPane('wind88Pane').style.zIndex = 360;
 
 // ================= UI =================
 document.getElementById("updateTime").innerHTML =
@@ -606,6 +614,7 @@ function createWindRadii(lat, lon, radii) {
     }
   }
 
+  
   // ✅ each quadrant has FIXED radius
   arc(0, 90, radii.ne);
   arc(90, 180, radii.se);
@@ -617,6 +626,7 @@ function createWindRadii(lat, lon, radii) {
   return turf.polygon([coords]);
 }
 
+  
 // ================= STATIC =================
 [100,200,400,800].forEach(r=>{
   L.circle(macau,{
@@ -650,6 +660,7 @@ const smoothed = turf.simplify(cone,{
 const finalCone = smoothed && smoothed.geometry ? smoothed : cone;
 
 const coneLayer = L.geoJSON(finalCone,{
+  pane: 'conePane',
   style:{
     fillColor:"#d6b85c",
     fillOpacity:0.35,
@@ -750,6 +761,7 @@ if (p0.wind41) {
   const poly41 = createWindRadii(p0.lat, p0.lon, p0.wind41);
 
   L.geoJSON(poly41,{
+    pane: 'wind41Pane',   // ✅ BACK
     style:{
       color:"#FFD700",
       weight:1.5,
@@ -763,6 +775,7 @@ if (p0.wind88) {
   const poly88 = createWindRadii(p0.lat, p0.lon, p0.wind88);
 
   L.geoJSON(poly88,{
+    pane: 'wind88Pane',   // ✅ ABOVE
     style:{
       color:"#FF0000",
       weight:1.5,
