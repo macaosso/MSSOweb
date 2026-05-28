@@ -599,7 +599,7 @@ function toggleMenu() {
 }
 
 
-function getIcon(type, size = 26) {
+function getIcon(type, size = 16) {
   return L.icon({
     iconUrl: `TC logo/${type}.png`,
     iconSize: [size, size],
@@ -908,7 +908,7 @@ forecastPoints.forEach(p => {
   const type = getTypeFromWind(p.wind);
 
   let marker = L.marker([p.lat, p.lon], {
-    icon: getIcon(type, isMobile ? 48 : 26)
+    icon: getIcon(type, isMobile ? 30 : 22)
   }).addTo(map);
 
   marker.bindPopup(`
@@ -927,26 +927,24 @@ forecastPoints.forEach(p => {
   });
 
   // ✅ ✅ DESKTOP
-  if (!isMobile) {
     marker.on('mouseover', function(){
       this.setIcon(getIcon(type, 32));
       this.openPopup();
     });
 
     marker.on('mouseout', function(){
-      this.setIcon(getIcon(type, 26));
+      this.setIcon(getIcon(type, 22));
     });
-  }
 
   // ✅ ✅ MOBILE
-  else {
+  if (!isMobile) {
     marker.on('click', function(){
-      this.setIcon(getIcon(type, 56));  // bigger when tapped
+      this.setIcon(getIcon(type, 40));  // bigger when tapped
       this.openPopup();
     });
 
     marker.on('popupclose', function(){
-      this.setIcon(getIcon(type, 48));  // back to normal
+      this.setIcon(getIcon(type, 30));  // back to normal
     });
   }
 
@@ -961,7 +959,7 @@ pastPoints.forEach(p => {
   const isMobile = window.innerWidth <= 768;
   const marker = L.circleMarker([p.lat,p.lon],{
     radius:3,
-    radius: isMobile ? 6 : 3,
+    radius: isMobile ? 5 : 3,
     color:getColor(type),
     weight:2,
     fillColor:getColor(type),
@@ -977,12 +975,12 @@ pastPoints.forEach(p => {
   `);
 
   marker.on("mouseover", function(){
-    this.setStyle({radius:4});
+    this.setStyle({radius:6});
     this.openPopup();
   });
 
   marker.on("mouseout", function(){
-    this.setStyle({radius:3});
+    this.setStyle({radius:5});
     this.closePopup();
   });
 
