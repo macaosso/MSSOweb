@@ -571,7 +571,17 @@ body {
 
 // ================= MAP =================
 const p0 = forecastPoints[0];
-const map = L.map('map').setView([p0.lat, p0.lon], 4);
+const isMobile = window.innerWidth <= 768;
+
+let center;
+
+if (isMobile) {
+  center = [p0.lat, p0.lon];    // ✅ mobile → storm
+} else {
+  center = [26, 127.3];         // ✅ desktop → fixed area
+}
+
+const map = L.map('map').setView(center, 5);
 
 L.tileLayer(
   'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
