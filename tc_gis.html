@@ -71,12 +71,6 @@ body {
   display: flex;
   align-items: center;
 }
-
-@media (max-width: 500px) {
-  .legend-grid {
-    grid-template-columns: 1fr;
-  }
-}
 /* ================= SYMBOLS ================= */
 
 /* circle marker preview */
@@ -273,16 +267,17 @@ body {
   }
 
   /* navigation */
-  .nav {
-    flex-wrap: wrap;
-  }
 
   .nav a {
-    flex: 1 1 50%;   /* 2 per row */
-    text-align: center;
-    padding: 12px;
-    font-size: 13px;
+    padding: 14px;
+    font-size: 14px;
   }
+
+  .dot {
+    width: 18px;
+    height: 18px;
+  }
+
 
   /* content boxes */
   .box,
@@ -309,8 +304,32 @@ body {
     margin: 10px;
   }
   
+  .legend-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 8px;
+  }
+
+  .legend {
+    width: auto;              /* ✅ flexible width */
+    max-width: 85vw;          /* ✅ limit width */
+    
+    font-size: 12px;          /* ✅ smaller text */
+    padding: 10px;
+
+    bottom: 10px;
+    right: 10px;
+
+    border-radius: 10px;
+  }
+
+  /* make legend scroll if too tall */
+  .legend {
+    max-height: 40vh;
+    overflow-y: auto;
+  }
 
 }
+
   
 </style>
 
@@ -580,24 +599,72 @@ function catmullRom2bezier(points){
   return path;
 }
 
-function makeCone(points, hours, radii){
-  const smoothPts = smoothPointsWithTime(points, hours, 20);
-  let merged = null;
+function makeSplitCone(points, hours, radii){
 
-  for(let p of smoothPts){
+  const smoothPts = smoothPointsWithTime(points, hours, 20);
+
+  let segment1 = []; // <=72h
+  let segment2 = []; // >72h
+
+  for (let p of smoothPts){
+
     const r = getRadius(p.hour, hours, radii);
 
     const circle = turf.buffer(
       turf.point([p.lon, p.lat]),
       r,
-      {units:"kilometers", steps:256}
+      {units: "kilometers", steps: 256}
     );
 
-    if(!merged) merged = circle;
-    else { try { merged = turf.union(merged, circle); } catch(e){} }
+    if (p.hour <= 80) {
+      segment1.push(circle);
+    } else {
+      segment2.push(circle);
+    }
   }
 
-  return merged;
+  // ✅ Union each segment
+  let cone1 = null;
+  let cone2 = null;
+
+  segment1.forEach(c => {
+    cone1 = cone1 ? turf.union(cone1, c) : c;
+  });
+
+  segment2.forEach(c => {
+    cone2 = cone2 ? turf.union(cone2, c) : c;
+  });
+
+  // ✅ Find 72h circle
+  let p72 = smoothPts.reduce((a,b)=>
+    Math.abs(a.hour-72) < Math.abs(b.hour-72) ? a : b
+  );
+
+  const r72 = getRadius(p72.hour, hours, radii);
+
+  const circle72 = turf.buffer(
+    turf.point([p72.lon, p72.lat]),
+    r72,
+    {units:"kilometers"}
+  );
+
+  // ✅ Remove overlap (same as Python logic)
+  if (cone2) {
+    try {
+      cone2 = turf.difference(cone2, circle72);
+    } catch(e){}
+  }
+
+  if (cone1 && cone2) {
+    try {
+      cone2 = turf.difference(cone2, cone1);
+    } catch(e){}
+  }
+
+  return {
+    first: cone1,
+    second: cone2
+  };
 }
 
 function createWindRadii(lat, lon, radii) {
@@ -650,25 +717,35 @@ L.polyline(pastPoints.map(p=>[p.lat,p.lon]),{
 
 
 // ✅ 2. Cone
-const cone = makeCone(forecastPoints, hours, radii);
+const cones = makeSplitCone(forecastPoints, hours, radii);
 
-const smoothed = turf.simplify(cone,{
-  tolerance:0.0005,
-  highQuality:true
-});
+// ================= CONE PART 1 (<=72h) =================
+if (cones.first) {
+  L.geoJSON(cones.first, {
+    pane: 'conePane',
+    style: {
+      fillColor: "#ffffff",
+      fillOpacity: 0.3,
+      color: "#d6b85c",
+      weight: 1,
+      stroke: false
+    }
+  }).addTo(map);
+}
 
-const finalCone = smoothed && smoothed.geometry ? smoothed : cone;
-
-const coneLayer = L.geoJSON(finalCone,{
-  pane: 'conePane',
-  style:{
-    fillColor:"#d6b85c",
-    fillOpacity:0.35,
-    color:"#d6b85c",
-    weight:1
-  }
-}).addTo(map);
-
+// ================= CONE PART 2 (>72h) =================
+if (cones.second) {
+  L.geoJSON(cones.second, {
+    pane: 'conePane',
+    style: {
+      fillColor: "#ffffff",
+      fillOpacity: 0.15,  // ✅ lighter
+      color: "#d6b85c",
+      weight: 1,
+      stroke: false
+    }
+  }).addTo(map);
+}
 
 // ✅ 3. Forecast track
 const trackLine = L.curve(catmullRom2bezier(forecastPoints),{
@@ -686,9 +763,9 @@ let pastMarkers = [];
 forecastPoints.forEach(p => {
 
   const type = getTypeFromWind(p.wind);
-
+  const iconSize = window.innerWidth <= 768 ? 36 : 26;
   let marker = L.marker([p.lat, p.lon], {
-    icon: getIcon(type, 26)
+    icon: getIcon(type, iconSize)
   }).addTo(map);
 
   marker.bindPopup(`
@@ -707,12 +784,12 @@ forecastPoints.forEach(p => {
   });
 
   marker.on('mouseover', function(){
-    this.setIcon(getIcon(type,32));
+    this.setIcon(getIcon(type, isMobile ? 42 : 32));
     this.openPopup();
   });
 
   marker.on('mouseout', function(){
-    this.setIcon(getIcon(type,26));
+    this.setIcon(getIcon(type, iconSize));
     this.closePopup();
   });
 
@@ -723,9 +800,10 @@ forecastPoints.forEach(p => {
 pastPoints.forEach(p => {
 
   const type = getTypeFromWind(p.wind);
-
+  const isMobile = window.innerWidth <= 768;
   const marker = L.circleMarker([p.lat,p.lon],{
     radius:3,
+    radius: isMobile ? 6 : 3,
     color:getColor(type),
     weight:2,
     fillColor:getColor(type),
