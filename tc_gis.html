@@ -445,6 +445,20 @@ const macau = [22.1595, 113.5685];
 
 
 // ================= UTILITIES =================
+function updateMarkerSize() {
+  const zoom = map.getZoom();
+  const size = isMobile
+    ? Math.max(40, zoom * 3.5)   // ✅ dynamic for phone
+    : Math.max(26, zoom * 2.5);
+
+  forecastMarkers.forEach((m, i) => {
+    const type = getTypeFromWind(forecastPoints[i].wind);
+    m.setIcon(getIcon(type, size));
+  });
+}
+
+map.on('zoomend', updateMarkerSize);
+updateMarkerSize();
 function getIcon(type, size = 26) {
   return L.icon({
     iconUrl: `TC logo/${type}.png`,
