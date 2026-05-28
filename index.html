@@ -49,6 +49,37 @@
       font-size: 16px;
       color: #555;
     }
+    .menu-toggle {
+      display: none;
+      font-size: 26px;
+      padding: 10px 15px;
+      cursor: pointer;
+      background: #2d6c94;
+      color: white;
+    }
+    @media (max-width: 768px) {
+
+      .menu-toggle {
+        display: block;   /* ✅ show button */
+      }
+
+      .nav {
+        display: none;    /* ✅ hide menu initially */
+        flex-direction: column;
+        width: 100%;
+        background: #2d6c94;
+      }
+      .nav {
+      transition: all 0.3s ease;
+      }
+
+      .nav a {
+        width: 100%;
+        padding: 12px 15px;
+        border-top: 1px solid rgba(255,255,255,0.2);
+      }
+
+    }
 
   </style>
 </head>
@@ -62,13 +93,18 @@
   
 <!-- 🟠 NEW alertips box  <a href="https://macaosso.github.io/MSSOweb/weather.html">天氣資訊</ a>  -->
   
-<div class="nav">
-  <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
-  <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
-  <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋距離計算工具</a> 
-  <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑地圖</a>  
-  <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
-  <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+  <div class="menu-container">
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+
+    <div class="nav" id="navMenu">
+      <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
+      <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
+      <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋距離計算工具</a> 
+      <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑地圖</a>  
+      <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
+      <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+    </div>
+  </div>
 </div>
 
 <div id="alertBox" class="box">
@@ -112,6 +148,15 @@
 <div id="forecastTime" class="forecast-time"></div>
 
 <script>
+function toggleMenu() {
+  const nav = document.getElementById("navMenu");
+  const btn = document.querySelector(".menu-toggle");
+
+  nav.classList.toggle("active");
+
+  // change icon ☰ ↔ ✕
+  btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
+}
 function loadBox(file, boxId, contentId) {
   fetch(file)
     .then(res => res.text())
