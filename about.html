@@ -9,17 +9,27 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#1E88E5',
-                        secondary: '#E3F2FD',
-                    },
-                }
+        const btn = document.getElementById('mobileMenuBtn');
+        const menu = document.getElementById('mobileMenu');
+        const icon = document.getElementById('menuIcon');
+
+        btn.addEventListener('click', function() {
+            menu.classList.toggle('hidden');
+
+    // ✅ change icon
+            if (menu.classList.contains('hidden')) {
+                icon.className = "fa fa-bars text-xl";
+            } else {
+                icon.className = "fa fa-times text-xl"; // ✕
             }
-        }
-    </script>
+        });
+        document.querySelectorAll('#mobileMenu a').forEach(link => {
+            link.addEventListener('click', () => {
+                menu.classList.add('hidden');
+                icon.className = "fa fa-bars text-xl";
+            });
+        });
+        </script>
     
     <style type="text/tailwindcss">
         @layer utilities {
