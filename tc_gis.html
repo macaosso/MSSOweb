@@ -45,6 +45,7 @@ body {
   right: 15px;
   bottom: 15px;
   width: 220px;
+  opacity: 0.9;
 
   background: #000;
   color: #fff;
@@ -308,26 +309,15 @@ body {
     grid-template-columns: 1fr 1fr;
     gap: 4px 8px;
   }
-
+  
   .legend {
-    width: auto;              /* ✅ flexible width */
-    max-width: 85vw;          /* ✅ limit width */
-    
-    font-size: 12px;          /* ✅ smaller text */
-    padding: 10px;
+    font-size: 14px;
 
-    bottom: 10px;
-    right: 10px;
-
-    border-radius: 10px;
-  }
-
-  /* make legend scroll if too tall */
-  .legend {
-    max-height: 40vh;
+    max-height: 40vh;      /* ✅ scroll like app */
     overflow-y: auto;
-  }
 
+    padding: 14px;
+  }
 }
 
   
@@ -358,6 +348,15 @@ body {
 </div>
   
 <!-- 🟠 NEW alertips box  <a href="https://macaosso.github.io/MSSOweb/weather.html">天氣資訊</ a>  -->
+  
+<div class="nav">
+  <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
+  <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
+  <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋距離計算工具</a> 
+  <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑地圖</a>  
+  <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
+  <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+</div>
   
 <div id="map"></div>
 
