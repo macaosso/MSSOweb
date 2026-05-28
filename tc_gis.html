@@ -925,7 +925,6 @@ L.polyline(pastPoints.map(p=>[p.lat,p.lon]),{
 
 // ✅ 2. Cone
 const cones = makeSplitCone(forecastPoints, hours, radii);
-const isMobile = window.innerWidth <= 768;
 // ================= CONE PART 1 (<=72h) =================
 if (cones.first) {
   L.geoJSON(cones.first, {
