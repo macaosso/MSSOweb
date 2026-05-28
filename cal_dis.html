@@ -233,7 +233,7 @@ function calculate() {
   const b = bearing(macauLat, macauLon, lat, lon);
 
   document.getElementById("result").innerText =
-    `Distance: ${dist.toFixed(2)} km\nDirection: ${compass(b)} (${b.toFixed(1)}°)`;
+    `距離澳門: ${compass(b)} ${dist.toFixed(0)} km `;
 
   const minLat = Math.min(macauLat, lat);
   const maxLat = Math.max(macauLat, lat);
