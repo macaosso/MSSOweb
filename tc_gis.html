@@ -818,8 +818,9 @@ let pastMarkers = [];
 forecastPoints.forEach(p => {
 
   const type = getTypeFromWind(p.wind);
+
   let marker = L.marker([p.lat, p.lon], {
-    icon: getIcon(type, isMobile ? 48 : 26)   // ✅ bigger base
+    icon: getIcon(type, isMobile ? 48 : 26)
   }).addTo(map);
 
   marker.bindPopup(`
@@ -837,28 +838,43 @@ forecastPoints.forEach(p => {
     className:"time-label"
   });
 
-  marker.on('mouseover', function(){
-    this.setIcon(getIcon(type, isMobile ? 46 : 32));
-    this.openPopup();
-  });
+  // ✅ ✅ DESKTOP
+  if (!isMobile) {
+    marker.on('mouseover', function(){
+      this.setIcon(getIcon(type, 32));
+      this.openPopup();
+    });
 
-  marker.on('mouseout', function(){
-    this.setIcon(getIcon(type, isMobile ? 48 : 26));
-  });
+    marker.on('mouseout', function(){
+      this.setIcon(getIcon(type, 26));
+    });
+  }
+
+  // ✅ ✅ MOBILE
+  else {
+    marker.on('click', function(){
+      this.setIcon(getIcon(type, 56));  // bigger when tapped
+      this.openPopup();
+    });
+
+    marker.on('popupclose', function(){
+      this.setIcon(getIcon(type, 48));  // back to normal
+    });
+  }
 
   forecastMarkers.push(marker);
 });
+
 
 // past markers
 pastPoints.forEach(p => {
 
   const type = getTypeFromWind(p.wind);
-  const isMobile = window.innerWidth <= 768;
+
   const marker = L.circleMarker([p.lat,p.lon],{
-    radius:3,
-    radius: isMobile ? 6 : 3,
+    radius: isMobile ? 9 : 3,
     color:getColor(type),
-    weight:2,
+    weight:isMobile ? 3 : 2,
     fillColor:getColor(type),
     fillOpacity:1
   }).addTo(map);
@@ -871,15 +887,29 @@ pastPoints.forEach(p => {
     中心風力: ${p.wind} km/h
   `);
 
-  marker.on("mouseover", function(){
-    this.setStyle({radius:4});
-    this.openPopup();
-  });
+  // ✅ DESKTOP hover
+  if (!isMobile) {
+    marker.on('mouseover', function(){
+      this.setStyle({radius:5});
+      this.openPopup();
+    });
 
-  marker.on("mouseout", function(){
-    this.setStyle({radius:3});
-    this.closePopup();
-  });
+    marker.on('mouseout', function(){
+      this.setStyle({radius:3});
+    });
+  }
+
+  // ✅ MOBILE tap
+  else {
+    marker.on('click', function(){
+      this.setStyle({radius:11});  // bigger tap feedback
+      this.openPopup();
+    });
+
+    marker.on('popupclose', function(){
+      this.setStyle({radius:9});
+    });
+  }
 
   pastMarkers.push(marker);
 });
