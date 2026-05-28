@@ -11,7 +11,7 @@ const pastPoints = [
   {lat:11.3, lon:136.5, time: "05-28 02H", wind: 55},
   {lat:12.4, lon:135.9, time: "05-28 08H", wind: 65},  
   {lat:13.5, lon:135.4, time: "05-28 14H", wind: 65},
-  {lat:13.9, lon:135.4, time: "05-28 17H", wind: 65},
+  {lat:13.9, lon:135.4, time: "05-28 17H", wind: 75},
   
 ];
 
@@ -33,8 +33,8 @@ const forecastPoints = [
 
 window.tcInfo = {
   name: "薔薇 (2606)", 
-  wind: 65,
-  pressure: 996
+  wind: 75,
+  pressure: 994
 };
 
  
