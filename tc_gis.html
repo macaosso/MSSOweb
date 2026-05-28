@@ -660,23 +660,27 @@ function makeSplitCone(points, hours, radii){
 
   let segment1 = []; // <=72h
   let segment2 = []; // >72h
+  const splitIndex = 4;
+  const segments = 20;
+  const splitSmoothIndex = splitIndex * segments;
 
-  for (let p of smoothPts){
+  smoothPts.forEach((p, i) => {
 
-    const r = getRadius(p.hour, hours, radii);
+  const r = getRadius(p.hour, hours, radii);
 
-    const circle = turf.buffer(
-      turf.point([p.lon, p.lat]),
-      r,
-      {units: "kilometers", steps: 256}
-    );
+  const circle = turf.buffer(
+    turf.point([p.lon, p.lat]),
+    r,
+    { units: "kilometers", steps: 256 }
+  );
 
-    if (p.hour <= 80) {
-      segment1.push(circle);
-    } else {
-      segment2.push(circle);
-    }
+  if (i <= splitSmoothIndex) {
+    segment1.push(circle);
+  } else {
+    segment2.push(circle);
   }
+
+});
 
   // ✅ Union each segment
   let cone1 = null;
@@ -691,25 +695,16 @@ function makeSplitCone(points, hours, radii){
   });
 
   // ✅ Find 72h circle
-  let p72 = smoothPts.reduce((a,b)=>
-    Math.abs(a.hour-72) < Math.abs(b.hour-72) ? a : b
-  );
-
-  const r72 = getRadius(p72.hour, hours, radii);
+  // ✅ use actual forecast 72h point
+  const p72_base = forecastPoints[4];
 
   const circle72 = turf.buffer(
-    turf.point([p72.lon, p72.lat]),
-    r72,
-    {units:"kilometers"}
+    turf.point([p72_base.lon, p72_base.lat]),
+    radii[4],   // ✅ same radius index
+    { units: "kilometers" }
   );
 
   // ✅ Remove overlap (same as Python logic)
-  if (cone2) {
-    try {
-      cone2 = turf.difference(cone2, circle72);
-    } catch(e){}
-  }
-
   if (cone1 && cone2) {
     try {
       cone2 = turf.difference(cone2, cone1);
@@ -870,11 +865,12 @@ forecastPoints.forEach(p => {
 pastPoints.forEach(p => {
 
   const type = getTypeFromWind(p.wind);
-
+  const isMobile = window.innerWidth <= 768;
   const marker = L.circleMarker([p.lat,p.lon],{
-    radius: isMobile ? 9 : 3,
+    radius:3,
+    radius: isMobile ? 6 : 3,
     color:getColor(type),
-    weight:isMobile ? 3 : 2,
+    weight:2,
     fillColor:getColor(type),
     fillOpacity:1
   }).addTo(map);
@@ -887,29 +883,15 @@ pastPoints.forEach(p => {
     中心風力: ${p.wind} km/h
   `);
 
-  // ✅ DESKTOP hover
-  if (!isMobile) {
-    marker.on('mouseover', function(){
-      this.setStyle({radius:5});
-      this.openPopup();
-    });
+  marker.on("mouseover", function(){
+    this.setStyle({radius:4});
+    this.openPopup();
+  });
 
-    marker.on('mouseout', function(){
-      this.setStyle({radius:3});
-    });
-  }
-
-  // ✅ MOBILE tap
-  else {
-    marker.on('click', function(){
-      this.setStyle({radius:11});  // bigger tap feedback
-      this.openPopup();
-    });
-
-    marker.on('popupclose', function(){
-      this.setStyle({radius:9});
-    });
-  }
+  marker.on("mouseout", function(){
+    this.setStyle({radius:3});
+    this.closePopup();
+  });
 
   pastMarkers.push(marker);
 });
