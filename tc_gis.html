@@ -708,7 +708,14 @@ function getTypeName(type) {
     "Ex": "溫帶氣旋"
   }[type] || type;
 }
+
 function getTypeFromWind(wind) {
+  // If "-" is detected, return "Ex"
+  if (wind === "-" || wind == null) return "Ex";
+
+  // Ensure numeric comparison
+  wind = Number(wind);
+
   if (wind <= 40) return "LPA";
   else if (wind <= 60) return "TD";
   else if (wind <= 87) return "TS";
