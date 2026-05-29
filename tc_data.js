@@ -1,3 +1,14 @@
+const tcWarnings = [
+  {
+    icon: "warn_icon/t4.jpg",
+    text: "受超強颱風影響，八號風球現正生效。預料將維持至晚間。（2025-09-23 18:00更新）"
+  },
+  {
+    icon: "warn_icon/s1.jpg",
+    text: "紅色風暴潮警告已發出。低窪地區可能出現水浸，最高水位約1.5至2.5米。"
+  }
+];
+
 const forecastInfo = {
   updated: "05-29 14:00 MST"
 };
