@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/png" href="icons/MSSO.png">
+  
   <title>澳門民間氣象台-首頁</title>
 
   <style>
@@ -205,45 +206,14 @@
 </div>
 
 <div class="warning-card">
-
-  <!-- Header -->
   <div class="warning-header">
     熱帶氣旋相關警告
-    <a href="https://macaosso.github.io/MSSOweb/tc_gis.html" class="tc-btn">  查看路徑</a>
+    <a href="https://macaosso.github.io/MSSOweb/tc_gis.html" class="tc-btn">查看路徑</a>
   </div>
 
-  <!-- Content 1 -->
-  <div class="warning-item">
-
-    <div class="icon-box">
-      <img src="warn_icon/t4.jpg" class="icon-box img">
-    </div>
-
-    <div class="text-box">
-      受超強颱風影響，八號風球現正生效。
-      預料將維持至晚間。
-      （2025-09-23 18:00更新）
-    </div>
-  </div>
-
-  <div class="divider"></div>
-
-  <!-- Content 2 -->
-  <div class="warning-item">
-
-    <div class="icon-box">
-      <img src="warn_icon/s1.jpg" class="icon-box img">
-    </div>
-
-    <div class="text-box">
-      紅色風暴潮警告已發出。
-      低窪地區可能出現水浸，
-      最高水位約1.5至2.5米。
-    </div>
-
-  </div>
-
+  <div id="warningContent"></div>
 </div>
+
 <div id="alertBox" class="box">
   <div class="header-orange">預警提示</div>
   <div id="alertContent" class="content-yellow"></div>
@@ -332,6 +302,29 @@ fetch("weatherforecast.txt")
     document.getElementById("tomorrowText").innerHTML = (parts[2] || "").replace(/\n/g, "<br>");
   })
   .catch(() => console.log("Cannot load weatherforecast.txt"));
+
+<script src="tcdata.js"></script>
+
+<script>
+const container = document.getElementById("warningContent");
+
+tcWarnings.forEach((item, index) => {
+  const html = `
+    <div class="warning-item">
+      <div class="icon-box">
+        <img src="${item.iconlass="text-box">${item.text}</div>
+    </div>
+  `;
+
+  container.innerHTML += html;
+
+  // add divider except last
+  if (index < tcWarnings.length - 1) {
+    container.innerHTML += `<div class="divider"></div>`;
+  }
+});
+</script>
+
 </script>
 
 </body>
