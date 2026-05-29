@@ -3,178 +3,257 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Macau Live Weather</title>
+    <title>Macau Multi-Station Weather Grid</title>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #74b9ff, #0984e3);
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
+            background-color: #f0f3f7;
+            color: #2c3e50;
+            padding: 20px;
         }
-        .weather-card {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-            width: 350px;
-            text-align: center;
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
         }
-        .header {
-            font-size: 1.2rem;
-            color: #666;
-            margin-bottom: 10px;
-        }
-        .temp-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            margin: 15px 0;
-        }
-        .temperature {
-            font-size: 3.5rem;
-            font-weight: bold;
-            color: #2d3436;
-        }
-        .weather-icon {
-            width: 60px;
-            height: 60px;
-        }
-        .status-badge {
-            display: inline-block;
-            background: #ff7675;
+        header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
             color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: bold;
-            margin-bottom: 20px;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
-        .details {
+        header h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+        }
+        .meta-info {
+            text-align: right;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        /* Auto-responsive grid: items scale and pack themselves tightly */
+        .station-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .station-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            border-top: 4px solid #3498db;
+        }
+        .station-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        .station-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #ecf0f1;
+            padding-bottom: 8px;
+        }
+        .temp-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .current-temp {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        .temp-range {
+            font-size: 0.9rem;
+            text-align: right;
+        }
+        .high-temp { color: #e74c3c; font-weight: 600; }
+        .low-temp { color: #34495e; font-weight: 600; }
+        
+        .metrics-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            text-align: left;
-            border-top: 1px solid #eee;
-            padding-top: 15px;
+            gap: 12px;
+            font-size: 0.9rem;
         }
-        .detail-item span {
+        .metric {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+        .metric span {
             display: block;
-            color: #777;
-            font-size: 0.85rem;
-        }
-        .detail-item strong {
-            font-size: 1.1rem;
-            color: #2d3436;
-        }
-        .footer {
-            margin-top: 20px;
+            color: #7f8c8d;
             font-size: 0.75rem;
-            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 2px;
         }
-        .error-message {
-            color: #d63031;
-            font-weight: bold;
+        .metric strong {
+            color: #2c3e50;
+        }
+        .rain-active {
+            background: #e8f4fd;
+            border: 1px solid #bcdffb;
+        }
+        .rain-active strong {
+            color: #2980b9;
+        }
+        .loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 5px;
+            font-size: 1.2rem;
+            color: #7f8c8d;
         }
     </style>
 </head>
 <body>
 
-<div class="weather-card">
-    <div class="header">Macau Actual Weather</div>
-    
-    <div class="temp-container">
-        <img id="weather-icon" class="weather-icon" src="" alt="Weather Icon" style="display:none;">
-        <div class="temperature"><span id="temp">--</span>°C</div>
-    </div>
+<div class="container">
+    <header>
+        <div>
+            <h1>Macau Automatic Air Weather Stations</h1>
+            <small style="color: #2ecc71;">● Live Monitoring Grid</small>
+        </div>
+        <div class="meta-info">
+            <div>Data Update: <span id="pub-date">Loading...</span></div>
+            <div>Refreshes automatically every 5 minutes</div>
+        </div>
+    </header>
 
-    <div id="feels-like-container">
-        <span id="feels-like" class="status-badge">--</span>
-    </div>
-
-    <div class="details">
-        <div class="detail-item">
-            <span>Humidity</span>
-            <strong id="humidity">--</strong>%
-        </div>
-        <div class="detail-item">
-            <span>Wind Direction</span>
-            <strong id="wind-dir">--</strong>
-        </div>
-        <div class="detail-item">
-            <span>Wind Speed</span>
-            <strong id="wind-speed">--</strong> km/h
-        </div>
-        <div class="detail-item">
-            <span>Wind Scale</span>
-            <strong id="wind-desc">--</strong>
-        </div>
-    </div>
-
-    <div class="footer">
-        System Pub Stage: <span id="pub-date">--</span><br>
-        <small style="color: #00b894;">Auto-refreshing every 5 minutes</small>
+    <!-- Stations will build dynamically right inside here -->
+    <div id="grid-container" class="station-grid">
+        <div class="loading">Fetching regional data nodes...</div>
     </div>
 </div>
 
 <script>
-    // URL of the XML data
-    const xmlUrl = 'https://corsproxy.io/?https://xml.smg.gov.mo/c_actual_brief.xml';
-    
-    // If you run into CORS issues during local testing, you can temporarily use a CORS proxy:
-    // const xmlUrl = 'https://cors-anywhere.herokuapp.com/https://xml.smg.gov.mo/c_actual_brief.xml';
+    // GitHub friendly Proxy mapping directly to the expanded station XML
+    const xmlUrl = 'https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml';
 
-    function fetchWeatherData() {
+    function fetchGridData() {
         fetch(xmlUrl)
             .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
+                if (!response.ok) throw new Error('Network error pulling XML map.');
                 return response.text();
             })
-            .then(str => {
-                // Parse the string into an XML DOM object
+            .then(xmlString => {
                 const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(str, "text/xml");
+                const xmlDoc = parser.parseFromString(xmlString, "text/xml");
 
-                // Extract data using query selectors matching the XML tags
-                const temp = xmlDoc.querySelector("Temperature Value").textContent;
-                const humidity = xmlDoc.querySelector("Humidity Value").textContent;
-                const windSpeed = xmlDoc.querySelector("WindSpeed Value").textContent;
-                const windSpeedDesc = xmlDoc.querySelector("WindSpeedDescription").textContent;
-                const windDirDesc = xmlDoc.querySelector("WindDescription").textContent;
-                const feelsLike = xmlDoc.querySelector("FeelsLikeDescription").textContent;
-                const pubDate = xmlDoc.querySelector("SysPubdate").textContent;
-                const iconURL = xmlDoc.querySelector("IconURL").textContent;
+                // Get system update time
+                const pubDateNode = xmlDoc.querySelector("SysPubdate");
+                if (pubDateNode) {
+                    document.getElementById('pub-date').textContent = pubDateNode.textContent;
+                }
 
-                // Update the HTML elements with the extracted data
-                document.getElementById('temp').textContent = temp;
-                document.getElementById('humidity').textContent = humidity;
-                document.getElementById('wind-speed').textContent = windSpeed;
-                document.getElementById('wind-desc').textContent = windSpeedDesc;
-                document.getElementById('wind-dir').textContent = windDirDesc;
-                document.getElementById('feels-like').textContent = feelsLike;
-                document.getElementById('pub-date').textContent = pubDate;
-                
-                const iconImg = document.getElementById('weather-icon');
-                iconImg.src = iconURL;
-                iconImg.style.display = 'block';
+                // Grab every single distinct station node
+                const stations = xmlDoc.querySelectorAll("station");
+                const gridContainer = document.getElementById('grid-container');
+                gridContainer.innerHTML = ''; // Wipe out existing layouts / loaders
+
+                stations.forEach(station => {
+                    const name = station.querySelector("stationname")?.textContent || "Unnamed Node";
+                    
+                    // Helper function to extract inner dValue strings safely
+                    const extractNodeValue = (selector) => {
+                        const parent = station.querySelector(selector);
+                        if (!parent) return '--';
+                        // dValue offers high accuracy float decimals (e.g. 26.2), fallback to regular Value
+                        return parent.querySelector("dValue")?.textContent || parent.querySelector("Value")?.textContent || '--';
+                    };
+
+                    const currentTemp = extractNodeValue("Temperature");
+                    const maxTemp = extractNodeValue("Temperature_daily_max");
+                    const minTemp = extractNodeValue("Temperature_daily_min");
+                    const humidity = extractNodeValue("Humidity");
+                    const windSpeed = extractNodeValue("WindSpeed");
+                    const windGust = extractNodeValue("WindGust");
+                    
+                    // Wind directions contain readable Chinese text (e.g. 東南偏東)
+                    const windDir = station.querySelector("WindDirection WindDescription")?.textContent || 
+                                    station.querySelector("WindDirection Value")?.textContent || '--';
+
+                    // Parse the multiple nested Rainfall elements matching types (3 = 1hr, 4/5 = daily accumulated)
+                    let rain1h = "0.0";
+                    let rainAccum = "0.0";
+                    const rainfallNodes = station.querySelectorAll("Rainfall");
+                    
+                    rainfallNodes.forEach(node => {
+                        const type = node.querySelector("Type")?.textContent;
+                        const val = node.querySelector("dValue")?.textContent || node.querySelector("Value")?.textContent || "0.0";
+                        if (type === "3") rain1h = val;
+                        if (type === "4" || type === "5") rainAccum = val;
+                    });
+
+                    // Styling trick: change color slightly if it is currently raining at this station node
+                    const rainClass = parseFloat(rain1h) > 0 ? 'rain-active' : '';
+
+                    // Construct the dynamic card template HTML
+                    const cardHtml = `
+                        <div class="station-card">
+                            <div class="station-name">${name}</div>
+                            <div class="temp-row">
+                                <div class="current-temp">${currentTemp}°C</div>
+                                <div class="temp-range">
+                                    <div>Max: <span class="high-temp">${maxTemp}°C</span></div>
+                                    <div>Min: <span class="low-temp">${minTemp}°C</span></div>
+                                </div>
+                            </div>
+                            <div class="metrics-grid">
+                                <div class="metric">
+                                    <span>Humidity</span>
+                                    <strong>${humidity}%</strong>
+                                </div>
+                                <div class="metric">
+                                    <span>Wind Vector</span>
+                                    <strong>${windDir}</strong>
+                                </div>
+                                <div class="metric">
+                                    <span>Wind Speed / Gust</span>
+                                    <strong>${windSpeed} / ${windGust} <small>km/h</small></strong>
+                                </div>
+                                <div class="metric ${rainClass}">
+                                    <span>Rain (1hr / Today)</span>
+                                    <strong>${rain1h} / ${rainAccum} <small>mm</small></strong>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    gridContainer.innerHTML += cardHtml;
+                });
             })
-            .catch(error => {
-                console.error('Error fetching or parsing XML:', error);
-                document.getElementById('feels-like').innerHTML = '<span class="error-message">Failed to load data</span>';
+            .catch(err => {
+                console.error("Grid loop failure:", err);
+                document.getElementById('grid-container').innerHTML = `
+                    <div class="loading" style="color: #e74c3c;">
+                        Failed loading weather grid array. Check browser CORS proxy status.
+                    </div>`;
             });
     }
 
-    // Run the function immediately when the page loads
-    fetchWeatherData();
+    // Initialize layout immediately
+    fetchGridData();
 
-    // Auto-refresh the data every 5 minutes (300,000 milliseconds)
-    // Weather data rarely changes faster than this, preventing spam to the server.
-    setInterval(fetchWeatherData, 300000); 
+    // Auto update grid space parameters every 5 mins
+    setInterval(fetchGridData, 300000);
 </script>
 
 </body>
