@@ -2,69 +2,121 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<title>Macau Weather Stations Map</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<title>Macau Real-time Weather Map</title>
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-#map { width: 100%; height: 500px; }
+body { font-family: Arial, sans-serif; margin: 15px; }
+#map { width: 100%; height: 600px; margin-top: 10px; }
+.info-bar { margin-bottom: 10px; font-size: 16px; }
 </style>
 </head>
 <body>
-<h2>澳門實時氣象站地圖</h2>
+<h2>Macau Weather Station Map</h2>
+<div class="info-bar">Last Update: <span id="updateTime">Loading...</span></div>
 <div id="map"></div>
 
+<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// 1. Init map centered on Macau
-const map = L.map('map').setView([22.19, 113.55], 13);
+// Config
+const XML_URL = "https://xml.smg.gov.mo/c_actualweather.xml";
+const REFRESH_INTERVAL = 300 * 1000; // Refresh every 5 minutes
+const CORS_PROXY = "https://api.allorigins.win/raw?url=";
 
-// 2. Add base map
+// Macau weather stations: Name -> Lat, Lng
+const stationCoords = {
+  "大炮台": [22.1933, 113.5533],
+  "黑沙環": [22.2058, 113.5644],
+  "外港": [22.1983, 113.5583],
+  "媽閣": [22.1817, 113.5417],
+  "大潭山": [22.1567, 113.5667],
+  "路環市區": [22.1333, 113.5733],
+  "九澳": [22.1122, 113.5822],
+  "氹仔": [22.1500, 113.5700]
+};
+
+// Init Map
+const map = L.map('map').setView([22.17, 113.56], 12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-// 3. Your weather stations (name, lat, lng, temp)
-const stations = [
-  { name: '大炮台', lat: 22.1933, lng: 113.5533, temp: 28.4 },
-  { name: '黑沙環', lat: 22.2058, lng: 113.5644, temp: 29.3 },
-  { name: '外港', lat: 22.1983, lng: 113.5583, temp: 28.8 },
-  { name: '媽閣', lat: 22.1817, lng: 113.5417, temp: 29.3 },
-  { name: '大潭山', lat: 22.1567, lng: 113.5667, temp: 27.4 },
-  { name: '路環市區', lat: 22.1333, lng: 113.5733, temp: 28.9 },
-];
+let markerList = [];
 
-const XML_URL = "https://xml.smg.gov.mo/c_actualweather.xml";
-
-async function updateMap() {
-  const res = await fetch("https://api.allorigins.win/raw?url="+encodeURIComponent(XML_URL));
-  const text = await res.text();
-  const parser = new DOMParser();
-  const xml = parser.parseFromString(text, "application/xml");
-
-  // Read temp for each station and update map markers
-  // Match your station list and update popup/color
+// Get marker color by temperature
+function getMarkerColor(temp) {
+  const t = parseFloat(temp);
+  if (t >= 30) return "#e53935";    // Red - Hot
+  if (t >= 28) return "#ff9800";    // Orange - Warm
+  if (t >= 25) return "#42a5f5";   // Blue - Normal
+  return "#26a69a";                // Teal - Cool
 }
 
-// Run now + every 5 min
-updateMap();
-setInterval(updateMap, 300 * 1000);
-  
-// 4. Add markers with temp color
-stations.forEach(s => {
-  // Color by temperature
-  let color = '#5cadff';
-  if (s.temp >= 29) color = '#ff6b6b';
-  else if (s.temp >= 28) color = '#ffce54';
+// Clear old markers
+function clearMarkers() {
+  markerList.forEach(marker => map.removeLayer(marker));
+  markerList = [];
+}
 
-  L.circleMarker([s.lat, s.lng], {
-    radius: 10,
-    fillColor: color,
-    color: '#fff',
-    weight: 2,
-    fillOpacity: 0.9
-  })
-  .addTo(map)
-  .bindPopup(`<b>${s.name}</b><br>氣溫: ${s.temp}°C`);
-});
+// Fetch XML & Render Map
+async function loadWeatherData() {
+  try {
+    const res = await fetch(CORS_PROXY + encodeURIComponent(XML_URL));
+    const xmlText = await res.text();
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlText, "application/xml");
+
+    // Update publish time
+    const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent || new Date().toLocaleString();
+    document.getElementById("updateTime").textContent = pubTime;
+
+    clearMarkers();
+
+    // Traverse all weather reports
+    const reports = xmlDoc.querySelectorAll("WeatherReport");
+    reports.forEach(report => {
+      const stationName = report.querySelector("stationname")?.textContent?.trim();
+      const temp = report.querySelector("Temperature > Value")?.textContent || "--";
+      const humidity = report.querySelector("Humidity > Value")?.textContent || "--";
+      const wind = report.querySelector("WindSpeed > Value")?.textContent || "--";
+      const windDir = report.querySelector("WindDirection > WindDescription")?.textContent || "--";
+
+      // Match coordinates
+      if (!stationCoords[stationName]) return;
+      const [lat, lng] = stationCoords[stationName];
+      const color = getMarkerColor(temp);
+
+      // Create circle marker
+      const marker = L.circleMarker([lat, lng], {
+        radius: 12,
+        fillColor: color,
+        color: "#ffffff",
+        weight: 2,
+        fillOpacity: 0.85
+      }).addTo(map);
+
+      // Popup detail
+      const popupContent = `
+        <strong>${stationName}</strong><br>
+        Temperature: ${temp} °C<br>
+        Humidity: ${humidity} %<br>
+        Wind Speed: ${wind} km/h<br>
+        Wind Direction: ${windDir}
+      `;
+      marker.bindPopup(popupContent);
+      markerList.push(marker);
+    });
+
+  } catch (err) {
+    console.error("Load data failed:", err);
+    document.getElementById("updateTime").textContent = "Data load failed";
+  }
+}
+
+// First load + auto refresh
+loadWeatherData();
+setInterval(loadWeatherData, REFRESH_INTERVAL);
 </script>
 </body>
 </html>
