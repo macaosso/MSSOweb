@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>澳門各區天氣實況 - GIS互動地圖</title>
-    <!-- Leaflet Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -96,34 +95,40 @@
             height: 650px;
             border-radius: 8px;
         }
-        /* Legend Panel */
-        .legend-panel {
+        /* --- Smaller, Always-Visible Legend --- */
+        .map-legend {
             position: absolute;
-            bottom: 20px;
-            right: 20px;
+            bottom: 15px;
+            right: 15px;
             background: rgba(255,255,255,0.95);
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            font-size: 0.85rem;
-            max-width: 200px;
-            display: none;
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 1000;
+            min-width: 120px;
         }
-        .legend-panel h4 {
-            margin-bottom: 8px;
-            font-size: 0.95rem;
-            color: #2c3e50;
+        .map-legend h4 {
+            margin: 0 0 5px 0;
+            font-size: 0.8rem;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 3px;
+        }
+        .legend-items {
+            max-height: 180px;
+            overflow-y: auto;
         }
         .legend-item {
             display: flex;
             align-items: center;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
         .legend-color {
-            width: 20px;
-            height: 20px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
-            margin-right: 8px;
+            margin-right: 5px;
         }
         /* Station Cards */
         .station-grid {
@@ -225,7 +230,7 @@
         </div>
     </header>
 
-    <!-- All Split Map Tabs (Reordered: humidity moved to 4th) -->
+    <!-- All Split Map Tabs -->
     <div class="tab-wrapper">
         <div class="tab-buttons">
             <button class="tab-btn active" data-type="tempCurrent">即時氣溫</button>
@@ -246,8 +251,11 @@
     <div class="main-layout">
         <div class="map-card">
             <div id="macau-map"></div>
-            <!-- Legend Panel -->
-            <div id="legend-panel" class="legend-panel"></div>
+            <!-- Smaller, Always-Visible Legend -->
+            <div id="map-legend" class="map-legend">
+                <h4>圖例</h4>
+                <div id="legend-content" class="legend-items"></div>
+            </div>
         </div>
         <div id="grid-container" class="station-grid">
             <div class="loading">正在擷取區域數據...</div>
@@ -256,7 +264,7 @@
 </div>
 
 <script>
-// All stations + bridges coordinates
+// All stations + bridges coordinates (UPDATED)
 const allPoints = {
     // Weather Stations
     "紀念孫中山市政公園": { code: "DP", lat: 22.215322, lng: 113.543490 },
@@ -269,17 +277,17 @@ const allPoints = {
     "九澳": { code: "KV", lat: 22.134686, lng: 113.580143 },
     "澳門大學": { code: "UM", lat: 22.131808, lng: 113.546970 },
     "路環市區": { code: "DC", lat: 22.117091, lng: 113.551041 },
-    // Bridges (Updated names + new bridge added)
+    // Bridges (UPDATED coordinates)
     "西灣大橋": { code: "PV", lat: 22.173240, lng: 113.535416 },
-    "友誼大橋北": { code: "PN", lat: 22.196000, lng: 113.567000 },
-    "友誼大橋南": { code: "PS", lat: 22.174000, lng: 113.568000 },
-    "嘉樂庇總督大橋": { code: "PG", lat: 22.179000, lng: 113.546000 },
+    "友誼大橋北": { code: "PN", lat: 22.191167, lng: 113.563219 },
+    "友誼大橋南": { code: "PS", lat: 22.180189, lng: 113.563299 },
+    "嘉樂庇總督大橋": { code: "PG", lat: 22.180057, lng: 113.545435 },
     "澳門大橋北": { code: "MN", lat: 22.186985, lng: 113.573231 },
     "澳門大橋南": { code: "MS", lat: 22.173484, lng: 113.573047 },
     "蓮花大橋": { code: "LH", lat: 22.139934, lng: 113.549094 }
 };
 
-// Temperature color mapping (from your legend)
+// Temperature color mapping
 function getTempColor(tempStr) {
     const temp = parseFloat(tempStr);
     if (isNaN(temp)) return "#3498db";
@@ -293,7 +301,7 @@ function getTempColor(tempStr) {
     return "#5c48a1";                     // 嚴寒 (<=7.0)
 }
 
-// Wind/Gust color mapping (from your legend)
+// Wind/Gust color mapping
 function getWindColor(windStr) {
     const wind = parseFloat(windStr);
     if (isNaN(wind)) return "#3498db";
@@ -304,7 +312,7 @@ function getWindColor(windStr) {
     return "#64b5e7";                     // 清勁或以下
 }
 
-// 1h Rainfall color mapping (from your legend)
+// 1h Rainfall color mapping
 function getRain1hColor(rainStr) {
     const rain = parseFloat(rainStr);
     if (isNaN(rain) || rain === 0) return "#b8b8b8";
@@ -318,9 +326,35 @@ function getRain1hColor(rainStr) {
     return "#b8b8b8";                    // 0
 }
 
+// Pressure color mapping (from your legend)
+function getPressureColor(pressStr) {
+    const press = parseFloat(pressStr);
+    if (isNaN(press)) return "#3498db";
+    if (press <= 949.9) return "#8000b8";    // <=949.9
+    if (press <= 969.9) return "#d64040";    // 950.0-969.9
+    if (press <= 979.9) return "#ff7a7a";    // 970.0-979.9
+    if (press <= 989.9) return "#f9a825";    // 980.0-989.9
+    if (press <= 999.9) return "#fdd835";    // 990.0-999.9
+    if (press <= 1009.9) return "#4ec07d";   // 1000.0-1009.9
+    if (press <= 1029.9) return "#5ab4f0";   // 1010.0-1029.9
+    return "#1a3b5d";                       // >=1030.0
+}
+
+// Pressure legend definition
+const pressureLegend = [
+    { color: "#8000b8", label: "<= 949.9 hPa" },
+    { color: "#d64040", label: "950.0-969.9 hPa" },
+    { color: "#ff7a7a", label: "970.0-979.9 hPa" },
+    { color: "#f9a825", label: "980.0-989.9 hPa" },
+    { color: "#fdd835", label: "990.0-999.9 hPa" },
+    { color: "#4ec07d", label: "1000.0-1009.9 hPa" },
+    { color: "#5ab4f0", label: "1010.0-1029.9 hPa" },
+    { color: "#1a3b5d", label: ">= 1030.0 hPa" }
+];
+
 // Update legend panel based on current tab
 function updateLegendPanel(tabType) {
-    const legendPanel = document.getElementById('legend-panel');
+    const legendContent = document.getElementById('legend-content');
     let legendHTML = '';
 
     switch(tabType) {
@@ -328,48 +362,49 @@ function updateLegendPanel(tabType) {
         case "tempMax":
         case "tempMin":
             legendHTML = `
-                <h4>氣溫圖例</h4>
-                <div class="legend-item"><div class="legend-color" style="background:#7b1818"></div>極端酷熱 (>=35.0°C)</div>
-                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>酷熱 (33.0-34.9°C)</div>
-                <div class="legend-item"><div class="legend-color" style="background:#ed7a7a"></div>炎熱 (28.0-32.9°C)</div>
-                <div class="legend-item"><div class="legend-color" style="background:#e8b03e"></div>溫暖 (22.1-27.9°C)</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f0d390"></div>和暖 (17.1-22.0°C)</div>
-                <div class="legend-item"><div class="legend-color" style="background:#62e0b1"></div>清涼 (12.1-17.0°C)</div>
-                <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>寒冷 (7.1-12.0°C)</div>
-                <div class="legend-item"><div class="legend-color" style="background:#5c48a1"></div>嚴寒 (<=7.0°C)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#7b1818"></div>>=35.0°C</div>
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>33.0-34.9°C</div>
+                <div class="legend-item"><div class="legend-color" style="background:#ed7a7a"></div>28.0-32.9°C</div>
+                <div class="legend-item"><div class="legend-color" style="background:#e8b03e"></div>22.1-27.9°C</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f0d390"></div>17.1-22.0°C</div>
+                <div class="legend-item"><div class="legend-color" style="background:#62e0b1"></div>12.1-17.0°C</div>
+                <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>7.1-12.0°C</div>
+                <div class="legend-item"><div class="legend-color" style="background:#5c48a1"></div><=7.0°C</div>
             `;
             break;
         case "windSpeed":
         case "windGust":
             legendHTML = `
-                <h4>風速/陣風圖例</h4>
-                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>颶風 (>=118 km/h)</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f2a938"></div>暴風 (88-117 km/h)</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f9e559"></div>烈風 (63-87 km/h)</div>
-                <div class="legend-item"><div class="legend-color" style="background:#60c070"></div>強風 (41-62 km/h)</div>
-                <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>清勁或以下 (0-40 km/h)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>>=118 km/h</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f2a938"></div>88-117 km/h</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f9e559"></div>63-87 km/h</div>
+                <div class="legend-item"><div class="legend-color" style="background:#60c070"></div>41-62 km/h</div>
+                <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>0-40 km/h</div>
             `;
             break;
         case "rain1h":
             legendHTML = `
-                <h4>一小時雨量圖例 (mm)</h4>
-                <div class="legend-item"><div class="legend-color" style="background:#800080"></div>>=140</div>
-                <div class="legend-item"><div class="legend-color" style="background:#ff00ff"></div>100-139</div>
-                <div class="legend-item"><div class="legend-color" style="background:#000000"></div>70-99</div>
-                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>50-69</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f9e559"></div>30-49</div>
-                <div class="legend-item"><div class="legend-color" style="background:#60c070"></div>20-29</div>
-                <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>1-19</div>
-                <div class="legend-item"><div class="legend-color" style="background:#b8b8b8"></div>0</div>
+                <div class="legend-item"><div class="legend-color" style="background:#800080"></div>>=140 mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#ff00ff"></div>100-139 mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#000000"></div>70-99 mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>50-69 mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f9e559"></div>30-49 mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#60c070"></div>20-29 mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>1-19 mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#b8b8b8"></div>0 mm</div>
             `;
             break;
+        case "pressSea":
+        case "pressStation":
+            pressureLegend.forEach(item => {
+                legendHTML += `<div class="legend-item"><div class="legend-color" style="background:${item.color}"></div>${item.label}</div>`;
+            });
+            break;
         default:
-            legendPanel.style.display = 'none';
-            return;
+            legendHTML = `<div class="legend-item" style="color:#777;">無圖例</div>`;
     }
 
-    legendPanel.innerHTML = legendHTML;
-    legendPanel.style.display = 'block';
+    legendContent.innerHTML = legendHTML;
 }
 
 // Init Leaflet Map
@@ -407,6 +442,17 @@ function clearMarkers() {
     allMarkers = [];
 }
 
+// --- Helper: Convert wind direction text to degrees ---
+function windDirToRotation(dirText) {
+    const dirToDeg = {
+        "N": 0, "NNE": 22.5, "NE": 45, "ENE": 67.5,
+        "E": 90, "ESE": 112.5, "SE": 135, "SSE": 157.5,
+        "S": 180, "SSW": 202.5, "SW": 225, "WSW": 247.5,
+        "W": 270, "WNW": 292.5, "NW": 315, "NNW": 337.5
+    };
+    return dirToDeg[dirText] || 0;
+}
+
 // Update map markers (CIRCLE style, only numbers)
 function updateMapMarkers() {
     clearMarkers();
@@ -417,71 +463,90 @@ function updateMapMarkers() {
 
         let showVal = "";
         let bgColor = "#3498db";
+        let markerIconHtml = "";
 
         switch (currentTab) {
             case "tempCurrent":
                 showVal = point.temp;
                 bgColor = getTempColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "tempMax":
                 showVal = point.tempMax;
                 bgColor = getTempColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "tempMin":
                 showVal = point.tempMin;
                 bgColor = getTempColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "humidity":
                 showVal = point.humidity;
                 bgColor = "#27ae60";
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "windDir":
                 showVal = point.windDir;
-                bgColor = "#9b59b6";
+                const rotation = windDirToRotation(point.windDir);
+                // Arrow pointing in the direction the wind is coming FROM
+                markerIconHtml = `
+                    <div style="width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-bottom: 40px solid #9b59b6; transform: rotate(${rotation}deg); position: relative;">
+                        <div style="position: absolute; top: 45px; left: -20px; width: 40px; text-align: center; color: #fff; font-size: 12px; font-weight: bold; transform: rotate(${-rotation}deg); background: #9b59b6; padding: 2px; border-radius: 3px;">${showVal}</div>
+                    </div>
+                `;
                 break;
             case "windSpeed":
                 showVal = point.windSpeed;
                 bgColor = getWindColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "windGust":
                 showVal = point.windGust;
                 bgColor = getWindColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "rain1m":
                 showVal = point.rain1m;
                 bgColor = "#16a085";
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "rain1h":
                 showVal = point.rain1h;
                 bgColor = getRain1hColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "rainTotal":
                 showVal = point.rainTotal;
                 bgColor = "#0277bd";
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "pressSea":
                 showVal = point.pressSea;
-                bgColor = "#f39c12";
+                bgColor = getPressureColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "pressStation":
                 showVal = point.pressStation;
-                bgColor = "#f1c40f";
+                bgColor = getPressureColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
         }
 
         // Hide empty/-- value
         if (showVal === '' || showVal === '--') return;
 
-        // Marker: CIRCLE shape, only number inside
+        const iconSize = currentTab === "windDir" ? [40, 60] : [50, 50];
+        const iconAnchor = currentTab === "windDir" ? [20, 30] : [25, 25];
+
         const icon = L.divIcon({
-            html: `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`,
+            html: markerIconHtml,
             className: "",
-            iconSize: [50, 50],
-            iconAnchor: [25, 25]
+            iconSize: iconSize,
+            iconAnchor: iconAnchor
         });
 
         const marker = L.marker([info.lat, info.lng], { icon: icon }).addTo(map);
-        // Popup: ONLY name + short code
         marker.bindPopup(`<strong>${name} (${info.code})</strong>`);
         allMarkers.push(marker);
     });
@@ -501,7 +566,6 @@ function fetchGridData() {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
 
-            // Update publish time
             const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent || "未知";
             document.getElementById("pub-date").textContent = pubTime;
 
@@ -515,7 +579,6 @@ function fetchGridData() {
                 const name = station.querySelector("stationname")?.textContent || "";
                 const fullName = `${name} (${code})`;
 
-                // Extract all data
                 const temp = extractNodeValue("Temperature", station);
                 const tempMax = extractNodeValue("Temperature_daily_max", station);
                 const tempMin = extractNodeValue("Temperature_daily_min", station);
@@ -525,13 +588,9 @@ function fetchGridData() {
                 const pressSea = extractNodeValue("MeanSeaLevelPressure", station);
                 const pressStation = extractNodeValue("StationPressure", station);
 
-                // Wind direction
                 const windDirNode = station.querySelector("WindDirection");
-                const windText = windDirNode?.querySelector("dValue")?.textContent || "";
-                const windDeg = windDirNode?.querySelector("Degree")?.textContent || "";
-                let windDir = windText || windDeg;
+                const windDir = windDirNode?.querySelector("dValue")?.textContent || "";
 
-                // Rainfall
                 let rain1m = "", rain1h = "", rainTotal = "";
                 station.querySelectorAll("Rainfall").forEach(r => {
                     const type = r.querySelector("Type")?.textContent;
@@ -541,7 +600,6 @@ function fetchGridData() {
                     if (type === "5") rainTotal = val;
                 });
 
-                // Save data for map
                 pointDataList.push({
                     name, temp, tempMax, tempMin, humidity,
                     windDir, windSpeed, windGust,
@@ -549,12 +607,10 @@ function fetchGridData() {
                     pressSea, pressStation
                 });
 
-                // Card rain style
                 const rain1mClass = parseFloat(rain1m) > 0 ? "rain-active" : "";
                 const rain1hClass = parseFloat(rain1h) > 0 ? "rain-active" : "";
                 const rainTotalClass = parseFloat(rainTotal) > 0 ? "rain-active" : "";
 
-                // Build station card
                 const card = `
                 <div class="station-card">
                     <div class="station-name">${fullName}</div>
