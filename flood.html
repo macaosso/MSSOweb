@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澳門微細尺度熱舒適及一般氣象監測系統 (FTGMS)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #2c3e50;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        header {
+            background: linear-gradient(135deg, #11998e, #38ef7d);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 15px rgba(17, 153, 142, 0.2);
+        }
+        header h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .meta-info {
+            text-align: right;
+            font-size: 0.9rem;
+            opacity: 0.95;
+        }
+        .station-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 20px;
+        }
+        .station-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            border-top: 4px solid #11998e;
+        }
+        .station-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        .station-name {
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: #11998e;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #ecf0f1;
+            padding-bottom: 8px;
+        }
+        .temp-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .current-temp {
+            font-size: 2.4rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        .comfort-badge {
+            font-size: 0.85rem;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: 600;
+            background: #e8f8f5;
+            color: #11998e;
+            border: 1px solid #a3e4d7;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            font-size: 0.9rem;
+        }
+        .metric {
+            background: #f8f9fa;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border-left: 3px solid #bdc3c7;
+        }
+        .metric.highlight-comfort {
+            grid-column: span 2;
+            background: #fdf2e9;
+            border-left-color: #e67e22;
+        }
+        .metric.highlight-comfort strong {
+            color: #d35400;
+            font-size: 1.1rem;
+        }
+        .metric span {
+            display: block;
+            color: #7f8c8d;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        .metric strong {
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+        .loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>澳門社區微細尺度熱舒適監測 (FTGMS)</h1>
+            <small style="color: #ffffff; opacity: 0.9;">● 即時社區微氣候健康網格</small>
+        </div>
+        <div class="meta-info">
+            <div>數據更新時間：<span id="pub-date">載入中...</span></div>
+            <div>每5分鐘自動刷新驗證</div>
+        </div>
+    </header>
+
+    <div id="grid-container" class="station-grid">
+        <div class="loading">正在擷取FTGMS區域微氣候數據...</div>
+    </div>
+</div>
+
+<script>
+function fetchFTGMSData() {
+    const cacheBuster = Date.now();
+    // Targets the dedicated FTGMS live XML mapping subscription link via proxy pipelines
+    const freshUrl = `https://corsproxy.io/?https://xml.smg.gov.mo/c_ftgms.xml?t=${cacheBuster}`;
+
+    fetch(freshUrl, { cache: "no-store" })
+        .then(response => {
+            if (!response.ok) throw new Error('Network status response error fetching FTGMS XML.');
+            return response.text();
+        })
+        .then(xmlString => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+
+            // Extract core publishing operational timestamp
+            const pubDateNode = xmlDoc.querySelector("SysPubdate") || xmlDoc.querySelector("pubDate");
+            if (pubDateNode) {
+                document.getElementById('pub-date').textContent = pubDateNode.textContent;
+            }
+
+            const stations = xmlDoc.querySelectorAll("station") || xmlDoc.querySelectorAll("item");
+            const gridContainer = document.getElementById('grid-container');
+            gridContainer.innerHTML = ''; 
+
+            if (stations.length === 0) {
+                gridContainer.innerHTML = `<div class="loading">暫無即時微氣候節點數據。</div>`;
+                return;
+            }
+
+            stations.forEach(station => {
+                const name = station.querySelector("stationname")?.textContent || "未知監測點";
+                const code = station.querySelector("stationcode")?.textContent || "";
+                const nameDisplay = code ? `${name} (${code})` : name;
+                
+                // Flexible utility to safely target nested SMG node values
+                const extractNodeValue = (selector) => {
+                    const parent = station.querySelector(selector);
+                    if (!parent) return '--';
+                    return parent.querySelector("dValue")?.textContent || parent.querySelector("Value")?.textContent || parent.textContent || '--';
+                };
+
+                const temp = extractNodeValue("Temperature");
+                const humidity = extractNodeValue("Humidity");
+                const windSpeed = extractNodeValue("WindSpeed");
+                
+                // Parse Thermal Comfort Level/WBGT indicators distinct to the FTGMS platform
+                const wbgt = extractNodeValue("WBGT") || extractNodeValue("Wbgt");
+                const comfortIndex = extractNodeValue("ThermalIndex") || extractNodeValue("ComfortDesc") || "正常";
+
+                // Parse standard wind direction formats requested
+                const windDirNode = station.querySelector("WindDirection");
+                const winddValue = windDirNode?.querySelector("dValue")?.textContent || '--';
+                const windDegree = windDirNode?.querySelector("Degree")?.textContent || '--';
+                
+                let windDirDisplay = '--';
+                if (winddValue !== '--' && windDegree !== '--') {
+                    windDirDisplay = `${winddValue}(${windDegree}°)`;
+                } else if (winddValue !== '--') {
+                    windDirDisplay = winddValue;
+                } else if (windDegree !== '--') {
+                    windDirDisplay = `${windDegree}°`;
+                }
+
+                const cardHtml = `
+                    <div class="station-card">
+                        <div class="station-name">${nameDisplay}</div>
+                        <div class="temp-row">
+                            <div class="current-temp">${temp}°C</div>
+                            <div class="comfort-badge">${comfortIndex}</div>
+                        </div>
+                        <div class="metrics-grid">
+                            <div class="metric">
+                                <span>相對濕度</span>
+                                <strong>${humidity}%</strong>
+                            </div>
+                            <div class="metric">
+                                <span>風向 (角度)</span>
+                                <strong>${windDirDisplay}</strong>
+                            </div>
+                            <div class="metric">
+                                <span>風速</span>
+                                <strong>${windSpeed}${windSpeed !== '--' ? ' <small>km/h</small>' : ''}</strong>
+                            </div>
+                            <div class="metric">
+                                <span>環境狀態</span>
+                                <strong>正常運行</strong>
+                            </div>
+                            
+                            <div class="metric highlight-comfort">
+                                <span>濕球黑球溫度 (WBGT 熱舒適度指標)</span>
+                                <strong>${wbgt}${wbgt !== '--' ? ' °C' : ''}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                gridContainer.innerHTML += cardHtml;
+            });
+        })
+        .catch(err => {
+            console.error("FTGMS Grid loop failure:", err);
+            document.getElementById('grid-container').innerHTML = `
+                <div class="loading" style="color: #e74c3c;">
+                    未能載入微細尺度熱舒適數據陣列。請檢查瀏覽器跨域代理狀態。
+                </div>`;
+        });
+}
+
+// Initial deployment execution
+fetchFTGMSData();
+
+// Synchronized polling intervals every 5 minutes (300000ms)
+setInterval(fetchFTGMSData, 300000);
+</script>
+
+</body>
+</html>
