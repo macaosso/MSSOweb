@@ -50,7 +50,7 @@
             border-radius: 8px;
             padding: 12px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0.08);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
         }
         .tab-buttons {
             display: flex;
@@ -224,7 +224,7 @@
 </div>
 
 <script>
-// All stations + bridges coordinates
+// All stations + bridges coordinates (UPDATED)
 const allPoints = {
     // Weather Stations
     "紀念孫中山市政公園": { code: "DP", lat: 22.215322, lng: 113.543490 },
@@ -237,14 +237,29 @@ const allPoints = {
     "九澳": { code: "KV", lat: 22.134686, lng: 113.580143 },
     "澳門大學": { code: "UM", lat: 22.131808, lng: 113.546970 },
     "路環市區": { code: "DC", lat: 22.117091, lng: 113.551041 },
-    // Bridges
+    // Bridges (UPDATED names + new bridge added)
     "西灣大橋": { code: "PV", lat: 22.173240, lng: 113.535416 },
-    "友誼大橋北峯": { code: "PN", lat: 22.196000, lng: 113.567000 },
-    "友誼大橋南峯": { code: "PS", lat: 22.174000, lng: 113.568000 },
+    "友誼大橋北": { code: "PN", lat: 22.196000, lng: 113.567000 },
+    "友誼大橋南": { code: "PS", lat: 22.174000, lng: 113.568000 },
     "嘉樂庇總督大橋": { code: "PG", lat: 22.179000, lng: 113.546000 },
     "澳門大橋北": { code: "MN", lat: 22.186985, lng: 113.573231 },
-    "澳門大橋南": { code: "MS", lat: 22.173484, lng: 113.573047 }
+    "澳門大橋南": { code: "MS", lat: 22.173484, lng: 113.573047 },
+    "蓮花大橋": { code: "LH", lat: 22.139934, lng: 113.549094 }
 };
+
+// Temperature color mapping (from your legend)
+function getTempColor(tempStr) {
+    const temp = parseFloat(tempStr);
+    if (isNaN(temp)) return "#3498db";
+    if (temp >= 35.0) return "#7b1818";   // 極端酷熱
+    if (temp >= 33.0) return "#d64040";   // 酷熱
+    if (temp >= 28.0) return "#ed7a7a";   // 炎熱
+    if (temp >= 22.1) return "#e8b03e";   // 溫暖
+    if (temp >= 17.1) return "#f0d390";   // 和暖
+    if (temp >= 12.1) return "#62e0b1";   // 清涼
+    if (temp >= 7.1) return "#64b5e7";    // 寒冷
+    return "#5c48a1";                     // 嚴寒 (<=7.0)
+}
 
 // Init Leaflet Map
 let map = L.map('macau-map').setView([22.17, 113.55], 12);
@@ -280,7 +295,7 @@ function clearMarkers() {
     allMarkers = [];
 }
 
-// Update map markers (ONLY numbers inside color box)
+// Update map markers (CIRCLE style, only numbers)
 function updateMapMarkers() {
     clearMarkers();
     pointDataList.forEach(point => {
@@ -294,17 +309,15 @@ function updateMapMarkers() {
         switch (currentTab) {
             case "tempCurrent":
                 showVal = point.temp;
-                bgColor = !isNaN(parseFloat(showVal)) 
-                    ? parseFloat(showVal) >= 28 ? "#e74c3c" : parseFloat(showVal) <= 20 ? "#2980b9" : "#3498db"
-                    : "#3498db";
+                bgColor = getTempColor(showVal);
                 break;
             case "tempMax":
                 showVal = point.tempMax;
-                bgColor = "#e74c3c";
+                bgColor = getTempColor(showVal);
                 break;
             case "tempMin":
                 showVal = point.tempMin;
-                bgColor = "#2980b9";
+                bgColor = getTempColor(showVal);
                 break;
             case "windDir":
                 showVal = point.windDir;
@@ -347,12 +360,12 @@ function updateMapMarkers() {
         // Hide empty/-- value
         if (showVal === '' || showVal === '--') return;
 
-        // Marker: ONLY number, no name inside box
+        // Marker: CIRCLE shape, only number inside
         const icon = L.divIcon({
-            html: `<div style="background:${bgColor};color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;text-align:center;">${showVal}</div>`,
+            html: `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`,
             className: "",
-            iconSize: [60, 28],
-            iconAnchor: [30, 14]
+            iconSize: [50, 50],
+            iconAnchor: [25, 25]
         });
 
         const marker = L.marker([info.lat, info.lng], { icon: icon }).addTo(map);
