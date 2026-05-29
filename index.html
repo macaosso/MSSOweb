@@ -258,15 +258,16 @@
 <div id="forecastTime" class="forecast-time"></div>
 
 <script>
+// ✅ MENU TOGGLE
 function toggleMenu() {
   const nav = document.getElementById("navMenu");
   const btn = document.querySelector(".menu-toggle");
 
   nav.classList.toggle("active");
-
-  // change icon ☰ ↔ ✕
   btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
+
+// ✅ LOAD TEXT BOXES
 function loadBox(file, boxId, contentId) {
   fetch(file)
     .then(res => res.text())
@@ -282,19 +283,18 @@ function loadBox(file, boxId, contentId) {
     .catch(() => console.log("Cannot load " + file));
 }
 
-// load all boxes
+// ✅ LOAD ALL BOXES
 loadBox("alertips.txt", "alertBox", "alertContent");
 loadBox("SWT.txt", "swtBox", "swtContent");
 loadBox("warn.txt", "warnBox", "warnContent");
 loadBox("tc.txt", "tcBox", "tcContent");
 
-// forecast (now 4 parts: 0=time, 1=today, 2=tomorrow, 3=future)
+// ✅ FORECAST
 fetch("weatherforecast.txt")
   .then(res => res.text())
   .then(text => {
     const parts = text.split(/\n\s*\n/);
 
-    // ✅ part 0 → forecast time line
     document.getElementById("forecastTime").innerText = parts[3] || "";
 
     document.getElementById("futureText").innerHTML = (parts[0] || "").replace(/\n/g, "<br>");
@@ -302,30 +302,40 @@ fetch("weatherforecast.txt")
     document.getElementById("tomorrowText").innerHTML = (parts[2] || "").replace(/\n/g, "<br>");
   })
   .catch(() => console.log("Cannot load weatherforecast.txt"));
+</script>
 
-<script src="tc_data.js">
+<!-- ✅ LOAD WARNING DATA -->
+<script src="tc_data.js"></script>
+
+<script>
+// ✅ RENDER WARNING CARD + AUTO HIDE
 const container = document.getElementById("warningContent");
+const card = document.getElementById("warningCard");
 
-tcWarnings.forEach((item, index) => {
-  const html = `
-    <div class="warning-item">
-      <div class="icon-box">
-        <img src="${item.icondiv>
-      <div class="text-box">${item.text}</div>
-    </div>
-  `;
+if (!tcWarnings || tcWarnings.length === 0) {
+  // ✅ AUTO HIDE
+  card.style.display = "none";
+} else {
+  let html = "";
 
-  container.innerHTML += html;
+  tcWarnings.forEach((item, index) => {
+    html += `
+      <div class="warning-item">
+        <div class="icon-box">
+          <img src="${item.icon</div>
+        <div class="text-box">${item.text}</div>
+      </div>
+    `;
 
-  // divider (except last)
-  if (index < tcWarnings.length - 1) {
-    container.innerHTML += `<div class="divider"></div>`;
-  }
-});
+    if (index < tcWarnings.length - 1) {
+      html += `<div class="divider"></div>`;
+    }
+  });
+
+  container.innerHTML = html;
+}
 </script>
 
-
-</script>
 
 </body>
 </html>
