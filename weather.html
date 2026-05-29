@@ -41,7 +41,6 @@
             font-size: 0.9rem;
             opacity: 0.9;
         }
-        /* Auto-responsive grid: items scale and pack themselves tightly */
         .station-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -65,21 +64,22 @@
             font-size: 1.2rem;
             font-weight: bold;
             color: #2c3e50;
-            margin-bottom: 8px;
             border-bottom: 1px solid #ecf0f1;
             padding-bottom: 8px;
         }
-        /* New style for weather report line */
-        .station-report {
+        /* Style for XML format lines */
+        .xml-tag {
+            font-family: Consolas, monospace;
             font-size: 0.85rem;
-            color: #7f8c8d;
-            margin-bottom: 12px;
+            color: #666;
+            margin: 6px 0;
+            line-height: 1.4;
         }
         .temp-row {
             display: flex;
             align-items: baseline;
             justify-content: space-between;
-            margin-bottom: 15px;
+            margin: 15px 0;
         }
         .current-temp {
             font-size: 2.2rem;
@@ -92,8 +92,6 @@
         }
         .high-temp { color: #e74c3c; font-weight: 600; }
         .low-temp { color: #34495e; font-weight: 600; }
-         
-        /* Upgraded to a 6-column base for perfect layout combinations */
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
@@ -105,11 +103,9 @@
             padding: 8px 12px;
             border-radius: 6px;
         }
-        /* Standard items take up 3 columns (half width) */
         .col-half {
             grid-column: span 3;
         }
-        /* Rainfall items take up 2 columns (one-third width, making 3 in a row) */
         .col-third {
             grid-column: span 2;
         }
@@ -149,7 +145,7 @@
         </div>
         <div class="meta-info">
             <div>資料更新時間：<span id="pub-date">載入中...</span></div>
-            <div>每5分鐘自動刷新驗證</div>
+            <div>每5分鐘自動刷新</div>
         </div>
     </header>
 
@@ -172,26 +168,20 @@ function fetchGridData() {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlString, "text/xml");
 
-            // Get system update time
             const pubDateNode = xmlDoc.querySelector("SysPubdate");
             if (pubDateNode) {
                 document.getElementById('pub-date').textContent = pubDateNode.textContent;
             }
 
-            // Grab every single distinct station node
             const stations = xmlDoc.querySelectorAll("station");
             const gridContainer = document.getElementById('grid-container');
             gridContainer.innerHTML = ''; 
 
             stations.forEach(station => {
-                const name = station.querySelector("stationname")?.textContent || "Unnamed Node";
+                const name = station.querySelector("stationname")?.textContent || "";
                 const code = station.querySelector("stationcode")?.textContent || "";
-                
-                const nameDisplay = name;
-                // Build WeatherReport + station code text
-                const reportText = `<WeatherReport> Station Code: ${code || 'N/A'}`;
-                
-                // Helper function to extract values cleanly
+                const nameDisplay = `${name}(${code})`;
+
                 const extractNodeValue = (selector) => {
                     const parent = station.querySelector(selector);
                     if (!parent) return '--';
@@ -207,7 +197,6 @@ function fetchGridData() {
                 const mslPressure = extractNodeValue("MeanSeaLevelPressure");
                 const stationPressure = extractNodeValue("StationPressure");
                 
-                // Parsing logic to specifically construct: dValue(Degree°)
                 const windDirNode = station.querySelector("WindDirection");
                 const winddValue = windDirNode?.querySelector("dValue")?.textContent || '--';
                 const windDegree = windDirNode?.querySelector("Degree")?.textContent || '--';
@@ -221,23 +210,19 @@ function fetchGridData() {
                     windDirDisplay = `${windDegree}°`;
                 }
 
-                // Initialized to '--' for stations lacking rainfall monitors (bridges)
                 let rain1m = "--";
                 let rain1h = "--";
                 let rainToday = "--";
                 
                 const rainfallNodes = station.querySelectorAll("Rainfall");
-                
                 rainfallNodes.forEach(node => {
                     const type = node.querySelector("Type")?.textContent;
                     const val = node.querySelector("dValue")?.textContent || node.querySelector("Value")?.textContent || "0.0";
-                    
-                    if (type === "3") rain1m = val;    // 即時錄得之觀察值 (1-min)
-                    if (type === "4") rain1h = val;    // 1小時前至即時的累積值 (1-hr)
-                    if (type === "5") rainToday = val; // 由當日之 00:01 至即時的累積值 (Today total)
+                    if (type === "3") rain1m = val;
+                    if (type === "4") rain1h = val;
+                    if (type === "5") rainToday = val;
                 });
 
-                // Contextual alert highlights if active rain arrays trigger positive numbers
                 const rain1mClass = parseFloat(rain1m) > 0 ? 'rain-active' : '';
                 const rain1hClass = parseFloat(rain1h) > 0 ? 'rain-active' : '';
                 const rainTodayClass = parseFloat(rainToday) > 0 ? 'rain-active' : '';
@@ -245,8 +230,10 @@ function fetchGridData() {
                 const cardHtml = `
                     <div class="station-card">
                         <div class="station-name">${nameDisplay}</div>
-                        <!-- Added WeatherReport + Station Code line -->
-                        <div class="station-report">${reportText}</div>
+                        <div class="xml-tag">
+&lt;WeatherReport&gt;<br>
+&lt;station code="${code}"&gt;
+                        </div>
                         <div class="temp-row">
                             <div class="current-temp">${currentTemp}°C</div>
                             <div class="temp-range">
@@ -307,10 +294,7 @@ function fetchGridData() {
         });
 }
 
-// Initialize layout immediately
 fetchGridData();
-
-// Refresh every 60 seconds
 setInterval(fetchGridData, 60000);
 </script>
 
