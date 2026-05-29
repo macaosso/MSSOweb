@@ -180,7 +180,10 @@ function fetchGridData() {
             stations.forEach(station => {
                 const name = station.querySelector("stationname")?.textContent || "Unnamed Node";
                 const code = station.querySelector("stationcode")?.textContent || "";
+                
+                // Construct clean title with station code attached to the back
                 const nameDisplay = code ? `${name} (${code})` : name;
+                
                 // Helper function to extract values cleanly
                 const extractNodeValue = (selector) => {
                     const parent = station.querySelector(selector);
@@ -197,7 +200,7 @@ function fetchGridData() {
                 const mslPressure = extractNodeValue("MeanSeaLevelPressure");
                 const stationPressure = extractNodeValue("StationPressure");
                 
-                // Updated parsing logic to specifically construct: dValue(Degree°)
+                // Parsing logic to specifically construct: dValue(Degree°)
                 const windDirNode = station.querySelector("WindDirection");
                 const winddValue = windDirNode?.querySelector("dValue")?.textContent || '--';
                 const windDegree = windDirNode?.querySelector("Degree")?.textContent || '--';
@@ -298,7 +301,7 @@ function fetchGridData() {
 // Initialize layout immediately
 fetchGridData();
 
-// Auto update grid space parameters every minute (60000ms)
+// Auto update grid space parameters every 5 minutes (300000ms)
 setInterval(fetchGridData, 60000);
 </script>
 
