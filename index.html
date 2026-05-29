@@ -14,6 +14,41 @@
     .title { font-size: 20px; font-weight: bold; margin-left:10px; }
     .logo { height:40px; }
 
+    .quick-links {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin: 20px;
+    }
+    
+    .link-box {
+      display: block;
+      padding: 25px;
+      border-radius: 15px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      text-decoration: none;
+      color: white;
+      box-shadow: 0 5px 12px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+    }
+    
+    /* Weather box */
+    .link-box.weather {
+      background: linear-gradient(135deg, #4fa6a6, #2d6c94);
+    }
+    
+    /* Flood box */
+    .link-box.flood {
+      background: linear-gradient(135deg, #5dade2, #1b4f72);
+    }
+    
+    .link-box:hover {
+      transform: translateY(-3px);
+      opacity: 0.9;
+    }
+
 /* CARD */
     .warning-card {
       margin: 20px;
@@ -203,6 +238,16 @@
       <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
     </div>
   </div>
+</div>
+
+<div class="quick-links">
+  <a href="https://macaosso.github.io/MSSOweb/weather.html" class="link-box weather">
+    🌤️ 澳門各區天氣實況
+  </a>
+
+  <a href="https://macaosso.github.io/MSSOweb/flood.html" class="link-box flood">
+    🌊 澳門即時水位監測
+  </a>
 </div>
 
 <div class="warning-card" id="tcCard">
