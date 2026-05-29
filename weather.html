@@ -67,13 +67,6 @@
             border-bottom: 1px solid #ecf0f1;
             padding-bottom: 8px;
         }
-        .xml-tag {
-            font-family: Consolas, monospace;
-            font-size: 0.85rem;
-            color: #666;
-            margin: 6px 0;
-            line-height: 1.4;
-        }
         .temp-row {
             display: flex;
             align-items: baseline;
@@ -172,7 +165,6 @@ function fetchGridData() {
                 document.getElementById('pub-date').textContent = pubDateNode.textContent;
             }
 
-            // Only select stations inside <WeatherReport>
             const stations = xmlDoc.querySelectorAll("WeatherReport station");
             const gridContainer = document.getElementById('grid-container');
             gridContainer.innerHTML = '';
@@ -184,10 +176,8 @@ function fetchGridData() {
             };
 
             stations.forEach(station => {
-                // Read code from station ATTRIBUTE: <station code="DP">
                 const code = station.getAttribute("code")?.trim() || "N/A";
                 const name = station.querySelector("stationname")?.textContent || "未命名站點";
-                // Show: 站名(代碼)
                 const nameDisplay = `${name}(${code})`;
 
                 const currentTemp = extractNodeValue("Temperature", station);
@@ -228,10 +218,6 @@ function fetchGridData() {
                 const cardHtml = `
                     <div class="station-card">
                         <div class="station-name">${nameDisplay}</div>
-                        <div class="xml-tag">
-&lt;WeatherReport&gt;<br>
-&lt;station code="${code}"&gt;
-                        </div>
                         <div class="temp-row">
                             <div class="current-temp">${currentTemp}°C</div>
                             <div class="temp-range">
@@ -293,7 +279,6 @@ function fetchGridData() {
 }
 
 fetchGridData();
-// Refresh every 5 minutes
 setInterval(fetchGridData, 60000);
 </script>
 
