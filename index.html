@@ -303,9 +303,10 @@ fetch("weatherforecast.txt")
 const container = document.getElementById("warningContent");
 const card = document.getElementById("warningCard");
 
+let html = "";   // ✅ 必須初始化
+
 tcWarnings.forEach((item, index) => {
 
-  // ✅ if BOTH empty → skip whole item
   if ((!item.icon || item.icon.trim() === "") &&
       (!item.text || item.text.trim() === "")) {
     return;
@@ -330,8 +331,16 @@ tcWarnings.forEach((item, index) => {
   if (index < tcWarnings.length - 1) {
     html += `<div class="divider"></div>`;
   }
-
 });
+
+// ✅ 將內容插入頁面
+container.innerHTML = html;
+
+// ✅ 如果完全冇內容就隱藏整張 card
+if (html.trim() === "") {
+  card.style.display = "none";
+}
+  
 </script>
 
 
