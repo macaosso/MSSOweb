@@ -295,7 +295,7 @@ fetch("weatherforecast.txt")
   .then(text => {
     const parts = text.split(/\n\s*\n/);
 
-    document.getElementById("forecastTime").innerText = parts[3] || "";
+    document.getElementById("forecastTime").innerText = parts[3] || ""; 
 
     document.getElementById("futureText").innerHTML = (parts[0] || "").replace(/\n/g, "<br>");
     document.getElementById("todayText").innerHTML = (parts[1] || "").replace(/\n/g, "<br>");
