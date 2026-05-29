@@ -16,203 +16,196 @@
             font-family: 'Segoe UI', Roboto, Arial, sans-serif;
             background-color: #eef2f7;
             color: #2d3748;
-            padding: 24px;
-            line-height: 1.5;
+            padding: 20px;
+            line-height: 1.4;
         }
         .container {
             max-width: 1680px;
             margin: 0 auto;
         }
-        /* Header Style Upgrade */
         header {
             background: linear-gradient(135deg, #2b4a8a, #3b64b4);
             color: #ffffff;
-            padding: 24px 28px;
-            border-radius: 16px;
-            margin-bottom: 24px;
+            padding: 20px 24px;
+            border-radius: 14px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            box-shadow: 0 6px 18px rgba(27, 52, 110, 0.18);
+            box-shadow: 0 4px 14px rgba(27, 52, 110, 0.18);
         }
         header h1 {
-            font-size: 1.7rem;
+            font-size: 1.5rem;
             font-weight: 600;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
         }
         header small {
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             opacity: 0.92;
         }
         .meta-info {
             text-align: right;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             opacity: 0.92;
-            line-height: 1.6;
+            line-height: 1.5;
         }
-        /* Dropdown Select Styling */
         .select-wrapper {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             text-align: center;
         }
         .map-select {
-            padding: 14px 22px;
-            font-size: 1.4rem;
+            padding: 12px 20px;
+            font-size: 1.2rem;
             border: none;
-            border-radius: 14px;
+            border-radius: 12px;
             background-color: #ffffff;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
             cursor: pointer;
             appearance: none;
-            background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 4 5"><path fill="%233b64b4" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+            background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 4 5"><path fill="%233b64b4" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
             background-repeat: no-repeat;
-            background-position: right 18px center;
-            padding-right: 48px;
+            background-position: right 16px center;
+            padding-right: 44px;
             transition: box-shadow 0.2s ease;
         }
         .map-select:hover {
-            box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
         }
-        /* Main Layout */
         .main-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 24px;
+            gap: 20px;
         }
         @media (max-width: 1080px) {
             .main-layout {
                 grid-template-columns: 1fr;
             }
         }
-        /* Map Card */
         .map-card {
             background: #ffffff;
-            border-radius: 16px;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.07);
-            padding: 18px;
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+            padding: 16px;
             position: relative;
             height: fit-content;
         }
         #macau-map {
             width: 100%;
-            height: 660px;
-            border-radius: 12px;
+            height: 640px;
+            border-radius: 10px;
         }
-        /* Legend & Timestamp */
         .map-legend {
             position: absolute;
-            bottom: 20px;
-            right: 20px;
+            bottom: 16px;
+            right: 16px;
             background: rgba(255,255,255,0.96);
-            padding: 12px 14px;
-            border-radius: 10px;
-            font-size: 0.8rem;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.12);
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
             z-index: 1000;
-            min-width: 130px;
+            min-width: 120px;
         }
         .map-legend h4 {
-            margin: 0 0 8px 0;
-            font-size: 0.85rem;
+            margin: 0 0 6px 0;
+            font-size: 0.8rem;
             text-align: center;
             border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 6px;
-            color: #2d3748;
+            padding-bottom: 4px;
         }
         .legend-items {
-            max-height: 190px;
+            max-height: 170px;
             overflow-y: auto;
         }
         .legend-item {
             display: flex;
             align-items: center;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
         .legend-color {
-            width: 13px;
-            height: 13px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
-            margin-right: 6px;
+            margin-right: 5px;
         }
         .time-stamp {
             position: absolute;
-            top: 20px;
-            right: 20px;
+            top: 16px;
+            right: 16px;
             background: rgba(45, 55, 72, 0.85);
             color: #fff;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 0.9rem;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
             z-index: 1000;
         }
-        /* Station Data Cards */
         .station-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
         }
         .station-card {
             background: #ffffff;
-            border-radius: 14px;
-            box-shadow: 0 4px 14px rgba(0,0,0,0.06);
-            padding: 22px;
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+            padding: 18px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
             display: flex;
             flex-direction: column;
-            border-top: 5px solid #3b64b4;
+            border-top: 4px solid #3b64b4;
         }
         .station-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.1);
         }
         .station-name {
-            font-size: 1.25rem;
+            font-size: 1.1rem;
             font-weight: 600;
-            color: #2d3748;
             border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 10px;
-            margin-bottom: 16px;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
         }
         .temp-row {
             display: flex;
             align-items: baseline;
             justify-content: space-between;
-            margin-bottom: 18px;
+            margin-bottom: 14px;
         }
         .current-temp {
-            font-size: 2.3rem;
+            font-size: 2rem;
             font-weight: 700;
             color: #1a202c;
         }
         .temp-range {
-            font-size: 0.95rem;
+            font-size: 0.8rem;
             text-align: right;
         }
         .high-temp { color: #e53e3e; font-weight: 600; }
         .low-temp { color: #4a5568; font-weight: 600; }
+        /* Smaller font for wrapper metrics */
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
-            gap: 12px;
-            font-size: 0.9rem;
+            gap: 8px;
+            font-size: 0.75rem;
         }
         .metric {
             background: #f7f9fc;
-            padding: 10px 12px;
-            border-radius: 10px;
+            padding: 8px 10px;
+            border-radius: 8px;
         }
         .col-half { grid-column: span 3; }
         .col-third { grid-column: span 2; }
         .metric span {
             display: block;
             color: #718096;
-            font-size: 0.78rem;
-            margin-bottom: 4px;
+            font-size: 0.7rem;
+            margin-bottom: 2px;
         }
         .metric strong {
             color: #2d3748;
-            font-size: 1rem;
+            font-size: 0.78rem;
         }
         .rain-active {
             background: #edf4fc;
@@ -224,8 +217,8 @@
         .loading {
             grid-column: 1 / -1;
             text-align: center;
-            padding: 60px;
-            font-size: 1.2rem;
+            padding: 40px;
+            font-size: 0.9rem;
             color: #718096;
         }
     </style>
@@ -252,7 +245,8 @@
             <option value="windSpeed">風速(km/h)</option>
             <option value="windGust">陣風(km/h)</option>
             <option value="windDir">風向</option>
-            <option value="rain1m">每分鐘雨量(mm)</option>
+            <option value="rain1m">一分鐘雨量(mm)</option>
+            <option value="rain1h">一小時雨量(mm)</option>
             <option value="rainTotal">每日總雨量(mm)</option>
             <option value="pressSea">海平面氣壓(hPa)</option>
             <option value="pressStation">站點氣壓(hPa)</option>
@@ -299,6 +293,7 @@ function getTempColor(t){const n=parseFloat(t);return isNaN(n)?"#3498db":n>=35?"
 function getHumidityColor(h){const n=parseFloat(h);return isNaN(n)?"#3498db":n>=95?"#553C9A":n>=85?"#5DADEC":n>=71?"#6EE7B7":n>=40?"#E6B34B":"#7b1818"}
 function getWindColor(w){const n=parseFloat(w);return isNaN(n)?"#3498db":n>=118?"#d64040":n>=88?"#f2a938":n>=63?"#f9e559":n>=41?"#60c070":"#64b5e7"}
 function getRain1mColor(r){const n=parseFloat(r);return isNaN(n)||0===n?"#a0a0a0":n>=0.8?"#d64040":n>=0.6?"#e68938":n>=0.4?"#f9d342":n>=0.2?"#3a6ea5":"#bdd7ee"}
+function getRain1hColor(r){const n=parseFloat(r);return isNaN(n)||0===n?"#a0a0a0":n>=80?"#000000":n>=50?"#d64040":n>=40?"#e68938":n>=20?"#f9d342":n>=10?"#3a6ea5":"#bdd7ee"}
 function getRainTotalColor(r){const n=parseFloat(r);return isNaN(n)||0===n?"#a0a0a0":n>=125?"#800080":n>=100?"#d64040":n>=80?"#e68938":n>=50?"#f9d342":n>=20?"#3a6ea5":"#bdd7ee"}
 function getPressSeaColor(p){const n=parseFloat(p);return isNaN(n)?"#3498db":n<980?"#d64040":n<990?"#e68938":n<1000?"#f9d342":"#3a6ea5"}
 function getPressStationColor(p){const n=parseFloat(p);return isNaN(n)?"#3498db":n<965?"#d64040":n<975?"#e68938":n<985?"#f9d342":"#3a6ea5"}
@@ -310,6 +305,7 @@ function updateLegendPanel(type){
         windSpeed:`<div class="legend-item"><div class="legend-color" style="background:#d64040"></div>>=118 km/h</div><div class="legend-item"><div class="legend-color" style="background:#f2a938"></div>88-117 km/h</div><div class="legend-item"><div class="legend-color" style="background:#f9e559"></div>63-87 km/h</div><div class="legend-item"><div class="legend-color" style="background:#60c070"></div>41-62 km/h</div><div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>0-40 km/h</div>`,
         windDir:`<div class="legend-item" style="color:#777;">風向箭頭</div>`,
         rain1m:`<div class="legend-item"><div class="legend-color" style="background:#a0a0a0"></div>無雨</div><div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><0.2mm</div><div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>0.2~0.3mm</div><div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>0.4~0.5mm</div><div class="legend-item"><div class="legend-color" style="background:#e68938"></div>0.6~0.7mm</div><div class="legend-item"><div class="legend-color" style="background:#d64040"></div>>=0.8mm</div>`,
+        rain1h:`<div class="legend-item"><div class="legend-color" style="background:#a0a0a0"></div>無雨</div><div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><10mm</div><div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>10~19mm</div><div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>20~39mm</div><div class="legend-item"><div class="legend-color" style="background:#e68938"></div>40~49mm</div><div class="legend-item"><div class="legend-color" style="background:#d64040"></div>50~79mm</div><div class="legend-item"><div class="legend-color" style="background:#000000"></div>>=80mm</div>`,
         rainTotal:`<div class="legend-item"><div class="legend-color" style="background:#a0a0a0"></div>無雨</div><div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><20mm</div><div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>20~49mm</div><div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>50~79mm</div><div class="legend-item"><div class="legend-color" style="background:#e68938"></div>80~99mm</div><div class="legend-item"><div class="legend-color" style="background:#d64040"></div>100~124mm</div><div class="legend-item"><div class="legend-color" style="background:#800080"></div>>=125mm</div>`,
         pressSea:`<div class="legend-item"><div class="legend-color" style="background:#d64040"></div><980hPa</div><div class="legend-item"><div class="legend-color" style="background:#e68938"></div>980~989hPa</div><div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>990~999hPa</div><div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>>1000hPa</div>`,
         pressStation:`<div class="legend-item"><div class="legend-color" style="background:#d64040"></div><965hPa</div><div class="legend-item"><div class="legend-color" style="background:#e68938"></div>965~974hPa</div><div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>975~984hPa</div><div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>>=985hPa</div>`
@@ -323,7 +319,12 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&
 let allMarkers = [], currentTab = "tempCurrent", pointDataList = [];
 document.getElementById("map-select").addEventListener("change",e=>{currentTab=e.target.value;updateMapMarkers();updateLegendPanel(currentTab);});
 
-const extractNodeValue=(s,p)=>{let e=p.querySelector(s);if(!e)return"";let v=e.querySelector("dValue")?.textContent||e.querySelector("Value")?.textContent||"";return v.trim()};
+const extractNodeValue=(s,p)=>{
+    let e=p.querySelector(s);
+    if(!e)return"";
+    let v=e.querySelector("dValue")?.textContent||e.querySelector("Value")?.textContent||"";
+    return v.trim()
+};
 function clearMarkers(){allMarkers.forEach(m=>map.removeLayer(m));allMarkers=[]}
 function windDirToRotation(d){
     const m={"N":0,"NNE":22.5,"NE":45,"ENE":67.5,"E":90,"ESE":112.5,"SE":135,"SSE":157.5,"S":180,"SSW":202.5,"SW":225,"WSW":247.5,"W":270,"WNW":292.5,"NW":315,"NNW":337.5};
@@ -343,10 +344,10 @@ function updateMapMarkers(){
             case "windSpeed":html=`<div style="background:${getWindColor(point.windSpeed)};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${point.windSpeed}</div>`;break;
             case "windGust":html=`<div style="background:${getWindColor(point.windGust)};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${point.windGust}</div>`;break;
             case "rain1m":html=`<div style="background:${getRain1mColor(point.rain1m)};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${point.rain1m}</div>`;break;
+            case "rain1h":html=`<div style="background:${getRain1hColor(point.rain1h)};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${point.rain1h}</div>`;break;
             case "rainTotal":html=`<div style="background:${getRainTotalColor(point.rainTotal)};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${point.rainTotal}</div>`;break;
             case "pressSea":html=`<div style="background:${getPressSeaColor(point.pressSea)};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${point.pressSea}</div>`;break;
             case "pressStation":html=`<div style="background:${getPressStationColor(point.pressStation)};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${point.pressStation}</div>`;break;
-            // Fixed Wind Direction Arrow (No Clipping, Visible)
             case "windDir":
                 const deg=windDirToRotation(point.windDir);
                 sz=[40,40];
@@ -386,18 +387,42 @@ function fetchGridData(){
             const pSea=extractNodeValue("MeanSeaLevelPressure",s);
             const pSta=extractNodeValue("StationPressure",s);
 
-            let r1m="",rTotal="";
+            let r1m="",r1h="",rTotal="";
             s.querySelectorAll("Rainfall").forEach(r=>{
                 const t=r.querySelector("Type")?.textContent;
                 const v=r.querySelector("dValue")?.textContent||"";
                 if(t==="3")r1m=v;
+                if(t==="4")r1h=v;
                 if(t==="5")rTotal=v;
             });
 
-            pointDataList.push({name,temp,tempMax,tempMin,hum,windDir:wDir,windSpeed:wSpeed,windGust:wGust,rain1m:r1m,rainTotal:rTotal,pressSea:pSea,pressStation:pSta});
+            // Fix humidity undefined
+            const humidity = hum || "";
 
-            const r1mCls=parseFloat(r1m)>0?"rain-active":"";
-            const rTotCls=parseFloat(rTotal)>0?"rain-active":"";
+            pointDataList.push({
+                name,temp,tempMax,tempMin,humidity,
+                windDir:wDir,windSpeed:wSpeed,windGust:wGust,
+                rain1m:r1m,rain1h:r1h,rainTotal:rTotal,
+                pressSea:pSea,pressStation:pSta
+            });
+
+            // Build metrics: ONLY show item when data exists
+            let metricHtml = "";
+            if(humidity) metricHtml += `<div class="metric col-half"><span>相對濕度(%)</span><strong>${humidity}%</strong></div>`;
+            if(wDir) metricHtml += `<div class="metric col-half"><span>風向</span><strong>${wDir}</strong></div>`;
+            if(wSpeed) metricHtml += `<div class="metric col-half"><span>風速(km/h)</span><strong>${wSpeed}</strong></div>`;
+            if(wGust) metricHtml += `<div class="metric col-half"><span>陣風(km/h)</span><strong>${wGust}</strong></div>`;
+            if(pSea) metricHtml += `<div class="metric col-half"><span>海平面氣壓(hPa)</span><strong>${pSea}</strong></div>`;
+            if(pSta) metricHtml += `<div class="metric col-half"><span>站點氣壓(hPa)</span><strong>${pSta}</strong></div>`;
+
+            const r1mCls = parseFloat(r1m) > 0 ? "rain-active" : "";
+            const r1hCls = parseFloat(r1h) > 0 ? "rain-active" : "";
+            const rTotCls = parseFloat(rTotal) > 0 ? "rain-active" : "";
+
+            if(r1m) metricHtml += `<div class="metric col-third ${r1mCls}"><span>一分鐘雨量</span><strong>${r1m} mm</strong></div>`;
+            if(r1h) metricHtml += `<div class="metric col-third ${r1hCls}"><span>一小時雨量</span><strong>${r1h} mm</strong></div>`;
+            if(rTotal) metricHtml += `<div class="metric col-third ${rTotCls}"><span>每日總雨量</span><strong>${rTotal} mm</strong></div>`;
+
             const card=`<div class="station-card">
                 <div class="station-name">${name} (${code})</div>
                 <div class="temp-row">
@@ -407,16 +432,7 @@ function fetchGridData(){
                         <div>最低: <span class="low-temp">${tempMin}°C</span></div>
                     </div>
                 </div>
-                <div class="metrics-grid">
-                    <div class="metric col-half"><span>相對濕度(%)</span><strong>${hum||'--'}%</strong></div>
-                    <div class="metric col-half"><span>風向</span><strong>${wDir||'--'}</strong></div>
-                    <div class="metric col-half"><span>風速(km/h)</span><strong>${wSpeed||'--'}</strong></div>
-                    <div class="metric col-half"><span>陣風(km/h)</span><strong>${wGust||'--'}</strong></div>
-                    <div class="metric col-half"><span>海平面氣壓(hPa)</span><strong>${pSea||'--'}</strong></div>
-                    <div class="metric col-half"><span>站點氣壓(hPa)</span><strong>${pSta||'--'}</strong></div>
-                    <div class="metric col-third ${r1mCls}"><span>每分鐘雨量</span><strong>${r1m||'--'} mm</strong></div>
-                    <div class="metric col-third ${rTotCls}"><span>每日總雨量</span><strong>${rTotal||'--'} mm</strong></div>
-                </div>
+                <div class="metrics-grid">${metricHtml}</div>
             </div>`;
             grid.innerHTML+=card;
         });
