@@ -50,7 +50,7 @@
             border-radius: 8px;
             padding: 12px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 6px rgba(0,0,0.08);
         }
         .tab-buttons {
             display: flex;
@@ -58,12 +58,12 @@
             flex-wrap: wrap;
         }
         .tab-btn {
-            padding: 8px 16px;
+            padding: 8px 12px;
             border: none;
             border-radius: 6px;
             background: #e8edf2;
             cursor: pointer;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             transition: all 0.2s;
         }
         .tab-btn.active {
@@ -187,7 +187,7 @@
     <header>
         <div>
             <h1>澳門各區天氣實況（互動GIS地圖）</h1>
-            <small style="color: #2ecc71;">● 可縮放/拖曳地圖 | 點擊標示查看詳情</small>
+            <small style="color: #2ecc71;">● 可縮放/拖曳地圖 | 點擊標示查看名稱</small>
         </div>
         <div class="meta-info">
             <div>資料更新時間：<span id="pub-date">載入中...</span></div>
@@ -195,13 +195,21 @@
         </div>
     </header>
 
+    <!-- All Split Map Tabs -->
     <div class="tab-wrapper">
         <div class="tab-buttons">
-            <button class="tab-btn active" data-type="temp">氣溫</button>
+            <button class="tab-btn active" data-type="tempCurrent">即時氣溫</button>
+            <button class="tab-btn" data-type="tempMax">最高氣溫</button>
+            <button class="tab-btn" data-type="tempMin">最低氣溫</button>
+            <button class="tab-btn" data-type="windDir">風向</button>
+            <button class="tab-btn" data-type="windSpeed">風速</button>
+            <button class="tab-btn" data-type="windGust">陣風</button>
+            <button class="tab-btn" data-type="rain1m">一分鐘雨量</button>
+            <button class="tab-btn" data-type="rain1h">一小時雨量</button>
+            <button class="tab-btn" data-type="rainTotal">累計日雨量</button>
+            <button class="tab-btn" data-type="pressSea">海平面氣壓</button>
+            <button class="tab-btn" data-type="pressStation">站點氣壓</button>
             <button class="tab-btn" data-type="humidity">相對濕度</button>
-            <button class="tab-btn" data-type="wind">風向風速</button>
-            <button class="tab-btn" data-type="rain">雨量</button>
-            <button class="tab-btn" data-type="pressure">氣壓</button>
         </div>
     </div>
 
@@ -216,9 +224,9 @@
 </div>
 
 <script>
-// ========== Fixed Station Name + Coordinate Mapping ==========
-// Match XML short names + your full names + coordinates
-const stationMap = {
+// All stations + bridges coordinates
+const allPoints = {
+    // Weather Stations
     "紀念孫中山市政公園": { code: "DP", lat: 22.215322, lng: 113.543490 },
     "黑沙環": { code: "EM", lat: 22.207129, lng: 113.559971 },
     "大炮台": { code: "FM", lat: 22.197066, lng: 113.542261 },
@@ -228,20 +236,27 @@ const stationMap = {
     "東亞運大馬路": { code: "JA", lat: 22.155396, lng: 113.542412 },
     "九澳": { code: "KV", lat: 22.134686, lng: 113.580143 },
     "澳門大學": { code: "UM", lat: 22.131808, lng: 113.546970 },
-    "路環市區": { code: "DC", lat: 22.117091, lng: 113.551041 }
+    "路環市區": { code: "DC", lat: 22.117091, lng: 113.551041 },
+    // Bridges
+    "西灣大橋": { code: "PV", lat: 22.173240, lng: 113.535416 },
+    "友誼大橋北峯": { code: "PN", lat: 22.196000, lng: 113.567000 },
+    "友誼大橋南峯": { code: "PS", lat: 22.174000, lng: 113.568000 },
+    "嘉樂庇總督大橋": { code: "PG", lat: 22.179000, lng: 113.546000 },
+    "澳門大橋北": { code: "MN", lat: 22.186985, lng: 113.573231 },
+    "澳門大橋南": { code: "MS", lat: 22.173484, lng: 113.573047 }
 };
 
-// Init Leaflet Map (Macau center)
+// Init Leaflet Map
 let map = L.map('macau-map').setView([22.17, 113.55], 12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
 let allMarkers = [];
-let currentTab = "temp";
-let stationDataList = [];
+let currentTab = "tempCurrent";
+let pointDataList = [];
 
-// Tab switch event
+// Tab Switch
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -251,11 +266,12 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     });
 });
 
-// Extract value from XML
+// Extract XML value
 const extractNodeValue = (selector, parent) => {
     const el = parent.querySelector(selector);
-    if (!el) return '--';
-    return el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || '--';
+    if (!el) return '';
+    const val = el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || '';
+    return val.trim();
 };
 
 // Clear all markers
@@ -264,74 +280,96 @@ function clearMarkers() {
     allMarkers = [];
 }
 
-// Update map markers based on selected tab
+// Update map markers (ONLY numbers inside color box)
 function updateMapMarkers() {
     clearMarkers();
-    stationDataList.forEach(station => {
-        const shortName = station.shortName;
-        const info = stationMap[shortName];
+    pointDataList.forEach(point => {
+        const name = point.name;
+        const info = allPoints[name];
         if (!info) return;
 
-        let displayText = "";
-        let markerBg = "#3498db";
+        let showVal = "";
+        let bgColor = "#3498db";
 
         switch (currentTab) {
-            case "temp":
-                displayText = `${station.temp}°C`;
-                let t = parseFloat(station.temp);
-                if (!isNaN(t)) {
-                    markerBg = t >= 28 ? "#e74c3c" : t <= 20 ? "#2980b9" : "#3498db";
-                }
+            case "tempCurrent":
+                showVal = point.temp;
+                bgColor = !isNaN(parseFloat(showVal)) 
+                    ? parseFloat(showVal) >= 28 ? "#e74c3c" : parseFloat(showVal) <= 20 ? "#2980b9" : "#3498db"
+                    : "#3498db";
+                break;
+            case "tempMax":
+                showVal = point.tempMax;
+                bgColor = "#e74c3c";
+                break;
+            case "tempMin":
+                showVal = point.tempMin;
+                bgColor = "#2980b9";
+                break;
+            case "windDir":
+                showVal = point.windDir;
+                bgColor = "#9b59b6";
+                break;
+            case "windSpeed":
+                showVal = point.windSpeed;
+                bgColor = "#8e44ad";
+                break;
+            case "windGust":
+                showVal = point.windGust;
+                bgColor = "#d35400";
+                break;
+            case "rain1m":
+                showVal = point.rain1m;
+                bgColor = "#16a085";
+                break;
+            case "rain1h":
+                showVal = point.rain1h;
+                bgColor = "#00838f";
+                break;
+            case "rainTotal":
+                showVal = point.rainTotal;
+                bgColor = "#0277bd";
+                break;
+            case "pressSea":
+                showVal = point.pressSea;
+                bgColor = "#f39c12";
+                break;
+            case "pressStation":
+                showVal = point.pressStation;
+                bgColor = "#f1c40f";
                 break;
             case "humidity":
-                displayText = `${station.humidity}%`;
-                markerBg = "#27ae60";
-                break;
-            case "wind":
-                displayText = `${station.windSpeed} km/h`;
-                markerBg = "#9b59b6";
-                break;
-            case "rain":
-                displayText = `${station.rain1h} mm`;
-                markerBg = "#16a085";
-                break;
-            case "pressure":
-                displayText = `${station.pressure} hPa`;
-                markerBg = "#f39c12";
+                showVal = point.humidity;
+                bgColor = "#27ae60";
                 break;
         }
 
-        // Simple visible marker
+        // Hide empty/-- value
+        if (showVal === '' || showVal === '--') return;
+
+        // Marker: ONLY number, no name inside box
         const icon = L.divIcon({
-            html: `<div style="background:${markerBg};color:#fff;padding:3px 6px;border-radius:3px;font-size:11px;white-space:nowrap;">${shortName}<br>${displayText}</div>`,
+            html: `<div style="background:${bgColor};color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;text-align:center;">${showVal}</div>`,
             className: "",
-            iconSize: [70, 35],
-            iconAnchor: [35, 17]
+            iconSize: [60, 28],
+            iconAnchor: [30, 14]
         });
 
         const marker = L.marker([info.lat, info.lng], { icon: icon }).addTo(map);
-        // Popup with full details
-        marker.bindPopup(`
-            <strong>${shortName} (${info.code})</strong><hr>
-            氣溫: ${station.temp}°C<br>
-            濕度: ${station.humidity}%<br>
-            風向: ${station.windDir}<br>
-            風速: ${station.windSpeed} km/h<br>
-            1小時雨量: ${station.rain1h} mm<br>
-            氣壓: ${station.pressure} hPa
-        `);
+        // Popup: ONLY name + short code
+        marker.bindPopup(`<strong>${name} (${info.code})</strong>`);
         allMarkers.push(marker);
     });
 }
 
-// Fetch weather XML data
+// Fetch XML Data
 function fetchGridData() {
     const cacheBuster = Date.now();
     const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
 
     fetch(url, { cache: "no-store" })
         .then(res => {
-            if (!res.ok) throw new Error("Request failed");
+            if (!res.ok) throw new Error("Request fail");
             return res.text();
         })
         .then(xmlStr => {
@@ -345,12 +383,12 @@ function fetchGridData() {
             const stations = xmlDoc.querySelectorAll("WeatherReport station");
             const gridContainer = document.getElementById("grid-container");
             gridContainer.innerHTML = "";
-            stationDataList = [];
+            pointDataList = [];
 
             stations.forEach(station => {
-                const code = station.getAttribute("code") || "N/A";
-                const shortName = station.querySelector("stationname")?.textContent || "未知站點";
-                const fullName = `${shortName} (${code})`;
+                const code = station.getAttribute("code") || "";
+                const name = station.querySelector("stationname")?.textContent || "";
+                const fullName = `${name} (${code})`;
 
                 // Extract all data
                 const temp = extractNodeValue("Temperature", station);
@@ -359,39 +397,37 @@ function fetchGridData() {
                 const humidity = extractNodeValue("Humidity", station);
                 const windSpeed = extractNodeValue("WindSpeed", station);
                 const windGust = extractNodeValue("WindGust", station);
-                const mslPressure = extractNodeValue("MeanSeaLevelPressure", station);
-                const stPressure = extractNodeValue("StationPressure", station);
+                const pressSea = extractNodeValue("MeanSeaLevelPressure", station);
+                const pressStation = extractNodeValue("StationPressure", station);
 
                 // Wind direction
                 const windDirNode = station.querySelector("WindDirection");
-                const windText = windDirNode?.querySelector("dValue")?.textContent || "--";
-                const windDeg = windDirNode?.querySelector("Degree")?.textContent || "--";
-                let windDir = windText !== "--" ? windText : windDeg + "°";
+                const windText = windDirNode?.querySelector("dValue")?.textContent || "";
+                const windDeg = windDirNode?.querySelector("Degree")?.textContent || "";
+                let windDir = windText || windDeg;
 
-                // Rainfall data
-                let rain1m = "--", rain1h = "--", rainToday = "--";
+                // Rainfall
+                let rain1m = "", rain1h = "", rainTotal = "";
                 station.querySelectorAll("Rainfall").forEach(r => {
                     const type = r.querySelector("Type")?.textContent;
-                    const val = r.querySelector("dValue")?.textContent || "0.0";
+                    const val = r.querySelector("dValue")?.textContent || "";
                     if (type === "3") rain1m = val;
                     if (type === "4") rain1h = val;
-                    if (type === "5") rainToday = val;
+                    if (type === "5") rainTotal = val;
                 });
-
-                const rain1mClass = parseFloat(rain1m) > 0 ? "rain-active" : "";
-                const rain1hClass = parseFloat(rain1h) > 0 ? "rain-active" : "";
-                const rainTodayClass = parseFloat(rainToday) > 0 ? "rain-active" : "";
 
                 // Save data for map
-                stationDataList.push({
-                    shortName,
-                    temp,
-                    humidity,
-                    windDir,
-                    windSpeed,
-                    rain1h,
-                    pressure: mslPressure
+                pointDataList.push({
+                    name, temp, tempMax, tempMin, humidity,
+                    windDir, windSpeed, windGust,
+                    rain1m, rain1h, rainTotal,
+                    pressSea, pressStation
                 });
+
+                // Card rain style
+                const rain1mClass = parseFloat(rain1m) > 0 ? "rain-active" : "";
+                const rain1hClass = parseFloat(rain1h) > 0 ? "rain-active" : "";
+                const rainTotalClass = parseFloat(rainTotal) > 0 ? "rain-active" : "";
 
                 // Build station card
                 const card = `
@@ -405,21 +441,20 @@ function fetchGridData() {
                         </div>
                     </div>
                     <div class="metrics-grid">
-                        <div class="metric col-half"><span>相對濕度(%)</span><strong>${humidity}%</strong></div>
-                        <div class="metric col-half"><span>風向</span><strong>${windDir}</strong></div>
-                        <div class="metric col-half"><span>風速(km/h)</span><strong>${windSpeed} ${windSpeed!=='--'?'<small>km/h</small>':''}</strong></div>
-                        <div class="metric col-half"><span>陣風(km/h)</span><strong>${windGust} ${windGust!=='--'?'<small>km/h</small>':''}</strong></div>
-                        <div class="metric col-half"><span>海平面氣壓(hPa)</span><strong>${mslPressure} ${mslPressure!=='--'?'<small>hPa</small>':''}</strong></div>
-                        <div class="metric col-half"><span>站氣壓(hPa)</span><strong>${stPressure} ${stPressure!=='--'?'<small>hPa</small>':''}</strong></div>
-                        <div class="metric col-third ${rain1mClass}"><span>一分鐘雨量</span><strong>${rain1m} ${rain1m!=='--'?'<small>mm</small>':''}</strong></div>
-                        <div class="metric col-third ${rain1hClass}"><span>一小時雨量</span><strong>${rain1h} ${rain1h!=='--'?'<small>mm</small>':''}</strong></div>
-                        <div class="metric col-third ${rainTodayClass}"><span>日總雨量</span><strong>${rainToday} ${rainToday!=='--'?'<small>mm</small>':''}</strong></div>
+                        <div class="metric col-half"><span>相對濕度(%)</span><strong>${humidity || '--'}%</strong></div>
+                        <div class="metric col-half"><span>風向</span><strong>${windDir || '--'}</strong></div>
+                        <div class="metric col-half"><span>風速(km/h)</span><strong>${windSpeed || '--'} ${windSpeed?'<small>km/h</small>':''}</strong></div>
+                        <div class="metric col-half"><span>陣風(km/h)</span><strong>${windGust || '--'} ${windGust?'<small>km/h</small>':''}</strong></div>
+                        <div class="metric col-half"><span>海平面氣壓(hPa)</strong><strong>${pressSea || '--'} ${pressSea?'<small>hPa</small>':''}</strong></div>
+                        <div class="metric col-half"><span>站點氣壓(hPa)</span><strong>${pressStation || '--'} ${pressStation?'<small>hPa</small>':''}</strong></div>
+                        <div class="metric col-third ${rain1mClass}"><span>一分鐘雨量</span><strong>${rain1m || '--'} ${rain1m?'<small>mm</small>':''}</strong></div>
+                        <div class="metric col-third ${rain1hClass}"><span>一小時雨量</span><strong>${rain1h || '--'} ${rain1h?'<small>mm</small>':''}</strong></div>
+                        <div class="metric col-third ${rainTotalClass}"><span>日累計雨量</span><strong>${rainTotal || '--'} ${rainTotal?'<small>mm</small>':''}</strong></div>
                     </div>
                 </div>`;
                 gridContainer.innerHTML += card;
             });
 
-            // Draw markers after data loaded
             updateMapMarkers();
         })
         .catch(err => {
@@ -430,7 +465,6 @@ function fetchGridData() {
         });
 }
 
-// Start data fetch and auto refresh
 fetchGridData();
 setInterval(fetchGridData, 60000);
 </script>
