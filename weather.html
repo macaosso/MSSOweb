@@ -193,9 +193,9 @@ function fetchGridData() {
                                 station.querySelector("WindDirection Value")?.textContent || '--';
 
                 // Separate declarations for distinct intervals [3], [4], and [5]
-                let rain1m = "0.0";
-                let rain1h = "0.0";
-                let rain24h = "0.0";
+                let rain1m = "--";
+                let rain1h = "--";
+                let rain24h = "--";
                 
                 const rainfallNodes = station.querySelectorAll("Rainfall");
                 
@@ -203,8 +203,8 @@ function fetchGridData() {
                     const type = node.querySelector("Type")?.textContent;
                     const val = node.querySelector("dValue")?.textContent || node.querySelector("Value")?.textContent || "0.0";
                     
-                    if (type === "4") rain1m = val;   // 1-Minute / rolling short tracker
-                    if (type === "3") rain1h = val;   // 1-Hour accumulated track
+                    if (type === "3") rain1m = val;   // 1-Minute / rolling short tracker
+                    if (type === "4") rain1h = val;   // 1-Hour accumulated track
                     if (type === "5") rain24h = val;  // 24-Hour deep rolling balance
                 });
 
@@ -223,19 +223,23 @@ function fetchGridData() {
                         </div>
                         <div class="metrics-grid">
                             <div class="metric">
-                                <span>Humidity / 濕度</span>
+                                <span>相對濕度</span>
                                 <strong>${humidity}%</strong>
                             </div>
                             <div class="metric">
-                                <span>Wind Vector / 風向</span>
+                                <span>風向</span>
                                 <strong>${windDir}</strong>
                             </div>
-                            <div class="metric" style="grid-column: span 2;">
-                                <span>Wind Speed & Gust / 風速及陣風</span>
-                                <strong>${windSpeed} / ${windGust} <small>km/h</small></strong>
+                            <div class="metric" >
+                                <span>風速</span>
+                                <strong>${windSpeed}<small>km/h</small></strong>
+                            </div>
+                            <div class="metric" >
+                                <span>陣風</span>
+                                <strong>${windGust} <small>km/h</small></strong>
                             </div>
                             <div class="metric ${rainClass}" style="grid-column: span 2;">
-                                <span>Rainfall / 降雨量 (1m | 1h | 24h)</span>
+                                <span>降雨量 (1m | 1h | 24h)</span>
                                 <strong>${rain1m} / ${rain1h} / ${rain24h} <small>mm</small></strong>
                             </div>
                         </div>
