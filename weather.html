@@ -223,7 +223,7 @@ function fetchGridData() {
                         </div>
                         <div class="metrics-grid">
                             <div class="metric">
-                                <span>相對濕度</span>
+                                <span>相對濕度(%)</span>
                                 <strong>${humidity}%</strong>
                             </div>
                             <div class="metric">
@@ -231,17 +231,27 @@ function fetchGridData() {
                                 <strong>${windDir}</strong>
                             </div>
                             <div class="metric" >
-                                <span>風速</span>
+                                <span>風速(km/h)</span>
                                 <strong>${windSpeed}<small>km/h</small></strong>
                             </div>
                             <div class="metric" >
-                                <span>陣風</span>
+                                <span>陣風(km/h)</span>
                                 <strong>${windGust} <small>km/h</small></strong>
                             </div>
-                            <div class="metric ${rainClass}" style="grid-column: span 2;">
-                                <span>降雨量 (1m | 1h | 24h)</span>
-                                <strong>${rain1m} / ${rain1h} / ${rain24h} <small>mm</small></strong>
+                            <div class="metric ${parseFloat(rain1m) > 0 ? 'rain-active' : ''}">
+                                <span>一分鐘降雨量(mm)</span>
+                                <strong>${rain1m}${rain1m !== '--' ? ' <small>mm</small>' : ''}</strong>
                             </div>
+                            
+                            <div class="metric ${parseFloat(rain1h) > 0 ? 'rain-active' : ''}">
+                                <span>一小時降雨量(mm)</span>
+                                <strong>${rain1h}${rain1h !== '--' ? ' <small>mm</small>' : ''}</strong>
+                            </div>
+                            
+                            <div class="metric" style="grid-column: span 2;">
+                                <span>當日累積降雨量(mm)</span>
+                                <strong>${rainToday}${rainToday !== '--' ? ' <small>mm</small>' : ''}</strong>
+                            </div>  
                         </div>
                     </div>
                 `;
