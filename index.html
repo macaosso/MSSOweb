@@ -230,14 +230,6 @@
   <div id="warnContent" class="content-red"></div>
 </div>
 
-<div id="tcBox" class="box">
-  <div class="header-red tc-header">
-    <span>熱帶氣旋提示</span>
-    <a href="https://macaosso.github.io/MSSOweb/tc_gis.html" class="tc-btn">  查看路徑</a>
-  </div>
-  <div id="tcContent" class="content-red"></div>
-</div>
-
 <div class="forecast-container-vertical">
   <div class="forecast-box">
     <div class="forecast-title">天氣概況</div>
@@ -287,7 +279,6 @@ function loadBox(file, boxId, contentId) {
 loadBox("alertips.txt", "alertBox", "alertContent");
 loadBox("SWT.txt", "swtBox", "swtContent");
 loadBox("warn.txt", "warnBox", "warnContent");
-loadBox("tc.txt", "tcBox", "tcContent");
 
 // ✅ FORECAST
 fetch("weatherforecast.txt")
@@ -312,29 +303,35 @@ fetch("weatherforecast.txt")
 const container = document.getElementById("warningContent");
 const card = document.getElementById("warningCard");
 
-if (!tcWarnings || tcWarnings.length === 0) {
-  // ✅ AUTO HIDE
-  card.style.display = "none";
-} else {
-  let html = "";
+tcWarnings.forEach((item, index) => {
 
-  tcWarnings.forEach((item, index) => {
-    if (!item.icon) return;
-    html += `
-      <div class="warning-item">
+  // ✅ if BOTH empty → skip whole item
+  if ((!item.icon || item.icon.trim() === "") &&
+      (!item.text || item.text.trim() === "")) {
+    return;
+  }
+
+  html += `
+    <div class="warning-item">
+
+      ${item.icon && item.icon.trim() !== "" ? `
         <div class="icon-box">
-          <img src="${item.icon}"></div>
+          <img src="${item.icon}" onerror="this.parentElement.style.display='none'">
+        </div>
+      ` : ""}
+
+      ${item.text && item.text.trim() !== "" ? `
         <div class="text-box">${item.text}</div>
-      </div>
-    `;
+      ` : ""}
 
-    if (index < tcWarnings.length - 1) {
-      html += `<div class="divider"></div>`;
-    }
-  });
+    </div>
+  `;
 
-  container.innerHTML = html;
-}
+  if (index < tcWarnings.length - 1) {
+    html += `<div class="divider"></div>`;
+  }
+
+});
 </script>
 
 
