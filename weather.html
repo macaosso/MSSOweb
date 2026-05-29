@@ -160,7 +160,7 @@ function fetchGridData() {
 
     fetch(freshUrl, { cache: "no-store" })
         .then(response => {
-            if (!response.ok) throw new Error('Network error pulling XML map.');
+            if (!response.ok) throw new Error('Network error');
             return response.text();
         })
         .then(xmlString => {
@@ -172,11 +172,11 @@ function fetchGridData() {
                 document.getElementById('pub-date').textContent = pubDateNode.textContent;
             }
 
-            const stations = xmlDoc.querySelectorAll("station");
+            // Only select stations inside <WeatherReport>
+            const stations = xmlDoc.querySelectorAll("WeatherReport station");
             const gridContainer = document.getElementById('grid-container');
-            gridContainer.innerHTML = ''; 
+            gridContainer.innerHTML = '';
 
-            // Helper function (moved outside loop for efficiency)
             const extractNodeValue = (selector, parent) => {
                 const el = parent.querySelector(selector);
                 if (!el) return '--';
@@ -184,12 +184,12 @@ function fetchGridData() {
             };
 
             stations.forEach(station => {
+                // Read code from station ATTRIBUTE: <station code="DP">
+                const code = station.getAttribute("code")?.trim() || "N/A";
                 const name = station.querySelector("stationname")?.textContent || "未命名站點";
-                const code = station.querySelector("stationcode")?.textContent?.trim() || "";
-                const nameDisplay = code ? `${name}(${code})` : name;
-                const showCode = code || "N/A";
+                // Show: 站名(代碼)
+                const nameDisplay = `${name}(${code})`;
 
-                // Extract all weather data FIRST
                 const currentTemp = extractNodeValue("Temperature", station);
                 const maxTemp = extractNodeValue("Temperature_daily_max", station);
                 const minTemp = extractNodeValue("Temperature_daily_min", station);
@@ -198,11 +198,10 @@ function fetchGridData() {
                 const windGust = extractNodeValue("WindGust", station);
                 const mslPressure = extractNodeValue("MeanSeaLevelPressure", station);
                 const stationPressure = extractNodeValue("StationPressure", station);
-                
+
                 const windDirNode = station.querySelector("WindDirection");
                 const winddValue = windDirNode?.querySelector("dValue")?.textContent || '--';
                 const windDegree = windDirNode?.querySelector("Degree")?.textContent || '--';
-                
                 let windDirDisplay = '--';
                 if (winddValue !== '--' && windDegree !== '--') {
                     windDirDisplay = `${winddValue}(${windDegree}°)`;
@@ -212,9 +211,7 @@ function fetchGridData() {
                     windDirDisplay = `${windDegree}°`;
                 }
 
-                let rain1m = "--";
-                let rain1h = "--";
-                let rainToday = "--";
+                let rain1m = "--", rain1h = "--", rainToday = "--";
                 const rainfallNodes = station.querySelectorAll("Rainfall");
                 rainfallNodes.forEach(node => {
                     const type = node.querySelector("Type")?.textContent;
@@ -228,13 +225,12 @@ function fetchGridData() {
                 const rain1hClass = parseFloat(rain1h) > 0 ? 'rain-active' : '';
                 const rainTodayClass = parseFloat(rainToday) > 0 ? 'rain-active' : '';
 
-                // Build HTML LAST (only one cardHtml)
                 const cardHtml = `
                     <div class="station-card">
                         <div class="station-name">${nameDisplay}</div>
                         <div class="xml-tag">
 &lt;WeatherReport&gt;<br>
-&lt;station code="${showCode}"&gt;
+&lt;station code="${code}"&gt;
                         </div>
                         <div class="temp-row">
                             <div class="current-temp">${currentTemp}°C</div>
@@ -288,7 +284,7 @@ function fetchGridData() {
             });
         })
         .catch(err => {
-            console.error("Grid loop failure:", err);
+            console.error(err);
             document.getElementById('grid-container').innerHTML = `
                 <div class="loading" style="color: #e74c3c;">
                     載入失敗，請檢查網絡或代理狀態
@@ -297,7 +293,7 @@ function fetchGridData() {
 }
 
 fetchGridData();
-// Match header: 5 minutes = 300000 ms
+// Refresh every 5 minutes
 setInterval(fetchGridData, 60000);
 </script>
 
