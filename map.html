@@ -1,122 +1,407 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<title>Macau Real-time Weather Map</title>
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<style>
-body { font-family: Arial, sans-serif; margin: 15px; }
-#map { width: 100%; height: 600px; margin-top: 10px; }
-.info-bar { margin-bottom: 10px; font-size: 16px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澳門各區天氣實況（GIS地圖版）</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f3f7;
+            color: #2c3e50;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        header h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+        }
+        .meta-info {
+            text-align: right;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        .map-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 20px;
+            position: relative;
+            min-height: 600px;
+        }
+        .map-container h2 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        #macau-map {
+            width: 100%;
+            height: calc(100% - 40px);
+            background-color: #cce0f5;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+        .station-marker {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.75);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .station-marker .temp {
+            font-weight: bold;
+        }
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255,255,255,09);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            margin-right: 6px;
+            border-radius: 2px;
+        }
+        .station-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        .station-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            border-top: 4px solid #3498db;
+        }
+        .station-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        .station-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            border-bottom: 1px solid #ecf0f1;
+            padding-bottom: 8px;
+        }
+        .temp-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin: 15px 0;
+        }
+        .current-temp {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        .temp-range {
+            font-size: 0.9rem;
+            text-align: right;
+        }
+        .high-temp { color: #e74c3c; font-weight: 600; }
+        .low-temp { color: #34495e; font-weight: 600; }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 12px;
+            font-size: 0.9rem;
+        }
+        .metric {
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+        .col-half {
+            grid-column: span 3;
+        }
+        .col-third {
+            grid-column: span 2;
+        }
+        .metric span {
+            display: block;
+            color: #7f8c8d;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        .metric strong {
+            color: #2c3e50;
+        }
+        .rain-active {
+            background: #e8f4fd;
+            border: 1px solid #bcdffb;
+        }
+        .rain-active strong {
+            color: #2980b9;
+        }
+        .loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 5px;
+            font-size: 1.2rem;
+            color: #7f8c8d;
+        }
+    </style>
 </head>
 <body>
-<h2>Macau Weather Station Map</h2>
-<div class="info-bar">Last Update: <span id="updateTime">Loading...</span></div>
-<div id="map"></div>
 
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<div class="container">
+    <header>
+        <div>
+            <h1>澳門各區天氣實況（GIS地圖版）</h1>
+            <small style="color: #2ecc71;">● 即時監控網格</small>
+        </div>
+        <div class="meta-info">
+            <div>資料更新時間：<span id="pub-date">載入中...</span></div>
+            <div>每5分鐘自動刷新</div>
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <!-- 左側：地圖視圖 -->
+        <div class="map-container">
+            <h2>澳門天氣站分布圖</h2>
+            <div id="macau-map">
+                <!-- 標註將由JS動態生成 -->
+            </div>
+            <div class="legend">
+                <div class="legend-item"><div class="legend-color" style="background: #3498db;"></div>氣溫標註</div>
+                <div class="legend-item"><div class="legend-color" style="background: #2ecc71;"></div>有雨</div>
+                <div class="legend-item"><div class="legend-color" style="background: #e74c3c;"></div>高溫</div>
+            </div>
+        </div>
+
+        <!-- 右側：站點數據卡片 -->
+        <div id="grid-container" class="station-grid">
+            <div class="loading">正在擷取區域數據...</div>
+        </div>
+    </div>
+</div>
+
 <script>
-// Config
-const XML_URL = "https://xml.smg.gov.mo/c_actualweather.xml";
-const REFRESH_INTERVAL = 300 * 1000; // Refresh every 5 minutes
-const CORS_PROXY = "https://api.allorigins.win/raw?url=";
-
-// Macau weather stations: Name -> Lat, Lng
-const stationCoords = {
-  "大炮台": [22.1933, 113.5533],
-  "黑沙環": [22.2058, 113.5644],
-  "外港": [22.1983, 113.5583],
-  "媽閣": [22.1817, 113.5417],
-  "大潭山": [22.1567, 113.5667],
-  "路環市區": [22.1333, 113.5733],
-  "九澳": [22.1122, 113.5822],
-  "氹仔": [22.1500, 113.5700]
+// 澳門各站點大致相對坐標（根據實際地圖調整，這裡是示例）
+const stationPositions = {
+    "澳門半島": { x: 25, y: 30 },
+    "大炮台": { x: 30, y: 35 },
+    "東望洋": { x: 22, y: 28 },
+    "氹仔": { x: 50, y: 55 },
+    "路環": { x: 55, y: 75 },
+    "九澳": { x: 60, y: 80 },
+    "路氹城": { x: 45, y: 60 }
 };
 
-// Init Map
-const map = L.map('map').setView([22.17, 113.56], 12);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+function fetchGridData() {
+    const cacheBuster = Date.now();
+    const freshUrl = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
 
-let markerList = [];
+    fetch(freshUrl, { cache: "no-store" })
+        .then(response => {
+            if (!response.ok) throw new Error('Network error');
+            return response.text();
+        })
+        .then(xmlString => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlString, "text/xml");
 
-// Get marker color by temperature
-function getMarkerColor(temp) {
-  const t = parseFloat(temp);
-  if (t >= 30) return "#e53935";    // Red - Hot
-  if (t >= 28) return "#ff9800";    // Orange - Warm
-  if (t >= 25) return "#42a5f5";   // Blue - Normal
-  return "#26a69a";                // Teal - Cool
+            const pubDateNode = xmlDoc.querySelector("SysPubdate");
+            if (pubDateNode) {
+                document.getElementById('pub-date').textContent = pubDateNode.textContent;
+            }
+
+            const stations = xmlDoc.querySelectorAll("WeatherReport station");
+            const gridContainer = document.getElementById('grid-container');
+            gridContainer.innerHTML = '';
+
+            // 清空舊的標註
+            const mapContainer = document.getElementById('macau-map');
+            mapContainer.querySelectorAll('.station-marker').forEach(el => el.remove());
+
+            const extractNodeValue = (selector, parent) => {
+                const el = parent.querySelector(selector);
+                if (!el) return '--';
+                return el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || '--';
+            };
+
+            stations.forEach(station => {
+                const code = station.getAttribute("code")?.trim() || "N/A";
+                const name = station.querySelector("stationname")?.textContent || "未命名站點";
+                const nameDisplay = `${name}(${code})`;
+
+                const currentTemp = extractNodeValue("Temperature", station);
+                const maxTemp = extractNodeValue("Temperature_daily_max", station);
+                const minTemp = extractNodeValue("Temperature_daily_min", station);
+                const humidity = extractNodeValue("Humidity", station);
+                const windSpeed = extractNodeValue("WindSpeed", station);
+                const windGust = extractNodeValue("WindGust", station);
+                const mslPressure = extractNodeValue("MeanSeaLevelPressure", station);
+                const stationPressure = extractNodeValue("StationPressure", station);
+
+                const windDirNode = station.querySelector("WindDirection");
+                const winddValue = windDirNode?.querySelector("dValue")?.textContent || '--';
+                const windDegree = windDirNode?.querySelector("Degree")?.textContent || '--';
+                let windDirDisplay = '--';
+                if (winddValue !== '--' && windDegree !== '--') {
+                    windDirDisplay = `${winddValue}(${windDegree}°)`;
+                } else if (winddValue !== '--') {
+                    windDirDisplay = winddValue;
+                } else if (windDegree !== '--') {
+                    windDirDisplay = `${windDegree}°`;
+                }
+
+                let rain1m = "--", rain1h = "--", rainToday = "--";
+                const rainfallNodes = station.querySelectorAll("Rainfall");
+                rainfallNodes.forEach(node => {
+                    const type = node.querySelector("Type")?.textContent;
+                    const val = node.querySelector("dValue")?.textContent || node.querySelector("Value")?.textContent || "0.0";
+                    if (type === "3") rain1m = val;
+                    if (type === "4") rain1h = val;
+                    if (type === "5") rainToday = val;
+                });
+
+                const rain1mClass = parseFloat(rain1m) > 0 ? 'rain-active' : '';
+                const rain1hClass = parseFloat(rain1h) > 0 ? 'rain-active' : '';
+                const rainTodayClass = parseFloat(rainToday) > 0 ? 'rain-active' : '';
+
+                // 卡片HTML
+                const cardHtml = `
+                    <div class="station-card">
+                        <div class="station-name">${nameDisplay}</div>
+                        <div class="temp-row">
+                            <div class="current-temp">${currentTemp}°C</div>
+                            <div class="temp-range">
+                                <div>最高: <span class="high-temp">${maxTemp}°C</span></div>
+                                <div>最低: <span class="low-temp">${minTemp}°C</span></div>
+                            </div>
+                        </div>
+                        <div class="metrics-grid">
+                            <div class="metric col-half">
+                                <span>相對濕度(%)</span>
+                                <strong>${humidity}%</strong>
+                            </div>
+                            <div class="metric col-half">
+                                <span>風向(°)</span>
+                                <strong>${windDirDisplay}</strong>
+                            </div>
+                            <div class="metric col-half">
+                                <span>風速(km/h)</span>
+                                <strong>${windSpeed}${windSpeed !== '--' ? ' <small>km/h</small>' : ''}</strong>
+                            </div>
+                            <div class="metric col-half">
+                                <span>陣風(km/h)</span>
+                                <strong>${windGust}${windGust !== '--' ? ' <small>km/h</small>' : ''}</strong>
+                            </div>
+                            <div class="metric col-half">
+                                <span>平均海平面氣壓(hPa)</span>
+                                <strong>${mslPressure}${mslPressure !== '--' ? ' <small>hPa</small>' : ''}</strong>
+                            </div>
+                            <div class="metric col-half">
+                                <span>站氣壓(hPa)</span>
+                                <strong>${stationPressure}${stationPressure !== '--' ? ' <small>hPa</small>' : ''}</strong>
+                            </div>
+                            
+                            <div class="metric col-third ${rain1mClass}">
+                                <span>一分鐘雨量</span>
+                                <strong>${rain1m}${rain1m !== '--' ? ' <small>mm</small>' : ''}</strong>
+                            </div>
+                            <div class="metric col-third ${rain1hClass}">
+                                <span>一小時雨量</span>
+                                <strong>${rain1h}${rain1h !== '--' ? ' <small>mm</small>' : ''}</strong>
+                            </div>
+                            <div class="metric col-third ${rainTodayClass}">
+                                <span>日總雨量</span>
+                                <strong>${rainToday}${rainToday !== '--' ? ' <small>mm</small>' : ''}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                gridContainer.innerHTML += cardHtml;
+
+                // 在地圖上添加標註
+                const pos = stationPositions[name] || { x: 50, y: 50 }; // 預設位置
+                const marker = document.createElement('div');
+                marker.className = 'station-marker';
+                marker.style.left = `${pos.x}%`;
+                marker.style.top = `${pos.y}%`;
+                
+                // 根據溫度改變標註顏色
+                let bgColor = 'rgba(0,0,0,0.75)';
+                if (!isNaN(parseFloat(currentTemp))) {
+                    if (parseFloat(currentTemp) >= 28) bgColor = 'rgba(231, 76, 60, 0.85)'; // 高溫紅
+                    else if (parseFloat(currentTemp) <= 20) bgColor = 'rgba(52, 152, 219, 0.85)'; // 低溫藍
+                }
+                marker.style.background = bgColor;
+
+                marker.innerHTML = `
+                    <div>${name}</div>
+                    <div class="temp">${currentTemp}°C</div>
+                `;
+                mapContainer.appendChild(marker);
+            });
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('grid-container').innerHTML = `
+                <div class="loading" style="color: #e74c3c;">
+                    載入失敗，請檢查網絡或代理狀態
+                </div>`;
+        });
 }
 
-// Clear old markers
-function clearMarkers() {
-  markerList.forEach(marker => map.removeLayer(marker));
-  markerList = [];
-}
-
-// Fetch XML & Render Map
-async function loadWeatherData() {
-  try {
-    const res = await fetch(CORS_PROXY + encodeURIComponent(XML_URL));
-    const xmlText = await res.text();
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlText, "application/xml");
-
-    // Update publish time
-    const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent || new Date().toLocaleString();
-    document.getElementById("updateTime").textContent = pubTime;
-
-    clearMarkers();
-
-    // Traverse all weather reports
-    const reports = xmlDoc.querySelectorAll("WeatherReport");
-    reports.forEach(report => {
-      const stationName = report.querySelector("stationname")?.textContent?.trim();
-      const temp = report.querySelector("Temperature > Value")?.textContent || "--";
-      const humidity = report.querySelector("Humidity > Value")?.textContent || "--";
-      const wind = report.querySelector("WindSpeed > Value")?.textContent || "--";
-      const windDir = report.querySelector("WindDirection > WindDescription")?.textContent || "--";
-
-      // Match coordinates
-      if (!stationCoords[stationName]) return;
-      const [lat, lng] = stationCoords[stationName];
-      const color = getMarkerColor(temp);
-
-      // Create circle marker
-      const marker = L.circleMarker([lat, lng], {
-        radius: 12,
-        fillColor: color,
-        color: "#ffffff",
-        weight: 2,
-        fillOpacity: 0.85
-      }).addTo(map);
-
-      // Popup detail
-      const popupContent = `
-        <strong>${stationName}</strong><br>
-        Temperature: ${temp} °C<br>
-        Humidity: ${humidity} %<br>
-        Wind Speed: ${wind} km/h<br>
-        Wind Direction: ${windDir}
-      `;
-      marker.bindPopup(popupContent);
-      markerList.push(marker);
-    });
-
-  } catch (err) {
-    console.error("Load data failed:", err);
-    document.getElementById("updateTime").textContent = "Data load failed";
-  }
-}
-
-// First load + auto refresh
-loadWeatherData();
-setInterval(loadWeatherData, REFRESH_INTERVAL);
+fetchGridData();
+setInterval(fetchGridData, 60000);
 </script>
+
 </body>
 </html>
