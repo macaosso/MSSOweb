@@ -44,7 +44,7 @@
         /* Auto-responsive grid: items scale and pack themselves tightly */
         .station-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 20px;
         }
         .station-card {
@@ -86,7 +86,7 @@
         }
         .high-temp { color: #e74c3c; font-weight: 600; }
         .low-temp { color: #34495e; font-weight: 600; }
-        
+         
         .metrics-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -138,22 +138,20 @@
         </div>
     </header>
 
-    <!-- Stations will build dynamically right inside here -->
     <div id="grid-container" class="station-grid">
-        <div class="loading">正在擷取區域數據節點...</div>
+        <div class="loading">正在擷取區域數據節節...</div>
     </div>
 </div>
 
 <script>
-// Remove the static global URL and build it dynamically inside the function
 function fetchGridData() {
-    // 1. Create a unique timestamp (e.g., 1717056000000)
+    // 1. Create a unique timestamp to force request bypass down to source
     const cacheBuster = Date.now();
-    
-    // 2. Append it to the SMG URL so the proxy and browser see it as a fresh request
+     
+    // 2. Append parameter to break downstream proxy caching pipelines
     const freshUrl = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
 
-    // 3. Add the 'no-store' cache directive inside the fetch options
+    // 3. Request fresh payload with direct cache control flags
     fetch(freshUrl, { cache: "no-store" })
         .then(response => {
             if (!response.ok) throw new Error('Network error pulling XML map.');
@@ -172,12 +170,12 @@ function fetchGridData() {
             // Grab every single distinct station node
             const stations = xmlDoc.querySelectorAll("station");
             const gridContainer = document.getElementById('grid-container');
-            gridContainer.innerHTML = ''; // Wipe out existing layouts / loaders
+            gridContainer.innerHTML = ''; // Wipe out old elements
 
             stations.forEach(station => {
                 const name = station.querySelector("stationname")?.textContent || "Unnamed Node";
                 
-                // Helper function to extract inner dValue strings safely
+                // Helper function to extract values cleanly
                 const extractNodeValue = (selector) => {
                     const parent = station.querySelector(selector);
                     if (!parent) return '--';
@@ -194,18 +192,24 @@ function fetchGridData() {
                 const windDir = station.querySelector("WindDirection WindDescription")?.textContent || 
                                 station.querySelector("WindDirection Value")?.textContent || '--';
 
+                // Separate declarations for distinct intervals [3], [4], and [5]
+                let rain1m = "0.0";
                 let rain1h = "0.0";
-                let rainAccum = "0.0";
+                let rain24h = "0.0";
+                
                 const rainfallNodes = station.querySelectorAll("Rainfall");
                 
                 rainfallNodes.forEach(node => {
                     const type = node.querySelector("Type")?.textContent;
                     const val = node.querySelector("dValue")?.textContent || node.querySelector("Value")?.textContent || "0.0";
-                    if (type === "3") rain1h = val;
-                    if (type === "4" || type === "5") rainAccum = val;
+                    
+                    if (type === "4") rain1m = val;   // 1-Minute / rolling short tracker
+                    if (type === "3") rain1h = val;   // 1-Hour accumulated track
+                    if (type === "5") rain24h = val;  // 24-Hour deep rolling balance
                 });
 
-                const rainClass = parseFloat(rain1h) > 0 ? 'rain-active' : '';
+                // Highlight the element card container blue if active rain is falling
+                const rainClass = (parseFloat(rain1m) > 0 || parseFloat(rain1h) > 0) ? 'rain-active' : '';
 
                 const cardHtml = `
                     <div class="station-card">
@@ -219,20 +223,20 @@ function fetchGridData() {
                         </div>
                         <div class="metrics-grid">
                             <div class="metric">
-                                <span>Humidity</span>
+                                <span>Humidity / 濕度</span>
                                 <strong>${humidity}%</strong>
                             </div>
                             <div class="metric">
-                                <span>Wind Vector</span>
+                                <span>Wind Vector / 風向</span>
                                 <strong>${windDir}</strong>
                             </div>
-                            <div class="metric">
-                                <span>Wind Speed / Gust</span>
+                            <div class="metric" style="grid-column: span 2;">
+                                <span>Wind Speed & Gust / 風速及陣風</span>
                                 <strong>${windSpeed} / ${windGust} <small>km/h</small></strong>
                             </div>
-                            <div class="metric ${rainClass}">
-                                <span>Rain (1hr / Today)</span>
-                                <strong>${rain1h} / ${rainAccum} <small>mm</small></strong>
+                            <div class="metric ${rainClass}" style="grid-column: span 2;">
+                                <span>Rainfall / 降雨量 (1m | 1h | 24h)</span>
+                                <strong>${rain1m} / ${rain1h} / ${rain24h} <small>mm</small></strong>
                             </div>
                         </div>
                     </div>
@@ -252,7 +256,7 @@ function fetchGridData() {
 // Initialize layout immediately
 fetchGridData();
 
-// Auto update grid space parameters every 5 mins
+// Auto update grid space parameters every minute (60000ms)
 setInterval(fetchGridData, 60000);
 </script>
 
