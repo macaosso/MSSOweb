@@ -319,6 +319,7 @@ if (!tcWarnings || tcWarnings.length === 0) {
   let html = "";
 
   tcWarnings.forEach((item, index) => {
+    if (!item.icon) return;
     html += `
       <div class="warning-item">
         <div class="icon-box">
