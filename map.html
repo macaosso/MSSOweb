@@ -475,8 +475,7 @@ function updateLegendPanel(tabType) {
             `;
             break;
         case "windDir":
-            // NO legend for wind direction
-            legendHTML = `<div class="legend-item" style="color:#777;">箭頭=風向</div>`;
+            legendHTML = `<div class="legend-item" style="color:#777;">風向代碼</div>`;
             break;
         default:
             legendHTML = `<div class="legend-item" style="color:#777;">無圖例</div>`;
@@ -520,7 +519,7 @@ function clearMarkers() {
     allMarkers = [];
 }
 
-// Convert wind direction text to rotation degrees
+// Convert wind direction text to rotation degrees (keep function for compatibility)
 function windDirToRotation(dirText) {
     const dirToDeg = {
         "N": 0, "NNE": 22.5, "NE": 45, "ENE": 67.5,
@@ -565,13 +564,9 @@ function updateMapMarkers() {
                 markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "windDir":
-                // CLEAR ARROW POINTING TO WIND DIRECTION (blowing FROM this direction)
-                const rotation = windDirToRotation(point.windDir);
-                markerIconHtml = `
-                    <div style="font-size: 36px; color: #9b59b6; transform: rotate(${rotation}deg); transform-origin: center;">
-                        ←
-                    </div>
-                `;
+                // Circle with wind direction text inside
+                showVal = point.windDir || "--";
+                markerIconHtml = `<div style="background:#9b59b6;color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "windSpeed":
                 showVal = point.windSpeed;
@@ -614,10 +609,6 @@ function updateMapMarkers() {
 
         let iconSize = [50, 50];
         let iconAnchor = [25, 25];
-        if (currentTab === "windDir") {
-            iconSize = [40, 40];
-            iconAnchor = [20, 20];
-        }
 
         const icon = L.divIcon({
             html: markerIconHtml,
@@ -707,7 +698,7 @@ function fetchGridData() {
                         <div class="metric col-half"><span>風向</span><strong>${windDir || '--'}</strong></div>
                         <div class="metric col-half"><span>風速(km/h)</span><strong>${windSpeed || '--'} ${windSpeed?'<small>km/h</small>':''}</strong></div>
                         <div class="metric col-half"><span>陣風(km/h)</span><strong>${windGust || '--'} ${windGust?'<small>km/h</small>':''}</strong></div>
-                        <div class="metric col-half"><span>海平面氣壓(hPa)</strong><strong>${pressSea || '--'} ${pressSea?'<small>hPa</small>':''}</strong></div>
+                        <div class="metric col-half"><span>海平面氣壓(hPa)</span><strong>${pressSea || '--'} ${pressSea?'<small>hPa</small>':''}</strong></div>
                         <div class="metric col-half"><span>站點氣壓(hPa)</span><strong>${pressStation || '--'} ${pressStation?'<small>hPa</small>':''}</strong></div>
                         <div class="metric col-third ${rain1mClass}"><span>一分鐘雨量</span><strong>${rain1m || '--'} ${rain1m?'<small>mm</small>':''}</strong></div>
                         <div class="metric col-third ${rain1hClass}"><span>一小時雨量</span><strong>${rain1h || '--'} ${rain1h?'<small>mm</small>':''}</strong></div>
