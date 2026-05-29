@@ -1,5 +1,5 @@
 const forecastInfo = {
-  updated: "05-29 11:00 MST"
+  updated: "05-29 14:00 MST"
 };
 
 const pastPoints = [
@@ -19,7 +19,7 @@ const pastPoints = [
 ];
 
 const forecastPoints = [
-  {lat:15.7, lon:133.0, time: "05-29 11H", wind: 85,
+  {lat:15.7, lon:133.0, time: "05-29 14H",wind: 85,
    
     wind41: { ne: 220, se: 240, sw: 180, nw: 180 }, 
     wind88: { ne: 0, se: 0, sw: 0,  nw: 0 } 
