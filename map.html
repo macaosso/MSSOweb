@@ -278,20 +278,18 @@
 </div>
 
 <script>
-// All stations + bridges coordinates (UPDATED: fixed FM/PE coordinates)
+// All stations + bridges coordinates (fixed FM/PE no overlap)
 const allPoints = {
-    // Weather Stations
     "紀念孫中山市政公園": { code: "DP", lat: 22.215322, lng: 113.543490 },
     "黑沙環": { code: "EM", lat: 22.207129, lng: 113.559971 },
     "大炮台": { code: "FM", lat: 22.197066, lng: 113.542261 },
-    "外港": { code: "PE", lat: 22.197066, lng: 113.542261 + 0.001 }, // Offset slightly to avoid overlap
+    "外港": { code: "PE", lat: 22.197066, lng: 113.543261 },
     "媽閣": { code: "MM", lat: 22.185863, lng: 113.530675 },
     "大潭山": { code: "TG", lat: 22.159102, lng: 113.568947 },
     "東亞運大馬路": { code: "JA", lat: 22.155396, lng: 113.542412 },
     "九澳": { code: "KV", lat: 22.134686, lng: 113.580143 },
     "澳門大學": { code: "UM", lat: 22.131808, lng: 113.546970 },
     "路環市區": { code: "DC", lat: 22.117091, lng: 113.551041 },
-    // Bridges (UPDATED coordinates)
     "西灣大橋": { code: "PV", lat: 22.173240, lng: 113.535416 },
     "友誼大橋北": { code: "PN", lat: 22.191167, lng: 113.563219 },
     "友誼大橋南": { code: "PS", lat: 22.180189, lng: 113.563299 },
@@ -305,70 +303,72 @@ const allPoints = {
 function getTempColor(tempStr) {
     const temp = parseFloat(tempStr);
     if (isNaN(temp)) return "#3498db";
-    if (temp >= 35.0) return "#7b1818";   // 極端酷熱
-    if (temp >= 33.0) return "#d64040";   // 酷熱
-    if (temp >= 28.0) return "#ed7a7a";   // 炎熱
-    if (temp >= 22.1) return "#e8b03e";   // 溫暖
-    if (temp >= 17.1) return "#f0d390";   // 和暖
-    if (temp >= 12.1) return "#62e0b1";   // 清涼
-    if (temp >= 7.1) return "#64b5e7";    // 寒冷
-    return "#5c48a1";                     // 嚴寒 (<=7.0)
+    if (temp >= 35.0) return "#7b1818";
+    if (temp >= 33.0) return "#d64040";
+    if (temp >= 28.0) return "#ed7a7a";
+    if (temp >= 22.1) return "#e8b03e";
+    if (temp >= 17.1) return "#f0d390";
+    if (temp >= 12.1) return "#62e0b1";
+    if (temp >= 7.1) return "#64b5e7";
+    return "#5c48a1";
 }
 
-// Humidity color mapping (NEW)
+// Humidity color mapping
 function getHumidityColor(humStr) {
     const hum = parseFloat(humStr);
     if (isNaN(hum)) return "#3498db";
-    if (hum >= 95) return "#553C9A"; // 非常潮濕
-    if (hum >= 85) return "#5DADEC"; // 潮濕
-    if (hum >= 71) return "#6EE7B7"; // 71-84%
-    if (hum >= 40) return "#E6B34B"; // 乾燥
-    return "#7b1818";                // 非常乾燥
+    if (hum >= 95) return "#553C9A";
+    if (hum >= 85) return "#5DADEC";
+    if (hum >= 71) return "#6EE7B7";
+    if (hum >= 40) return "#E6B34B";
+    return "#7b1818";
 }
 
 // Wind/Gust color mapping
 function getWindColor(windStr) {
     const wind = parseFloat(windStr);
     if (isNaN(wind)) return "#3498db";
-    if (wind >= 118) return "#d64040";    // 颶風
-    if (wind >= 88) return "#f2a938";     // 暴風
-    if (wind >= 63) return "#f9e559";     // 烈風
-    if (wind >= 41) return "#60c070";     // 強風
-    return "#64b5e7";                     // 清勁或以下
+    if (wind >= 118) return "#d64040";
+    if (wind >= 88) return "#f2a938";
+    if (wind >= 63) return "#f9e559";
+    if (wind >= 41) return "#60c070";
+    return "#64b5e7";
 }
 
-// --- UPDATED Rainfall color mapping ---
+// Rain 1min
 function getRain1mColor(rainStr) {
     const rain = parseFloat(rainStr);
-    if (isNaN(rain) || rain === 0) return "#a0a0a0"; // 無雨
-    if (rain >= 0.8) return "#d64040"; // >=0.8mm
-    if (rain >= 0.6) return "#e68938"; // 0.6-0.7mm
-    if (rain >= 0.4) return "#f9d342"; // 0.4-0.5mm
-    if (rain >= 0.2) return "#3a6ea5"; // 0.2-0.3mm
-    return "#bdd7ee";                 // <0.2mm
+    if (isNaN(rain) || rain === 0) return "#a0a0a0";
+    if (rain >= 0.8) return "#d64040";
+    if (rain >= 0.6) return "#e68938";
+    if (rain >= 0.4) return "#f9d342";
+    if (rain >= 0.2) return "#3a6ea5";
+    return "#bdd7ee";
 }
+// Rain 1hour
 function getRain1hColor(rainStr) {
     const rain = parseFloat(rainStr);
-    if (isNaN(rain) || rain === 0) return "#a0a0a0"; // 無雨
-    if (rain >= 80) return "#000000"; // >=80mm
-    if (rain >= 50) return "#d64040"; // 50-79mm
-    if (rain >= 40) return "#e68938"; // 40-49mm
-    if (rain >= 20) return "#f9d342"; // 20-39mm
-    if (rain >= 10) return "#3a6ea5"; // 10-19mm
-    return "#bdd7ee";                 // <10mm
+    if (isNaN(rain) || rain === 0) return "#a0a0a0";
+    if (rain >= 80) return "#000000";
+    if (rain >= 50) return "#d64040";
+    if (rain >= 40) return "#e68938";
+    if (rain >= 20) return "#f9d342";
+    if (rain >= 10) return "#3a6ea5";
+    return "#bdd7ee";
 }
+// Total daily rain
 function getRainTotalColor(rainStr) {
     const rain = parseFloat(rainStr);
-    if (isNaN(rain) || rain === 0) return "#a0a0a0"; // 無雨
-    if (rain >= 125) return "#800080"; // >=125mm
-    if (rain >= 100) return "#d64040"; // 100-124mm
-    if (rain >= 80) return "#e68938"; // 80-99mm
-    if (rain >= 50) return "#f9d342"; // 50-79mm
-    if (rain >= 20) return "#3a6ea5"; // 20-49mm
-    return "#bdd7ee";                 // <20mm
+    if (isNaN(rain) || rain === 0) return "#a0a0a0";
+    if (rain >= 125) return "#800080";
+    if (rain >= 100) return "#d64040";
+    if (rain >= 80) return "#e68938";
+    if (rain >= 50) return "#f9d342";
+    if (rain >= 20) return "#3a6ea5";
+    return "#bdd7ee";
 }
 
-// --- UPDATED Pressure color mapping ---
+// Pressure Sea Level
 function getPressSeaColor(pressStr) {
     const press = parseFloat(pressStr);
     if (isNaN(press)) return "#3498db";
@@ -377,6 +377,7 @@ function getPressSeaColor(pressStr) {
     if (press < 1000) return "#f9d342";
     return "#3a6ea5";
 }
+// Station Pressure
 function getPressStationColor(pressStr) {
     const press = parseFloat(pressStr);
     if (isNaN(press)) return "#3498db";
@@ -386,7 +387,7 @@ function getPressStationColor(pressStr) {
     return "#3a6ea5";
 }
 
-// Update legend panel based on current tab
+// Update legend panel (Wind direction tab has NO legend now)
 function updateLegendPanel(tabType) {
     const legendContent = document.getElementById('legend-content');
     let legendHTML = '';
@@ -473,6 +474,10 @@ function updateLegendPanel(tabType) {
                 <div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>>=985hPa</div>
             `;
             break;
+        case "windDir":
+            // NO legend for wind direction
+            legendHTML = `<div class="legend-item" style="color:#777;">無圖例</div>`;
+            break;
         default:
             legendHTML = `<div class="legend-item" style="color:#777;">無圖例</div>`;
     }
@@ -515,7 +520,7 @@ function clearMarkers() {
     allMarkers = [];
 }
 
-// --- Helper: Convert wind direction text to degrees ---
+// Convert wind direction text to rotation degrees
 function windDirToRotation(dirText) {
     const dirToDeg = {
         "N": 0, "NNE": 22.5, "NE": 45, "ENE": 67.5,
@@ -526,7 +531,7 @@ function windDirToRotation(dirText) {
     return dirToDeg[dirText] || 0;
 }
 
-// Update map markers (CIRCLE style, only numbers)
+// Update map markers
 function updateMapMarkers() {
     clearMarkers();
     pointDataList.forEach(point => {
@@ -560,12 +565,10 @@ function updateMapMarkers() {
                 markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "windDir":
-                showVal = point.windDir;
+                // Pure isosceles triangle ONLY, no text / no rectangle
                 const rotation = windDirToRotation(point.windDir);
                 markerIconHtml = `
-                    <div style="width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-bottom: 40px solid #9b59b6; transform: rotate(${rotation}deg); position: relative;">
-                        <div style="position: absolute; top: 45px; left: -20px; width: 40px; text-align: center; color: #fff; font-size: 12px; font-weight: bold; transform: rotate(${-rotation}deg); background: #9b59b6; padding: 2px; border-radius: 3px;">${showVal}</div>
-                    </div>
+                    <div style="width: 0; height: 0; border-left: 18px solid transparent; border-right: 18px solid transparent; border-bottom: 36px solid #9b59b6; transform: rotate(${rotation}deg);"></div>
                 `;
                 break;
             case "windSpeed":
@@ -607,8 +610,12 @@ function updateMapMarkers() {
 
         if (showVal === '' || showVal === '--') return;
 
-        const iconSize = currentTab === "windDir" ? [40, 60] : [50, 50];
-        const iconAnchor = currentTab === "windDir" ? [20, 30] : [25, 25];
+        let iconSize = [50, 50];
+        let iconAnchor = [25, 25];
+        if (currentTab === "windDir") {
+            iconSize = [36, 36];
+            iconAnchor = [18, 18];
+        }
 
         const icon = L.divIcon({
             html: markerIconHtml,
@@ -639,7 +646,7 @@ function fetchGridData() {
 
             const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent || "未知";
             document.getElementById("pub-date").textContent = pubTime;
-            document.getElementById("time-stamp").textContent = pubTime; // Update the map time stamp
+            document.getElementById("time-stamp").textContent = pubTime;
 
             const stations = xmlDoc.querySelectorAll("WeatherReport station");
             const gridContainer = document.getElementById("grid-container");
