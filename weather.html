@@ -134,7 +134,7 @@
         </div>
         <div class="meta-info">
             <div>資料更新時間：<span id="pub-date">載入中...</span></div>
-            <div>每5分鐘自動刷新</div>
+            <div>每1分鐘自動刷新驗證</div>
         </div>
     </header>
 
@@ -188,14 +188,26 @@ function fetchGridData() {
                 const humidity = extractNodeValue("Humidity");
                 const windSpeed = extractNodeValue("WindSpeed");
                 const windGust = extractNodeValue("WindGust");
+                const mslPressure = extractNodeValue("MeanSeaLevelPressure");
+                const stationPressure = extractNodeValue("StationPressure");
                 
-                const windDir = station.querySelector("WindDirection WindDescription")?.textContent || 
-                                station.querySelector("WindDirection Value")?.textContent || '--';
+                // Robust extraction handling both description string and direction degree value
+                const windDirText = station.querySelector("WindDirection WindDescription")?.textContent;
+                const windDirDeg = station.querySelector("WindDirection Value")?.textContent;
+                
+                let windDirDisplay = '--';
+                if (windDirText && windDirDeg && windDirDeg !== '--') {
+                    windDirDisplay = `${windDirText} (${windDirDeg}°)`;
+                } else if (windDirText) {
+                    windDirDisplay = windDirText;
+                } else if (windDirDeg && windDirDeg !== '--') {
+                    windDirDisplay = `${windDirDeg}°`;
+                }
 
-                // Separate declarations for distinct intervals [3], [4], and [5]
+                // Initialized to '--' for stations lacking rainfall monitors (bridges)
                 let rain1m = "--";
                 let rain1h = "--";
-                let rain24h = "--";
+                let rainToday = "--";
                 
                 const rainfallNodes = station.querySelectorAll("Rainfall");
                 
@@ -203,13 +215,15 @@ function fetchGridData() {
                     const type = node.querySelector("Type")?.textContent;
                     const val = node.querySelector("dValue")?.textContent || node.querySelector("Value")?.textContent || "0.0";
                     
-                    if (type === "3") rain1m = val;   // 1-Minute / rolling short tracker
-                    if (type === "4") rain1h = val;   // 1-Hour accumulated track
-                    if (type === "5") rain24h = val;  // 24-Hour deep rolling balance
+                    if (type === "3") rain1m = val;    // 即時錄得之觀察值 (1-min)
+                    if (type === "4") rain1h = val;    // 1小時前至即時的累積值 (1-hr)
+                    if (type === "5") rainToday = val; // 由當日之 00:01 至即時的累積值 (Today total)
                 });
 
-                // Highlight the element card container blue if active rain is falling
-                const rainClass = (parseFloat(rain1m) > 0 || parseFloat(rain1h) > 0) ? 'rain-active' : '';
+                // Contextual alert highlights if active rain arrays trigger positive numbers
+                const rain1mClass = parseFloat(rain1m) > 0 ? 'rain-active' : '';
+                const rain1hClass = parseFloat(rain1h) > 0 ? 'rain-active' : '';
+                const rainTodayClass = parseFloat(rainToday) > 0 ? 'rain-active' : '';
 
                 const cardHtml = `
                     <div class="station-card">
@@ -223,24 +237,41 @@ function fetchGridData() {
                         </div>
                         <div class="metrics-grid">
                             <div class="metric">
-                                <span>相對濕度(%)</span>
+                                <span>相對濕度</span>
                                 <strong>${humidity}%</strong>
                             </div>
                             <div class="metric">
-                                <span>風向</span>
-                                <strong>${windDir}</strong>
+                                <span>風向 (角度)</span>
+                                <strong>${windDirDisplay}</strong>
                             </div>
-                            <div class="metric" >
-                                <span>風速(km/h)</span>
-                                <strong>${windSpeed}<small>km/h</small></strong>
+                            <div class="metric">
+                                <span>風速</span>
+                                <strong>${windSpeed}${windSpeed !== '--' ? ' <small>km/h</small>' : ''}</strong>
                             </div>
-                            <div class="metric" >
-                                <span>陣風(km/h)</span>
-                                <strong>${windGust} <small>km/h</small></strong>
+                            <div class="metric">
+                                <span>陣風</span>
+                                <strong>${windGust}${windGust !== '--' ? ' <small>km/h</small>' : ''}</strong>
                             </div>
-                            <div class="metric ${rainClass}" style="grid-column: span 2;">
-                                <span>降雨量 (1m | 1h | 24h)</span>
-                                <strong>${rain1m} / ${rain1h} / ${rain24h} <small>mm</small></strong>
+                            <div class="metric">
+                                <span>平均海平面氣壓</span>
+                                <strong>${mslPressure}${mslPressure !== '--' ? ' <small>hPa</small>' : ''}</strong>
+                            </div>
+                            <div class="metric">
+                                <span>本站氣壓</span>
+                                <strong>${stationPressure}${stationPressure !== '--' ? ' <small>hPa</small>' : ''}</strong>
+                            </div>
+                            
+                            <div class="metric ${rain1mClass}">
+                                <span>即時降雨 (1m)</span>
+                                <strong>${rain1m}${rain1m !== '--' ? ' <small>mm</small>' : ''}</strong>
+                            </div>
+                            <div class="metric ${rain1hClass}">
+                                <span>每小時降雨 (1h)</span>
+                                <strong>${rain1h}${rain1h !== '--' ? ' <small>mm</small>' : ''}</strong>
+                            </div>
+                            <div class="metric ${rainTodayClass}" style="grid-column: span 2;">
+                                <span>當日累積降雨 (自00:01)</span>
+                                <strong>${rainToday}${rainToday !== '--' ? ' <small>mm</small>' : ''}</strong>
                             </div>
                         </div>
                     </div>
