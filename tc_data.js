@@ -29,19 +29,19 @@ const pastPoints = [
 ];
 
 const forecastPoints = [
-  {lat:16.4, lon:131.7, time: "05-29 23H",wind: 90,
+  {lat:16.6, lon:131.8, time: "05-29 23H",wind: 90,
    
     wind41: { ne: 220, se: 260, sw: 200, nw: 180 }, 
     wind88: { ne: 60, se: 100, sw: 60,  nw: 40 } 
    
   },
 
-  {lat:17.8, lon:129.8, time:"05-30 11H", wind: 120},
-  {lat:18.9, lon:128.5, time:"05-30 23H", wind: 140},
-  {lat:23.3, lon:126.7, time:"05-31 23H", wind: 165},
-  {lat:26.4, lon:126.4, time:"06-01 23H", wind: 155},
-  {lat:31.2, lon:132.1, time:"06-02 23H", wind: 130},
-  {lat:35.5, lon:141.4, time:"06-03 23H", wind: 90},
+  {lat:17.7, lon:130.0, time:"05-30 11H", wind: 120},
+  {lat:19.6, lon:128.3, time:"05-30 23H", wind: 140},
+  {lat:22.9, lon:127.1, time:"05-31 23H", wind: 165},
+  {lat:27.1, lon:128.1, time:"06-01 23H", wind: 155},
+  {lat:32.1, lon:134.5, time:"06-02 23H", wind: 130},
+  {lat:35.7, lon:143.1, time:"06-03 23H", wind: 90},
 ];
 
 window.tcInfo = {
