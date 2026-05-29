@@ -12,7 +12,78 @@
     .header { background: #1f3a4d; color: white; padding: 25px 20px; display:flex; align-items:center; }
     .title { font-size: 20px; font-weight: bold; margin-left:10px; }
     .logo { height:40px; }
+
+/* CARD */
+    .warning-card {
+      margin: 20px;
+      border-radius: 15px;
+      background: #fdeeee;
+      border: 2px solid #d9534f;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      overflow: hidden;
+    }
     
+    /* HEADER */
+    .warning-header {
+      background: #d9534f;
+      color: white;
+      padding: 15px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+    
+    /* ITEM */
+    .warning-item {
+      display: flex;
+      gap: 15px;
+      padding: 20px;
+    }
+    
+    /* ICON */
+    .icon-box {
+      width: 80px;
+      height: 80px;
+      background: #fff;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .icon-box img {
+      width: 60px;
+    }
+    
+    /* TEXT */
+    .text-box {
+      flex: 1;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #333;
+    }
+    
+    /* DIVIDER */
+    .divider {
+      height: 1px;
+      background: #e6a5a5;
+      margin: 0 20px;
+    }
+    
+    /* BUTTON */
+    .btn {
+      display: inline-block;
+      margin-top: 10px;
+      background: #d9534f;
+      color: white;
+      padding: 8px 15px;
+      border-radius: 20px;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    
+    .btn:hover {
+      background: #c63d3a;
+    }
     .tc-btn {
       background: rgba(255,255,255,0.2);
       color: white;
@@ -131,6 +202,51 @@
   </div>
 </div>
 
+<div class="warning-card">
+
+  <!-- Header -->
+  <div class="warning-header">
+    熱帶氣旋相關警告
+  </div>
+
+  <!-- Content 1 -->
+  <div class="warning-item">
+
+    <div class="icon-box">
+      warn_icon/t4.jpg
+    </div>
+
+    <div class="text-box">
+      受超強颱風影響，八號風球現正生效。
+      預料將維持至晚間。
+      <br><br>
+      （2025-09-23 18:00更新）
+      <br><br>
+      <a href="#" class="btn">更多相關資訊 ></a>
+    </div>
+
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Content 2 -->
+  <div class="warning-item">
+
+    <div class="icon-box">
+      icons/wave.png
+    </div>
+
+    <div class="text-box">
+      紅色風暴潮警告已發出。
+      低窪地區可能出現水浸，
+      最高水位約1.5至2.5米。
+      <br><br>
+      <a href="#" class="btn">更多相關資訊 ></a>
+    </div>
+
+  </div>
+
+</div>
 <div id="alertBox" class="box">
   <div class="header-orange">預警提示</div>
   <div id="alertContent" class="content-yellow"></div>
