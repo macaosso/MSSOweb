@@ -130,6 +130,18 @@
             border-radius: 50%;
             margin-right: 5px;
         }
+        /* --- Time Stamp --- */
+        .time-stamp {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            z-index: 1000;
+        }
         /* Station Cards */
         .station-grid {
             display: grid;
@@ -251,6 +263,8 @@
     <div class="main-layout">
         <div class="map-card">
             <div id="macau-map"></div>
+            <!-- Time Stamp -->
+            <div id="time-stamp" class="time-stamp"></div>
             <!-- Smaller, Always-Visible Legend -->
             <div id="map-legend" class="map-legend">
                 <h4>圖例</h4>
@@ -264,13 +278,13 @@
 </div>
 
 <script>
-// All stations + bridges coordinates (UPDATED)
+// All stations + bridges coordinates (UPDATED: fixed FM/PE coordinates)
 const allPoints = {
     // Weather Stations
     "紀念孫中山市政公園": { code: "DP", lat: 22.215322, lng: 113.543490 },
     "黑沙環": { code: "EM", lat: 22.207129, lng: 113.559971 },
     "大炮台": { code: "FM", lat: 22.197066, lng: 113.542261 },
-    "外港": { code: "PE", lat: 22.197066, lng: 113.542261 },
+    "外港": { code: "PE", lat: 22.197066, lng: 113.542261 + 0.001 }, // Offset slightly to avoid overlap
     "媽閣": { code: "MM", lat: 22.185863, lng: 113.530675 },
     "大潭山": { code: "TG", lat: 22.159102, lng: 113.568947 },
     "東亞運大馬路": { code: "JA", lat: 22.155396, lng: 113.542412 },
@@ -301,6 +315,17 @@ function getTempColor(tempStr) {
     return "#5c48a1";                     // 嚴寒 (<=7.0)
 }
 
+// Humidity color mapping (NEW)
+function getHumidityColor(humStr) {
+    const hum = parseFloat(humStr);
+    if (isNaN(hum)) return "#3498db";
+    if (hum >= 95) return "#553C9A"; // 非常潮濕
+    if (hum >= 85) return "#5DADEC"; // 潮濕
+    if (hum >= 71) return "#6EE7B7"; // 71-84%
+    if (hum >= 40) return "#E6B34B"; // 乾燥
+    return "#7b1818";                // 非常乾燥
+}
+
 // Wind/Gust color mapping
 function getWindColor(windStr) {
     const wind = parseFloat(windStr);
@@ -312,45 +337,54 @@ function getWindColor(windStr) {
     return "#64b5e7";                     // 清勁或以下
 }
 
-// 1h Rainfall color mapping
+// --- UPDATED Rainfall color mapping ---
+function getRain1mColor(rainStr) {
+    const rain = parseFloat(rainStr);
+    if (isNaN(rain) || rain === 0) return "#a0a0a0"; // 無雨
+    if (rain >= 0.8) return "#d64040"; // >=0.8mm
+    if (rain >= 0.6) return "#e68938"; // 0.6-0.7mm
+    if (rain >= 0.4) return "#f9d342"; // 0.4-0.5mm
+    if (rain >= 0.2) return "#3a6ea5"; // 0.2-0.3mm
+    return "#bdd7ee";                 // <0.2mm
+}
 function getRain1hColor(rainStr) {
     const rain = parseFloat(rainStr);
-    if (isNaN(rain) || rain === 0) return "#b8b8b8";
-    if (rain >= 140) return "#800080";    // >=140
-    if (rain >= 100) return "#ff00ff";    // 100-139
-    if (rain >= 70) return "#000000";    // 70-99
-    if (rain >= 50) return "#d64040";    // 50-69
-    if (rain >= 30) return "#f9e559";    // 30-49
-    if (rain >= 20) return "#60c070";    // 20-29
-    if (rain >= 1) return "#64b5e7";     // 1-19
-    return "#b8b8b8";                    // 0
+    if (isNaN(rain) || rain === 0) return "#a0a0a0"; // 無雨
+    if (rain >= 80) return "#000000"; // >=80mm
+    if (rain >= 50) return "#d64040"; // 50-79mm
+    if (rain >= 40) return "#e68938"; // 40-49mm
+    if (rain >= 20) return "#f9d342"; // 20-39mm
+    if (rain >= 10) return "#3a6ea5"; // 10-19mm
+    return "#bdd7ee";                 // <10mm
+}
+function getRainTotalColor(rainStr) {
+    const rain = parseFloat(rainStr);
+    if (isNaN(rain) || rain === 0) return "#a0a0a0"; // 無雨
+    if (rain >= 125) return "#800080"; // >=125mm
+    if (rain >= 100) return "#d64040"; // 100-124mm
+    if (rain >= 80) return "#e68938"; // 80-99mm
+    if (rain >= 50) return "#f9d342"; // 50-79mm
+    if (rain >= 20) return "#3a6ea5"; // 20-49mm
+    return "#bdd7ee";                 // <20mm
 }
 
-// Pressure color mapping (from your legend)
-function getPressureColor(pressStr) {
+// --- UPDATED Pressure color mapping ---
+function getPressSeaColor(pressStr) {
     const press = parseFloat(pressStr);
     if (isNaN(press)) return "#3498db";
-    if (press <= 949.9) return "#8000b8";    // <=949.9
-    if (press <= 969.9) return "#d64040";    // 950.0-969.9
-    if (press <= 979.9) return "#ff7a7a";    // 970.0-979.9
-    if (press <= 989.9) return "#f9a825";    // 980.0-989.9
-    if (press <= 999.9) return "#fdd835";    // 990.0-999.9
-    if (press <= 1009.9) return "#4ec07d";   // 1000.0-1009.9
-    if (press <= 1029.9) return "#5ab4f0";   // 1010.0-1029.9
-    return "#1a3b5d";                       // >=1030.0
+    if (press < 980) return "#d64040";
+    if (press < 990) return "#e68938";
+    if (press < 1000) return "#f9d342";
+    return "#3a6ea5";
 }
-
-// Pressure legend definition
-const pressureLegend = [
-    { color: "#8000b8", label: "<= 949.9 hPa" },
-    { color: "#d64040", label: "950.0-969.9 hPa" },
-    { color: "#ff7a7a", label: "970.0-979.9 hPa" },
-    { color: "#f9a825", label: "980.0-989.9 hPa" },
-    { color: "#fdd835", label: "990.0-999.9 hPa" },
-    { color: "#4ec07d", label: "1000.0-1009.9 hPa" },
-    { color: "#5ab4f0", label: "1010.0-1029.9 hPa" },
-    { color: "#1a3b5d", label: ">= 1030.0 hPa" }
-];
+function getPressStationColor(pressStr) {
+    const press = parseFloat(pressStr);
+    if (isNaN(press)) return "#3498db";
+    if (press < 965) return "#d64040";
+    if (press < 975) return "#e68938";
+    if (press < 985) return "#f9d342";
+    return "#3a6ea5";
+}
 
 // Update legend panel based on current tab
 function updateLegendPanel(tabType) {
@@ -372,6 +406,15 @@ function updateLegendPanel(tabType) {
                 <div class="legend-item"><div class="legend-color" style="background:#5c48a1"></div><=7.0°C</div>
             `;
             break;
+        case "humidity":
+            legendHTML = `
+                <div class="legend-item"><div class="legend-color" style="background:#553C9A"></div>非常潮濕(95-100%)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#5DADEC"></div>潮濕(85-95%)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#6EE7B7"></div>71-84%</div>
+                <div class="legend-item"><div class="legend-color" style="background:#E6B34B"></div>乾燥(40-70%)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#7b1818"></div>非常乾燥(0-40%)</div>
+            `;
+            break;
         case "windSpeed":
         case "windGust":
             legendHTML = `
@@ -382,23 +425,53 @@ function updateLegendPanel(tabType) {
                 <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>0-40 km/h</div>
             `;
             break;
+        case "rain1m":
+            legendHTML = `
+                <div class="legend-item"><div class="legend-color" style="background:#a0a0a0"></div>無雨</div>
+                <div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><0.2mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>0.2~0.3mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>0.4~0.5mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#e68938"></div>0.6~0.7mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>>=0.8mm</div>
+            `;
+            break;
         case "rain1h":
             legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#800080"></div>>=140 mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#ff00ff"></div>100-139 mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#000000"></div>70-99 mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>50-69 mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f9e559"></div>30-49 mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#60c070"></div>20-29 mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>1-19 mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#b8b8b8"></div>0 mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#a0a0a0"></div>無雨</div>
+                <div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><10mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>10~19mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>20~39mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#e68938"></div>40~49mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>50~79mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#000000"></div>>=80mm</div>
+            `;
+            break;
+        case "rainTotal":
+            legendHTML = `
+                <div class="legend-item"><div class="legend-color" style="background:#a0a0a0"></div>無雨</div>
+                <div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><20mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>20~49mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>50~79mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#e68938"></div>80~99mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>100~124mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#800080"></div>>=125mm</div>
             `;
             break;
         case "pressSea":
+            legendHTML = `
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div><980hPa</div>
+                <div class="legend-item"><div class="legend-color" style="background:#e68938"></div>980~989hPa</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>990~999hPa</div>
+                <div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>>1000hPa</div>
+            `;
+            break;
         case "pressStation":
-            pressureLegend.forEach(item => {
-                legendHTML += `<div class="legend-item"><div class="legend-color" style="background:${item.color}"></div>${item.label}</div>`;
-            });
+            legendHTML = `
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div><965hPa</div>
+                <div class="legend-item"><div class="legend-color" style="background:#e68938"></div>965~974hPa</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>975~984hPa</div>
+                <div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>>=985hPa</div>
+            `;
             break;
         default:
             legendHTML = `<div class="legend-item" style="color:#777;">無圖例</div>`;
@@ -483,13 +556,12 @@ function updateMapMarkers() {
                 break;
             case "humidity":
                 showVal = point.humidity;
-                bgColor = "#27ae60";
+                bgColor = getHumidityColor(showVal);
                 markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "windDir":
                 showVal = point.windDir;
                 const rotation = windDirToRotation(point.windDir);
-                // Arrow pointing in the direction the wind is coming FROM
                 markerIconHtml = `
                     <div style="width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-bottom: 40px solid #9b59b6; transform: rotate(${rotation}deg); position: relative;">
                         <div style="position: absolute; top: 45px; left: -20px; width: 40px; text-align: center; color: #fff; font-size: 12px; font-weight: bold; transform: rotate(${-rotation}deg); background: #9b59b6; padding: 2px; border-radius: 3px;">${showVal}</div>
@@ -508,7 +580,7 @@ function updateMapMarkers() {
                 break;
             case "rain1m":
                 showVal = point.rain1m;
-                bgColor = "#16a085";
+                bgColor = getRain1mColor(showVal);
                 markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "rain1h":
@@ -518,22 +590,21 @@ function updateMapMarkers() {
                 break;
             case "rainTotal":
                 showVal = point.rainTotal;
-                bgColor = "#0277bd";
+                bgColor = getRainTotalColor(showVal);
                 markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "pressSea":
                 showVal = point.pressSea;
-                bgColor = getPressureColor(showVal);
+                bgColor = getPressSeaColor(showVal);
                 markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "pressStation":
                 showVal = point.pressStation;
-                bgColor = getPressureColor(showVal);
+                bgColor = getPressStationColor(showVal);
                 markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
         }
 
-        // Hide empty/-- value
         if (showVal === '' || showVal === '--') return;
 
         const iconSize = currentTab === "windDir" ? [40, 60] : [50, 50];
@@ -568,6 +639,7 @@ function fetchGridData() {
 
             const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent || "未知";
             document.getElementById("pub-date").textContent = pubTime;
+            document.getElementById("time-stamp").textContent = pubTime; // Update the map time stamp
 
             const stations = xmlDoc.querySelectorAll("WeatherReport station");
             const gridContainer = document.getElementById("grid-container");
