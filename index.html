@@ -14,7 +14,7 @@
     .title { font-size: 20px; font-weight: bold; margin-left:10px; }
     .logo { height:40px; }
 
-    /* ========== 實時天氣欄 ========== */
+    /* 實時天氣欄 */
     .live-weather-bar {
       background: linear-gradient(135deg, #4fa6a6, #2d6c94);
       color: #fff;
@@ -23,8 +23,7 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+      gap: 16px;
       font-size: 15px;
     }
     .live-item {
@@ -39,7 +38,6 @@
       font-weight: bold;
       font-size: 16px;
     }
-    /* ====================================== */
 
     .quick-links {
       display: grid;
@@ -184,7 +182,6 @@
     .content-yellow { background: #fff4cc; padding: 25px;font-size: 14px; }
     .content-red { background: #f5d7d6; padding: 25px; font-size: 14px;}
 
-    .forecast-container { margin: 20px; gap: 10px; }
     .forecast-box { margin: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); background: #d9e6e6; border-radius: 10px; overflow: hidden; }
     .forecast-title { background: #4fa6a6; color: white; padding: 15px; font-size: 16px; font-weight: bold;}
     .forecast-content { padding: 25px; font-size: 14px;}
@@ -248,26 +245,25 @@
   </div>
 </div>
 
-<!-- ========== 實時天氣橫幅 (自動更新) ========== -->
-<div class="live-weather-bar" id="liveWeatherBar">
+<!-- 實時天氣欄 -->
+<div class="live-weather-bar">
   <div class="live-item">
     <span class="live-label">實時天氣：</span>
-    <span class="live-value" id="wxText">載入中...</span>
+    <span class="live-value" id="wxStatus">載入中...</span>
   </div>
   <div class="live-item">
     <span class="live-label">氣溫：</span>
-    <span class="live-value" id="tempText">--°C</span>
+    <span class="live-value" id="tempVal">--°C</span>
   </div>
   <div class="live-item">
     <span class="live-label">相對濕度：</span>
-    <span class="live-value" id="humText">--%</span>
+    <span class="live-value" id="humVal">--%</span>
   </div>
   <div class="live-item">
     <span class="live-label">更新時間：</span>
-    <span class="live-value" id="updateTime">--</span>
+    <span class="live-value" id="updateVal">--</span>
   </div>
 </div>
-<!-- ========================================== -->
 
 <div class="quick-links">
   <a href="https://macaosso.github.io/MSSOweb/weather.html" class="link-box weather">
@@ -319,7 +315,6 @@
 <div id="forecastTime" class="forecast-time"></div>
 
 <script>
-// ✅ MENU TOGGLE
 function toggleMenu() {
   const nav = document.getElementById("navMenu");
   const btn = document.querySelector(".menu-toggle");
@@ -327,108 +322,98 @@ function toggleMenu() {
   btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
 
-// ✅ 載入本地文字檔
 function loadBox(file, boxId, contentId) {
   fetch(file)
     .then(res => res.text())
     .then(text => {
       const content = text.trim();
-      if (content.length > 0) {
-        document.getElementById(boxId).style.display = "block";
-        document.getElementById(contentId).innerText = content;
-      } else {
-        document.getElementById(boxId).style.display = "none";
-      }
+      document.getElementById(boxId).style.display = content ? "block" : "none";
+      document.getElementById(contentId).innerText = content;
     })
-    .catch(() => console.log("Cannot load " + file));
+    .catch(() => {});
 }
-
 loadBox("alertips.txt", "alertBox", "alertContent");
 loadBox("SWT.txt", "swtBox", "swtContent");
 loadBox("warn.txt", "warnBox", "warnContent");
 
-// ✅ 天氣預報文字
 fetch("weatherforecast.txt")
   .then(res => res.text())
   .then(text => {
     const parts = text.split(/\n\s*\n/);
-    document.getElementById("forecastTime").innerText = parts[3] || ""; 
+    document.getElementById("forecastTime").innerText = parts[3] || "";
     document.getElementById("futureText").innerHTML = (parts[0] || "").replace(/\n/g, "<br>");
     document.getElementById("todayText").innerHTML = (parts[1] || "").replace(/\n/g, "<br>");
     document.getElementById("tomorrowText").innerHTML = (parts[2] || "").replace(/\n/g, "<br>");
   })
-  .catch(() => console.log("Cannot load weatherforecast.txt"));
+  .catch(() => {});
 
-// ========== 實時天氣 XML 解析 + 自動更新 (修正版) ==========
-function fetchLiveWeather() {
-  // Reliable public proxy for GitHub Pages (no CORS issues)
-  const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=';
-  const targetXml = 'https://xml.smg.gov.mo/c_actual_brief.xml';
-  const url = `${proxyUrl}${encodeURIComponent(targetXml)}&_t=${Date.now()}`;
-
-  fetch(url)
-    .then(res => {
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return res.text();
-    })
-    .then(xmlStr => {
-      const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
-
-      // Direct node selection (no hierarchy issues)
-      const wxText = xml.querySelector("WeatherText")?.textContent || "多雲";
-      const temp = xml.querySelector("Temperature")?.textContent || "--";
-      const hum = xml.querySelector("Humidity")?.textContent || "--";
-      const update = xml.querySelector("SysPubdate")?.textContent || "--";
-
-      // Update DOM
-      document.getElementById("wxText").textContent = wxText;
-      document.getElementById("tempText").textContent = `${temp}°C`;
-      document.getElementById("humText").textContent = `${hum}%`;
-      document.getElementById("updateTime").textContent = update;
-    })
-    .catch(err => {
-      console.error("Weather fetch failed:", err);
-      document.getElementById("wxText").textContent = "載入失敗";
-      document.getElementById("tempText").textContent = "--°C";
-      document.getElementById("humText").textContent = "--%";
-      document.getElementById("updateTime").textContent = "--";
-    });
+// ===================== 重寫：匹配真實XML結構 + 穩定代理 =====================
+function getWeatherText(code) {
+  // 天氣代碼對應中文
+  const map = {
+    "a1":"天晴","a2":"間晴","a3":"多雲","a4":"密雲","a5":"陰天",
+    "r1":"微雨","r2":"小雨","r3":"中雨","r4":"大雨","r5":"暴雨"
+  };
+  return map[code] || code;
 }
 
-// Initial load + 5min refresh
-fetchLiveWeather();
-setInterval(fetchLiveWeather, 60000);
-// =================================================
+function fetchWeather() {
+  const target = "https://xml.smg.gov.mo/c_actual_brief.xml";
+  // GitHub Pages 專用穩定代理
+  const proxy = "https://corsproxy.io/?";
+  const url = proxy + encodeURIComponent(target) + "&_=" + Date.now();
+
+  fetch(url)
+  .then(resp => resp.text())
+  .then(xmlStr => {
+    const dom = new DOMParser().parseFromString(xmlStr, "text/xml");
+
+    // 1. 更新時間 <SysPubdate>
+    const pubTime = dom.querySelector("SysPubdate")?.textContent || "--";
+    // 2. 天氣狀況 <WeatherStatus>
+    const weatherCode = dom.querySelector("WeatherStatus")?.textContent || "";
+    const weatherTxt = getWeatherText(weatherCode);
+    // 3. 氣溫 <Temperature > Value
+    const temp = dom.querySelector("Temperature Value")?.textContent || "--";
+    // 4. 濕度 <Humidity > Value
+    const hum = dom.querySelector("Humidity Value")?.textContent || "--";
+
+    // 寫入頁面
+    document.getElementById("updateVal").textContent = pubTime;
+    document.getElementById("wxStatus").textContent = weatherTxt;
+    document.getElementById("tempVal").textContent = temp + "°C";
+    document.getElementById("humVal").textContent = hum + "%";
+  })
+  .catch(err => {
+    document.getElementById("wxStatus").textContent = "載入失敗";
+    console.log(err);
+  });
+}
+
+// 首次載入 + 每5分鐘自動刷新
+fetchWeather();
+setInterval(fetchWeather, 300000);
 </script>
 
-<!-- 天氣警告 JS -->
 <script src="tc_data.js"></script>
 <script src="warn.js"></script>
 
 <script>
-// ✅ 渲染警告卡片
 function renderWarnings(data, containerId, cardId) {
   const container = document.getElementById(containerId);
   const card = document.getElementById(cardId);
   let html = "";
-
   data.forEach((item, index) => {
-    if ((!item.icon || item.icon.trim()==="") && (!item.text || item.text.trim()==="")) return;
-
-    html += `
-      <div class="warning-item">
-        ${item.icon ? `<div class="icon-box"><img src="${item.icon}" alt="Warning Icon"></div>` : ""}
-        ${item.text ? `<div class="text-box">${item.text}</div>` : ""}
-      </div>
-    `;
-    if (index < data.length - 1) html += `<div class="divider"></div>`;
+    if(!item.icon && !item.text) return;
+    html += `<div class="warning-item">
+      ${item.icon ? `<div class="icon-box"><img src="${item.icon}"></div>` : ""}
+      ${item.text ? `<div class="text-box">${item.text}</div>` : ""}
+    </div>`;
+    if(index < data.length - 1) html += `<div class="divider"></div>`;
   });
-
   container.innerHTML = html;
-  card.style.display = html.trim() ? "block" : "none";
+  card.style.display = html ? "block" : "none";
 }
-
 renderWarnings(tcWarnings, "tcContent", "tcCard");
 renderWarnings(warnWarnings, "warnContent", "warnCard");
 </script>
