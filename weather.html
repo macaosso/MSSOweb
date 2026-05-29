@@ -145,115 +145,115 @@
 </div>
 
 <script>
-    // GitHub friendly Proxy mapping directly to the expanded station XML
-    const xmlUrl = 'https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml';
+// Remove the static global URL and build it dynamically inside the function
+function fetchGridData() {
+    // 1. Create a unique timestamp (e.g., 1717056000000)
+    const cacheBuster = Date.now();
+    
+    // 2. Append it to the SMG URL so the proxy and browser see it as a fresh request
+    const freshUrl = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
 
-    function fetchGridData() {
-        fetch(xmlUrl)
-            .then(response => {
-                if (!response.ok) throw new Error('Network error pulling XML map.');
-                return response.text();
-            })
-            .then(xmlString => {
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+    // 3. Add the 'no-store' cache directive inside the fetch options
+    fetch(freshUrl, { cache: "no-store" })
+        .then(response => {
+            if (!response.ok) throw new Error('Network error pulling XML map.');
+            return response.text();
+        })
+        .then(xmlString => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlString, "text/xml");
 
-                // Get system update time
-                const pubDateNode = xmlDoc.querySelector("SysPubdate");
-                if (pubDateNode) {
-                    document.getElementById('pub-date').textContent = pubDateNode.textContent;
-                }
+            // Get system update time
+            const pubDateNode = xmlDoc.querySelector("SysPubdate");
+            if (pubDateNode) {
+                document.getElementById('pub-date').textContent = pubDateNode.textContent;
+            }
 
-                // Grab every single distinct station node
-                const stations = xmlDoc.querySelectorAll("station");
-                const gridContainer = document.getElementById('grid-container');
-                gridContainer.innerHTML = ''; // Wipe out existing layouts / loaders
+            // Grab every single distinct station node
+            const stations = xmlDoc.querySelectorAll("station");
+            const gridContainer = document.getElementById('grid-container');
+            gridContainer.innerHTML = ''; // Wipe out existing layouts / loaders
 
-                stations.forEach(station => {
-                    const name = station.querySelector("stationname")?.textContent || "Unnamed Node";
-                    
-                    // Helper function to extract inner dValue strings safely
-                    const extractNodeValue = (selector) => {
-                        const parent = station.querySelector(selector);
-                        if (!parent) return '--';
-                        // dValue offers high accuracy float decimals (e.g. 26.2), fallback to regular Value
-                        return parent.querySelector("dValue")?.textContent || parent.querySelector("Value")?.textContent || '--';
-                    };
+            stations.forEach(station => {
+                const name = station.querySelector("stationname")?.textContent || "Unnamed Node";
+                
+                // Helper function to extract inner dValue strings safely
+                const extractNodeValue = (selector) => {
+                    const parent = station.querySelector(selector);
+                    if (!parent) return '--';
+                    return parent.querySelector("dValue")?.textContent || parent.querySelector("Value")?.textContent || '--';
+                };
 
-                    const currentTemp = extractNodeValue("Temperature");
-                    const maxTemp = extractNodeValue("Temperature_daily_max");
-                    const minTemp = extractNodeValue("Temperature_daily_min");
-                    const humidity = extractNodeValue("Humidity");
-                    const windSpeed = extractNodeValue("WindSpeed");
-                    const windGust = extractNodeValue("WindGust");
-                    
-                    // Wind directions contain readable Chinese text (e.g. 東南偏東)
-                    const windDir = station.querySelector("WindDirection WindDescription")?.textContent || 
-                                    station.querySelector("WindDirection Value")?.textContent || '--';
+                const currentTemp = extractNodeValue("Temperature");
+                const maxTemp = extractNodeValue("Temperature_daily_max");
+                const minTemp = extractNodeValue("Temperature_daily_min");
+                const humidity = extractNodeValue("Humidity");
+                const windSpeed = extractNodeValue("WindSpeed");
+                const windGust = extractNodeValue("WindGust");
+                
+                const windDir = station.querySelector("WindDirection WindDescription")?.textContent || 
+                                station.querySelector("WindDirection Value")?.textContent || '--';
 
-                    // Parse the multiple nested Rainfall elements matching types (3 = 1hr, 4/5 = daily accumulated)
-                    let rain1h = "0.0";
-                    let rainAccum = "0.0";
-                    const rainfallNodes = station.querySelectorAll("Rainfall");
-                    
-                    rainfallNodes.forEach(node => {
-                        const type = node.querySelector("Type")?.textContent;
-                        const val = node.querySelector("dValue")?.textContent || node.querySelector("Value")?.textContent || "0.0";
-                        if (type === "3") rain1h = val;
-                        if (type === "4" || type === "5") rainAccum = val;
-                    });
+                let rain1h = "0.0";
+                let rainAccum = "0.0";
+                const rainfallNodes = station.querySelectorAll("Rainfall");
+                
+                rainfallNodes.forEach(node => {
+                    const type = node.querySelector("Type")?.textContent;
+                    const val = node.querySelector("dValue")?.textContent || node.querySelector("Value")?.textContent || "0.0";
+                    if (type === "3") rain1h = val;
+                    if (type === "4" || type === "5") rainAccum = val;
+                });
 
-                    // Styling trick: change color slightly if it is currently raining at this station node
-                    const rainClass = parseFloat(rain1h) > 0 ? 'rain-active' : '';
+                const rainClass = parseFloat(rain1h) > 0 ? 'rain-active' : '';
 
-                    // Construct the dynamic card template HTML
-                    const cardHtml = `
-                        <div class="station-card">
-                            <div class="station-name">${name}</div>
-                            <div class="temp-row">
-                                <div class="current-temp">${currentTemp}°C</div>
-                                <div class="temp-range">
-                                    <div>Max: <span class="high-temp">${maxTemp}°C</span></div>
-                                    <div>Min: <span class="low-temp">${minTemp}°C</span></div>
-                                </div>
-                            </div>
-                            <div class="metrics-grid">
-                                <div class="metric">
-                                    <span>Humidity</span>
-                                    <strong>${humidity}%</strong>
-                                </div>
-                                <div class="metric">
-                                    <span>Wind Vector</span>
-                                    <strong>${windDir}</strong>
-                                </div>
-                                <div class="metric">
-                                    <span>Wind Speed / Gust</span>
-                                    <strong>${windSpeed} / ${windGust} <small>km/h</small></strong>
-                                </div>
-                                <div class="metric ${rainClass}">
-                                    <span>Rain (1hr / Today)</span>
-                                    <strong>${rain1h} / ${rainAccum} <small>mm</small></strong>
-                                </div>
+                const cardHtml = `
+                    <div class="station-card">
+                        <div class="station-name">${name}</div>
+                        <div class="temp-row">
+                            <div class="current-temp">${currentTemp}°C</div>
+                            <div class="temp-range">
+                                <div>Max: <span class="high-temp">${maxTemp}°C</span></div>
+                                <div>Min: <span class="low-temp">${minTemp}°C</span></div>
                             </div>
                         </div>
-                    `;
-                    gridContainer.innerHTML += cardHtml;
-                });
-            })
-            .catch(err => {
-                console.error("Grid loop failure:", err);
-                document.getElementById('grid-container').innerHTML = `
-                    <div class="loading" style="color: #e74c3c;">
-                        Failed loading weather grid array. Check browser CORS proxy status.
-                    </div>`;
+                        <div class="metrics-grid">
+                            <div class="metric">
+                                <span>Humidity</span>
+                                <strong>${humidity}%</strong>
+                            </div>
+                            <div class="metric">
+                                <span>Wind Vector</span>
+                                <strong>${windDir}</strong>
+                            </div>
+                            <div class="metric">
+                                <span>Wind Speed / Gust</span>
+                                <strong>${windSpeed} / ${windGust} <small>km/h</small></strong>
+                            </div>
+                            <div class="metric ${rainClass}">
+                                <span>Rain (1hr / Today)</span>
+                                <strong>${rain1h} / ${rainAccum} <small>mm</small></strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                gridContainer.innerHTML += cardHtml;
             });
-    }
+        })
+        .catch(err => {
+            console.error("Grid loop failure:", err);
+            document.getElementById('grid-container').innerHTML = `
+                <div class="loading" style="color: #e74c3c;">
+                    Failed loading weather grid array. Check browser CORS proxy status.
+                </div>`;
+        });
+}
 
-    // Initialize layout immediately
-    fetchGridData();
+// Initialize layout immediately
+fetchGridData();
 
-    // Auto update grid space parameters every 5 mins
-    setInterval(fetchGridData, 300000);
+// Auto update grid space parameters every 5 mins
+setInterval(fetchGridData, 60000);
 </script>
 
 </body>
