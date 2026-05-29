@@ -67,7 +67,6 @@
             border-bottom: 1px solid #ecf0f1;
             padding-bottom: 8px;
         }
-        /* Style for XML format lines */
         .xml-tag {
             font-family: Consolas, monospace;
             font-size: 0.85rem;
@@ -177,42 +176,28 @@ function fetchGridData() {
             const gridContainer = document.getElementById('grid-container');
             gridContainer.innerHTML = ''; 
 
+            // Helper function (moved outside loop for efficiency)
+            const extractNodeValue = (selector, parent) => {
+                const el = parent.querySelector(selector);
+                if (!el) return '--';
+                return el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || '--';
+            };
+
             stations.forEach(station => {
-                const name = station.querySelector("stationname")?.textContent || "Unnamed Station";
+                const name = station.querySelector("stationname")?.textContent || "未命名站點";
                 const code = station.querySelector("stationcode")?.textContent?.trim() || "";
-                
-                // Only add parentheses if code exists
                 const nameDisplay = code ? `${name}(${code})` : name;
-            
-                // ... (rest of your extractNodeValue code remains the same)
-            
-                const cardHtml = `
-                    <div class="station-card">
-                        <div class="station-name">${nameDisplay}</div>
-                        <div class="xml-tag">
-            &lt;WeatherReport&gt;<br>
-            &lt;station code="${code || 'N/A'}"&gt;
-                        </div>
-                        <!-- rest of your card HTML -->
-                    </div>
-                `;
-                gridContainer.innerHTML += cardHtml;
-            });
+                const showCode = code || "N/A";
 
-                const extractNodeValue = (selector) => {
-                    const parent = station.querySelector(selector);
-                    if (!parent) return '--';
-                    return parent.querySelector("dValue")?.textContent || parent.querySelector("Value")?.textContent || '--';
-                };
-
-                const currentTemp = extractNodeValue("Temperature");
-                const maxTemp = extractNodeValue("Temperature_daily_max");
-                const minTemp = extractNodeValue("Temperature_daily_min");
-                const humidity = extractNodeValue("Humidity");
-                const windSpeed = extractNodeValue("WindSpeed");
-                const windGust = extractNodeValue("WindGust");
-                const mslPressure = extractNodeValue("MeanSeaLevelPressure");
-                const stationPressure = extractNodeValue("StationPressure");
+                // Extract all weather data FIRST
+                const currentTemp = extractNodeValue("Temperature", station);
+                const maxTemp = extractNodeValue("Temperature_daily_max", station);
+                const minTemp = extractNodeValue("Temperature_daily_min", station);
+                const humidity = extractNodeValue("Humidity", station);
+                const windSpeed = extractNodeValue("WindSpeed", station);
+                const windGust = extractNodeValue("WindGust", station);
+                const mslPressure = extractNodeValue("MeanSeaLevelPressure", station);
+                const stationPressure = extractNodeValue("StationPressure", station);
                 
                 const windDirNode = station.querySelector("WindDirection");
                 const winddValue = windDirNode?.querySelector("dValue")?.textContent || '--';
@@ -230,7 +215,6 @@ function fetchGridData() {
                 let rain1m = "--";
                 let rain1h = "--";
                 let rainToday = "--";
-                
                 const rainfallNodes = station.querySelectorAll("Rainfall");
                 rainfallNodes.forEach(node => {
                     const type = node.querySelector("Type")?.textContent;
@@ -244,12 +228,13 @@ function fetchGridData() {
                 const rain1hClass = parseFloat(rain1h) > 0 ? 'rain-active' : '';
                 const rainTodayClass = parseFloat(rainToday) > 0 ? 'rain-active' : '';
 
+                // Build HTML LAST (only one cardHtml)
                 const cardHtml = `
                     <div class="station-card">
                         <div class="station-name">${nameDisplay}</div>
                         <div class="xml-tag">
 &lt;WeatherReport&gt;<br>
-&lt;station code="${code}"&gt;
+&lt;station code="${showCode}"&gt;
                         </div>
                         <div class="temp-row">
                             <div class="current-temp">${currentTemp}°C</div>
@@ -306,12 +291,13 @@ function fetchGridData() {
             console.error("Grid loop failure:", err);
             document.getElementById('grid-container').innerHTML = `
                 <div class="loading" style="color: #e74c3c;">
-                    Failed loading weather grid array. Check browser CORS proxy status.
+                    載入失敗，請檢查網絡或代理狀態
                 </div>`;
         });
 }
 
 fetchGridData();
+// Match header: 5 minutes = 300000 ms
 setInterval(fetchGridData, 60000);
 </script>
 
