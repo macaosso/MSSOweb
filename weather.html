@@ -178,9 +178,26 @@ function fetchGridData() {
             gridContainer.innerHTML = ''; 
 
             stations.forEach(station => {
-                const name = station.querySelector("stationname")?.textContent || "";
-                const code = station.querySelector("stationcode")?.textContent || "";
-                const nameDisplay = `${name}(${code})`;
+                const name = station.querySelector("stationname")?.textContent || "Unnamed Station";
+                const code = station.querySelector("stationcode")?.textContent?.trim() || "";
+                
+                // Only add parentheses if code exists
+                const nameDisplay = code ? `${name}(${code})` : name;
+            
+                // ... (rest of your extractNodeValue code remains the same)
+            
+                const cardHtml = `
+                    <div class="station-card">
+                        <div class="station-name">${nameDisplay}</div>
+                        <div class="xml-tag">
+            &lt;WeatherReport&gt;<br>
+            &lt;station code="${code || 'N/A'}"&gt;
+                        </div>
+                        <!-- rest of your card HTML -->
+                    </div>
+                `;
+                gridContainer.innerHTML += cardHtml;
+            });
 
                 const extractNodeValue = (selector) => {
                     const parent = station.querySelector(selector);
@@ -268,15 +285,15 @@ function fetchGridData() {
                             </div>
                             
                             <div class="metric col-third ${rain1mClass}">
-                                <span>分鐘雨量(mm)</span>
+                                <span>分鐘雨量</span>
                                 <strong>${rain1m}${rain1m !== '--' ? ' <small>mm</small>' : ''}</strong>
                             </div>
                             <div class="metric col-third ${rain1hClass}">
-                                <span>時雨量(mm)</span>
+                                <span>時雨量</span>
                                 <strong>${rain1h}${rain1h !== '--' ? ' <small>mm</small>' : ''}</strong>
                             </div>
                             <div class="metric col-third ${rainTodayClass}">
-                                <span>日總降雨(mm)</span>
+                                <span>日總降雨</span>
                                 <strong>${rainToday}${rainToday !== '--' ? ' <small>mm</small>' : ''}</strong>
                             </div>
                         </div>
