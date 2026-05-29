@@ -1,43 +1,18 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="icons/MSSO.png">
-  
-  <title>澳門民間氣象台-首頁</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="icons/MSSO.png">
 
-  <style>
-    body { margin: 0; font-family: Arial, sans-serif; }
+<title>澳門民間氣象台-首頁</title>
 
-    .header { background: #1f3a4d; color: white; padding: 25px 20px; display:flex; align-items:center; }
-    .title { font-size: 20px; font-weight: bold; margin-left:10px; }
-    .logo { height:40px; }
+<style>
+body { margin: 0; font-family: Arial, sans-serif; }
 
-    /* 實時天氣欄 */
-    .live-weather-bar {
-      background: linear-gradient(135deg, #4fa6a6, #2d6c94);
-      color: #fff;
-      padding: 14px 20px;
-      margin: 0;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 16px;
-      font-size: 15px;
-    }
-    .live-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .live-label {
-      opacity: 0.9;
-    }
-    .live-value {
-      font-weight: bold;
-      font-size: 16px;
-    }
+.header { background: #1f3a4d; color: white; padding: 25px 20px; display:flex; align-items:center; }
+.title { font-size: 20px; font-weight: bold; margin-left:10px; }
+.logo { height:40px; }
 
     .quick-links {
       display: grid;
@@ -59,9 +34,12 @@
       transition: all 0.3s ease;
     }
     
+    /* Weather box */
     .link-box.weather {
       background: linear-gradient(135deg, #4fa6a6, #2d6c94);
     }
+    
+    /* Flood box */
     .link-box.flood {
       background: linear-gradient(135deg, #5dade2, #1b4f72);
     }
@@ -71,352 +49,358 @@
       opacity: 0.9;
     }
 
-    .warning-card {
-      margin: 20px;
-      border-radius: 15px;
-      background: #fdeeee;
-      border: 2px solid #d9534f;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-      overflow: hidden;
-    }
-    
-    .warning-header {
-      background: #d9534f;
-      color: white;
-      padding: 15px;
-      font-size: 18px;
-      font-weight: bold;
-    }
-    
-    .warning-item {
-      display: flex;
-      gap: 15px;
-      padding: 20px;
-    }
-    
-    .icon-box {
-      width: 80px;
-      height: 80px;
-      background: #fff;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    
-    .icon-box img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
-    }
-    
-    .text-box {
-      flex: 1;
-      font-size: 15px;
-      line-height: 1.6;
-      color: #333;
-    }
-    
-    .divider {
-      height: 1px;
-      background: #e6a5a5;
-      margin: 0 20px;
-    }
-    
-    .btn {
-      display: inline-block;
-      margin-top: 10px;
-      background: #d9534f;
-      color: white;
-      padding: 8px 15px;
-      border-radius: 20px;
-      text-decoration: none;
-      font-size: 14px;
-    }
-    
-    .btn:hover {
-      background: #c63d3a;
-    }
-    .tc-btn {
-      background: rgba(255,255,255,0.2);
-      color: white;
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 14px;
-      text-decoration: none;
-      font-weight: bold;
-    }
+/* CARD */
+.warning-card {
+margin: 20px;
+border-radius: 15px;
+background: #fdeeee;
+border: 2px solid #d9534f;
+box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+overflow: hidden;
+}
 
-    .tc-btn:hover {
-      background: #f5d7d6;
-    }
-    
-    .menu-container {
-      position: relative;
-      z-index: 3000;
-      margin-left: auto;
-    }
-    .forecast-time {font-weight: bold; }
+/* HEADER */
+.warning-header {
+background: #d9534f;
+color: white;
+padding: 15px;
+font-size: 18px;
+font-weight: bold;
+}
 
-    .nav { background: #2d6c94; display: flex; }
-    .nav a {
-      color: white;
-      padding: 25px 20px;
-      font-size: 18px;
-      text-decoration: none;
-      display: block;
-    }
-    .nav a:hover { background: #1f4f6d; }
- 
-    .box {
-      display: none;
-      margin: 20px;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
+/* ITEM */
+.warning-item {
+display: flex;
+gap: 15px;
+padding: 20px;
+}
 
-    .header-orange { background: #f39c12; color: white; padding: 15px; font-size: 16px; font-weight: bold; }
-    .header-red { background: #e1665c; color: white; padding: 15px; font-size: 16px; font-weight: bold; }
+/* ICON */
+.icon-box {
+width: 80px;
+height: 80px;
+background: #fff;
+border-radius: 10px;
+display: flex;
+align-items: center;
+justify-content: center;
+}
 
-    .content-yellow { background: #fff4cc; padding: 25px;font-size: 14px; }
-    .content-red { background: #f5d7d6; padding: 25px; font-size: 14px;}
+.icon-box img {
+width: 100%;
+height: 100%;
+object-fit: contain;
+}
 
-    .forecast-box { margin: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); background: #d9e6e6; border-radius: 10px; overflow: hidden; }
-    .forecast-title { background: #4fa6a6; color: white; padding: 15px; font-size: 16px; font-weight: bold;}
-    .forecast-content { padding: 25px; font-size: 14px;}
+/* TEXT */
+.text-box {
+flex: 1;
+font-size: 15px;
+line-height: 1.6;
+color: #333;
+}
 
-    .forecast-time {
-      margin: 0 20px;
-      text-align: right;
-      font-size: 16px;
-      color: #555;
-    }
-    .menu-toggle {
-      display: none;
-      font-size: 26px;
-      padding: 10px 15px;
-      cursor: pointer;
-      background: #2d6c94;
-      color: white;
-    }
-    @media (max-width: 768px) {
-      .menu-toggle {
-        display: block;
-      }
-      .nav {
-        display: none;
-        flex-direction: column;
-        width: 100%;
-        background: #2d6c94;
-      }
-      .nav {
-        transition: all 0.3s ease;
-      }
-      .nav a {
-        width: 100%;
-        padding: 12px 15px;
-        border-top: 1px solid rgba(255,255,255,0.2);
-      }
-      .nav.active {
-        display:flex;
-      }
-    }
-  </style>
+/* DIVIDER */
+.divider {
+height: 1px;
+background: #e6a5a5;
+margin: 0 20px;
+}
+
+/* BUTTON */
+.btn {
+display: inline-block;
+margin-top: 10px;
+background: #d9534f;
+color: white;
+padding: 8px 15px;
+border-radius: 20px;
+text-decoration: none;
+font-size: 14px;
+}
+
+.btn:hover {
+background: #c63d3a;
+}
+.tc-btn {
+background: rgba(255,255,255,0.2);
+color: white;
+padding: 6px 12px;
+border-radius: 20px;
+font-size: 14px;
+text-decoration: none;
+font-weight: bold;
+}
+
+.tc-btn:hover {
+background: #f5d7d6;
+}
+
+.menu-container {
+position: relative;
+z-index: 3000;
+margin-left: auto;
+}
+.forecast-time {font-weight: bold; }
+
+.nav { background: #2d6c94; display: flex; }
+.nav a {
+color: white;
+padding: 25px 20px;
+font-size: 18px;
+text-decoration: none;
+display: block;
+}
+.nav a:hover { background: #1f4f6d; }
+
+.box {
+display: none;
+margin: 20px;
+border-radius: 10px;
+overflow: hidden;
+box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.header-orange { background: #f39c12; color: white; padding: 15px; font-size: 16px; font-weight: bold; }
+.header-red { background: #e1665c; color: white; padding: 15px; font-size: 16px; font-weight: bold; }
+
+.content-yellow { background: #fff4cc; padding: 25px;font-size: 14px; }
+.content-red { background: #f5d7d6; padding: 25px; font-size: 14px;}
+
+.forecast-container { margin: 20px; gap: 10px; }
+.forecast-box { margin: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); background: #d9e6e6; border-radius: 10px; overflow: hidden; }
+.forecast-title { background: #4fa6a6; color: white; padding: 15px; font-size: 16px; font-weight: bold;}
+.forecast-content { padding: 25px; font-size: 14px;}
+
+.forecast-time {
+margin: 0 20px;
+text-align: right;
+font-size: 16px;
+color: #555;
+}
+.menu-toggle {
+display: none;
+font-size: 26px;
+padding: 10px 15px;
+cursor: pointer;
+background: #2d6c94;
+color: white;
+}
+@media (max-width: 768px) {
+
+.menu-toggle {
+display: block;   /* ✅ show button */
+}
+
+.nav {
+display: none;    /* ✅ hide menu initially */
+flex-direction: column;
+width: 100%;
+background: #2d6c94;
+}
+.nav {
+transition: all 0.3s ease;
+}
+
+.nav a {
+width: 100%;
+padding: 12px 15px;
+border-top: 1px solid rgba(255,255,255,0.2);
+}
+.nav.active {
+display:flex;
+}
+
+}
+
+</style>
 </head>
 
 <body>
 
 <div class="header">
-  <img src="icons/MSSO.png" class="logo">
-  <div class="title">澳門民間氣象台 MSSO</div>
-</div>
-  
-<div class="menu-container">
-  <div class="menu-toggle" onclick="toggleMenu()">☰</div>
-  <div class="nav" id="navMenu">
-    <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
-    <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
-    <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋距離計算工具</a> 
-    <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑地圖</a>  
-    <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
-    <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
-    <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
-  </div>
+<img src="icons/MSSO.png" class="logo">
+<div class="title">澳門民間氣象台 MSSO</div>
 </div>
 
-<!-- 實時天氣欄 -->
-<div class="live-weather-bar">
-  <div class="live-item">
-    <span class="live-label">實時天氣：</span>
-    <span class="live-value" id="wxStatus">載入中...</span>
-  </div>
-  <div class="live-item">
-    <span class="live-label">氣溫：</span>
-    <span class="live-value" id="tempVal">--°C</span>
-  </div>
-  <div class="live-item">
-    <span class="live-label">相對濕度：</span>
-    <span class="live-value" id="humVal">--%</span>
-  </div>
-  <div class="live-item">
-    <span class="live-label">更新時間：</span>
-    <span class="live-value" id="updateVal">--</span>
-  </div>
+<!-- 🟠 NEW alertips box  <a href="https://macaosso.github.io/MSSOweb/weather.html">天氣資訊</ a>  -->
+
+<div class="menu-container">
+<div class="menu-toggle" onclick="toggleMenu()">☰</div>
+
+<div class="nav" id="navMenu">
+<a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
+<a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
+<a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋距離計算工具</a> 
+<a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑地圖</a>  
+<a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
+<a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+<a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
+</div>
+</div>
 </div>
 
 <div class="quick-links">
   <a href="https://macaosso.github.io/MSSOweb/weather.html" class="link-box weather">
     🌤️ 澳門各區天氣實況
   </a>
+
   <a href="https://macaosso.github.io/MSSOweb/flood.html" class="link-box flood">
     🌊 澳門即時水位監測
   </a>
 </div>
 
 <div class="warning-card" id="tcCard">
-  <div class="warning-header">
-    熱帶氣旋
-    <a href="https://macaosso.github.io/MSSOweb/tc_gis.html" class="tc-btn">查看路徑</a>
-  </div>
-  <div id="tcContent"></div>
+<div class="warning-header">
+熱帶氣旋
+<a href="https://macaosso.github.io/MSSOweb/tc_gis.html" class="tc-btn">查看路徑</a>
+</div>
+
+<div id="tcContent"></div>
 </div>
 
 <div class="warning-card" id="warnCard">
-  <div class="warning-header">天氣警告</div>
-  <div id="warnContent"></div>
-</div>
-  
-<div id="alertBox" class="box">
-  <div class="header-orange">預警提示</div>
-  <div id="alertContent" class="content-yellow"></div>
+<div class="warning-header">天氣警告</div>
+<div id="warnContent"></div>
 </div>
 
+<div id="alertBox" class="box">
+<div class="header-orange">預警提示</div>
+<div id="alertContent" class="content-yellow"></div>
+</div>
+
+
 <div id="swtBox" class="box">
-  <div class="header-orange">特別天氣提示</div>
-  <div id="swtContent" class="content-yellow"></div>
+<div class="header-orange">特別天氣提示</div>
+<div id="swtContent" class="content-yellow"></div>
 </div>
 
 <div class="forecast-container-vertical">
-  <div class="forecast-box">
-    <div class="forecast-title">天氣概況</div>
-    <div id="futureText" class="forecast-content"></div>
-  </div>
-  <div class="forecast-box">
-    <div class="forecast-title">今日天氣</div>
-    <div id="todayText" class="forecast-content"></div>
-  </div>
-  <div class="forecast-box">
-    <div class="forecast-title">明日天氣</div>
-    <div id="tomorrowText" class="forecast-content"></div>
-  </div>
+<div class="forecast-box">
+<div class="forecast-title">天氣概況</div>
+<div id="futureText" class="forecast-content"></div>
+</div>
+
+<div class="forecast-box">
+<div class="forecast-title">今日天氣</div>
+<div id="todayText" class="forecast-content"></div>
+</div>
+
+<div class="forecast-box">
+<div class="forecast-title">明日天氣</div>
+<div id="tomorrowText" class="forecast-content"></div>
+</div>
 </div>
 
 <div id="forecastTime" class="forecast-time"></div>
 
 <script>
+// ✅ MENU TOGGLE
 function toggleMenu() {
-  const nav = document.getElementById("navMenu");
-  const btn = document.querySelector(".menu-toggle");
-  nav.classList.toggle("active");
-  btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
+const nav = document.getElementById("navMenu");
+const btn = document.querySelector(".menu-toggle");
+
+nav.classList.toggle("active");
+btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
 
+// ✅ LOAD TEXT BOXES
 function loadBox(file, boxId, contentId) {
-  fetch(file)
-    .then(res => res.text())
-    .then(text => {
-      const content = text.trim();
-      document.getElementById(boxId).style.display = content ? "block" : "none";
-      document.getElementById(contentId).innerText = content;
-    })
-    .catch(() => {});
+fetch(file)
+.then(res => res.text())
+.then(text => {
+const content = text.trim();
+if (content.length > 0) {
+document.getElementById(boxId).style.display = "block";
+document.getElementById(contentId).innerText = content;
+} else {
+document.getElementById(boxId).style.display = "none";
 }
+})
+.catch(() => console.log("Cannot load " + file));
+}
+
+// ✅ LOAD ALL BOXES
 loadBox("alertips.txt", "alertBox", "alertContent");
 loadBox("SWT.txt", "swtBox", "swtContent");
 loadBox("warn.txt", "warnBox", "warnContent");
 
+// ✅ FORECAST
 fetch("weatherforecast.txt")
-  .then(res => res.text())
-  .then(text => {
-    const parts = text.split(/\n\s*\n/);
-    document.getElementById("forecastTime").innerText = parts[3] || "";
-    document.getElementById("futureText").innerHTML = (parts[0] || "").replace(/\n/g, "<br>");
-    document.getElementById("todayText").innerHTML = (parts[1] || "").replace(/\n/g, "<br>");
-    document.getElementById("tomorrowText").innerHTML = (parts[2] || "").replace(/\n/g, "<br>");
-  })
-  .catch(() => {});
+.then(res => res.text())
+.then(text => {
+const parts = text.split(/\n\s*\n/);
 
-// ===================== 重寫：匹配真實XML結構 + 穩定代理 =====================
-function getWeatherText(code) {
-  // 天氣代碼對應中文
-  const map = {
-    "a1":"天晴","a2":"間晴","a3":"多雲","a4":"密雲","a5":"陰天",
-    "r1":"微雨","r2":"小雨","r3":"中雨","r4":"大雨","r5":"暴雨"
-  };
-  return map[code] || code;
-}
+document.getElementById("forecastTime").innerText = parts[3] || ""; 
 
-function fetchWeather() {
-  const target = "https://xml.smg.gov.mo/c_actual_brief.xml";
-  // GitHub Pages 專用穩定代理
-  const proxy = "https://corsproxy.io/?";
-  const url = proxy + encodeURIComponent(target) + "&_=" + Date.now();
-
-  fetch(url)
-  .then(resp => resp.text())
-  .then(xmlStr => {
-    const dom = new DOMParser().parseFromString(xmlStr, "text/xml");
-
-    // 1. 更新時間 <SysPubdate>
-    const pubTime = dom.querySelector("SysPubdate")?.textContent || "--";
-    // 2. 天氣狀況 <WeatherStatus>
-    const weatherCode = dom.querySelector("WeatherStatus")?.textContent || "";
-    const weatherTxt = getWeatherText(weatherCode);
-    // 3. 氣溫 <Temperature > Value
-    const temp = dom.querySelector("Temperature Value")?.textContent || "--";
-    // 4. 濕度 <Humidity > Value
-    const hum = dom.querySelector("Humidity Value")?.textContent || "--";
-
-    // 寫入頁面
-    document.getElementById("updateVal").textContent = pubTime;
-    document.getElementById("wxStatus").textContent = weatherTxt;
-    document.getElementById("tempVal").textContent = temp + "°C";
-    document.getElementById("humVal").textContent = hum + "%";
-  })
-  .catch(err => {
-    document.getElementById("wxStatus").textContent = "載入失敗";
-    console.log(err);
-  });
-}
-
-// 首次載入 + 每5分鐘自動刷新
-fetchWeather();
-setInterval(fetchWeather, 300000);
+document.getElementById("futureText").innerHTML = (parts[0] || "").replace(/\n/g, "<br>");
+document.getElementById("todayText").innerHTML = (parts[1] || "").replace(/\n/g, "<br>");
+document.getElementById("tomorrowText").innerHTML = (parts[2] || "").replace(/\n/g, "<br>");
+})
+.catch(() => console.log("Cannot load weatherforecast.txt"));
 </script>
+
+<!-- ✅ LOAD WARNING DATA -->
 
 <script src="tc_data.js"></script>
 <script src="warn.js"></script>
 
+
 <script>
+// ✅ RENDER WARNING CARD + AUTO HIDE
+
 function renderWarnings(data, containerId, cardId) {
-  const container = document.getElementById(containerId);
-  const card = document.getElementById(cardId);
-  let html = "";
-  data.forEach((item, index) => {
-    if(!item.icon && !item.text) return;
-    html += `<div class="warning-item">
-      ${item.icon ? `<div class="icon-box"><img src="${item.icon}"></div>` : ""}
-      ${item.text ? `<div class="text-box">${item.text}</div>` : ""}
-    </div>`;
-    if(index < data.length - 1) html += `<div class="divider"></div>`;
-  });
-  container.innerHTML = html;
-  card.style.display = html ? "block" : "none";
+
+const container = document.getElementById(containerId);
+const card = document.getElementById(cardId);
+
+let html = "";
+
+data.forEach((item, index) => {
+
+if ((!item.icon || item.icon.trim()==="") &&
+(!item.text || item.text.trim()==="")) {
+return;
 }
+
+
+html += `
+         <div class="warning-item">
+   
+           ${item.icon ? `
+             <div class="icon-box">
+               <img src="${item.icon}" alt="Warning Icon">
+             </div>
+           ` : ""}
+   
+           ${item.text ? `
+             <div class="text-box">${item.text}</div>
+           ` : ""}
+   
+         </div>
+       `;
+
+if (index < data.length - 1) {
+html += `<div class="divider"></div>`;
+}
+
+});
+
+// render
+container.innerHTML = html;
+
+// auto hide card if empty
+if (html.trim()==="") {
+card.style.display = "none";
+}
+}
+
+// ✅ ✅ CALL
 renderWarnings(tcWarnings, "tcContent", "tcCard");
 renderWarnings(warnWarnings, "warnContent", "warnCard");
+
 </script>
+
 
 </body>
 </html>
