@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ActualWeatherBrief>
+<System>
+<SysAuthor>DINF</SysAuthor>
+<SysPubdate>2026-05-30 04:57</SysPubdate>
+<SysLanguage>0</SysLanguage>
+</System>
+<Custom>
+<ValidFor>2026-05-30 05:00</ValidFor>
+<Temperature>
+<MeasureUnit>°C</MeasureUnit>
+<Type>3</Type>
+<Value>27</Value>
+</Temperature>
+<Humidity>
+<MeasureUnit>%</MeasureUnit>
+<Type>3</Type>
+<Value>79</Value>
+</Humidity>
+<WindSpeed>
+<MeasureUnit>km/h</MeasureUnit>
+<Type>3</Type>
+<Value>6</Value>
+<WindSpeedDescription>微風</WindSpeedDescription>
+</WindSpeed>
+<WindDirection>
+<MeasureUnit>°</MeasureUnit>
+<Type>3</Type>
+<Value>SE</Value>
+<WindDescription>東南</WindDescription>
+</WindDirection>
+<Icon>
+<IconName>ww-c03.gif</IconName>
+<IconURL>https://www.smg.gov.mo/icons/weatherIcon/ww-c03.gif</IconURL>
+</Icon>
+<WeatherStatus>03</WeatherStatus>
+<FeelsLikeLevel>7</FeelsLikeLevel>
+<FeelsLikeDescription>炎熱</FeelsLikeDescription>
+</Custom>
+</ActualWeatherBrief>
