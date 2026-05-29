@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>澳門各區天氣實況 - GIS互動地圖</title>
-    <!-- Leaflet CSS & JS -->
+    <!-- Leaflet Map Library -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -44,7 +44,7 @@
             font-size: 0.9rem;
             opacity: 0.9;
         }
-        /* Tab Navigation */
+        /* Tab Buttons */
         .tab-wrapper {
             background: #fff;
             border-radius: 8px;
@@ -195,7 +195,6 @@
         </div>
     </header>
 
-    <!-- Tab Switcher -->
     <div class="tab-wrapper">
         <div class="tab-buttons">
             <button class="tab-btn active" data-type="temp">氣溫</button>
@@ -207,12 +206,9 @@
     </div>
 
     <div class="main-layout">
-        <!-- Interactive Leaflet Map -->
         <div class="map-card">
             <div id="macau-map"></div>
         </div>
-
-        <!-- Station Data Cards -->
         <div id="grid-container" class="station-grid">
             <div class="loading">正在擷取區域數據...</div>
         </div>
@@ -220,21 +216,22 @@
 </div>
 
 <script>
-// 1. Station Coordinates (provided)
-const stationCoord = {
-    "紀念孫中山市政公園（DP）": {lat: 22.215322, lng: 113.543490},
-    "黑沙環（EM）": {lat: 22.207129, lng: 113.559971},
-    "大炮台（FM）": {lat: 22.197066, lng: 113.542261},
-    "外港（PE）": {lat: 22.197066, lng: 113.542261},
-    "媽閣（MM）": {lat: 22.185863, lng: 113.530675},
-    "大潭山（TG）": {lat: 22.159102, lng: 113.568947},
-    "東亞運大馬路（JA）": {lat: 22.155396, lng: 113.542412},
-    "九澳（KV）": {lat: 22.134686, lng: 113.580143},
-    "澳門大學（UM）": {lat: 22.131808, lng: 113.546970},
-    "路環市區（DC）": {lat: 22.117091, lng: 113.551041}
+// ========== Fixed Station Name + Coordinate Mapping ==========
+// Match XML short names + your full names + coordinates
+const stationMap = {
+    "紀念孫中山市政公園": { code: "DP", lat: 22.215322, lng: 113.543490 },
+    "黑沙環": { code: "EM", lat: 22.207129, lng: 113.559971 },
+    "大炮台": { code: "FM", lat: 22.197066, lng: 113.542261 },
+    "外港": { code: "PE", lat: 22.197066, lng: 113.542261 },
+    "媽閣": { code: "MM", lat: 22.185863, lng: 113.530675 },
+    "大潭山": { code: "TG", lat: 22.159102, lng: 113.568947 },
+    "東亞運大馬路": { code: "JA", lat: 22.155396, lng: 113.542412 },
+    "九澳": { code: "KV", lat: 22.134686, lng: 113.580143 },
+    "澳門大學": { code: "UM", lat: 22.131808, lng: 113.546970 },
+    "路環市區": { code: "DC", lat: 22.117091, lng: 113.551041 }
 };
 
-// 2. Init Leaflet Map
+// Init Leaflet Map (Macau center)
 let map = L.map('macau-map').setView([22.17, 113.55], 12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
@@ -242,8 +239,9 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 let allMarkers = [];
 let currentTab = "temp";
+let stationDataList = [];
 
-// 3. Tab Switch Event
+// Tab switch event
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -253,72 +251,68 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     });
 });
 
-// 4. Extract XML value
+// Extract value from XML
 const extractNodeValue = (selector, parent) => {
     const el = parent.querySelector(selector);
     if (!el) return '--';
     return el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || '--';
 };
 
-// 5. Clear all map markers
+// Clear all markers
 function clearMarkers() {
     allMarkers.forEach(marker => map.removeLayer(marker));
     allMarkers = [];
 }
 
-// 6. Global station data storage
-let stationDataList = [];
-
-// 7. Update map markers by selected tab
+// Update map markers based on selected tab
 function updateMapMarkers() {
     clearMarkers();
     stationDataList.forEach(station => {
-        const name = station.name;
-        const coord = stationCoord[name];
-        if (!coord) return;
+        const shortName = station.shortName;
+        const info = stationMap[shortName];
+        if (!info) return;
 
         let displayText = "";
-        let markerColor = "#3498db";
+        let markerBg = "#3498db";
 
-        switch(currentTab) {
+        switch (currentTab) {
             case "temp":
                 displayText = `${station.temp}°C`;
                 let t = parseFloat(station.temp);
-                if(!isNaN(t)){
-                    if(t >= 28) markerColor = "#e74c3c";
-                    else if(t <= 20) markerColor = "#2980b9";
+                if (!isNaN(t)) {
+                    markerBg = t >= 28 ? "#e74c3c" : t <= 20 ? "#2980b9" : "#3498db";
                 }
                 break;
             case "humidity":
                 displayText = `${station.humidity}%`;
-                markerColor = "#27ae60";
+                markerBg = "#27ae60";
                 break;
             case "wind":
                 displayText = `${station.windSpeed} km/h`;
-                markerColor = "#9b59b6";
+                markerBg = "#9b59b6";
                 break;
             case "rain":
                 displayText = `${station.rain1h} mm`;
-                markerColor = "#16a085";
+                markerBg = "#16a085";
                 break;
             case "pressure":
                 displayText = `${station.pressure} hPa`;
-                markerColor = "#f39c12";
+                markerBg = "#f39c12";
                 break;
         }
 
-        // Custom colored marker
-        const customIcon = L.divIcon({
-            html: `<div style="background:${markerColor};color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;white-space:nowrap;">${name}<br>${displayText}</div>`,
+        // Simple visible marker
+        const icon = L.divIcon({
+            html: `<div style="background:${markerBg};color:#fff;padding:3px 6px;border-radius:3px;font-size:11px;white-space:nowrap;">${shortName}<br>${displayText}</div>`,
             className: "",
-            iconSize: [80, 40],
-            iconAnchor: [40, 20]
+            iconSize: [70, 35],
+            iconAnchor: [35, 17]
         });
 
-        const marker = L.marker([coord.lat, coord.lng], {icon: customIcon}).addTo(map);
-        // Popup full info on click
+        const marker = L.marker([info.lat, info.lng], { icon: icon }).addTo(map);
+        // Popup with full details
         marker.bindPopup(`
-            <b>${name}</b><hr>
+            <strong>${shortName} (${info.code})</strong><hr>
             氣溫: ${station.temp}°C<br>
             濕度: ${station.humidity}%<br>
             風向: ${station.windDir}<br>
@@ -330,149 +324,113 @@ function updateMapMarkers() {
     });
 }
 
-// 8. Fetch Weather Data
+// Fetch weather XML data
 function fetchGridData() {
     const cacheBuster = Date.now();
-    const freshUrl = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
+    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
 
-    fetch(freshUrl, { cache: "no-store" })
-        .then(response => {
-            if (!response.ok) throw new Error('Network error');
-            return response.text();
+    fetch(url, { cache: "no-store" })
+        .then(res => {
+            if (!res.ok) throw new Error("Request failed");
+            return res.text();
         })
-        .then(xmlString => {
+        .then(xmlStr => {
             const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+            const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
 
-            const pubDateNode = xmlDoc.querySelector("SysPubdate");
-            if (pubDateNode) {
-                document.getElementById('pub-date').textContent = pubDateNode.textContent;
-            }
+            // Update publish time
+            const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent || "未知";
+            document.getElementById("pub-date").textContent = pubTime;
 
             const stations = xmlDoc.querySelectorAll("WeatherReport station");
-            const gridContainer = document.getElementById('grid-container');
-            gridContainer.innerHTML = '';
+            const gridContainer = document.getElementById("grid-container");
+            gridContainer.innerHTML = "";
             stationDataList = [];
 
             stations.forEach(station => {
-                const code = station.getAttribute("code")?.trim() || "N/A";
-                const name = station.querySelector("stationname")?.textContent || "未命名站點";
-                const nameDisplay = `${name}(${code})`;
+                const code = station.getAttribute("code") || "N/A";
+                const shortName = station.querySelector("stationname")?.textContent || "未知站點";
+                const fullName = `${shortName} (${code})`;
 
-                const currentTemp = extractNodeValue("Temperature", station);
-                const maxTemp = extractNodeValue("Temperature_daily_max", station);
-                const minTemp = extractNodeValue("Temperature_daily_min", station);
+                // Extract all data
+                const temp = extractNodeValue("Temperature", station);
+                const tempMax = extractNodeValue("Temperature_daily_max", station);
+                const tempMin = extractNodeValue("Temperature_daily_min", station);
                 const humidity = extractNodeValue("Humidity", station);
                 const windSpeed = extractNodeValue("WindSpeed", station);
                 const windGust = extractNodeValue("WindGust", station);
                 const mslPressure = extractNodeValue("MeanSeaLevelPressure", station);
-                const stationPressure = extractNodeValue("StationPressure", station);
+                const stPressure = extractNodeValue("StationPressure", station);
 
+                // Wind direction
                 const windDirNode = station.querySelector("WindDirection");
-                const winddValue = windDirNode?.querySelector("dValue")?.textContent || '--';
-                const windDegree = windDirNode?.querySelector("Degree")?.textContent || '--';
-                let windDirDisplay = '--';
-                if (winddValue !== '--' && windDegree !== '--') {
-                    windDirDisplay = `${winddValue}(${windDegree}°)`;
-                } else if (winddValue !== '--') {
-                    windDirDisplay = winddValue;
-                } else if (windDegree !== '--') {
-                    windDirDisplay = `${windDegree}°`;
-                }
+                const windText = windDirNode?.querySelector("dValue")?.textContent || "--";
+                const windDeg = windDirNode?.querySelector("Degree")?.textContent || "--";
+                let windDir = windText !== "--" ? windText : windDeg + "°";
 
+                // Rainfall data
                 let rain1m = "--", rain1h = "--", rainToday = "--";
-                const rainfallNodes = station.querySelectorAll("Rainfall");
-                rainfallNodes.forEach(node => {
-                    const type = node.querySelector("Type")?.textContent;
-                    const val = node.querySelector("dValue")?.textContent || node.querySelector("Value")?.textContent || "0.0";
+                station.querySelectorAll("Rainfall").forEach(r => {
+                    const type = r.querySelector("Type")?.textContent;
+                    const val = r.querySelector("dValue")?.textContent || "0.0";
                     if (type === "3") rain1m = val;
                     if (type === "4") rain1h = val;
                     if (type === "5") rainToday = val;
                 });
 
-                const rain1mClass = parseFloat(rain1m) > 0 ? 'rain-active' : '';
-                const rain1hClass = parseFloat(rain1h) > 0 ? 'rain-active' : '';
-                const rainTodayClass = parseFloat(rainToday) > 0 ? 'rain-active' : '';
+                const rain1mClass = parseFloat(rain1m) > 0 ? "rain-active" : "";
+                const rain1hClass = parseFloat(rain1h) > 0 ? "rain-active" : "";
+                const rainTodayClass = parseFloat(rainToday) > 0 ? "rain-active" : "";
 
                 // Save data for map
                 stationDataList.push({
-                    name: name,
-                    temp: currentTemp,
-                    humidity: humidity,
-                    windDir: windDirDisplay,
-                    windSpeed: windSpeed,
-                    rain1h: rain1h,
+                    shortName,
+                    temp,
+                    humidity,
+                    windDir,
+                    windSpeed,
+                    rain1h,
                     pressure: mslPressure
                 });
 
                 // Build station card
-                const cardHtml = `
-                    <div class="station-card">
-                        <div class="station-name">${nameDisplay}</div>
-                        <div class="temp-row">
-                            <div class="current-temp">${currentTemp}°C</div>
-                            <div class="temp-range">
-                                <div>最高: <span class="high-temp">${maxTemp}°C</span></div>
-                                <div>最低: <span class="low-temp">${minTemp}°C</span></div>
-                            </div>
-                        </div>
-                        <div class="metrics-grid">
-                            <div class="metric col-half">
-                                <span>相對濕度(%)</span>
-                                <strong>${humidity}%</strong>
-                            </div>
-                            <div class="metric col-half">
-                                <span>風向(°)</span>
-                                <strong>${windDirDisplay}</strong>
-                            </div>
-                            <div class="metric col-half">
-                                <span>風速(km/h)</span>
-                                <strong>${windSpeed}${windSpeed !== '--' ? ' <small>km/h</small>' : ''}</strong>
-                            </div>
-                            <div class="metric col-half">
-                                <span>陣風(km/h)</span>
-                                <strong>${windGust}${windGust !== '--' ? ' <small>km/h</small>' : ''}</strong>
-                            </div>
-                            <div class="metric col-half">
-                                <span>平均海平面氣壓(hPa)</span>
-                                <strong>${mslPressure}${mslPressure !== '--' ? ' <small>hPa</small>' : ''}</strong>
-                            </div>
-                            <div class="metric col-half">
-                                <span>站氣壓(hPa)</span>
-                                <strong>${stationPressure}${stationPressure !== '--' ? ' <small>hPa</small>' : ''}</strong>
-                            </div>
-                            
-                            <div class="metric col-third ${rain1mClass}">
-                                <span>一分鐘雨量</span>
-                                <strong>${rain1m}${rain1m !== '--' ? ' <small>mm</small>' : ''}</strong>
-                            </div>
-                            <div class="metric col-third ${rain1hClass}">
-                                <span>一小時雨量</span>
-                                <strong>${rain1h}${rain1h !== '--' ? ' <small>mm</small>' : ''}</strong>
-                            </div>
-                            <div class="metric col-third ${rainTodayClass}">
-                                <span>日總雨量</span>
-                                <strong>${rainToday}${rainToday !== '--' ? ' <small>mm</small>' : ''}</strong>
-                            </div>
+                const card = `
+                <div class="station-card">
+                    <div class="station-name">${fullName}</div>
+                    <div class="temp-row">
+                        <div class="current-temp">${temp}°C</div>
+                        <div class="temp-range">
+                            <div>最高: <span class="high-temp">${tempMax}°C</span></div>
+                            <div>最低: <span class="low-temp">${tempMin}°C</span></div>
                         </div>
                     </div>
-                `;
-                gridContainer.innerHTML += cardHtml;
+                    <div class="metrics-grid">
+                        <div class="metric col-half"><span>相對濕度(%)</span><strong>${humidity}%</strong></div>
+                        <div class="metric col-half"><span>風向</span><strong>${windDir}</strong></div>
+                        <div class="metric col-half"><span>風速(km/h)</span><strong>${windSpeed} ${windSpeed!=='--'?'<small>km/h</small>':''}</strong></div>
+                        <div class="metric col-half"><span>陣風(km/h)</span><strong>${windGust} ${windGust!=='--'?'<small>km/h</small>':''}</strong></div>
+                        <div class="metric col-half"><span>海平面氣壓(hPa)</span><strong>${mslPressure} ${mslPressure!=='--'?'<small>hPa</small>':''}</strong></div>
+                        <div class="metric col-half"><span>站氣壓(hPa)</span><strong>${stPressure} ${stPressure!=='--'?'<small>hPa</small>':''}</strong></div>
+                        <div class="metric col-third ${rain1mClass}"><span>一分鐘雨量</span><strong>${rain1m} ${rain1m!=='--'?'<small>mm</small>':''}</strong></div>
+                        <div class="metric col-third ${rain1hClass}"><span>一小時雨量</span><strong>${rain1h} ${rain1h!=='--'?'<small>mm</small>':''}</strong></div>
+                        <div class="metric col-third ${rainTodayClass}"><span>日總雨量</span><strong>${rainToday} ${rainToday!=='--'?'<small>mm</small>':''}</strong></div>
+                    </div>
+                </div>`;
+                gridContainer.innerHTML += card;
             });
 
-            // Refresh map markers after data loaded
+            // Draw markers after data loaded
             updateMapMarkers();
         })
         .catch(err => {
             console.error(err);
-            document.getElementById('grid-container').innerHTML = `
-                <div class="loading" style="color: #e74c3c;">
-                    載入失敗，請檢查網絡或代理狀態
-                </div>`;
+            document.getElementById("grid-container").innerHTML = `
+                <div class="loading" style="color:#e74c3c;">載入失敗，請檢查網絡</div>
+            `;
         });
 }
 
-// Start fetch & auto refresh
+// Start data fetch and auto refresh
 fetchGridData();
 setInterval(fetchGridData, 60000);
 </script>
