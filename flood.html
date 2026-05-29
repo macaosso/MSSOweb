@@ -134,7 +134,7 @@
         </div>
         <div class="meta-info">
             <div>數據更新時間：<span id="pub-date">載入中...</span></div>
-            <div>每5分鐘自動刷新驗證</div>
+            <div>每5分鐘自動刷新</div>
         </div>
     </header>
 
@@ -217,7 +217,7 @@ function fetchWaterLevelData() {
             console.error("Water level processing system failure:", err);
             document.getElementById('grid-container').innerHTML = `
                 <div class="loading" style="color: #e74c3c;">
-                    未能載入微細尺度水位監測數據。請檢查瀏覽器跨域代理狀態。
+                    未能載入微細尺度水位監測數據。
                 </div>`;
         });
 }
