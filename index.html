@@ -12,6 +12,20 @@
     .header { background: #1f3a4d; color: white; padding: 25px 20px; display:flex; align-items:center; }
     .title { font-size: 20px; font-weight: bold; margin-left:10px; }
     .logo { height:40px; }
+    .tc-btn {
+      background: white;
+      color: #e1665c;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .tc-btn:hover {
+      background: #f5d7d6;
+    }
+    
     .menu-container {
       position: relative;
       z-index: 3000;
@@ -133,7 +147,10 @@
 </div>
 
 <div id="tcBox" class="box">
-  <div class="header-red">熱帶氣旋提示</div>
+  <div class="header-red tc-header">
+    <span>熱帶氣旋提示</span>
+    <a href="tc-gis.html" class="tc-btn">查看路徑 ↗</a>
+  </div>
   <div id="tcContent" class="content-red"></div>
 </div>
 
