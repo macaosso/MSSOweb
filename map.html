@@ -89,11 +89,41 @@
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             padding: 15px;
+            position: relative;
         }
         #macau-map {
             width: 100%;
             height: 650px;
             border-radius: 8px;
+        }
+        /* Legend Panel */
+        .legend-panel {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.95);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            font-size: 0.85rem;
+            max-width: 200px;
+            display: none;
+        }
+        .legend-panel h4 {
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            color: #2c3e50;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 8px;
         }
         /* Station Cards */
         .station-grid {
@@ -195,12 +225,13 @@
         </div>
     </header>
 
-    <!-- All Split Map Tabs -->
+    <!-- All Split Map Tabs (Reordered: humidity moved to 4th) -->
     <div class="tab-wrapper">
         <div class="tab-buttons">
             <button class="tab-btn active" data-type="tempCurrent">即時氣溫</button>
             <button class="tab-btn" data-type="tempMax">最高氣溫</button>
             <button class="tab-btn" data-type="tempMin">最低氣溫</button>
+            <button class="tab-btn" data-type="humidity">相對濕度</button>
             <button class="tab-btn" data-type="windDir">風向</button>
             <button class="tab-btn" data-type="windSpeed">風速</button>
             <button class="tab-btn" data-type="windGust">陣風</button>
@@ -209,13 +240,14 @@
             <button class="tab-btn" data-type="rainTotal">累計日雨量</button>
             <button class="tab-btn" data-type="pressSea">海平面氣壓</button>
             <button class="tab-btn" data-type="pressStation">站點氣壓</button>
-            <button class="tab-btn" data-type="humidity">相對濕度</button>
         </div>
     </div>
 
     <div class="main-layout">
         <div class="map-card">
             <div id="macau-map"></div>
+            <!-- Legend Panel -->
+            <div id="legend-panel" class="legend-panel"></div>
         </div>
         <div id="grid-container" class="station-grid">
             <div class="loading">正在擷取區域數據...</div>
@@ -224,7 +256,7 @@
 </div>
 
 <script>
-// All stations + bridges coordinates (UPDATED)
+// All stations + bridges coordinates
 const allPoints = {
     // Weather Stations
     "紀念孫中山市政公園": { code: "DP", lat: 22.215322, lng: 113.543490 },
@@ -237,7 +269,7 @@ const allPoints = {
     "九澳": { code: "KV", lat: 22.134686, lng: 113.580143 },
     "澳門大學": { code: "UM", lat: 22.131808, lng: 113.546970 },
     "路環市區": { code: "DC", lat: 22.117091, lng: 113.551041 },
-    // Bridges (UPDATED names + new bridge added)
+    // Bridges (Updated names + new bridge added)
     "西灣大橋": { code: "PV", lat: 22.173240, lng: 113.535416 },
     "友誼大橋北": { code: "PN", lat: 22.196000, lng: 113.567000 },
     "友誼大橋南": { code: "PS", lat: 22.174000, lng: 113.568000 },
@@ -261,6 +293,85 @@ function getTempColor(tempStr) {
     return "#5c48a1";                     // 嚴寒 (<=7.0)
 }
 
+// Wind/Gust color mapping (from your legend)
+function getWindColor(windStr) {
+    const wind = parseFloat(windStr);
+    if (isNaN(wind)) return "#3498db";
+    if (wind >= 118) return "#d64040";    // 颶風
+    if (wind >= 88) return "#f2a938";     // 暴風
+    if (wind >= 63) return "#f9e559";     // 烈風
+    if (wind >= 41) return "#60c070";     // 強風
+    return "#64b5e7";                     // 清勁或以下
+}
+
+// 1h Rainfall color mapping (from your legend)
+function getRain1hColor(rainStr) {
+    const rain = parseFloat(rainStr);
+    if (isNaN(rain) || rain === 0) return "#b8b8b8";
+    if (rain >= 140) return "#800080";    // >=140
+    if (rain >= 100) return "#ff00ff";    // 100-139
+    if (rain >= 70) return "#000000";    // 70-99
+    if (rain >= 50) return "#d64040";    // 50-69
+    if (rain >= 30) return "#f9e559";    // 30-49
+    if (rain >= 20) return "#60c070";    // 20-29
+    if (rain >= 1) return "#64b5e7";     // 1-19
+    return "#b8b8b8";                    // 0
+}
+
+// Update legend panel based on current tab
+function updateLegendPanel(tabType) {
+    const legendPanel = document.getElementById('legend-panel');
+    let legendHTML = '';
+
+    switch(tabType) {
+        case "tempCurrent":
+        case "tempMax":
+        case "tempMin":
+            legendHTML = `
+                <h4>氣溫圖例</h4>
+                <div class="legend-item"><div class="legend-color" style="background:#7b1818"></div>極端酷熱 (>=35.0°C)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>酷熱 (33.0-34.9°C)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#ed7a7a"></div>炎熱 (28.0-32.9°C)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#e8b03e"></div>溫暖 (22.1-27.9°C)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f0d390"></div>和暖 (17.1-22.0°C)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#62e0b1"></div>清涼 (12.1-17.0°C)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>寒冷 (7.1-12.0°C)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#5c48a1"></div>嚴寒 (<=7.0°C)</div>
+            `;
+            break;
+        case "windSpeed":
+        case "windGust":
+            legendHTML = `
+                <h4>風速/陣風圖例</h4>
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>颶風 (>=118 km/h)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f2a938"></div>暴風 (88-117 km/h)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f9e559"></div>烈風 (63-87 km/h)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#60c070"></div>強風 (41-62 km/h)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>清勁或以下 (0-40 km/h)</div>
+            `;
+            break;
+        case "rain1h":
+            legendHTML = `
+                <h4>一小時雨量圖例 (mm)</h4>
+                <div class="legend-item"><div class="legend-color" style="background:#800080"></div>>=140</div>
+                <div class="legend-item"><div class="legend-color" style="background:#ff00ff"></div>100-139</div>
+                <div class="legend-item"><div class="legend-color" style="background:#000000"></div>70-99</div>
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>50-69</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f9e559"></div>30-49</div>
+                <div class="legend-item"><div class="legend-color" style="background:#60c070"></div>20-29</div>
+                <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>1-19</div>
+                <div class="legend-item"><div class="legend-color" style="background:#b8b8b8"></div>0</div>
+            `;
+            break;
+        default:
+            legendPanel.style.display = 'none';
+            return;
+    }
+
+    legendPanel.innerHTML = legendHTML;
+    legendPanel.style.display = 'block';
+}
+
 // Init Leaflet Map
 let map = L.map('macau-map').setView([22.17, 113.55], 12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -278,6 +389,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.add('active');
         currentTab = btn.dataset.type;
         updateMapMarkers();
+        updateLegendPanel(currentTab);
     });
 });
 
@@ -319,17 +431,21 @@ function updateMapMarkers() {
                 showVal = point.tempMin;
                 bgColor = getTempColor(showVal);
                 break;
+            case "humidity":
+                showVal = point.humidity;
+                bgColor = "#27ae60";
+                break;
             case "windDir":
                 showVal = point.windDir;
                 bgColor = "#9b59b6";
                 break;
             case "windSpeed":
                 showVal = point.windSpeed;
-                bgColor = "#8e44ad";
+                bgColor = getWindColor(showVal);
                 break;
             case "windGust":
                 showVal = point.windGust;
-                bgColor = "#d35400";
+                bgColor = getWindColor(showVal);
                 break;
             case "rain1m":
                 showVal = point.rain1m;
@@ -337,7 +453,7 @@ function updateMapMarkers() {
                 break;
             case "rain1h":
                 showVal = point.rain1h;
-                bgColor = "#00838f";
+                bgColor = getRain1hColor(showVal);
                 break;
             case "rainTotal":
                 showVal = point.rainTotal;
@@ -350,10 +466,6 @@ function updateMapMarkers() {
             case "pressStation":
                 showVal = point.pressStation;
                 bgColor = "#f1c40f";
-                break;
-            case "humidity":
-                showVal = point.humidity;
-                bgColor = "#27ae60";
                 break;
         }
 
@@ -469,6 +581,7 @@ function fetchGridData() {
             });
 
             updateMapMarkers();
+            updateLegendPanel(currentTab);
         })
         .catch(err => {
             console.error(err);
