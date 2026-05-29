@@ -296,51 +296,64 @@ fetch("weatherforecast.txt")
 </script>
 
 <!-- ✅ LOAD WARNING DATA -->
+
 <script src="tc_data.js"></script>
+<script src="warn.js"></script>
+
 
 <script>
 // ✅ RENDER WARNING CARD + AUTO HIDE
-const container = document.getElementById("warningContent");
-const card = document.getElementById("warningCard");
 
-let html = "";   // ✅ 必須初始化
+function renderWarnings(data, containerId, cardId) {
 
-tcWarnings.forEach((item, index) => {
+  const container = document.getElementById(containerId);
+  const card = document.getElementById(cardId);
 
-  if ((!item.icon || item.icon.trim() === "") &&
-      (!item.text || item.text.trim() === "")) {
-    return;
-  }
+  let html = "";
 
-  html += `
-    <div class="warning-item">
+  data.forEach((item, index) => {
 
-      ${item.icon && item.icon.trim() !== "" ? `
-        <div class="icon-box">
-          <img src="${item.icon}" onerror="this.parentElement.style.display='none'">
-        </div>
-      ` : ""}
+    if ((!item.icon || item.icon.trim()==="") &&
+        (!item.text || item.text.trim()==="")) {
+      return;
+    }
 
-      ${item.text && item.text.trim() !== "" ? `
-        <div class="text-box">${item.text}</div>
-      ` : ""}
+    
+    html += `
+          <div class="warning-item">
+    
+            ${item.icon ? `
+              <div class="icon-box">
+                <img src="${item.icon}" alt="Warning Icon">
+              </div>
+            ` : ""}
+    
+            ${item.text ? `
+              <div class="text-box">${item.text}</div>
+            ` : ""}
+    
+          </div>
+        `;
+    
+        if (index < data.length - 1) {
+          html += `<div class="divider"></div>`;
+        }
+    
+      });
 
-    </div>
-  `;
+  // render
+      container.innerHTML = html;
 
-  if (index < tcWarnings.length - 1) {
-    html += `<div class="divider"></div>`;
-  }
-});
+  // auto hide card if empty
+      if (html.trim()==="") {
+        card.style.display = "none";
+      }
+    }
 
-// ✅ 將內容插入頁面
-container.innerHTML = html;
+// ✅ ✅ CALL
+renderWarnings(tcWarnings, "tcContent", "tcCard");
+renderWarnings(warnWarnings, "warnContent", "warnCard");
 
-// ✅ 如果完全冇內容就隱藏整張 card
-if (html.trim() === "") {
-  card.style.display = "none";
-}
-  
 </script>
 
 
