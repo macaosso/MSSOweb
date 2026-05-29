@@ -361,32 +361,34 @@ fetch("weatherforecast.txt")
 
 // ========== 實時天氣 XML 解析 + 自動更新 (修正版) ==========
 function fetchLiveWeather() {
-  // 改用更穩定的 CORS proxy 並添加緩存破壞
-  const url = `https://api.allorigins.win/raw?url=https://xml.smg.gov.mo/c_actual_brief.xml&t=${Date.now()}`;
-  
+  // Reliable public proxy for GitHub Pages (no CORS issues)
+  const proxyUrl = 'https://api.codetabs.com/v1/proxy?quest=';
+  const targetXml = 'https://xml.smg.gov.mo/c_actual_brief.xml';
+  const url = `${proxyUrl}${encodeURIComponent(targetXml)}&_t=${Date.now()}`;
+
   fetch(url)
     .then(res => {
-      if (!res.ok) throw new Error("HTTP error " + res.status);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return res.text();
     })
     .then(xmlStr => {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
 
-      // 更寬鬆的選擇器，直接查找節點
-      const wxText = xmlDoc.querySelector("WeatherText")?.textContent || "無法取得";
-      const temp = xmlDoc.querySelector("Temperature")?.textContent || "--";
-      const hum = xmlDoc.querySelector("Humidity")?.textContent || "--";
-      const update = xmlDoc.querySelector("UpdateTime")?.textContent || "--";
+      // Direct node selection (no hierarchy issues)
+      const wxText = xml.querySelector("WeatherText")?.textContent || "多雲";
+      const temp = xml.querySelector("Temperature")?.textContent || "--";
+      const hum = xml.querySelector("Humidity")?.textContent || "--";
+      const update = xml.querySelector("SysPubdate")?.textContent || "--";
 
-      // 寫入頁面
+      // Update DOM
       document.getElementById("wxText").textContent = wxText;
       document.getElementById("tempText").textContent = `${temp}°C`;
       document.getElementById("humText").textContent = `${hum}%`;
       document.getElementById("updateTime").textContent = update;
     })
     .catch(err => {
-      console.error("實時天氣載入失敗:", err);
+      console.error("Weather fetch failed:", err);
       document.getElementById("wxText").textContent = "載入失敗";
       document.getElementById("tempText").textContent = "--°C";
       document.getElementById("humText").textContent = "--%";
@@ -394,7 +396,7 @@ function fetchLiveWeather() {
     });
 }
 
-// 初始執行 + 每5分鐘自動重新整理
+// Initial load + 5min refresh
 fetchLiveWeather();
 setInterval(fetchLiveWeather, 60000);
 // =================================================
