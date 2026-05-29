@@ -143,12 +143,12 @@
         </div>
         <div class="meta-info">
             <div>資料更新時間：<span id="pub-date">載入中...</span></div>
-            <div>每1分鐘自動刷新驗證</div>
+            <div>每5分鐘自動刷新驗證</div>
         </div>
     </header>
 
     <div id="grid-container" class="station-grid">
-        <div class="loading">正在擷取區域數據節節...</div>
+        <div class="loading">正在擷取區域數據...</div>
     </div>
 </div>
 
@@ -243,40 +243,40 @@ function fetchGridData() {
                         </div>
                         <div class="metrics-grid">
                             <div class="metric col-half">
-                                <span>相對濕度</span>
+                                <span>相對濕度(%)</span>
                                 <strong>${humidity}%</strong>
                             </div>
                             <div class="metric col-half">
-                                <span>風向 (角度)</span>
+                                <span>風向(°)</span>
                                 <strong>${windDirDisplay}</strong>
                             </div>
                             <div class="metric col-half">
-                                <span>風速</span>
+                                <span>風速(km/h)</span>
                                 <strong>${windSpeed}${windSpeed !== '--' ? ' <small>km/h</small>' : ''}</strong>
                             </div>
                             <div class="metric col-half">
-                                <span>陣風</span>
+                                <span>陣風(km/h)</span>
                                 <strong>${windGust}${windGust !== '--' ? ' <small>km/h</small>' : ''}</strong>
                             </div>
                             <div class="metric col-half">
-                                <span>平均海平面氣壓</span>
+                                <span>平均海平面氣壓(hPa)</span>
                                 <strong>${mslPressure}${mslPressure !== '--' ? ' <small>hPa</small>' : ''}</strong>
                             </div>
                             <div class="metric col-half">
-                                <span>本站氣壓</span>
+                                <span>站氣壓(hPa)</span>
                                 <strong>${stationPressure}${stationPressure !== '--' ? ' <small>hPa</small>' : ''}</strong>
                             </div>
                             
                             <div class="metric col-third ${rain1mClass}">
-                                <span>即時降雨 (1m)</span>
+                                <span>分鐘雨量(mm)</span>
                                 <strong>${rain1m}${rain1m !== '--' ? ' <small>mm</small>' : ''}</strong>
                             </div>
                             <div class="metric col-third ${rain1hClass}">
-                                <span>每小時降雨 (1h)</span>
+                                <span>時雨量(mm)</span>
                                 <strong>${rain1h}${rain1h !== '--' ? ' <small>mm</small>' : ''}</strong>
                             </div>
                             <div class="metric col-third ${rainTodayClass}">
-                                <span>當日累積降雨</span>
+                                <span>日總降雨(mm)</span>
                                 <strong>${rainToday}${rainToday !== '--' ? ' <small>mm</small>' : ''}</strong>
                             </div>
                         </div>
