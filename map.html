@@ -43,7 +43,6 @@
             font-size: 0.9rem;
             opacity: 0.9;
         }
-        /* --- New: Dropdown Select Style --- */
         .select-wrapper {
             margin-bottom: 20px;
             text-align: center;
@@ -62,7 +61,6 @@
             background-position: right 15px center;
             padding-right: 40px;
         }
-        /* Main Layout */
         .main-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -85,7 +83,6 @@
             height: 650px;
             border-radius: 8px;
         }
-        /* --- Smaller, Always-Visible Legend --- */
         .map-legend {
             position: absolute;
             bottom: 15px;
@@ -120,7 +117,6 @@
             border-radius: 50%;
             margin-right: 5px;
         }
-        /* --- Time Stamp --- */
         .time-stamp {
             position: absolute;
             top: 25px;
@@ -132,7 +128,6 @@
             font-size: 0.9rem;
             z-index: 1000;
         }
-        /* Station Cards */
         .station-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -232,7 +227,6 @@
         </div>
     </header>
 
-    <!-- --- New: Dropdown Select --- -->
     <div class="select-wrapper">
         <select id="map-select" class="map-select">
             <option value="tempCurrent">溫度(℃)</option>
@@ -252,9 +246,7 @@
     <div class="main-layout">
         <div class="map-card">
             <div id="macau-map"></div>
-            <!-- Time Stamp -->
             <div id="time-stamp" class="time-stamp"></div>
-            <!-- Smaller, Always-Visible Legend -->
             <div id="map-legend" class="map-legend">
                 <h4>圖例</h4>
                 <div id="legend-content" class="legend-items"></div>
@@ -267,12 +259,11 @@
 </div>
 
 <script>
-// All stations + bridges coordinates (UPDATED PE station)
 const allPoints = {
     "紀念孫中山市政公園": { code: "DP", lat: 22.215322, lng: 113.543490 },
     "黑沙環": { code: "EM", lat: 22.207129, lng: 113.559971 },
     "大炮台": { code: "FM", lat: 22.197066, lng: 113.542261 },
-    "外港": { code: "PE", lat: 22.196556, lng: 113.558333 }, // <-- Updated PE coordinates
+    "外港": { code: "PE", lat: 22.196556, lng: 113.558333 },
     "媽閣": { code: "MM", lat: 22.185863, lng: 113.530675 },
     "大潭山": { code: "TG", lat: 22.159102, lng: 113.568947 },
     "東亞運大馬路": { code: "JA", lat: 22.155396, lng: 113.542412 },
@@ -288,7 +279,6 @@ const allPoints = {
     "蓮花大橋": { code: "LH", lat: 22.139934, lng: 113.549094 }
 };
 
-// Temperature color mapping
 function getTempColor(tempStr) {
     const temp = parseFloat(tempStr);
     if (isNaN(temp)) return "#3498db";
@@ -302,7 +292,6 @@ function getTempColor(tempStr) {
     return "#5c48a1";
 }
 
-// Humidity color mapping
 function getHumidityColor(humStr) {
     const hum = parseFloat(humStr);
     if (isNaN(hum)) return "#3498db";
@@ -313,7 +302,6 @@ function getHumidityColor(humStr) {
     return "#7b1818";
 }
 
-// Wind/Gust color mapping
 function getWindColor(windStr) {
     const wind = parseFloat(windStr);
     if (isNaN(wind)) return "#3498db";
@@ -324,7 +312,6 @@ function getWindColor(windStr) {
     return "#64b5e7";
 }
 
-// Rain 1min
 function getRain1mColor(rainStr) {
     const rain = parseFloat(rainStr);
     if (isNaN(rain) || rain === 0) return "#a0a0a0";
@@ -334,7 +321,6 @@ function getRain1mColor(rainStr) {
     if (rain >= 0.2) return "#3a6ea5";
     return "#bdd7ee";
 }
-// Rain 1hour (now "每小時雨量")
 function getRain1hColor(rainStr) {
     const rain = parseFloat(rainStr);
     if (isNaN(rain) || rain === 0) return "#a0a0a0";
@@ -345,7 +331,6 @@ function getRain1hColor(rainStr) {
     if (rain >= 10) return "#3a6ea5";
     return "#bdd7ee";
 }
-// Total daily rain (now "每日總雨量")
 function getRainTotalColor(rainStr) {
     const rain = parseFloat(rainStr);
     if (isNaN(rain) || rain === 0) return "#a0a0a0";
@@ -357,7 +342,6 @@ function getRainTotalColor(rainStr) {
     return "#bdd7ee";
 }
 
-// Pressure Sea Level
 function getPressSeaColor(pressStr) {
     const press = parseFloat(pressStr);
     if (isNaN(press)) return "#3498db";
@@ -366,7 +350,6 @@ function getPressSeaColor(pressStr) {
     if (press < 1000) return "#f9d342";
     return "#3a6ea5";
 }
-// Station Pressure
 function getPressStationColor(pressStr) {
     const press = parseFloat(pressStr);
     if (isNaN(press)) return "#3498db";
@@ -376,11 +359,9 @@ function getPressStationColor(pressStr) {
     return "#3a6ea5";
 }
 
-// Update legend panel
 function updateLegendPanel(tabType) {
     const legendContent = document.getElementById('legend-content');
     let legendHTML = '';
-
     switch(tabType) {
         case "tempCurrent":
         case "tempMax":
@@ -469,11 +450,9 @@ function updateLegendPanel(tabType) {
         default:
             legendHTML = `<div class="legend-item" style="color:#777;">無圖例</div>`;
     }
-
     legendContent.innerHTML = legendHTML;
 }
 
-// Init Leaflet Map
 let map = L.map('macau-map').setView([22.17, 113.55], 12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
@@ -483,14 +462,12 @@ let allMarkers = [];
 let currentTab = "tempCurrent";
 let pointDataList = [];
 
-// --- New: Dropdown Select Event Listener ---
 document.getElementById('map-select').addEventListener('change', (e) => {
     currentTab = e.target.value;
     updateMapMarkers();
     updateLegendPanel(currentTab);
 });
 
-// Extract XML value
 const extractNodeValue = (selector, parent) => {
     const el = parent.querySelector(selector);
     if (!el) return '';
@@ -498,13 +475,11 @@ const extractNodeValue = (selector, parent) => {
     return val.trim();
 };
 
-// Clear all markers
 function clearMarkers() {
     allMarkers.forEach(marker => map.removeLayer(marker));
     allMarkers = [];
 }
 
-// Convert wind direction text to rotation degrees
 function windDirToRotation(dirText) {
     const dirToDeg = {
         "N": 0, "NNE": 22.5, "NE": 45, "ENE": 67.5,
@@ -515,7 +490,6 @@ function windDirToRotation(dirText) {
     return dirToDeg[dirText] || 0;
 }
 
-// Update map markers
 function updateMapMarkers() {
     clearMarkers();
     pointDataList.forEach(point => {
@@ -526,6 +500,8 @@ function updateMapMarkers() {
         let showVal = "";
         let bgColor = "#3498db";
         let markerIconHtml = "";
+        let iconSize = [50, 50];
+        let iconAnchor = [25, 25];
 
         switch (currentTab) {
             case "tempCurrent":
@@ -549,21 +525,21 @@ function updateMapMarkers() {
                 markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "windDir":
-              // 修复：加 display:block，防止被 overflow:hidden 裁剪
-              const rotation = windDirToRotation(point.windDir);
-              markerIconHtml = `
-                <div style="display:block; width: 0; height: 0; 
-                     border-left: 18px solid transparent; 
-                     border-right: 18px solid transparent; 
-                     border-bottom: 36px solid #9b59b6; 
-                     transform: rotate(${rotation}deg);
-                     transform-origin: center bottom;">
-                </div>
-              `;
-              // 尺寸和锚点严格对应三角：宽36，高36，锚点在底部中心
-              iconSize = [36, 36];
-              iconAnchor = [18, 36];
-              break;
+                // 修复：加 display:block，防止被 overflow:hidden 裁剪
+                const rotation = windDirToRotation(point.windDir);
+                markerIconHtml = `
+                    <div style="display:block; width: 0; height: 0; 
+                         border-left: 18px solid transparent; 
+                         border-right: 18px solid transparent; 
+                         border-bottom: 36px solid #9b59b6; 
+                         transform: rotate(${rotation}deg);
+                         transform-origin: center bottom;">
+                    </div>
+                `;
+                // 尺寸和锚点严格对应三角：宽36，高36，锚点在底部中心
+                iconSize = [36, 36];
+                iconAnchor = [18, 36];
+                break;
             case "windSpeed":
                 showVal = point.windSpeed;
                 bgColor = getWindColor(showVal);
@@ -603,13 +579,6 @@ function updateMapMarkers() {
 
         if (showVal === '' || showVal === '--') return;
 
-        let iconSize = [50, 50];
-        let iconAnchor = [25, 25];
-        if (currentTab === "windDir") {
-            iconSize = [36, 36];
-            iconAnchor = [18, 18];
-        }
-
         const icon = L.divIcon({
             html: markerIconHtml,
             className: "",
@@ -623,7 +592,6 @@ function updateMapMarkers() {
     });
 }
 
-// Fetch XML Data
 function fetchGridData() {
     const cacheBuster = Date.now();
     const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
