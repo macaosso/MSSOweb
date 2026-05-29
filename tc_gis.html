@@ -897,7 +897,15 @@ function createWindRadii(lat, lon, radii) {
     }
   }
 
-  
+function updateMarkerSize() {
+  const zoom = map.getZoom();
+
+  forecastMarkers.forEach(m => {
+    const type = getTypeFromWind(m.options.icon.options.iconUrl.split("/").pop().replace(".png",""));
+    const size = zoom >= 7 ? 30 : zoom >= 5 ? 24 : 20;
+    m.setIcon(getIcon(type, size));
+  });
+}
   // ✅ each quadrant has FIXED radius
   arc(0, 90, radii.ne);
   arc(90, 180, radii.se);
