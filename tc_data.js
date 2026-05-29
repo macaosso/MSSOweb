@@ -31,7 +31,7 @@ const forecastPoints = [
   {lat:19.4, lon:128.5, time:"05-31 11H", wind: 155},
   {lat:24.2, lon:126.2, time:"06-01 11H", wind: 175},
   {lat:29.0, lon:128.8, time:"06-02 11H", wind: 130},
-  {lat:33.7, lon:136.8, time:"06-03 11H", wind: 105},
+  {lat:33.7, lon:136.8, time:"06-03 11H", wind: "-"},
 ];
 
 window.tcInfo = {
