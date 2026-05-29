@@ -303,27 +303,27 @@ fetch("weatherforecast.txt")
   })
   .catch(() => console.log("Cannot load weatherforecast.txt"));
 
-<script src="tcdata.js"></script>
-
-<script>
+<script src="tcdata.jscript>
 const container = document.getElementById("warningContent");
 
 tcWarnings.forEach((item, index) => {
   const html = `
     <div class="warning-item">
       <div class="icon-box">
-        <img src="${item.iconlass="text-box">${item.text}</div>
+        <img src="${item.icondiv>
+      <div class="text-box">${item.text}</div>
     </div>
   `;
 
   container.innerHTML += html;
 
-  // add divider except last
+  // divider (except last)
   if (index < tcWarnings.length - 1) {
     container.innerHTML += `<div class="divider"></div>`;
   }
 });
 </script>
+
 
 </script>
 
