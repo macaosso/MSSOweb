@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>澳門各區天氣實況（GIS地圖版）</title>
+    <title>澳門各區天氣實況 - GIS互動地圖</title>
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -25,7 +28,7 @@
             color: white;
             padding: 20px 30px;
             border-radius: 12px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -41,74 +44,58 @@
             font-size: 0.9rem;
             opacity: 0.9;
         }
+        /* Tab Navigation */
+        .tab-wrapper {
+            background: #fff;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .tab-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            background: #e8edf2;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: #2a5298;
+            color: #fff;
+        }
+        .tab-btn:hover:not(.active) {
+            background: #d0d9e2;
+        }
+        /* Main Layout */
         .main-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 25px;
-            margin-bottom: 25px;
+            gap: 20px;
         }
         @media (max-width: 1024px) {
             .main-layout {
                 grid-template-columns: 1fr;
             }
         }
-        .map-container {
-            background: white;
+        .map-card {
+            background: #fff;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            padding: 20px;
-            position: relative;
-            min-height: 600px;
-        }
-        .map-container h2 {
-            font-size: 1.2rem;
-            margin-bottom: 15px;
-            color: #2c3e50;
+            padding: 15px;
         }
         #macau-map {
             width: 100%;
-            height: calc(100% - 40px);
-            background-color: #cce0f5;
+            height: 650px;
             border-radius: 8px;
-            position: relative;
-            overflow: hidden;
         }
-        .station-marker {
-            position: absolute;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.75);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            white-space: nowrap;
-            pointer-events: none;
-            z-index: 10;
-        }
-        .station-marker .temp {
-            font-weight: bold;
-        }
-        .legend {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(255,255,255,09);
-            padding: 10px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 4px;
-        }
-        .legend-color {
-            width: 16px;
-            height: 16px;
-            margin-right: 6px;
-            border-radius: 2px;
-        }
+        /* Station Cards */
         .station-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -189,41 +176,43 @@
         .loading {
             grid-column: 1 / -1;
             text-align: center;
-            padding: 5px;
+            padding: 50px;
             font-size: 1.2rem;
             color: #7f8c8d;
         }
     </style>
 </head>
 <body>
-
 <div class="container">
     <header>
         <div>
-            <h1>澳門各區天氣實況（GIS地圖版）</h1>
-            <small style="color: #2ecc71;">● 即時監控網格</small>
+            <h1>澳門各區天氣實況（互動GIS地圖）</h1>
+            <small style="color: #2ecc71;">● 可縮放/拖曳地圖 | 點擊標示查看詳情</small>
         </div>
         <div class="meta-info">
             <div>資料更新時間：<span id="pub-date">載入中...</span></div>
-            <div>每5分鐘自動刷新</div>
+            <div>每60秒自動刷新</div>
         </div>
     </header>
 
+    <!-- Tab Switcher -->
+    <div class="tab-wrapper">
+        <div class="tab-buttons">
+            <button class="tab-btn active" data-type="temp">氣溫</button>
+            <button class="tab-btn" data-type="humidity">相對濕度</button>
+            <button class="tab-btn" data-type="wind">風向風速</button>
+            <button class="tab-btn" data-type="rain">雨量</button>
+            <button class="tab-btn" data-type="pressure">氣壓</button>
+        </div>
+    </div>
+
     <div class="main-layout">
-        <!-- 左側：地圖視圖 -->
-        <div class="map-container">
-            <h2>澳門天氣站分布圖</h2>
-            <div id="macau-map">
-                <!-- 標註將由JS動態生成 -->
-            </div>
-            <div class="legend">
-                <div class="legend-item"><div class="legend-color" style="background: #3498db;"></div>氣溫標註</div>
-                <div class="legend-item"><div class="legend-color" style="background: #2ecc71;"></div>有雨</div>
-                <div class="legend-item"><div class="legend-color" style="background: #e74c3c;"></div>高溫</div>
-            </div>
+        <!-- Interactive Leaflet Map -->
+        <div class="map-card">
+            <div id="macau-map"></div>
         </div>
 
-        <!-- 右側：站點數據卡片 -->
+        <!-- Station Data Cards -->
         <div id="grid-container" class="station-grid">
             <div class="loading">正在擷取區域數據...</div>
         </div>
@@ -231,17 +220,117 @@
 </div>
 
 <script>
-// 澳門各站點大致相對坐標（根據實際地圖調整，這裡是示例）
-const stationPositions = {
-    "澳門半島": { x: 25, y: 30 },
-    "大炮台": { x: 30, y: 35 },
-    "東望洋": { x: 22, y: 28 },
-    "氹仔": { x: 50, y: 55 },
-    "路環": { x: 55, y: 75 },
-    "九澳": { x: 60, y: 80 },
-    "路氹城": { x: 45, y: 60 }
+// 1. Station Coordinates (provided)
+const stationCoord = {
+    "紀念孫中山市政公園（DP）": {lat: 22.215322, lng: 113.543490},
+    "黑沙環（EM）": {lat: 22.207129, lng: 113.559971},
+    "大炮台（FM）": {lat: 22.197066, lng: 113.542261},
+    "外港（PE）": {lat: 22.197066, lng: 113.542261},
+    "媽閣（MM）": {lat: 22.185863, lng: 113.530675},
+    "大潭山（TG）": {lat: 22.159102, lng: 113.568947},
+    "東亞運大馬路（JA）": {lat: 22.155396, lng: 113.542412},
+    "九澳（KV）": {lat: 22.134686, lng: 113.580143},
+    "澳門大學（UM）": {lat: 22.131808, lng: 113.546970},
+    "路環市區（DC）": {lat: 22.117091, lng: 113.551041}
 };
 
+// 2. Init Leaflet Map
+let map = L.map('macau-map').setView([22.17, 113.55], 12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+let allMarkers = [];
+let currentTab = "temp";
+
+// 3. Tab Switch Event
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentTab = btn.dataset.type;
+        updateMapMarkers();
+    });
+});
+
+// 4. Extract XML value
+const extractNodeValue = (selector, parent) => {
+    const el = parent.querySelector(selector);
+    if (!el) return '--';
+    return el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || '--';
+};
+
+// 5. Clear all map markers
+function clearMarkers() {
+    allMarkers.forEach(marker => map.removeLayer(marker));
+    allMarkers = [];
+}
+
+// 6. Global station data storage
+let stationDataList = [];
+
+// 7. Update map markers by selected tab
+function updateMapMarkers() {
+    clearMarkers();
+    stationDataList.forEach(station => {
+        const name = station.name;
+        const coord = stationCoord[name];
+        if (!coord) return;
+
+        let displayText = "";
+        let markerColor = "#3498db";
+
+        switch(currentTab) {
+            case "temp":
+                displayText = `${station.temp}°C`;
+                let t = parseFloat(station.temp);
+                if(!isNaN(t)){
+                    if(t >= 28) markerColor = "#e74c3c";
+                    else if(t <= 20) markerColor = "#2980b9";
+                }
+                break;
+            case "humidity":
+                displayText = `${station.humidity}%`;
+                markerColor = "#27ae60";
+                break;
+            case "wind":
+                displayText = `${station.windSpeed} km/h`;
+                markerColor = "#9b59b6";
+                break;
+            case "rain":
+                displayText = `${station.rain1h} mm`;
+                markerColor = "#16a085";
+                break;
+            case "pressure":
+                displayText = `${station.pressure} hPa`;
+                markerColor = "#f39c12";
+                break;
+        }
+
+        // Custom colored marker
+        const customIcon = L.divIcon({
+            html: `<div style="background:${markerColor};color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;white-space:nowrap;">${name}<br>${displayText}</div>`,
+            className: "",
+            iconSize: [80, 40],
+            iconAnchor: [40, 20]
+        });
+
+        const marker = L.marker([coord.lat, coord.lng], {icon: customIcon}).addTo(map);
+        // Popup full info on click
+        marker.bindPopup(`
+            <b>${name}</b><hr>
+            氣溫: ${station.temp}°C<br>
+            濕度: ${station.humidity}%<br>
+            風向: ${station.windDir}<br>
+            風速: ${station.windSpeed} km/h<br>
+            1小時雨量: ${station.rain1h} mm<br>
+            氣壓: ${station.pressure} hPa
+        `);
+        allMarkers.push(marker);
+    });
+}
+
+// 8. Fetch Weather Data
 function fetchGridData() {
     const cacheBuster = Date.now();
     const freshUrl = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
@@ -263,16 +352,7 @@ function fetchGridData() {
             const stations = xmlDoc.querySelectorAll("WeatherReport station");
             const gridContainer = document.getElementById('grid-container');
             gridContainer.innerHTML = '';
-
-            // 清空舊的標註
-            const mapContainer = document.getElementById('macau-map');
-            mapContainer.querySelectorAll('.station-marker').forEach(el => el.remove());
-
-            const extractNodeValue = (selector, parent) => {
-                const el = parent.querySelector(selector);
-                if (!el) return '--';
-                return el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || '--';
-            };
+            stationDataList = [];
 
             stations.forEach(station => {
                 const code = station.getAttribute("code")?.trim() || "N/A";
@@ -314,7 +394,18 @@ function fetchGridData() {
                 const rain1hClass = parseFloat(rain1h) > 0 ? 'rain-active' : '';
                 const rainTodayClass = parseFloat(rainToday) > 0 ? 'rain-active' : '';
 
-                // 卡片HTML
+                // Save data for map
+                stationDataList.push({
+                    name: name,
+                    temp: currentTemp,
+                    humidity: humidity,
+                    windDir: windDirDisplay,
+                    windSpeed: windSpeed,
+                    rain1h: rain1h,
+                    pressure: mslPressure
+                });
+
+                // Build station card
                 const cardHtml = `
                     <div class="station-card">
                         <div class="station-name">${nameDisplay}</div>
@@ -367,28 +458,10 @@ function fetchGridData() {
                     </div>
                 `;
                 gridContainer.innerHTML += cardHtml;
-
-                // 在地圖上添加標註
-                const pos = stationPositions[name] || { x: 50, y: 50 }; // 預設位置
-                const marker = document.createElement('div');
-                marker.className = 'station-marker';
-                marker.style.left = `${pos.x}%`;
-                marker.style.top = `${pos.y}%`;
-                
-                // 根據溫度改變標註顏色
-                let bgColor = 'rgba(0,0,0,0.75)';
-                if (!isNaN(parseFloat(currentTemp))) {
-                    if (parseFloat(currentTemp) >= 28) bgColor = 'rgba(231, 76, 60, 0.85)'; // 高溫紅
-                    else if (parseFloat(currentTemp) <= 20) bgColor = 'rgba(52, 152, 219, 0.85)'; // 低溫藍
-                }
-                marker.style.background = bgColor;
-
-                marker.innerHTML = `
-                    <div>${name}</div>
-                    <div class="temp">${currentTemp}°C</div>
-                `;
-                mapContainer.appendChild(marker);
             });
+
+            // Refresh map markers after data loaded
+            updateMapMarkers();
         })
         .catch(err => {
             console.error(err);
@@ -399,9 +472,9 @@ function fetchGridData() {
         });
 }
 
+// Start fetch & auto refresh
 fetchGridData();
 setInterval(fetchGridData, 60000);
 </script>
-
 </body>
 </html>
