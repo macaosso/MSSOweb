@@ -1,144 +1,74 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Macao Real-Time Weather Map</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        * {box-sizing: border-box; margin: 0; padding: 0; font-family: Arial, sans-serif;}
-        #header {background: #3a8c7c; color: #fff; padding: 14px; text-align: center; font-size: 22px; font-weight: bold;}
-        #tabs {display: flex; background: #e6efec; padding: 10px; gap: 10px; flex-wrap: wrap; justify-content: center;}
-        .tab-btn {background: #fff; border: 1px solid #3a8c7c; padding: 8px 18px; border-radius: 8px; cursor: pointer; font-size: 16px;}
-        .tab-btn.active {background: #3a8c7c; color: #fff;}
-        #update-info {padding: 8px 16px; font-size: 14px; color: #444; text-align: center;}
-        #map {height: calc(100vh - 170px); width: 100%;}
-        .legend {position: absolute; bottom: 15px; left: 15px; background: #fff; padding: 10px; border-radius: 8px; font-size: 13px; z-index: 999; box-shadow: 0 1px 4px rgba(0,0,0,0.2);}
-        .legend-item {display: inline-flex; align-items: center; margin-right: 12px;}
-        .dot {width: 12px; height: 12px; border-radius: 50%; margin-right: 5px;}
-        .temp-label {background: #ff8833; color: #fff; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 14px; white-space: nowrap;}
-        .humidity-label {background: #4a90e2; color: #fff; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 14px; white-space: nowrap;}
-    </style>
+<meta charset="UTF-8" />
+<title>澳门实时天气</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+body { font-family: "Microsoft JhengHei", sans-serif; background: #0a2c5f; color: white; text-align: center; padding: 20px; }
+.container { max-width: 400px; margin: 0 auto; background: rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; }
+h1 { margin: 0 0 10px; font-size: 24px; }
+.temp { font-size: 60px; font-weight: bold; margin: 10px 0; }
+.desc { font-size: 20px; margin-bottom: 20px; }
+.info { font-size: 16px; line-height: 1.8; }
+.loading { color: #ccc; }
+</style>
 </head>
 <body>
-    <div id="header">Macao Weather Monitoring Stations</div>
+<div class="container">
+  <h1>澳门天气</h1>
+  <div id="status" class="loading">加载中...</div>
+  <div id="temp" class="temp"></div>
+  <div id="desc" class="desc"></div>
+  <div class="info">
+    <div>湿度：<span id="humidity"></span></div>
+    <div>风向：<span id="windDir"></span></div>
+    <div>风速：<span id="windSpeed"></span></div>
+    <div>更新时间：<span id="updateTime"></span></div>
+  </div>
+</div>
 
-    <div id="tabs">
-        <button class="tab-btn active" data-type="temperature">Temperature</button>
-        <button class="tab-btn" data-type="temp_max">Max Temp</button>
-        <button class="tab-btn" data-type="temp_min">Min Temp</button>
-        <button class="tab-btn" data-type="humidity">Humidity</button>
-    </div>
+<script>
+// 换成更稳的 corsproxy，加时间戳防缓存
+const XML_URL = "https://corsproxy.io/?url=https://xml.smg.gov.mo/c_actualweather.xml";
+const REFRESH_INTERVAL = 60000; // 1分钟刷新
 
-    <div id="update-info">Loading real-time data...</div>
-    <div id="map"></div>
+function loadData() {
+  const url = XML_URL + "&_=" + Date.now();
+  fetch(url)
+    .then(r => {
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.text();
+    })
+    .then(xmlText => {
+      const parser = new DOMParser();
+      const xml = parser.parseFromString(xmlText, "text/xml");
 
-    <div class="legend">
-        <div class="legend-item"><span class="dot" style="background:#ff2222"></span> Very Hot</div>
-        <div class="legend-item"><span class="dot" style="background:#ff6633"></span> Hot</div>
-        <div class="legend-item"><span class="dot" style="background:#ff9955"></span> Warm</div>
-        <div class="legend-item"><span class="dot" style="background:#66bb66"></span> Cool</div>
-    </div>
+      // 节点（根据澳门SMG XML结构）
+      const temp = xml.querySelector("Temperature")?.textContent || "--";
+      const desc = xml.querySelector("WeatherDescription")?.textContent || "--";
+      const humidity = xml.querySelector("Humidity")?.textContent || "--";
+      const windDir = xml.querySelector("WindDirection")?.textContent || "--";
+      const windSpeed = xml.querySelector("WindSpeed")?.textContent || "--";
+      const updateTime = xml.querySelector("UpdateTime")?.textContent || "--";
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        // Initialize Map
-        const map = L.map('map').setView([22.16, 113.56], 12);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+      // 渲染
+      document.getElementById("status").textContent = "";
+      document.getElementById("temp").textContent = temp + " °C";
+      document.getElementById("desc").textContent = desc;
+      document.getElementById("humidity").textContent = humidity + " %";
+      document.getElementById("windDir").textContent = windDir;
+      document.getElementById("windSpeed").textContent = windSpeed + " km/h";
+      document.getElementById("updateTime").textContent = updateTime;
+    })
+    .catch(e => {
+      document.getElementById("status").textContent = "加载失败：" + e.message;
+      console.error("Failed to load data:", e);
+    });
+}
 
-        // Weather Stations (Name, Short Code, Coordinates)
-        const stations = [
-            { name: "紀念孫中山市政公園", short: "DP", lat: 22.215322, lng: 113.543490 },
-            { name: "黑沙環", short: "EM", lat: 22.207129, lng: 113.559971 },
-            { name: "大炮台", short: "FM", lat: 22.197066, lng: 113.542261 },
-            { name: "外港", short: "PE", lat: 22.197066, lng: 113.542261 },
-            { name: "媽閣", short: "MM", lat: 22.185863, lng: 113.530675 },
-            { name: "大潭山", short: "TG", lat: 22.159102, lng: 113.568947 },
-            { name: "東亞運大馬路", short: "JA", lat: 22.155396, lng: 113.542412 },
-            { name: "九澳", short: "KV", lat: 22.134686, lng: 113.580143 },
-            { name: "澳門大學", short: "UM", lat: 22.131808, lng: 113.546970 },
-            { name: "路環市區", short: "DC", lat: 22.117091, lng: 113.551041 }
-        ];
-
-        let weatherData = {};
-        let markers = [];
-        let currentType = "temperature";
-        const XML_URL = "https://corsproxy.io/?url=https://xml.smg.gov.mo/c_actualweather.xml";
-        
-        const REFRESH_INTERVAL = 60000; // Auto refresh every 60 seconds
-
-        // Fetch real-time weather XML
-        async function fetchWeather() {
-            try {
-                const res = await fetch(XML_URL);
-                const text = await res.text();
-                const xml = new DOMParser().parseFromString(text, "text/xml");
-                const sites = xml.querySelectorAll("site");
-                weatherData = {};
-
-                sites.forEach(site => {
-                    const name = site.getAttribute("name");
-                    weatherData[name] = {
-                        temperature: site.querySelector("temperature")?.textContent || "-",
-                        temp_max: site.querySelector("temp_max")?.textContent || "-",
-                        temp_min: site.querySelector("temp_min")?.textContent || "-",
-                        humidity: site.querySelector("humidity")?.textContent || "-"
-                    };
-                });
-
-                const updateTime = xml.querySelector("actualweather")?.getAttribute("updatetime") || "Unknown";
-                document.getElementById("update-info").textContent =
-                    `Last Update: ${updateTime} | Auto-refresh every 1 minute`;
-                renderMarkers(currentType);
-            } catch (err) {
-                document.getElementById("update-info").textContent = "Failed to load data";
-                console.error(err);
-            }
-        }
-
-        // Render markers on map
-        function renderMarkers(type) {
-            markers.forEach(m => map.removeLayer(m));
-            markers = [];
-            stations.forEach(sta => {
-                const data = weatherData[sta.name];
-                if (!data) return;
-                const value = data[type];
-
-                let labelClass = "temp-label";
-                let unit = "℃";
-                if (type === "humidity") {
-                    labelClass = "humidity-label";
-                    unit = "%";
-                }
-
-                const icon = L.divIcon({
-                    html: `<div class="${labelClass}">${value}${unit}</div>`,
-                    iconSize: [60, 30]
-                });
-
-                const marker = L.marker([sta.lat, sta.lng], { icon })
-                    .addTo(map)
-                    .bindPopup(`${sta.name} (${sta.short})<br>${type}: ${value}${unit}`);
-                markers.push(marker);
-            });
-        }
-
-        // Tab switch event
-        document.querySelectorAll(".tab-btn").forEach(btn => {
-            btn.addEventListener("click", () => {
-                document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-                btn.classList.add("active");
-                currentType = btn.dataset.type;
-                renderMarkers(currentType);
-            });
-        });
-
-        // First load + auto refresh loop
-        fetchWeather();
-        setInterval(fetchWeather, REFRESH_INTERVAL);
-    </script>
+loadData();
+setInterval(loadData, REFRESH_INTERVAL);
+</script>
 </body>
 </html>
