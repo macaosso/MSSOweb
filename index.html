@@ -14,7 +14,7 @@
     .title { font-size: 20px; font-weight: bold; margin-left:10px; }
     .logo { height:40px; }
 
-    /* ========== 新增：實時天氣欄 ========== */
+    /* ========== 實時天氣欄 ========== */
     .live-weather-bar {
       background: linear-gradient(135deg, #4fa6a6, #2d6c94);
       color: #fff;
@@ -61,12 +61,9 @@
       transition: all 0.3s ease;
     }
     
-    /* Weather box */
     .link-box.weather {
       background: linear-gradient(135deg, #4fa6a6, #2d6c94);
     }
-    
-    /* Flood box */
     .link-box.flood {
       background: linear-gradient(135deg, #5dade2, #1b4f72);
     }
@@ -76,7 +73,6 @@
       opacity: 0.9;
     }
 
-/* CARD */
     .warning-card {
       margin: 20px;
       border-radius: 15px;
@@ -86,7 +82,6 @@
       overflow: hidden;
     }
     
-    /* HEADER */
     .warning-header {
       background: #d9534f;
       color: white;
@@ -95,14 +90,12 @@
       font-weight: bold;
     }
     
-    /* ITEM */
     .warning-item {
       display: flex;
       gap: 15px;
       padding: 20px;
     }
     
-    /* ICON */
     .icon-box {
       width: 80px;
       height: 80px;
@@ -119,7 +112,6 @@
       object-fit: contain;
     }
     
-    /* TEXT */
     .text-box {
       flex: 1;
       font-size: 15px;
@@ -127,14 +119,12 @@
       color: #333;
     }
     
-    /* DIVIDER */
     .divider {
       height: 1px;
       background: #e6a5a5;
       margin: 0 20px;
     }
     
-    /* BUTTON */
     .btn {
       display: inline-block;
       margin-top: 10px;
@@ -369,20 +359,25 @@ fetch("weatherforecast.txt")
   })
   .catch(() => console.log("Cannot load weatherforecast.txt"));
 
-// ========== 實時天氣 XML 解析 + 自動更新 ==========
+// ========== 實時天氣 XML 解析 + 自動更新 (修正版) ==========
 function fetchLiveWeather() {
-  const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actual_brief.xml?_t=${Date.now()}`;
+  // 改用更穩定的 CORS proxy 並添加緩存破壞
+  const url = `https://api.allorigins.win/raw?url=https://xml.smg.gov.mo/c_actual_brief.xml&t=${Date.now()}`;
+  
   fetch(url)
-    .then(res => res.text())
+    .then(res => {
+      if (!res.ok) throw new Error("HTTP error " + res.status);
+      return res.text();
+    })
     .then(xmlStr => {
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
 
-      // 解析節點
-      const wxText = xmlDoc.querySelector("WeatherBrief > WeatherText")?.textContent || "---";
-      const temp = xmlDoc.querySelector("WeatherBrief > Temperature")?.textContent || "--";
-      const hum = xmlDoc.querySelector("WeatherBrief > Humidity")?.textContent || "--";
-      const update = xmlDoc.querySelector("WeatherBrief > UpdateTime")?.textContent || "--";
+      // 更寬鬆的選擇器，直接查找節點
+      const wxText = xmlDoc.querySelector("WeatherText")?.textContent || "無法取得";
+      const temp = xmlDoc.querySelector("Temperature")?.textContent || "--";
+      const hum = xmlDoc.querySelector("Humidity")?.textContent || "--";
+      const update = xmlDoc.querySelector("UpdateTime")?.textContent || "--";
 
       // 寫入頁面
       document.getElementById("wxText").textContent = wxText;
@@ -391,8 +386,11 @@ function fetchLiveWeather() {
       document.getElementById("updateTime").textContent = update;
     })
     .catch(err => {
-      console.error("實時天氣載入失敗", err);
+      console.error("實時天氣載入失敗:", err);
       document.getElementById("wxText").textContent = "載入失敗";
+      document.getElementById("tempText").textContent = "--°C";
+      document.getElementById("humText").textContent = "--%";
+      document.getElementById("updateTime").textContent = "--";
     });
 }
 
