@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>澳門民間氣象台-關於我們 </title>
+<link rel="icon" type="image/png" href="icons/MSSO.png">
+
+<style>
+body { margin: 0; font-family: Arial, sans-serif; }
+
+/* HEADER */
+.header {
+  background: #1f3a4d;
+  color: white;
+  padding: 25px 20px;
+  display:flex;
+  align-items:center;
+}
+.title { font-size: 20px; font-weight: bold; margin-left:10px; }
+.logo { height:40px; }
+
+/* MENU */
+.menu-container {
+  position: relative;
+  z-index: 3000;
+  margin-left: auto;
+}
+
+.menu-toggle {
+  display: none;
+  font-size: 26px;
+  padding: 10px 15px;
+  cursor: pointer;
+  background: #2d6c94;
+  color: white;
+}
+
+.nav {
+  background: #2d6c94;
+  display: flex;
+}
+
+.nav a {
+  color: white;
+  padding: 12px 15px;
+  font-size: 18px;
+  text-decoration: none;
+  display: block;
+}
+
+.nav a:hover {
+  background: #1f4f6d;
+}
+
+/* ✅ MOBILE MENU */
+@media (max-width: 768px) {
+  .menu-toggle { display: block; }
+
+  .nav {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .nav.active {
+    display: flex;
+  }
+
+  .nav a {
+    border-top: 1px solid rgba(255,255,255,0.2);
+  }
+}
+
+/* ✅ ABOUT PAGE */
+.page-title {
+  font-size: 22px;
+  margin: 20px;
+  font-weight: bold;
+}
+
+/* ✅ SHADOW BOX */
+.info-box {
+  margin: 20px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ffffff;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.18);
+}
+
+.info-title {
+  background: #4fa6a6;
+  color: white;
+  padding: 12px 15px;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.info-content {
+  padding: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <img src="icons/MSSO.png" class="logo">
+  <div class="title">澳門民間氣象台 MSSO</div>
+</div>
+
+<!-- MENU -->
+  <div class="menu-container">
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+
+    <div class="nav" id="navMenu">
+      <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
+      <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
+      <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋距離計算工具</a> 
+      <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑地圖</a>  
+      <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
+      <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+      <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
+    </div>
+  </div>
+
+<!-- ✅ ABOUT CONTENT -->
+<div class="page-title">關於我們</div>
+
+<div class="info-box">
+  <div class="info-title">📌 基本資料</div>
+  <div class="info-content">
+    澳門民間氣象台（MSSO）成立於2020年06月12日，是由氣象愛好者自發建立的氣象資訊平台，
+    致力為公眾提供即時及清晰的天氣資訊。
+  </div>
+</div>
+
+<div class="info-box">
+  <div class="info-title">🎯 宗旨</div>
+  <div class="info-content">
+    • 秉承<b>「與澳門人風雨同路」</b>的精神 <br>
+    • 提供更多天氣資訊給市民<br>
+    • 令市民能夠更快地獲得最新天氣資訊<br>
+  </div>
+</div>
+
+<div class="info-box">
+  <div class="info-title">🌦️ 服務內容</div>
+  <div class="info-content">
+    • 每日/特殊天氣預報<br>
+    • 重要天氣提示及風險評估<br>
+    • 熱帶氣旋分析及路徑預測<br>
+    • 氣象資訊及科普
+  </div>
+</div>
+
+<div class="info-box">
+  <div class="info-title">⚠️ 聲明</div>
+  <div class="info-content">
+    本平台提供之所有氣象資訊僅作參考用途，請以澳門地球物理氣象局（SMG）發佈為準。
+  </div>
+</div>
+
+<div class="info-box">
+  <div class="info-title">📞 聯絡我們</div>
+  <div class="info-content">
+    Instagram：@macaosso<br>
+    Telegram：澳門民間氣象台 MSSO<br>
+  </div>
+</div>
+
+<div class="info-box">
+  <div class="info-title"> ©2026 澳門民間氣象台 MSSO </div>
+</div>
+<!-- SCRIPT -->
+<script>
+function toggleMenu() {
+  const nav = document.getElementById("navMenu");
+  const btn = document.querySelector(".menu-toggle");
+
+  nav.classList.toggle("active");
+  btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
+}
+</script>
+
+</body>
+</html>
