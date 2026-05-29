@@ -43,34 +43,24 @@
             font-size: 0.9rem;
             opacity: 0.9;
         }
-        /* Tab Buttons */
-        .tab-wrapper {
-            background: #fff;
-            border-radius: 8px;
-            padding: 12px;
+        /* --- New: Dropdown Select Style --- */
+        .select-wrapper {
             margin-bottom: 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            text-align: center;
         }
-        .tab-buttons {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .tab-btn {
-            padding: 8px 12px;
+        .map-select {
+            padding: 12px 20px;
+            font-size: 1.5rem;
             border: none;
-            border-radius: 6px;
-            background: #e8edf2;
+            border-radius: 12px;
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
-        .tab-btn.active {
-            background: #2a5298;
-            color: #fff;
-        }
-        .tab-btn:hover:not(.active) {
-            background: #d0d9e2;
+            appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 4 5"><path fill="%233498db" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            padding-right: 40px;
         }
         /* Main Layout */
         .main-layout {
@@ -242,22 +232,21 @@
         </div>
     </header>
 
-    <!-- All Split Map Tabs -->
-    <div class="tab-wrapper">
-        <div class="tab-buttons">
-            <button class="tab-btn active" data-type="tempCurrent">即時氣溫</button>
-            <button class="tab-btn" data-type="tempMax">最高氣溫</button>
-            <button class="tab-btn" data-type="tempMin">最低氣溫</button>
-            <button class="tab-btn" data-type="humidity">相對濕度</button>
-            <button class="tab-btn" data-type="windDir">風向</button>
-            <button class="tab-btn" data-type="windSpeed">風速</button>
-            <button class="tab-btn" data-type="windGust">陣風</button>
-            <button class="tab-btn" data-type="rain1m">一分鐘雨量</button>
-            <button class="tab-btn" data-type="rain1h">一小時雨量</button>
-            <button class="tab-btn" data-type="rainTotal">累計日雨量</button>
-            <button class="tab-btn" data-type="pressSea">海平面氣壓</button>
-            <button class="tab-btn" data-type="pressStation">站點氣壓</button>
-        </div>
+    <!-- --- New: Dropdown Select --- -->
+    <div class="select-wrapper">
+        <select id="map-select" class="map-select">
+            <option value="tempCurrent">溫度(℃)</option>
+            <option value="tempMax">日高溫(℃)</option>
+            <option value="tempMin">日低溫(℃)</option>
+            <option value="humidity">濕度(%)</option>
+            <option value="windSpeed">風速(km/h)</option>
+            <option value="windGust">陣風(km/h)</option>
+            <option value="windDir">風向</option>
+            <option value="rain1m">每小時雨量</option>
+            <option value="rainTotal">每日總雨量</option>
+            <option value="pressSea">海平面氣壓(hPa)</option>
+            <option value="pressStation">站點氣壓(hPa)</option>
+        </select>
     </div>
 
     <div class="main-layout">
@@ -278,12 +267,12 @@
 </div>
 
 <script>
-// All stations + bridges coordinates (fixed FM/PE no overlap)
+// All stations + bridges coordinates (UPDATED PE station)
 const allPoints = {
     "紀念孫中山市政公園": { code: "DP", lat: 22.215322, lng: 113.543490 },
     "黑沙環": { code: "EM", lat: 22.207129, lng: 113.559971 },
     "大炮台": { code: "FM", lat: 22.197066, lng: 113.542261 },
-    "外港": { code: "PE", lat: 22.197066, lng: 113.543261 },
+    "外港": { code: "PE", lat: 22.196556, lng: 113.558333 }, // <-- Updated PE coordinates
     "媽閣": { code: "MM", lat: 22.185863, lng: 113.530675 },
     "大潭山": { code: "TG", lat: 22.159102, lng: 113.568947 },
     "東亞運大馬路": { code: "JA", lat: 22.155396, lng: 113.542412 },
@@ -345,7 +334,7 @@ function getRain1mColor(rainStr) {
     if (rain >= 0.2) return "#3a6ea5";
     return "#bdd7ee";
 }
-// Rain 1hour
+// Rain 1hour (now "每小時雨量")
 function getRain1hColor(rainStr) {
     const rain = parseFloat(rainStr);
     if (isNaN(rain) || rain === 0) return "#a0a0a0";
@@ -356,7 +345,7 @@ function getRain1hColor(rainStr) {
     if (rain >= 10) return "#3a6ea5";
     return "#bdd7ee";
 }
-// Total daily rain
+// Total daily rain (now "每日總雨量")
 function getRainTotalColor(rainStr) {
     const rain = parseFloat(rainStr);
     if (isNaN(rain) || rain === 0) return "#a0a0a0";
@@ -387,7 +376,7 @@ function getPressStationColor(pressStr) {
     return "#3a6ea5";
 }
 
-// Update legend panel (Wind direction tab has NO legend now)
+// Update legend panel
 function updateLegendPanel(tabType) {
     const legendContent = document.getElementById('legend-content');
     let legendHTML = '';
@@ -475,7 +464,6 @@ function updateLegendPanel(tabType) {
             `;
             break;
         case "windDir":
-            // NO legend for wind direction
             legendHTML = `<div class="legend-item" style="color:#777;">無圖例</div>`;
             break;
         default:
@@ -495,15 +483,11 @@ let allMarkers = [];
 let currentTab = "tempCurrent";
 let pointDataList = [];
 
-// Tab Switch
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentTab = btn.dataset.type;
-        updateMapMarkers();
-        updateLegendPanel(currentTab);
-    });
+// --- New: Dropdown Select Event Listener ---
+document.getElementById('map-select').addEventListener('change', (e) => {
+    currentTab = e.target.value;
+    updateMapMarkers();
+    updateLegendPanel(currentTab);
 });
 
 // Extract XML value
