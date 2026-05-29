@@ -711,10 +711,10 @@ function getTypeName(type) {
 
 function getTypeFromWind(wind) {
   // If "-" is detected, return "Ex"
+  wind = Number(wind);
   if (wind === "-" || wind == null) return "Ex";
 
   // Ensure numeric comparison
-  wind = Number(wind);
 
   if (wind <= 40) return "LPA";
   else if (wind <= 60) return "TD";
