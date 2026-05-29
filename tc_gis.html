@@ -565,6 +565,7 @@ body {
   <div><span class="dot" style="background:#F78A31"></span> TY 颱風</div>
   <div><span class="dot" style="background:#FF6F6F"></span> STY 強颱風</div>
   <div><span class="dot" style="background:#A230FF"></span> SUTY 超強颱風</div>
+  <div><span class="dot" style="background:#A230FF"></span> Ex 溫帶氣旋</div>
 </div>
 
 <script>
@@ -624,6 +625,7 @@ const colors = {
   "TS":"#9DD79C",
   "TD":"#6DD8FA",
   "LPA":"#DDDFE2"
+  "Ex":"#DDDFE2"
 };
 
 const hours = [0,12,24,48,72,96,120];
@@ -703,6 +705,7 @@ function getTypeName(type) {
     "TY": "颱風",
     "STY": "強颱風",
     "SuTY": "超強颱風"
+    "Ex": "溫帶氣旋"
   }[type] || type;
 }
 function getTypeFromWind(wind) {
