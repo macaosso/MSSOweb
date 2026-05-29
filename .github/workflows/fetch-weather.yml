@@ -1,21 +1,24 @@
-name: Fetch Macao Weather XML
+name: Refresh Weather Data
+
 on:
-  push:
-    branches: [ main ]
   schedule:
-    - cron: '*/5 * * * *'  # every 5 minutes
+    - cron: '*/15 * * * *' # Runs automatically every 15 minutes
+  workflow_dispatch: # Allows you to run it manually
+
 jobs:
-  fetch:
+  update-weather:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Download XML
-        run: |
-          curl -L -o c_actualweather.xml https://xml.smg.gov.mo/c_actualweather.xml
-      - name: Commit & Push
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add c_actualweather.xml
-          git commit -m "Auto-update weather data $(date)" || echo "No changes"
-          git push
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download latest weather XML
+      run: curl -s https://xml.smg.gov.mo/c_actual_brief.xml -o weather.xml
+
+    - name: Commit and Push if changed
+      run: |
+        git config --global user.name "weather-bot"
+        git config --global user.email "actions@github.com"
+        git add weather.xml
+        git commit -m "Update live weather data" || exit 0
+        git push
