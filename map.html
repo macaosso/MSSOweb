@@ -549,12 +549,21 @@ function updateMapMarkers() {
                 markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
             case "windDir":
-                // Pure isosceles triangle ONLY, no text / no rectangle
-                const rotation = windDirToRotation(point.windDir);
-                markerIconHtml = `
-                    <div style="width: 0; height: 0; border-left: 18px solid transparent; border-right: 18px solid transparent; border-bottom: 36px solid #9b59b6; transform: rotate(${rotation}deg);"></div>
-                `;
-                break;
+              // 修复：加 display:block，防止被 overflow:hidden 裁剪
+              const rotation = windDirToRotation(point.windDir);
+              markerIconHtml = `
+                <div style="display:block; width: 0; height: 0; 
+                     border-left: 18px solid transparent; 
+                     border-right: 18px solid transparent; 
+                     border-bottom: 36px solid #9b59b6; 
+                     transform: rotate(${rotation}deg);
+                     transform-origin: center bottom;">
+                </div>
+              `;
+              // 尺寸和锚点严格对应三角：宽36，高36，锚点在底部中心
+              iconSize = [36, 36];
+              iconAnchor = [18, 36];
+              break;
             case "windSpeed":
                 showVal = point.windSpeed;
                 bgColor = getWindColor(showVal);
