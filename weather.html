@@ -1,74 +1,181 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="en">
 <head>
-<meta charset="UTF-8" />
-<title>澳门实时天气</title>
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<style>
-body { font-family: "Microsoft JhengHei", sans-serif; background: #0a2c5f; color: white; text-align: center; padding: 20px; }
-.container { max-width: 400px; margin: 0 auto; background: rgba(255,255,255,0.1); border-radius: 12px; padding: 20px; }
-h1 { margin: 0 0 10px; font-size: 24px; }
-.temp { font-size: 60px; font-weight: bold; margin: 10px 0; }
-.desc { font-size: 20px; margin-bottom: 20px; }
-.info { font-size: 16px; line-height: 1.8; }
-.loading { color: #ccc; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Macau Live Weather</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .weather-card {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            width: 350px;
+            text-align: center;
+        }
+        .header {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .temp-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .temperature {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: #2d3436;
+        }
+        .weather-icon {
+            width: 60px;
+            height: 60px;
+        }
+        .status-badge {
+            display: inline-block;
+            background: #ff7675;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        .details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            text-align: left;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+        .detail-item span {
+            display: block;
+            color: #777;
+            font-size: 0.85rem;
+        }
+        .detail-item strong {
+            font-size: 1.1rem;
+            color: #2d3436;
+        }
+        .footer {
+            margin-top: 20px;
+            font-size: 0.75rem;
+            color: #999;
+        }
+        .error-message {
+            color: #d63031;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-  <h1>澳门天气</h1>
-  <div id="status" class="loading">加载中...</div>
-  <div id="temp" class="temp"></div>
-  <div id="desc" class="desc"></div>
-  <div class="info">
-    <div>湿度：<span id="humidity"></span></div>
-    <div>风向：<span id="windDir"></span></div>
-    <div>风速：<span id="windSpeed"></span></div>
-    <div>更新时间：<span id="updateTime"></span></div>
-  </div>
+
+<div class="weather-card">
+    <div class="header">Macau Actual Weather</div>
+    
+    <div class="temp-container">
+        <img id="weather-icon" class="weather-icon" src="" alt="Weather Icon" style="display:none;">
+        <div class="temperature"><span id="temp">--</span>°C</div>
+    </div>
+
+    <div id="feels-like-container">
+        <span id="feels-like" class="status-badge">--</span>
+    </div>
+
+    <div class="details">
+        <div class="detail-item">
+            <span>Humidity</span>
+            <strong id="humidity">--</strong>%
+        </div>
+        <div class="detail-item">
+            <span>Wind Direction</span>
+            <strong id="wind-dir">--</strong>
+        </div>
+        <div class="detail-item">
+            <span>Wind Speed</span>
+            <strong id="wind-speed">--</strong> km/h
+        </div>
+        <div class="detail-item">
+            <span>Wind Scale</span>
+            <strong id="wind-desc">--</strong>
+        </div>
+    </div>
+
+    <div class="footer">
+        System Pub Stage: <span id="pub-date">--</span><br>
+        <small style="color: #00b894;">Auto-refreshing every 5 minutes</small>
+    </div>
 </div>
 
 <script>
-// 换成更稳的 corsproxy，加时间戳防缓存
-const XML_URL = "https://corsproxy.io/?url=https://xml.smg.gov.mo/c_actualweather.xml";
-const REFRESH_INTERVAL = 60000; // 1分钟刷新
+    // URL of the XML data
+    const xmlUrl = 'https://corsproxy.io/?https://xml.smg.gov.mo/c_actual_brief.xml';
+    
+    // If you run into CORS issues during local testing, you can temporarily use a CORS proxy:
+    // const xmlUrl = 'https://cors-anywhere.herokuapp.com/https://xml.smg.gov.mo/c_actual_brief.xml';
 
-function loadData() {
-  const url = XML_URL + "&_=" + Date.now();
-  fetch(url)
-    .then(r => {
-      if (!r.ok) throw new Error("HTTP " + r.status);
-      return r.text();
-    })
-    .then(xmlText => {
-      const parser = new DOMParser();
-      const xml = parser.parseFromString(xmlText, "text/xml");
+    function fetchWeatherData() {
+        fetch(xmlUrl)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.text();
+            })
+            .then(str => {
+                // Parse the string into an XML DOM object
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(str, "text/xml");
 
-      // 节点（根据澳门SMG XML结构）
-      const temp = xml.querySelector("Temperature")?.textContent || "--";
-      const desc = xml.querySelector("WeatherDescription")?.textContent || "--";
-      const humidity = xml.querySelector("Humidity")?.textContent || "--";
-      const windDir = xml.querySelector("WindDirection")?.textContent || "--";
-      const windSpeed = xml.querySelector("WindSpeed")?.textContent || "--";
-      const updateTime = xml.querySelector("UpdateTime")?.textContent || "--";
+                // Extract data using query selectors matching the XML tags
+                const temp = xmlDoc.querySelector("Temperature Value").textContent;
+                const humidity = xmlDoc.querySelector("Humidity Value").textContent;
+                const windSpeed = xmlDoc.querySelector("WindSpeed Value").textContent;
+                const windSpeedDesc = xmlDoc.querySelector("WindSpeedDescription").textContent;
+                const windDirDesc = xmlDoc.querySelector("WindDescription").textContent;
+                const feelsLike = xmlDoc.querySelector("FeelsLikeDescription").textContent;
+                const pubDate = xmlDoc.querySelector("SysPubdate").textContent;
+                const iconURL = xmlDoc.querySelector("IconURL").textContent;
 
-      // 渲染
-      document.getElementById("status").textContent = "";
-      document.getElementById("temp").textContent = temp + " °C";
-      document.getElementById("desc").textContent = desc;
-      document.getElementById("humidity").textContent = humidity + " %";
-      document.getElementById("windDir").textContent = windDir;
-      document.getElementById("windSpeed").textContent = windSpeed + " km/h";
-      document.getElementById("updateTime").textContent = updateTime;
-    })
-    .catch(e => {
-      document.getElementById("status").textContent = "加载失败：" + e.message;
-      console.error("Failed to load data:", e);
-    });
-}
+                // Update the HTML elements with the extracted data
+                document.getElementById('temp').textContent = temp;
+                document.getElementById('humidity').textContent = humidity;
+                document.getElementById('wind-speed').textContent = windSpeed;
+                document.getElementById('wind-desc').textContent = windSpeedDesc;
+                document.getElementById('wind-dir').textContent = windDirDesc;
+                document.getElementById('feels-like').textContent = feelsLike;
+                document.getElementById('pub-date').textContent = pubDate;
+                
+                const iconImg = document.getElementById('weather-icon');
+                iconImg.src = iconURL;
+                iconImg.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error fetching or parsing XML:', error);
+                document.getElementById('feels-like').innerHTML = '<span class="error-message">Failed to load data</span>';
+            });
+    }
 
-loadData();
-setInterval(loadData, REFRESH_INTERVAL);
+    // Run the function immediately when the page loads
+    fetchWeatherData();
+
+    // Auto-refresh the data every 5 minutes (300,000 milliseconds)
+    // Weather data rarely changes faster than this, preventing spam to the server.
+    setInterval(fetchWeatherData, 300000); 
 </script>
+
 </body>
 </html>
