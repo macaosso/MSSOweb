@@ -179,7 +179,8 @@ function fetchGridData() {
 
             stations.forEach(station => {
                 const name = station.querySelector("stationname")?.textContent || "Unnamed Node";
-                
+                const code = station.querySelector("stationcode")?.textContent || "";
+                const nameDisplay = code ? `${name} (${code})` : name;
                 // Helper function to extract values cleanly
                 const extractNodeValue = (selector) => {
                     const parent = station.querySelector(selector);
