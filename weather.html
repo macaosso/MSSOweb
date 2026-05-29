@@ -65,9 +65,15 @@
             font-size: 1.2rem;
             font-weight: bold;
             color: #2c3e50;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             border-bottom: 1px solid #ecf0f1;
             padding-bottom: 8px;
+        }
+        /* New style for weather report line */
+        .station-report {
+            font-size: 0.85rem;
+            color: #7f8c8d;
+            margin-bottom: 12px;
         }
         .temp-row {
             display: flex;
@@ -181,8 +187,9 @@ function fetchGridData() {
                 const name = station.querySelector("stationname")?.textContent || "Unnamed Node";
                 const code = station.querySelector("stationcode")?.textContent || "";
                 
-                // Construct clean title with station code attached to the back
-                const nameDisplay = code ? `${name} (${code})` : name;
+                const nameDisplay = name;
+                // Build WeatherReport + station code text
+                const reportText = `<WeatherReport> Station Code: ${code || 'N/A'}`;
                 
                 // Helper function to extract values cleanly
                 const extractNodeValue = (selector) => {
@@ -238,6 +245,8 @@ function fetchGridData() {
                 const cardHtml = `
                     <div class="station-card">
                         <div class="station-name">${nameDisplay}</div>
+                        <!-- Added WeatherReport + Station Code line -->
+                        <div class="station-report">${reportText}</div>
                         <div class="temp-row">
                             <div class="current-temp">${currentTemp}°C</div>
                             <div class="temp-range">
@@ -301,7 +310,7 @@ function fetchGridData() {
 // Initialize layout immediately
 fetchGridData();
 
-// Auto update grid space parameters every 5 minutes (300000ms)
+// Refresh every 60 seconds
 setInterval(fetchGridData, 60000);
 </script>
 
