@@ -13,115 +13,116 @@
             padding: 0;
         }
         body {
-            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-            background-color: #eef2f7;
-            color: #2d3748;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f3f7;
+            color: #2c3e50;
             padding: 20px;
-            line-height: 1.4;
         }
         .container {
-            max-width: 1680px;
+            max-width: 1600px;
             margin: 0 auto;
         }
         header {
-            background: linear-gradient(135deg, #2b4a8a, #3b64b4);
-            color: #ffffff;
-            padding: 20px 24px;
-            border-radius: 14px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
             margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            box-shadow: 0 4px 14px rgba(27, 52, 110, 0.18);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         header h1 {
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 600;
-            margin-bottom: 4px;
-        }
-        header small {
-            font-size: 0.85rem;
-            opacity: 0.92;
         }
         .meta-info {
             text-align: right;
-            font-size: 0.85rem;
-            opacity: 0.92;
-            line-height: 1.5;
+            font-size: 0.9rem;
+            opacity: 0.9;
         }
-        .select-wrapper {
+        /* Tab Buttons */
+        .tab-wrapper {
+            background: #fff;
+            border-radius: 8px;
+            padding: 12px;
             margin-bottom: 20px;
-            text-align: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
         }
-        .map-select {
-            padding: 12px 20px;
-            font-size: 1.2rem;
+        .tab-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            padding: 8px 12px;
             border: none;
-            border-radius: 12px;
-            background-color: #ffffff;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            border-radius: 6px;
+            background: #e8edf2;
             cursor: pointer;
-            appearance: none;
-            background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 4 5"><path fill="%233b64b4" d="M2 0L0 2h4zm0 5L0 3h4z"/></svg>');
-            background-repeat: no-repeat;
-            background-position: right 16px center;
-            padding-right: 44px;
-            transition: box-shadow 0.2s ease;
+            font-size: 0.9rem;
+            transition: all 0.2s;
         }
-        .map-select:hover {
-            box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+        .tab-btn.active {
+            background: #2a5298;
+            color: #fff;
         }
+        .tab-btn:hover:not(.active) {
+            background: #d0d9e2;
+        }
+        /* Main Layout */
         .main-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
-        @media (max-width: 1080px) {
+        @media (max-width: 1024px) {
             .main-layout {
                 grid-template-columns: 1fr;
             }
         }
         .map-card {
-            background: #ffffff;
-            border-radius: 14px;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.07);
-            padding: 16px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 15px;
             position: relative;
-            height: fit-content;
         }
         #macau-map {
             width: 100%;
-            height: 640px;
-            border-radius: 10px;
+            height: 650px;
+            border-radius: 8px;
         }
+        /* --- Smaller, Always-Visible Legend --- */
         .map-legend {
             position: absolute;
-            bottom: 16px;
-            right: 16px;
-            background: rgba(255,255,255,0.96);
-            padding: 10px 12px;
-            border-radius: 8px;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.95);
+            padding: 8px 10px;
+            border-radius: 6px;
             font-size: 0.75rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             z-index: 1000;
             min-width: 120px;
         }
         .map-legend h4 {
-            margin: 0 0 6px 0;
+            margin: 0 0 5px 0;
             font-size: 0.8rem;
             text-align: center;
-            border-bottom: 1px solid #e2e8f0;
-            padding-bottom: 4px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 3px;
         }
         .legend-items {
-            max-height: 170px;
+            max-height: 180px;
             overflow-y: auto;
         }
         .legend-item {
             display: flex;
             align-items: center;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
         .legend-color {
             width: 12px;
@@ -129,97 +130,102 @@
             border-radius: 50%;
             margin-right: 5px;
         }
+        /* --- Time Stamp --- */
         .time-stamp {
             position: absolute;
-            top: 16px;
-            right: 16px;
-            background: rgba(45, 55, 72, 0.85);
-            color: #fff;
+            top: 25px;
+            right: 25px;
+            background: rgba(0,0,0,0.6);
+            color: white;
             padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.8rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
             z-index: 1000;
         }
+        /* Station Cards */
         .station-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 16px;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 20px;
         }
         .station-card {
-            background: #ffffff;
+            background: white;
             border-radius: 12px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.06);
-            padding: 18px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
             display: flex;
             flex-direction: column;
-            border-top: 4px solid #3b64b4;
+            border-top: 4px solid #3498db;
         }
         .station-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
         }
         .station-name {
-            font-size: 1.1rem;
-            font-weight: 600;
-            border-bottom: 1px solid #e2e8f0;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            border-bottom: 1px solid #ecf0f1;
             padding-bottom: 8px;
-            margin-bottom: 12px;
         }
         .temp-row {
             display: flex;
             align-items: baseline;
             justify-content: space-between;
-            margin-bottom: 14px;
+            margin: 15px 0;
         }
         .current-temp {
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: 700;
-            color: #1a202c;
+            color: #1a1a1a;
         }
         .temp-range {
-            font-size: 0.8rem;
+            font-size: 0.9rem;
             text-align: right;
         }
-        .high-temp { color: #e53e3e; font-weight: 600; }
-        .low-temp { color: #4a5568; font-weight: 600; }
-        /* Smaller font for wrapper metrics */
+        .high-temp { color: #e74c3c; font-weight: 600; }
+        .low-temp { color: #34495e; font-weight: 600; }
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
-            gap: 8px;
-            font-size: 0.75rem;
+            gap: 12px;
+            font-size: 0.9rem;
         }
         .metric {
-            background: #f7f9fc;
-            padding: 8px 10px;
-            border-radius: 8px;
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 6px;
         }
-        .col-half { grid-column: span 3; }
-        .col-third { grid-column: span 2; }
+        .col-half {
+            grid-column: span 3;
+        }
+        .col-third {
+            grid-column: span 2;
+        }
         .metric span {
             display: block;
-            color: #718096;
-            font-size: 0.7rem;
+            color: #7f8c8d;
+            font-size: 0.75rem;
+            text-transform: uppercase;
             margin-bottom: 2px;
         }
         .metric strong {
-            color: #2d3748;
-            font-size: 0.78rem;
+            color: #2c3e50;
         }
         .rain-active {
-            background: #edf4fc;
-            border: 1px solid #c5daf0;
+            background: #e8f4fd;
+            border: 1px solid #bcdffb;
         }
         .rain-active strong {
-            color: #2b6cb0;
+            color: #2980b9;
         }
         .loading {
             grid-column: 1 / -1;
             text-align: center;
-            padding: 40px;
-            font-size: 0.9rem;
-            color: #718096;
+            padding: 50px;
+            font-size: 1.2rem;
+            color: #7f8c8d;
         }
     </style>
 </head>
@@ -228,47 +234,51 @@
     <header>
         <div>
             <h1>澳門各區天氣實況（互動GIS地圖）</h1>
-            <small>可縮放、拖曳地圖 | 點擊標示查看站點名稱</small>
+            <small style="color: #2ecc71;">● 可縮放/拖曳地圖 | 點擊標示查看名稱</small>
         </div>
         <div class="meta-info">
             <div>資料更新時間：<span id="pub-date">載入中...</span></div>
-            <div>每 60 秒自動重新整理</div>
+            <div>每60秒自動刷新</div>
         </div>
     </header>
 
-    <div class="select-wrapper">
-        <select id="map-select" class="map-select">
-            <option value="tempCurrent">溫度(℃)</option>
-            <option value="tempMax">日高溫(℃)</option>
-            <option value="tempMin">日低溫(℃)</option>
-            <option value="humidity">濕度(%)</option>
-            <option value="windSpeed">風速(km/h)</option>
-            <option value="windGust">陣風(km/h)</option>
-            <option value="windDir">風向</option>
-            <option value="rain1m">一分鐘雨量(mm)</option>
-            <option value="rain1h">一小時雨量(mm)</option>
-            <option value="rainTotal">每日總雨量(mm)</option>
-            <option value="pressSea">海平面氣壓(hPa)</option>
-            <option value="pressStation">站點氣壓(hPa)</option>
-        </select>
+    <!-- All Split Map Tabs -->
+    <div class="tab-wrapper">
+        <div class="tab-buttons">
+            <button class="tab-btn active" data-type="tempCurrent">即時氣溫</button>
+            <button class="tab-btn" data-type="tempMax">最高氣溫</button>
+            <button class="tab-btn" data-type="tempMin">最低氣溫</button>
+            <button class="tab-btn" data-type="humidity">相對濕度</button>
+            <button class="tab-btn" data-type="windDir">風向</button>
+            <button class="tab-btn" data-type="windSpeed">風速</button>
+            <button class="tab-btn" data-type="windGust">陣風</button>
+            <button class="tab-btn" data-type="rain1m">一分鐘雨量</button>
+            <button class="tab-btn" data-type="rain1h">一小時雨量</button>
+            <button class="tab-btn" data-type="rainTotal">累計日雨量</button>
+            <button class="tab-btn" data-type="pressSea">海平面氣壓</button>
+            <button class="tab-btn" data-type="pressStation">站點氣壓</button>
+        </div>
     </div>
 
     <div class="main-layout">
         <div class="map-card">
             <div id="macau-map"></div>
+            <!-- Time Stamp -->
             <div id="time-stamp" class="time-stamp"></div>
+            <!-- Smaller, Always-Visible Legend -->
             <div id="map-legend" class="map-legend">
                 <h4>圖例</h4>
                 <div id="legend-content" class="legend-items"></div>
             </div>
         </div>
         <div id="grid-container" class="station-grid">
-            <div class="loading">正在擷取天氣數據...</div>
+            <div class="loading">正在擷取區域數據...</div>
         </div>
     </div>
 </div>
 
 <script>
+// All stations + bridges coordinates (fixed FM/PE no overlap)
 const allPoints = {
     "紀念孫中山市政公園": { code: "DP", lat: 22.215322, lng: 113.543490 },
     "黑沙環": { code: "EM", lat: 22.207129, lng: 113.559971 },
@@ -289,162 +299,435 @@ const allPoints = {
     "蓮花大橋": { code: "LH", lat: 22.139934, lng: 113.549094 }
 };
 
-function getTempColor(t){const n=parseFloat(t);return isNaN(n)?"#3498db":n>=35?"#7b1818":n>=33?"#d64040":n>=28?"#ed7a7a":n>=22.1?"#e8b03e":n>=17.1?"#f0d390":n>=12.1?"#62e0b1":n>=7.1?"#64b5e7":"#5c48a1"}
-function getHumidityColor(h){const n=parseFloat(h);return isNaN(n)?"#3498db":n>=95?"#553C9A":n>=85?"#5DADEC":n>=71?"#6EE7B7":n>=40?"#E6B34B":"#7b1818"}
-function getWindColor(w){const n=parseFloat(w);return isNaN(n)?"#3498db":n>=118?"#d64040":n>=88?"#f2a938":n>=63?"#f9e559":n>=41?"#60c070":"#64b5e7"}
-function getRain1mColor(r){const n=parseFloat(r);return isNaN(n)||0===n?"#a0a0a0":n>=0.8?"#d64040":n>=0.6?"#e68938":n>=0.4?"#f9d342":n>=0.2?"#3a6ea5":"#bdd7ee"}
-function getRain1hColor(r){const n=parseFloat(r);return isNaN(n)||0===n?"#a0a0a0":n>=80?"#000000":n>=50?"#d64040":n>=40?"#e68938":n>=20?"#f9d342":n>=10?"#3a6ea5":"#bdd7ee"}
-function getRainTotalColor(r){const n=parseFloat(r);return isNaN(n)||0===n?"#a0a0a0":n>=125?"#800080":n>=100?"#d64040":n>=80?"#e68938":n>=50?"#f9d342":n>=20?"#3a6ea5":"#bdd7ee"}
-function getPressSeaColor(p){const n=parseFloat(p);return isNaN(n)?"#3498db":n<980?"#d64040":n<990?"#e68938":n<1000?"#f9d342":"#3a6ea5"}
-function getPressStationColor(p){const n=parseFloat(p);return isNaN(n)?"#3498db":n<965?"#d64040":n<975?"#e68938":n<985?"#f9d342":"#3a6ea5"}
-
-function updateLegendPanel(type){
-    const el=document.getElementById("legend-content"),dirMap={
-        tempCurrent:`<div class="legend-item"><div class="legend-color" style="background:#7b1818"></div>>=35.0°C</div><div class="legend-item"><div class="legend-color" style="background:#d64040"></div>33.0-34.9°C</div><div class="legend-item"><div class="legend-color" style="background:#ed7a7a"></div>28.0-32.9°C</div><div class="legend-item"><div class="legend-color" style="background:#e8b03e"></div>22.1-27.9°C</div><div class="legend-item"><div class="legend-color" style="background:#f0d390"></div>17.1-22.0°C</div><div class="legend-item"><div class="legend-color" style="background:#62e0b1"></div>12.1-17.0°C</div><div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>7.1-12.0°C</div><div class="legend-item"><div class="legend-color" style="background:#5c48a1"></div><=7.0°C</div>`,
-        humidity:`<div class="legend-item"><div class="legend-color" style="background:#553C9A"></div>非常潮濕(95-100%)</div><div class="legend-item"><div class="legend-color" style="background:#5DADEC"></div>潮濕(85-95%)</div><div class="legend-item"><div class="legend-color" style="background:#6EE7B7"></div>71-84%</div><div class="legend-item"><div class="legend-color" style="background:#E6B34B"></div>乾燥(40-70%)</div><div class="legend-item"><div class="legend-color" style="background:#7b1818"></div>非常乾燥(0-40%)</div>`,
-        windSpeed:`<div class="legend-item"><div class="legend-color" style="background:#d64040"></div>>=118 km/h</div><div class="legend-item"><div class="legend-color" style="background:#f2a938"></div>88-117 km/h</div><div class="legend-item"><div class="legend-color" style="background:#f9e559"></div>63-87 km/h</div><div class="legend-item"><div class="legend-color" style="background:#60c070"></div>41-62 km/h</div><div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>0-40 km/h</div>`,
-        windDir:`<div class="legend-item" style="color:#777;">風向箭頭</div>`,
-        rain1m:`<div class="legend-item"><div class="legend-color" style="background:#a0a0a0"></div>無雨</div><div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><0.2mm</div><div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>0.2~0.3mm</div><div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>0.4~0.5mm</div><div class="legend-item"><div class="legend-color" style="background:#e68938"></div>0.6~0.7mm</div><div class="legend-item"><div class="legend-color" style="background:#d64040"></div>>=0.8mm</div>`,
-        rain1h:`<div class="legend-item"><div class="legend-color" style="background:#a0a0a0"></div>無雨</div><div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><10mm</div><div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>10~19mm</div><div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>20~39mm</div><div class="legend-item"><div class="legend-color" style="background:#e68938"></div>40~49mm</div><div class="legend-item"><div class="legend-color" style="background:#d64040"></div>50~79mm</div><div class="legend-item"><div class="legend-color" style="background:#000000"></div>>=80mm</div>`,
-        rainTotal:`<div class="legend-item"><div class="legend-color" style="background:#a0a0a0"></div>無雨</div><div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><20mm</div><div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>20~49mm</div><div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>50~79mm</div><div class="legend-item"><div class="legend-color" style="background:#e68938"></div>80~99mm</div><div class="legend-item"><div class="legend-color" style="background:#d64040"></div>100~124mm</div><div class="legend-item"><div class="legend-color" style="background:#800080"></div>>=125mm</div>`,
-        pressSea:`<div class="legend-item"><div class="legend-color" style="background:#d64040"></div><980hPa</div><div class="legend-item"><div class="legend-color" style="background:#e68938"></div>980~989hPa</div><div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>990~999hPa</div><div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>>1000hPa</div>`,
-        pressStation:`<div class="legend-item"><div class="legend-color" style="background:#d64040"></div><965hPa</div><div class="legend-item"><div class="legend-color" style="background:#e68938"></div>965~974hPa</div><div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>975~984hPa</div><div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>>=985hPa</div>`
-    };
-    el.innerHTML=dirMap[type]||`<div class="legend-item" style="color:#777;">無圖例</div>`;
+// Temperature color mapping
+function getTempColor(tempStr) {
+    const temp = parseFloat(tempStr);
+    if (isNaN(temp)) return "#3498db";
+    if (temp >= 35.0) return "#7b1818";
+    if (temp >= 33.0) return "#d64040";
+    if (temp >= 28.0) return "#ed7a7a";
+    if (temp >= 22.1) return "#e8b03e";
+    if (temp >= 17.1) return "#f0d390";
+    if (temp >= 12.1) return "#62e0b1";
+    if (temp >= 7.1) return "#64b5e7";
+    return "#5c48a1";
 }
 
+// Humidity color mapping
+function getHumidityColor(humStr) {
+    const hum = parseFloat(humStr);
+    if (isNaN(hum)) return "#3498db";
+    if (hum >= 95) return "#553C9A";
+    if (hum >= 85) return "#5DADEC";
+    if (hum >= 71) return "#6EE7B7";
+    if (hum >= 40) return "#E6B34B";
+    return "#7b1818";
+}
+
+// Wind/Gust color mapping
+function getWindColor(windStr) {
+    const wind = parseFloat(windStr);
+    if (isNaN(wind)) return "#3498db";
+    if (wind >= 118) return "#d64040";
+    if (wind >= 88) return "#f2a938";
+    if (wind >= 63) return "#f9e559";
+    if (wind >= 41) return "#60c070";
+    return "#64b5e7";
+}
+
+// Rain 1min
+function getRain1mColor(rainStr) {
+    const rain = parseFloat(rainStr);
+    if (isNaN(rain) || rain === 0) return "#a0a0a0";
+    if (rain >= 0.8) return "#d64040";
+    if (rain >= 0.6) return "#e68938";
+    if (rain >= 0.4) return "#f9d342";
+    if (rain >= 0.2) return "#3a6ea5";
+    return "#bdd7ee";
+}
+// Rain 1hour
+function getRain1hColor(rainStr) {
+    const rain = parseFloat(rainStr);
+    if (isNaN(rain) || rain === 0) return "#a0a0a0";
+    if (rain >= 80) return "#000000";
+    if (rain >= 50) return "#d64040";
+    if (rain >= 40) return "#e68938";
+    if (rain >= 20) return "#f9d342";
+    if (rain >= 10) return "#3a6ea5";
+    return "#bdd7ee";
+}
+// Total daily rain
+function getRainTotalColor(rainStr) {
+    const rain = parseFloat(rainStr);
+    if (isNaN(rain) || rain === 0) return "#a0a0a0";
+    if (rain >= 125) return "#800080";
+    if (rain >= 100) return "#d64040";
+    if (rain >= 80) return "#e68938";
+    if (rain >= 50) return "#f9d342";
+    if (rain >= 20) return "#3a6ea5";
+    return "#bdd7ee";
+}
+
+// Pressure Sea Level
+function getPressSeaColor(pressStr) {
+    const press = parseFloat(pressStr);
+    if (isNaN(press)) return "#3498db";
+    if (press < 980) return "#d64040";
+    if (press < 990) return "#e68938";
+    if (press < 1000) return "#f9d342";
+    return "#3a6ea5";
+}
+// Station Pressure
+function getPressStationColor(pressStr) {
+    const press = parseFloat(pressStr);
+    if (isNaN(press)) return "#3498db";
+    if (press < 965) return "#d64040";
+    if (press < 975) return "#e68938";
+    if (press < 985) return "#f9d342";
+    return "#3a6ea5";
+}
+
+// Update legend panel (Wind direction tab has NO legend now)
+function updateLegendPanel(tabType) {
+    const legendContent = document.getElementById('legend-content');
+    let legendHTML = '';
+
+    switch(tabType) {
+        case "tempCurrent":
+        case "tempMax":
+        case "tempMin":
+            legendHTML = `
+                <div class="legend-item"><div class="legend-color" style="background:#7b1818"></div>>=35.0°C</div>
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>33.0-34.9°C</div>
+                <div class="legend-item"><div class="legend-color" style="background:#ed7a7a"></div>28.0-32.9°C</div>
+                <div class="legend-item"><div class="legend-color" style="background:#e8b03e"></div>22.1-27.9°C</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f0d390"></div>17.1-22.0°C</div>
+                <div class="legend-item"><div class="legend-color" style="background:#62e0b1"></div>12.1-17.0°C</div>
+                <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>7.1-12.0°C</div>
+                <div class="legend-item"><div class="legend-color" style="background:#5c48a1"></div><=7.0°C</div>
+            `;
+            break;
+        case "humidity":
+            legendHTML = `
+                <div class="legend-item"><div class="legend-color" style="background:#553C9A"></div>非常潮濕(95-100%)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#5DADEC"></div>潮濕(85-95%)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#6EE7B7"></div>71-84%</div>
+                <div class="legend-item"><div class="legend-color" style="background:#E6B34B"></div>乾燥(40-70%)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#7b1818"></div>非常乾燥(0-40%)</div>
+            `;
+            break;
+        case "windSpeed":
+        case "windGust":
+            legendHTML = `
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>>=118 km/h</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f2a938"></div>88-117 km/h</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f9e559"></div>63-87 km/h</div>
+                <div class="legend-item"><div class="legend-color" style="background:#60c070"></div>41-62 km/h</div>
+                <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>0-40 km/h</div>
+            `;
+            break;
+        case "rain1m":
+            legendHTML = `
+                <div class="legend-item"><div class="legend-color" style="background:#a0a0a0"></div>無雨</div>
+                <div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><0.2mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>0.2~0.3mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>0.4~0.5mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#e68938"></div>0.6~0.7mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>>=0.8mm</div>
+            `;
+            break;
+        case "rain1h":
+            legendHTML = `
+                <div class="legend-item"><div class="legend-color" style="background:#a0a0a0"></div>無雨</div>
+                <div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><10mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>10~19mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>20~39mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#e68938"></div>40~49mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>50~79mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#000000"></div>>=80mm</div>
+            `;
+            break;
+        case "rainTotal":
+            legendHTML = `
+                <div class="legend-item"><div class="legend-color" style="background:#a0a0a0"></div>無雨</div>
+                <div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><20mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>20~49mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>50~79mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#e68938"></div>80~99mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>100~124mm</div>
+                <div class="legend-item"><div class="legend-color" style="background:#800080"></div>>=125mm</div>
+            `;
+            break;
+        case "pressSea":
+            legendHTML = `
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div><980hPa</div>
+                <div class="legend-item"><div class="legend-color" style="background:#e68938"></div>980~989hPa</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>990~999hPa</div>
+                <div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>>1000hPa</div>
+            `;
+            break;
+        case "pressStation":
+            legendHTML = `
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div><965hPa</div>
+                <div class="legend-item"><div class="legend-color" style="background:#e68938"></div>965~974hPa</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>975~984hPa</div>
+                <div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>>=985hPa</div>
+            `;
+            break;
+        case "windDir":
+            // NO legend for wind direction
+            legendHTML = `<div class="legend-item" style="color:#777;">無圖例</div>`;
+            break;
+        default:
+            legendHTML = `<div class="legend-item" style="color:#777;">無圖例</div>`;
+    }
+
+    legendContent.innerHTML = legendHTML;
+}
+
+// Init Leaflet Map
 let map = L.map('macau-map').setView([22.17, 113.55], 12);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OpenStreetMap'}).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
 
-let allMarkers = [], currentTab = "tempCurrent", pointDataList = [];
-document.getElementById("map-select").addEventListener("change",e=>{currentTab=e.target.value;updateMapMarkers();updateLegendPanel(currentTab);});
+let allMarkers = [];
+let currentTab = "tempCurrent";
+let pointDataList = [];
 
-const extractNodeValue=(s,p)=>{
-    let e=p.querySelector(s);
-    if(!e)return"";
-    let v=e.querySelector("dValue")?.textContent||e.querySelector("Value")?.textContent||"";
-    return v.trim()
+// Tab Switch
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentTab = btn.dataset.type;
+        updateMapMarkers();
+        updateLegendPanel(currentTab);
+    });
+});
+
+// Extract XML value
+const extractNodeValue = (selector, parent) => {
+    const el = parent.querySelector(selector);
+    if (!el) return '';
+    const val = el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || '';
+    return val.trim();
 };
-function clearMarkers(){allMarkers.forEach(m=>map.removeLayer(m));allMarkers=[]}
-function windDirToRotation(d){
-    const m={"N":0,"NNE":22.5,"NE":45,"ENE":67.5,"E":90,"ESE":112.5,"SE":135,"SSE":157.5,"S":180,"SSW":202.5,"SW":225,"WSW":247.5,"W":270,"WNW":292.5,"NW":315,"NNW":337.5};
-    return m[d]||0;
+
+// Clear all markers
+function clearMarkers() {
+    allMarkers.forEach(marker => map.removeLayer(marker));
+    allMarkers = [];
 }
 
-function updateMapMarkers(){
+// Convert wind direction text to rotation degrees
+function windDirToRotation(dirText) {
+    const dirToDeg = {
+        "N": 0, "NNE": 22.5, "NE": 45, "ENE": 67.5,
+        "E": 90, "ESE": 112.5, "SE": 135, "SSE": 157.5,
+        "S": 180, "SSW": 202.5, "SW": 225, "WSW": 247.5,
+        "W": 270, "WNW": 292.5, "NW": 315, "NNW": 337.5
+    };
+    return dirToDeg[dirText] || 0;
+}
+
+// Update map markers
+function updateMapMarkers() {
     clearMarkers();
-    pointDataList.forEach(point=>{
-        const name=point.name,info=allPoints[name];if(!info)return;
-        let html="",sz=[50,50],anchor=[25,25];
-        switch(currentTab){
-            case "tempCurrent":html=`<div style="background:${getTempColor(point.temp)};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${point.temp}</div>`;break;
-            case "tempMax":html=`<div style="background:${getTempColor(point.tempMax)};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${point.tempMax}</div>`;break;
-            case "tempMin":html=`<div style="background:${getTempColor(point.tempMin)};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${point.tempMin}</div>`;break;
-            case "humidity":html=`<div style="background:${getHumidityColor(point.humidity)};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${point.humidity}</div>`;break;
-            case "windSpeed":html=`<div style="background:${getWindColor(point.windSpeed)};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${point.windSpeed}</div>`;break;
-            case "windGust":html=`<div style="background:${getWindColor(point.windGust)};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${point.windGust}</div>`;break;
-            case "rain1m":html=`<div style="background:${getRain1mColor(point.rain1m)};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${point.rain1m}</div>`;break;
-            case "rain1h":html=`<div style="background:${getRain1hColor(point.rain1h)};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${point.rain1h}</div>`;break;
-            case "rainTotal":html=`<div style="background:${getRainTotalColor(point.rainTotal)};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${point.rainTotal}</div>`;break;
-            case "pressSea":html=`<div style="background:${getPressSeaColor(point.pressSea)};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${point.pressSea}</div>`;break;
-            case "pressStation":html=`<div style="background:${getPressStationColor(point.pressStation)};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${point.pressStation}</div>`;break;
+    pointDataList.forEach(point => {
+        const name = point.name;
+        const info = allPoints[name];
+        if (!info) return;
+
+        let showVal = "";
+        let bgColor = "#3498db";
+        let markerIconHtml = "";
+
+        switch (currentTab) {
+            case "tempCurrent":
+                showVal = point.temp;
+                bgColor = getTempColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
+                break;
+            case "tempMax":
+                showVal = point.tempMax;
+                bgColor = getTempColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
+                break;
+            case "tempMin":
+                showVal = point.tempMin;
+                bgColor = getTempColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
+                break;
+            case "humidity":
+                showVal = point.humidity;
+                bgColor = getHumidityColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
+                break;
             case "windDir":
-                const deg=windDirToRotation(point.windDir);
-                sz=[40,40];
-                anchor=[20,40];
-                html=`<div style="width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-bottom:40px solid #7928ca;transform:rotate(${deg}deg);transform-origin:center bottom;"></div>`;
+                // Pure isosceles triangle ONLY, no text / no rectangle
+                const rotation = windDirToRotation(point.windDir);
+                markerIconHtml = `
+                    <div style="width: 0; height: 0; border-left: 18px solid transparent; border-right: 18px solid transparent; border-bottom: 36px solid #9b59b6; transform: rotate(${rotation}deg);"></div>
+                `;
+                break;
+            case "windSpeed":
+                showVal = point.windSpeed;
+                bgColor = getWindColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
+                break;
+            case "windGust":
+                showVal = point.windGust;
+                bgColor = getWindColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
+                break;
+            case "rain1m":
+                showVal = point.rain1m;
+                bgColor = getRain1mColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
+                break;
+            case "rain1h":
+                showVal = point.rain1h;
+                bgColor = getRain1hColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
+                break;
+            case "rainTotal":
+                showVal = point.rainTotal;
+                bgColor = getRainTotalColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
+                break;
+            case "pressSea":
+                showVal = point.pressSea;
+                bgColor = getPressSeaColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
+                break;
+            case "pressStation":
+                showVal = point.pressStation;
+                bgColor = getPressStationColor(showVal);
+                markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
         }
-        const icon=L.divIcon({html:html,className:"leaflet-wind-icon",iconSize:sz,iconAnchor:anchor});
-        const marker=L.marker([info.lat,info.lng],{icon:icon}).addTo(map);
+
+        if (showVal === '' || showVal === '--') return;
+
+        let iconSize = [50, 50];
+        let iconAnchor = [25, 25];
+        if (currentTab === "windDir") {
+            iconSize = [36, 36];
+            iconAnchor = [18, 18];
+        }
+
+        const icon = L.divIcon({
+            html: markerIconHtml,
+            className: "",
+            iconSize: iconSize,
+            iconAnchor: iconAnchor
+        });
+
+        const marker = L.marker([info.lat, info.lng], { icon: icon }).addTo(map);
         marker.bindPopup(`<strong>${name} (${info.code})</strong>`);
         allMarkers.push(marker);
     });
 }
 
-function fetchGridData(){
-    const url=`https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${Date.now()}`;
-    fetch(url,{cache:"no-store"}).then(r=>{if(!r.ok)throw Error("fail");return r.text()}).then(xmlStr=>{
-        const doc=new DOMParser().parseFromString(xmlStr,"text/xml");
-        const pub=doc.querySelector("SysPubdate")?.textContent||"未知";
-        document.getElementById("pub-date").textContent=pub;
-        document.getElementById("time-stamp").textContent=pub;
+// Fetch XML Data
+function fetchGridData() {
+    const cacheBuster = Date.now();
+    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
 
-        const stations=doc.querySelectorAll("WeatherReport station");
-        const grid=document.getElementById("grid-container");
-        grid.innerHTML="";pointDataList=[];
+    fetch(url, { cache: "no-store" })
+        .then(res => {
+            if (!res.ok) throw new Error("Request fail");
+            return res.text();
+        })
+        .then(xmlStr => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
 
-        stations.forEach(s=>{
-            const code=s.getAttribute("code")||"";
-            const name=s.querySelector("stationname")?.textContent||"";
-            const temp=extractNodeValue("Temperature",s);
-            const tempMax=extractNodeValue("Temperature_daily_max",s);
-            const tempMin=extractNodeValue("Temperature_daily_min",s);
-            const hum=extractNodeValue("Humidity",s);
-            const wSpeed=extractNodeValue("WindSpeed",s);
-            const wGust=extractNodeValue("WindGust",s);
-            const wDir=s.querySelector("WindDirection dValue")?.textContent||"";
-            const pSea=extractNodeValue("MeanSeaLevelPressure",s);
-            const pSta=extractNodeValue("StationPressure",s);
+            const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent || "未知";
+            document.getElementById("pub-date").textContent = pubTime;
+            document.getElementById("time-stamp").textContent = pubTime;
 
-            let r1m="",r1h="",rTotal="";
-            s.querySelectorAll("Rainfall").forEach(r=>{
-                const t=r.querySelector("Type")?.textContent;
-                const v=r.querySelector("dValue")?.textContent||"";
-                if(t==="3")r1m=v;
-                if(t==="4")r1h=v;
-                if(t==="5")rTotal=v;
-            });
+            const stations = xmlDoc.querySelectorAll("WeatherReport station");
+            const gridContainer = document.getElementById("grid-container");
+            gridContainer.innerHTML = "";
+            pointDataList = [];
 
-            // Fix humidity undefined
-            const humidity = hum || "";
+            stations.forEach(station => {
+                const code = station.getAttribute("code") || "";
+                const name = station.querySelector("stationname")?.textContent || "";
+                const fullName = `${name} (${code})`;
 
-            pointDataList.push({
-                name,temp,tempMax,tempMin,humidity,
-                windDir:wDir,windSpeed:wSpeed,windGust:wGust,
-                rain1m:r1m,rain1h:r1h,rainTotal:rTotal,
-                pressSea:pSea,pressStation:pSta
-            });
+                const temp = extractNodeValue("Temperature", station);
+                const tempMax = extractNodeValue("Temperature_daily_max", station);
+                const tempMin = extractNodeValue("Temperature_daily_min", station);
+                const humidity = extractNodeValue("Humidity", station);
+                const windSpeed = extractNodeValue("WindSpeed", station);
+                const windGust = extractNodeValue("WindGust", station);
+                const pressSea = extractNodeValue("MeanSeaLevelPressure", station);
+                const pressStation = extractNodeValue("StationPressure", station);
 
-            // Build metrics: ONLY show item when data exists
-            let metricHtml = "";
-            if(humidity) metricHtml += `<div class="metric col-half"><span>相對濕度(%)</span><strong>${humidity}%</strong></div>`;
-            if(wDir) metricHtml += `<div class="metric col-half"><span>風向</span><strong>${wDir}</strong></div>`;
-            if(wSpeed) metricHtml += `<div class="metric col-half"><span>風速(km/h)</span><strong>${wSpeed}</strong></div>`;
-            if(wGust) metricHtml += `<div class="metric col-half"><span>陣風(km/h)</span><strong>${wGust}</strong></div>`;
-            if(pSea) metricHtml += `<div class="metric col-half"><span>海平面氣壓(hPa)</span><strong>${pSea}</strong></div>`;
-            if(pSta) metricHtml += `<div class="metric col-half"><span>站點氣壓(hPa)</span><strong>${pSta}</strong></div>`;
+                const windDirNode = station.querySelector("WindDirection");
+                const windDir = windDirNode?.querySelector("dValue")?.textContent || "";
 
-            const r1mCls = parseFloat(r1m) > 0 ? "rain-active" : "";
-            const r1hCls = parseFloat(r1h) > 0 ? "rain-active" : "";
-            const rTotCls = parseFloat(rTotal) > 0 ? "rain-active" : "";
+                let rain1m = "", rain1h = "", rainTotal = "";
+                station.querySelectorAll("Rainfall").forEach(r => {
+                    const type = r.querySelector("Type")?.textContent;
+                    const val = r.querySelector("dValue")?.textContent || "";
+                    if (type === "3") rain1m = val;
+                    if (type === "4") rain1h = val;
+                    if (type === "5") rainTotal = val;
+                });
 
-            if(r1m) metricHtml += `<div class="metric col-third ${r1mCls}"><span>一分鐘雨量</span><strong>${r1m} mm</strong></div>`;
-            if(r1h) metricHtml += `<div class="metric col-third ${r1hCls}"><span>一小時雨量</span><strong>${r1h} mm</strong></div>`;
-            if(rTotal) metricHtml += `<div class="metric col-third ${rTotCls}"><span>每日總雨量</span><strong>${rTotal} mm</strong></div>`;
+                pointDataList.push({
+                    name, temp, tempMax, tempMin, humidity,
+                    windDir, windSpeed, windGust,
+                    rain1m, rain1h, rainTotal,
+                    pressSea, pressStation
+                });
 
-            const card=`<div class="station-card">
-                <div class="station-name">${name} (${code})</div>
-                <div class="temp-row">
-                    <div class="current-temp">${temp}°C</div>
-                    <div class="temp-range">
-                        <div>最高: <span class="high-temp">${tempMax}°C</span></div>
-                        <div>最低: <span class="low-temp">${tempMin}°C</span></div>
+                const rain1mClass = parseFloat(rain1m) > 0 ? "rain-active" : "";
+                const rain1hClass = parseFloat(rain1h) > 0 ? "rain-active" : "";
+                const rainTotalClass = parseFloat(rainTotal) > 0 ? "rain-active" : "";
+
+                const card = `
+                <div class="station-card">
+                    <div class="station-name">${fullName}</div>
+                    <div class="temp-row">
+                        <div class="current-temp">${temp}°C</div>
+                        <div class="temp-range">
+                            <div>最高: <span class="high-temp">${tempMax}°C</span></div>
+                            <div>最低: <span class="low-temp">${tempMin}°C</span></div>
+                        </div>
                     </div>
-                </div>
-                <div class="metrics-grid">${metricHtml}</div>
-            </div>`;
-            grid.innerHTML+=card;
+                    <div class="metrics-grid">
+                        <div class="metric col-half"><span>相對濕度(%)</span><strong>${humidity || '--'}%</strong></div>
+                        <div class="metric col-half"><span>風向</span><strong>${windDir || '--'}</strong></div>
+                        <div class="metric col-half"><span>風速(km/h)</span><strong>${windSpeed || '--'} ${windSpeed?'<small>km/h</small>':''}</strong></div>
+                        <div class="metric col-half"><span>陣風(km/h)</span><strong>${windGust || '--'} ${windGust?'<small>km/h</small>':''}</strong></div>
+                        <div class="metric col-half"><span>海平面氣壓(hPa)</strong><strong>${pressSea || '--'} ${pressSea?'<small>hPa</small>':''}</strong></div>
+                        <div class="metric col-half"><span>站點氣壓(hPa)</span><strong>${pressStation || '--'} ${pressStation?'<small>hPa</small>':''}</strong></div>
+                        <div class="metric col-third ${rain1mClass}"><span>一分鐘雨量</span><strong>${rain1m || '--'} ${rain1m?'<small>mm</small>':''}</strong></div>
+                        <div class="metric col-third ${rain1hClass}"><span>一小時雨量</span><strong>${rain1h || '--'} ${rain1h?'<small>mm</small>':''}</strong></div>
+                        <div class="metric col-third ${rainTotalClass}"><span>日累計雨量</span><strong>${rainTotal || '--'} ${rainTotal?'<small>mm</small>':''}</strong></div>
+                    </div>
+                </div>`;
+                gridContainer.innerHTML += card;
+            });
+
+            updateMapMarkers();
+            updateLegendPanel(currentTab);
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById("grid-container").innerHTML = `
+                <div class="loading" style="color:#e74c3c;">載入失敗，請檢查網絡</div>
+            `;
         });
-        updateMapMarkers();
-        updateLegendPanel(currentTab);
-    }).catch(()=>{
-        document.getElementById("grid-container").innerHTML=`<div class="loading" style="color:#e53e3e;">數據載入失敗</div>`;
-    });
 }
 
 fetchGridData();
-setInterval(fetchGridData,60000);
+setInterval(fetchGridData, 60000);
 </script>
 </body>
 </html>
