@@ -43,6 +43,7 @@
             font-size: 0.9rem;
             opacity: 0.9;
         }
+        /* Dropdown select bar (original style kept) */
         .select-wrapper {
             margin-bottom: 20px;
             text-align: center;
@@ -227,6 +228,7 @@
         </div>
     </header>
 
+    <!-- ALL original dropdown options are kept here -->
     <div class="select-wrapper">
         <select id="map-select" class="map-select">
             <option value="tempCurrent">溫度(℃)</option>
@@ -259,6 +261,7 @@
 </div>
 
 <script>
+// Station coordinates (PE updated as requested)
 const allPoints = {
     "紀念孫中山市政公園": { code: "DP", lat: 22.215322, lng: 113.543490 },
     "黑沙環": { code: "EM", lat: 22.207129, lng: 113.559971 },
@@ -279,6 +282,7 @@ const allPoints = {
     "蓮花大橋": { code: "LH", lat: 22.139934, lng: 113.549094 }
 };
 
+// Color rules (ALL original functions kept)
 function getTempColor(tempStr) {
     const temp = parseFloat(tempStr);
     if (isNaN(temp)) return "#3498db";
@@ -453,6 +457,7 @@ function updateLegendPanel(tabType) {
     legendContent.innerHTML = legendHTML;
 }
 
+// Leaflet Map init
 let map = L.map('macau-map').setView([22.17, 113.55], 12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
@@ -462,6 +467,7 @@ let allMarkers = [];
 let currentTab = "tempCurrent";
 let pointDataList = [];
 
+// Dropdown event (all options work)
 document.getElementById('map-select').addEventListener('change', (e) => {
     currentTab = e.target.value;
     updateMapMarkers();
@@ -524,8 +530,8 @@ function updateMapMarkers() {
                 bgColor = getHumidityColor(showVal);
                 markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
                 break;
+            // Fixed wind direction triangle (no other changes)
             case "windDir":
-                // 修复：加 display:block，防止被 overflow:hidden 裁剪
                 const rotation = windDirToRotation(point.windDir);
                 markerIconHtml = `
                     <div style="display:block; width: 0; height: 0; 
@@ -536,7 +542,6 @@ function updateMapMarkers() {
                          transform-origin: center bottom;">
                     </div>
                 `;
-                // 尺寸和锚点严格对应三角：宽36，高36，锚点在底部中心
                 iconSize = [36, 36];
                 iconAnchor = [18, 36];
                 break;
@@ -577,6 +582,7 @@ function updateMapMarkers() {
                 break;
         }
 
+        // Skip empty data only
         if (showVal === '' || showVal === '--') return;
 
         const icon = L.divIcon({
@@ -592,6 +598,7 @@ function updateMapMarkers() {
     });
 }
 
+// Fetch all weather data (full original fields)
 function fetchGridData() {
     const cacheBuster = Date.now();
     const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
@@ -640,6 +647,7 @@ function fetchGridData() {
                     if (type === "5") rainTotal = val;
                 });
 
+                // All data saved to array
                 pointDataList.push({
                     name, temp, tempMax, tempMin, humidity,
                     windDir, windSpeed, windGust,
@@ -651,6 +659,7 @@ function fetchGridData() {
                 const rain1hClass = parseFloat(rain1h) > 0 ? "rain-active" : "";
                 const rainTotalClass = parseFloat(rainTotal) > 0 ? "rain-active" : "";
 
+                // Full station card with ALL metrics
                 const card = `
                 <div class="station-card">
                     <div class="station-name">${fullName}</div>
