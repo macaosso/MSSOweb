@@ -87,9 +87,10 @@
         .high-temp { color: #e74c3c; font-weight: 600; }
         .low-temp { color: #34495e; font-weight: 600; }
          
+        /* Upgraded to a 6-column base for perfect layout combinations */
         .metrics-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(6, 1fr);
             gap: 12px;
             font-size: 0.9rem;
         }
@@ -97,6 +98,14 @@
             background: #f8f9fa;
             padding: 8px 12px;
             border-radius: 6px;
+        }
+        /* Standard items take up 3 columns (half width) */
+        .col-half {
+            grid-column: span 3;
+        }
+        /* Rainfall items take up 2 columns (one-third width, making 3 in a row) */
+        .col-third {
+            grid-column: span 2;
         }
         .metric span {
             display: block;
@@ -145,13 +154,9 @@
 
 <script>
 function fetchGridData() {
-    // 1. Create a unique timestamp to force request bypass down to source
     const cacheBuster = Date.now();
-     
-    // 2. Append parameter to break downstream proxy caching pipelines
     const freshUrl = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
 
-    // 3. Request fresh payload with direct cache control flags
     fetch(freshUrl, { cache: "no-store" })
         .then(response => {
             if (!response.ok) throw new Error('Network error pulling XML map.');
@@ -170,7 +175,7 @@ function fetchGridData() {
             // Grab every single distinct station node
             const stations = xmlDoc.querySelectorAll("station");
             const gridContainer = document.getElementById('grid-container');
-            gridContainer.innerHTML = ''; // Wipe out old elements
+            gridContainer.innerHTML = ''; 
 
             stations.forEach(station => {
                 const name = station.querySelector("stationname")?.textContent || "Unnamed Node";
@@ -191,17 +196,18 @@ function fetchGridData() {
                 const mslPressure = extractNodeValue("MeanSeaLevelPressure");
                 const stationPressure = extractNodeValue("StationPressure");
                 
-                // Robust extraction handling both description string and direction degree value
-                const windDirText = station.querySelector("WindDirection WindDescription")?.textContent;
-                const windDirDeg = station.querySelector("WindDirection Value")?.textContent;
+                // Updated parsing logic to specifically construct: dValue(Degree°)
+                const windDirNode = station.querySelector("WindDirection");
+                const winddValue = windDirNode?.querySelector("dValue")?.textContent || '--';
+                const windDegree = windDirNode?.querySelector("Degree")?.textContent || '--';
                 
                 let windDirDisplay = '--';
-                if (windDirText && windDirDeg && windDirDeg !== '--') {
-                    windDirDisplay = `${windDirText} (${windDirDeg}°)`;
-                } else if (windDirText) {
-                    windDirDisplay = windDirText;
-                } else if (windDirDeg && windDirDeg !== '--') {
-                    windDirDisplay = `${windDirDeg}°`;
+                if (winddValue !== '--' && windDegree !== '--') {
+                    windDirDisplay = `${winddValue}(${windDegree}°)`;
+                } else if (winddValue !== '--') {
+                    windDirDisplay = winddValue;
+                } else if (windDegree !== '--') {
+                    windDirDisplay = `${windDegree}°`;
                 }
 
                 // Initialized to '--' for stations lacking rainfall monitors (bridges)
@@ -236,41 +242,41 @@ function fetchGridData() {
                             </div>
                         </div>
                         <div class="metrics-grid">
-                            <div class="metric">
+                            <div class="metric col-half">
                                 <span>相對濕度</span>
                                 <strong>${humidity}%</strong>
                             </div>
-                            <div class="metric">
+                            <div class="metric col-half">
                                 <span>風向 (角度)</span>
                                 <strong>${windDirDisplay}</strong>
                             </div>
-                            <div class="metric">
+                            <div class="metric col-half">
                                 <span>風速</span>
                                 <strong>${windSpeed}${windSpeed !== '--' ? ' <small>km/h</small>' : ''}</strong>
                             </div>
-                            <div class="metric">
+                            <div class="metric col-half">
                                 <span>陣風</span>
                                 <strong>${windGust}${windGust !== '--' ? ' <small>km/h</small>' : ''}</strong>
                             </div>
-                            <div class="metric">
+                            <div class="metric col-half">
                                 <span>平均海平面氣壓</span>
                                 <strong>${mslPressure}${mslPressure !== '--' ? ' <small>hPa</small>' : ''}</strong>
                             </div>
-                            <div class="metric">
+                            <div class="metric col-half">
                                 <span>本站氣壓</span>
                                 <strong>${stationPressure}${stationPressure !== '--' ? ' <small>hPa</small>' : ''}</strong>
                             </div>
                             
-                            <div class="metric ${rain1mClass}">
+                            <div class="metric col-third ${rain1mClass}">
                                 <span>即時降雨 (1m)</span>
                                 <strong>${rain1m}${rain1m !== '--' ? ' <small>mm</small>' : ''}</strong>
                             </div>
-                            <div class="metric ${rain1hClass}">
+                            <div class="metric col-third ${rain1hClass}">
                                 <span>每小時降雨 (1h)</span>
                                 <strong>${rain1h}${rain1h !== '--' ? ' <small>mm</small>' : ''}</strong>
                             </div>
-                            <div class="metric ${rainTodayClass}" style="grid-column: span 2;">
-                                <span>當日累積降雨 (自00:01)</span>
+                            <div class="metric col-third ${rainTodayClass}">
+                                <span>當日累積降雨</span>
                                 <strong>${rainToday}${rainToday !== '--' ? ' <small>mm</small>' : ''}</strong>
                             </div>
                         </div>
