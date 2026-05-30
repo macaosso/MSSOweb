@@ -43,7 +43,6 @@
             opacity: 0.9;
         }
 
-        /* Accordion */
         .accordion {
             background: white;
             border-radius: 12px;
@@ -60,7 +59,7 @@
             font-size: 1.2rem;
             font-weight: 600;
             background: #f8f9fa;
-            transition: background 0.2s;
+            transition: background 0.15s;
         }
         .accordion-header:hover {
             background: #eef5fc;
@@ -69,7 +68,7 @@
             background: #dceaf8;
         }
         .accordion-icon {
-            transition: transform 0.2s;
+            transition: transform 0.15s;
         }
         .accordion-header.active .accordion-icon {
             transform: rotate(180deg);
@@ -77,14 +76,12 @@
         .accordion-content {
             max-height: 0;
             overflow: hidden;
-            transition: max-height 0.3s ease;
+            transition: max-height 0.2s ease;
         }
         .accordion-content.active {
             max-height: 600px;
-            overflow-y: auto;
         }
 
-        /* Table */
         .param-table {
             width: 100%;
             border-collapse: collapse;
@@ -100,7 +97,7 @@
         }
         .param-table tr {
             cursor: pointer;
-            transition: background 0.2s;
+            transition: background 0.15s;
         }
         .param-table tr:hover {
             background: #eef5fc;
@@ -109,7 +106,6 @@
             background: #dceaf8;
         }
 
-        /* Chart */
         .chart-wrapper {
             background: #fff;
             border-radius: 12px;
@@ -128,7 +124,6 @@
             height: 400px;
         }
 
-        /* Station Card */
         .station-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -139,7 +134,7 @@
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
             padding: 20px;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.15s, box-shadow 0.15s;
             display: flex;
             flex-direction: column;
             border-top: 4px solid #3498db;
@@ -208,7 +203,6 @@
     </style>
 </head>
 <body>
-
 <div class="container">
     <header>
         <div>
@@ -230,17 +224,12 @@
             <div class="accordion-content">
                 <table class="param-table" id="table-temp">
                     <thead>
-                        <tr>
-                            <th>站點名稱</th>
-                            <th>站點編碼</th>
-                            <th>即時數值</th>
-                        </tr>
+                        <tr><th>站點名稱</th><th>站點編碼</th><th>即時數值</th></tr>
                     </thead>
                     <tbody class="param-tbody"></tbody>
                 </table>
             </div>
         </div>
-
         <div class="accordion">
             <div class="accordion-header" data-param="humidity">
                 <span>相對濕度 (%)</span>
@@ -249,17 +238,12 @@
             <div class="accordion-content">
                 <table class="param-table" id="table-humidity">
                     <thead>
-                        <tr>
-                            <th>站點名稱</th>
-                            <th>站點編碼</th>
-                            <th>即時數值</th>
-                        </tr>
+                        <tr><th>站點名稱</th><th>站點編碼</th><th>即時數值</th></tr>
                     </thead>
                     <tbody class="param-tbody"></tbody>
                 </table>
             </div>
         </div>
-
         <div class="accordion">
             <div class="accordion-header" data-param="windSpeed">
                 <span>風速 (km/h)</span>
@@ -268,17 +252,12 @@
             <div class="accordion-content">
                 <table class="param-table" id="table-windSpeed">
                     <thead>
-                        <tr>
-                            <th>站點名稱</th>
-                            <th>站點編碼</th>
-                            <th>即時數值</th>
-                        </tr>
+                        <tr><th>站點名稱</th><th>站點編碼</th><th>即時數值</th></tr>
                     </thead>
                     <tbody class="param-tbody"></tbody>
                 </table>
             </div>
         </div>
-
         <div class="accordion">
             <div class="accordion-header" data-param="windGust">
                 <span>陣風 (km/h)</span>
@@ -287,17 +266,12 @@
             <div class="accordion-content">
                 <table class="param-table" id="table-windGust">
                     <thead>
-                        <tr>
-                            <th>站點名稱</th>
-                            <th>站點編碼</th>
-                            <th>即時數值</th>
-                        </tr>
+                        <tr><th>站點名稱</th><th>站點編碼</th><th>即時數值</th></tr>
                     </thead>
                     <tbody class="param-tbody"></tbody>
                 </table>
             </div>
         </div>
-
         <div class="accordion">
             <div class="accordion-header" data-param="windDir">
                 <span>風向 (°)</span>
@@ -306,17 +280,12 @@
             <div class="accordion-content">
                 <table class="param-table" id="table-windDir">
                     <thead>
-                        <tr>
-                            <th>站點名稱</th>
-                            <th>站點編碼</th>
-                            <th>即時數值</th>
-                        </tr>
+                        <tr><th>站點名稱</th><th>站點編碼</th><th>即時數值</th></tr>
                     </thead>
                     <tbody class="param-tbody"></tbody>
                 </table>
             </div>
         </div>
-
         <div class="accordion">
             <div class="accordion-header" data-param="mslPressure">
                 <span>海平面氣壓 (hPa)</span>
@@ -325,17 +294,12 @@
             <div class="accordion-content">
                 <table class="param-table" id="table-mslPressure">
                     <thead>
-                        <tr>
-                            <th>站點名稱</th>
-                            <th>站點編碼</th>
-                            <th>即時數值</th>
-                        </tr>
+                        <tr><th>站點名稱</th><th>站點編碼</th><th>即時數值</th></tr>
                     </thead>
                     <tbody class="param-tbody"></tbody>
                 </table>
             </div>
         </div>
-
         <div class="accordion">
             <div class="accordion-header" data-param="stationPressure">
                 <span>站氣壓 (hPa)</span>
@@ -344,17 +308,12 @@
             <div class="accordion-content">
                 <table class="param-table" id="table-stationPressure">
                     <thead>
-                        <tr>
-                            <th>站點名稱</th>
-                            <th>站點編碼</th>
-                            <th>即時數值</th>
-                        </tr>
+                        <tr><th>站點名稱</th><th>站點編碼</th><th>即時數值</th></tr>
                     </thead>
                     <tbody class="param-tbody"></tbody>
                 </table>
             </div>
         </div>
-
         <div class="accordion">
             <div class="accordion-header" data-param="rain1m">
                 <span>1分鐘雨量 (mm)</span>
@@ -363,17 +322,12 @@
             <div class="accordion-content">
                 <table class="param-table" id="table-rain1m">
                     <thead>
-                        <tr>
-                            <th>站點名稱</th>
-                            <th>站點編碼</th>
-                            <th>即時數值</th>
-                        </tr>
+                        <tr><th>站點名稱</th><th>站點編碼</th><th>即時數值</th></tr>
                     </thead>
                     <tbody class="param-tbody"></tbody>
                 </table>
             </div>
         </div>
-
         <div class="accordion">
             <div class="accordion-header" data-param="rain1h">
                 <span>1小時雨量 (mm)</span>
@@ -382,11 +336,7 @@
             <div class="accordion-content">
                 <table class="param-table" id="table-rain1h">
                     <thead>
-                        <tr>
-                            <th>站點名稱</th>
-                            <th>站點編碼</th>
-                            <th>即時數值</th>
-                        </tr>
+                        <tr><th>站點名稱</th><th>站點編碼</th><th>即時數值</th></tr>
                     </thead>
                     <tbody class="param-tbody"></tbody>
                 </table>
@@ -408,9 +358,8 @@
 const XML_URL = 'https://xml.smg.gov.mo/c_actualweather.xml';
 const PROXY1 = 'https://api.allorigins.win/raw?url=';
 const PROXY2 = 'https://corsproxy.io/?';
-const TIMEOUT = 8000;
-const RETRY_TIMES = 2;
-
+const TIMEOUT = 6000;
+const RETRY_TIMES = 1;
 const HISTORY_KEY = "macao_weather_24h_history";
 const MAX_RECORDS = 288;
 
@@ -426,320 +375,236 @@ const PARAM_CONFIG = {
     rain1h: { label: '1小時雨量', unit: 'mm', color: '#0984e3', type: 'bar' }
 };
 
-function getValue(element) {
-    if (!element) return null;
-    let val = element.querySelector("dValue")?.textContent || element.querySelector("Value")?.textContent;
-    return (val === '--' || val === undefined) ? null : parseFloat(val);
+// Cache DOM once
+const DOM = {
+    pubDate: document.getElementById('pub-date'),
+    gridContainer: document.getElementById('grid-container'),
+    chartWrap: document.getElementById('chart-wrapper'),
+    chartTitle: document.getElementById('chart-title'),
+    chartBox: document.getElementById('single-chart')
+};
+
+function getValue(el) {
+    if (!el) return null;
+    let v = el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent;
+    return (v === '--' || v == null) ? null : parseFloat(v);
 }
 
-async function fetchWithTimeoutAndRetry(url, retries = RETRY_TIMES) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), TIMEOUT);
+async function fetchData() {
+    const cb = Date.now();
+    const url = encodeURIComponent(`${XML_URL}?t=${cb}`);
+    let res;
     try {
-        const res = await fetch(url, { signal: controller.signal, cache: "no-store" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return await res.text();
-    } catch (err) {
-        if (retries > 0) {
-            await new Promise(r => setTimeout(r, 1500));
-            return fetchWithTimeoutAndRetry(url, retries - 1);
-        }
-        throw err;
-    } finally {
-        clearTimeout(timer);
+        res = await fetch(PROXY1 + url, { signal: AbortSignal.timeout(TIMEOUT), cache: "no-store" });
+    } catch {
+        res = await fetch(PROXY2 + url, { signal: AbortSignal.timeout(TIMEOUT), cache: "no-store" });
     }
+    if (!res.ok) throw new Error("Fetch fail");
+    const txt = await res.text();
+    const xml = new DOMParser().parseFromString(txt, "text/xml");
+    if (xml.querySelector("parsererror")) throw new Error("XML error");
+    return xml;
 }
 
-async function fetchGridData() {
-    const cacheBuster = Date.now();
-    const targetUrl = encodeURIComponent(`${XML_URL}?t=${cacheBuster}`);
-    let xmlString;
+function buildTablesAndCards(xml) {
+    const stations = xml.querySelectorAll("WeatherReport station");
+    DOM.pubDate.textContent = xml.querySelector("SysPubdate")?.textContent || "";
 
-    try {
-        xmlString = await fetchWithTimeoutAndRetry(PROXY1 + targetUrl);
-    } catch (e1) {
-        try {
-            xmlString = await fetchWithTimeoutAndRetry(PROXY2 + targetUrl);
-        } catch (e2) {
-            throw new Error("所有代理請求失敗");
-        }
-    }
-
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlString, "text/xml");
-    if (xmlDoc.querySelector("parsererror")) throw new Error("XML 解析失敗");
-
-    const pubDateNode = xmlDoc.querySelector("SysPubdate");
-    if (pubDateNode) document.getElementById('pub-date').textContent = pubDateNode.textContent;
-
-    const stations = xmlDoc.querySelectorAll("WeatherReport station");
-    renderAllParamTables(stations);
-    renderStationCards(stations);
-    recordCurrentData(stations);
-}
-
-function renderAllParamTables(stations) {
+    // Build all tables
     Object.keys(PARAM_CONFIG).forEach(param => {
         const tbody = document.querySelector(`#table-${param} .param-tbody`);
-        tbody.innerHTML = '';
-        stations.forEach(station => {
-            const code = station.getAttribute("code") || "";
-            const name = station.querySelector("stationname")?.textContent || "";
+        tbody.innerHTML = "";
+        const unit = PARAM_CONFIG[param].unit;
+        stations.forEach(st => {
+            const code = st.getAttribute("code") || "";
+            const name = st.querySelector("stationname")?.textContent || "";
             let val;
             switch(param) {
-                case 'temp': val = getValue(station.querySelector("Temperature")); break;
-                case 'humidity': val = getValue(station.querySelector("Humidity")); break;
-                case 'windSpeed': val = getValue(station.querySelector("WindSpeed")); break;
-                case 'windGust': val = getValue(station.querySelector("WindGust")); break;
-                case 'windDir': val = getValue(station.querySelector("WindDirection Degree")); break;
-                case 'mslPressure': val = getValue(station.querySelector("MeanSeaLevelPressure")); break;
-                case 'stationPressure': val = getValue(station.querySelector("StationPressure")); break;
+                case 'temp': val = getValue(st.querySelector("Temperature")); break;
+                case 'humidity': val = getValue(st.querySelector("Humidity")); break;
+                case 'windSpeed': val = getValue(st.querySelector("WindSpeed")); break;
+                case 'windGust': val = getValue(st.querySelector("WindGust")); break;
+                case 'windDir': val = getValue(st.querySelector("WindDirection Degree")); break;
+                case 'mslPressure': val = getValue(st.querySelector("MeanSeaLevelPressure")); break;
+                case 'stationPressure': val = getValue(st.querySelector("StationPressure")); break;
                 case 'rain1m':
-                    const r1mNode = Array.from(station.querySelectorAll("Rainfall")).find(n => n.querySelector("Type")?.textContent === "3");
-                    val = getValue(r1mNode); break;
+                    let r1 = Array.from(st.querySelectorAll("Rainfall")).find(n=>n.querySelector("Type")?.textContent==="3");
+                    val = getValue(r1); break;
                 case 'rain1h':
-                    const r1hNode = Array.from(station.querySelectorAll("Rainfall")).find(n => n.querySelector("Type")?.textContent === "4");
-                    val = getValue(r1hNode); break;
+                    let r2 = Array.from(st.querySelectorAll("Rainfall")).find(n=>n.querySelector("Type")?.textContent==="4");
+                    val = getValue(r2); break;
             }
-            const valText = val !== null ? `${val} ${PARAM_CONFIG[param].unit}` : "--";
-
+            const txt = val !== null ? `${val} ${unit}` : "--";
             const tr = document.createElement("tr");
             tr.dataset.code = code;
             tr.dataset.param = param;
-            tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${valText}</td>`;
-            tr.addEventListener("click", () => {
-                document.querySelectorAll(".param-table tr").forEach(r => r.classList.remove("active"));
+            tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${txt}</td>`;
+            tr.onclick = () => {
+                document.querySelectorAll(".param-table tr").forEach(r=>r.classList.remove("active"));
                 tr.classList.add("active");
-                renderSingleChart(param, code, name);
-            });
+                drawChart(param, code, name);
+            };
             tbody.appendChild(tr);
         });
     });
-}
 
-function renderStationCards(stations) {
-    const gridContainer = document.getElementById('grid-container');
-    gridContainer.innerHTML = '';
-    stations.forEach(station => {
-        const code = station.getAttribute("code")?.trim() || "N/A";
-        const name = station.querySelector("stationname")?.textContent || "未命名站點";
-        const nameDisplay = `${name}(${code})`;
+    // Build station cards
+    DOM.gridContainer.innerHTML = "";
+    stations.forEach(st => {
+        const code = st.getAttribute("code")?.trim() || "N/A";
+        const name = st.querySelector("stationname")?.textContent || "未命名站點";
+        const temp = getValue(st.querySelector("Temperature"));
+        const tmax = getValue(st.querySelector("Temperature_daily_max"));
+        const tmin = getValue(st.querySelector("Temperature_daily_min"));
+        const hum = getValue(st.querySelector("Humidity"));
+        const ws = getValue(st.querySelector("WindSpeed"));
+        const wg = getValue(st.querySelector("WindGust"));
+        const mslp = getValue(st.querySelector("MeanSeaLevelPressure"));
+        const stp = getValue(st.querySelector("StationPressure"));
 
-        const currentTemp = getValue(station.querySelector("Temperature"));
-        const maxTemp = getValue(station.querySelector("Temperature_daily_max"));
-        const minTemp = getValue(station.querySelector("Temperature_daily_min"));
-        const humidity = getValue(station.querySelector("Humidity"));
-        const windSpeed = getValue(station.querySelector("WindSpeed"));
-        const windGust = getValue(station.querySelector("WindGust"));
-        const mslPressure = getValue(station.querySelector("MeanSeaLevelPressure"));
-        const stationPressure = getValue(station.querySelector("StationPressure"));
-
-        const windDirNode = station.querySelector("WindDirection");
-        let winddValue = '--', windDegree = '--';
-        if (windDirNode) {
-            winddValue = windDirNode.querySelector("dValue")?.textContent || '--';
-            windDegree = windDirNode.querySelector("Degree")?.textContent || '--';
+        const wdNode = st.querySelector("WindDirection");
+        let wdText = "--";
+        if(wdNode){
+            let dVal = wdNode.querySelector("dValue")?.textContent||"--";
+            let deg = wdNode.querySelector("Degree")?.textContent||"--";
+            wdText = (dVal!="--"&&deg!="--") ? `${dVal}(${deg}°)` : (dVal!="--"?dVal:`${deg}°`);
         }
-        let windDirDisplay = '--';
-        if (winddValue !== '--' && windDegree !== '--') windDirDisplay = `${winddValue}(${windDegree}°)`;
-        else if (winddValue !== '--') windDirDisplay = winddValue;
-        else if (windDegree !== '--') windDirDisplay = `${windDegree}°`;
 
-        let rain1m = "--", rain1h = "--", rainToday = "--";
-        station.querySelectorAll("Rainfall").forEach(node => {
-            const type = node.querySelector("Type")?.textContent;
-            const val = node.querySelector("dValue")?.textContent || node.querySelector("Value")?.textContent || "0.0";
-            if (type === "3") rain1m = val;
-            if (type === "4") rain1h = val;
-            if (type === "5") rainToday = val;
+        let r1m="--",r1h="--",rToday="--";
+        st.querySelectorAll("Rainfall").forEach(n=>{
+            let t = n.querySelector("Type")?.textContent;
+            let v = n.querySelector("dValue")?.textContent||n.querySelector("Value")?.textContent||"0.0";
+            if(t==="3")r1m=v;
+            if(t==="4")r1h=v;
+            if(t==="5")rToday=v;
         });
+        let c1 = parseFloat(r1m)>0?"rain-active":"";
+        let c2 = parseFloat(r1h)>0?"rain-active":"";
+        let c3 = parseFloat(rToday)>0?"rain-active":"";
 
-        const rain1mClass = parseFloat(rain1m) > 0 ? 'rain-active' : '';
-        const rain1hClass = parseFloat(rain1h) > 0 ? 'rain-active' : '';
-        const rainTodayClass = parseFloat(rainToday) > 0 ? 'rain-active' : '';
-
-        const cardHtml = `
-            <div class="station-card">
-                <div class="station-name">${nameDisplay}</div>
-                <div class="temp-row">
-                    <div class="current-temp">${currentTemp ?? '--'}°C</div>
-                    <div class="temp-range">
-                        <div>最高: <span class="high-temp">${maxTemp ?? '--'}°C</span></div>
-                        <div>最低: <span class="low-temp">${minTemp ?? '--'}°C</span></div>
-                    </div>
-                </div>
-                <div class="metrics-grid">
-                    <div class="metric col-half">
-                        <span>相對濕度(%)</span>
-                        <strong>${humidity ?? '--'}%</strong>
-                    </div>
-                    <div class="metric col-half">
-                        <span>風向(°)</span>
-                        <strong>${windDirDisplay}</strong>
-                    </div>
-                    <div class="metric col-half">
-                        <span>風速(km/h)</span>
-                        <strong>${windSpeed ?? '--'}${windSpeed ? ' <small>km/h</small>' : ''}</strong>
-                    </div>
-                    <div class="metric col-half">
-                        <span>陣風(km/h)</span>
-                        <strong>${windGust ?? '--'}${windGust ? ' <small>km/h</small>' : ''}</strong>
-                    </div>
-                    <div class="metric col-half">
-                        <span>平均海平面氣壓(hPa)</span>
-                        <strong>${mslPressure ?? '--'}${mslPressure ? ' <small>hPa</small>' : ''}</strong>
-                    </div>
-                    <div class="metric col-half">
-                        <span>站氣壓(hPa)</span>
-                        <strong>${stationPressure ?? '--'}${stationPressure ? ' <small>hPa</small>' : ''}</strong>
-                    </div>
-                    <div class="metric col-third ${rain1mClass}">
-                        <span>一分鐘雨量</span>
-                        <strong>${rain1m}${rain1m !== '--' ? ' <small>mm</small>' : ''}</strong>
-                    </div>
-                    <div class="metric col-third ${rain1hClass}">
-                        <span>一小時雨量</span>
-                        <strong>${rain1h}${rain1h !== '--' ? ' <small>mm</small>' : ''}</strong>
-                    </div>
-                    <div class="metric col-third ${rainTodayClass}">
-                        <span>日總雨量</span>
-                        <strong>${rainToday}${rainToday !== '--' ? ' <small>mm</small>' : ''}</strong>
-                    </div>
+        const html = `
+        <div class="station-card">
+            <div class="station-name">${name}(${code})</div>
+            <div class="temp-row">
+                <div class="current-temp">${temp??'--'}°C</div>
+                <div class="temp-range">
+                    <div>最高: <span class="high-temp">${tmax??'--'}°C</span></div>
+                    <div>最低: <span class="low-temp">${tmin??'--'}°C</span></div>
                 </div>
             </div>
-        `;
-        gridContainer.innerHTML += cardHtml;
+            <div class="metrics-grid">
+                <div class="metric col-half"><span>相對濕度(%)</span><strong>${hum??'--'}%</strong></div>
+                <div class="metric col-half"><span>風向(°)</span><strong>${wdText}</strong></div>
+                <div class="metric col-half"><span>風速(km/h)</span><strong>${ws??'--'}${ws?' <small>km/h</small>':''}</strong></div>
+                <div class="metric col-half"><span>陣風(km/h)</span><strong>${wg??'--'}${wg?' <small>km/h</small>':''}</strong></div>
+                <div class="metric col-half"><span>海平面氣壓(hPa)</span><strong>${mslp??'--'}${mslp?' <small>hPa</small>':''}</strong></div>
+                <div class="metric col-half"><span>站氣壓(hPa)</span><strong>${stp??'--'}${stp?' <small>hPa</small>':''}</strong></div>
+                <div class="metric col-third ${c1}"><span>一分鐘雨量</span><strong>${r1m}${r1m!='--'?' <small>mm</small>':''}</strong></div>
+                <div class="metric col-third ${c2}"><span>一小時雨量</span><strong>${r1h}${r1h!='--'?' <small>mm</small>':''}</strong></div>
+                <div class="metric col-third ${c3}"><span>日總雨量</span><strong>${rToday}${rToday!='--'?' <small>mm</small>':''}</strong></div>
+            </div>
+        </div>`;
+        DOM.gridContainer.insertAdjacentHTML("beforeend", html);
     });
+    return stations;
 }
 
-function recordCurrentData(stationList) {
+function saveHistory(stations) {
+    const now = Date.now();
+    const timeStr = new Date(now).toLocaleTimeString('zh-HK',{hour:'2-digit',minute:'2-digit'});
     let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-    const now = new Date();
-    const timeStamp = now.getTime();
-    const timeStr = now.toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
 
-    stationList.forEach(station => {
-        const code = station.getAttribute("code") || "";
-        const name = station.querySelector("stationname")?.textContent || "";
+    stations.forEach(st => {
+        const code = st.getAttribute("code") || "";
+        const name = st.querySelector("stationname")?.textContent || "";
+        const temp = getValue(st.querySelector("Temperature"));
+        const hum = getValue(st.querySelector("Humidity"));
+        const ws = getValue(st.querySelector("WindSpeed"));
+        const wg = getValue(st.querySelector("WindGust"));
+        const mslp = getValue(st.querySelector("MeanSeaLevelPressure"));
+        const stp = getValue(st.querySelector("StationPressure"));
+        const wd = getValue(st.querySelector("WindDirection Degree"));
 
-        const temp = getValue(station.querySelector("Temperature"));
-        const hum = getValue(station.querySelector("Humidity"));
-        const ws = getValue(station.querySelector("WindSpeed"));
-        const wg = getValue(station.querySelector("WindGust"));
-        const mslp = getValue(station.querySelector("MeanSeaLevelPressure"));
-        const stp = getValue(station.querySelector("StationPressure"));
-        const wdNode = station.querySelector("WindDirection");
-        const wd = wdNode ? getValue(wdNode.querySelector("Degree")) : null;
-
-        let r1m = null, r1h = null;
-        station.querySelectorAll("Rainfall").forEach(rn => {
-            const t = rn.querySelector("Type")?.textContent;
-            const rv = getValue(rn);
-            if (t === "3") r1m = rv;
-            if (t === "4") r1h = rv;
+        let r1m=null,r1h=null;
+        st.querySelectorAll("Rainfall").forEach(n=>{
+            let t = n.querySelector("Type")?.textContent;
+            if(t==="3") r1m = getValue(n);
+            if(t==="4") r1h = getValue(n);
         });
 
         history.push({
-            time: timeStr,
-            timestamp: timeStamp,
-            code, name,
-            temp, humidity: hum, windSpeed: ws, windGust: wg,
-            windDir: wd, mslPressure: mslp, stationPressure: stp,
-            rain1m: r1m, rain1h: r1h
+            timestamp: now, time: timeStr, code, name,
+            temp,humidity:hum,windSpeed:ws,windGust:wg,
+            windDir:wd,mslPressure:mslp,stationPressure:stp,
+            rain1m:r1m,rain1h:r1h
         });
     });
-
-    if (history.length > MAX_RECORDS) history = history.slice(-MAX_RECORDS);
+    if(history.length > MAX_RECORDS) history = history.slice(-MAX_RECORDS);
     localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 }
 
-// Main chart function: X = real datetime, Y = pure value
-function renderSingleChart(param, code, name) {
-    const chartWrap = document.getElementById("chart-wrapper");
-    const chartTitle = document.getElementById("chart-title");
-    const config = PARAM_CONFIG[param];
-    chartWrap.style.display = "block";
-    chartTitle.textContent = `${name} (${code}) - ${config.label} 24小時趨勢`;
+function drawChart(param, code, name) {
+    const cfg = PARAM_CONFIG[param];
+    DOM.chartWrap.style.display = "block";
+    DOM.chartTitle.textContent = `${name} (${code}) - ${cfg.label} 24小時趨勢`;
 
-    const fullHistory = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-    const stationData = fullHistory.filter(d => d.code === code);
+    const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+    const data = history.filter(d=>d.code === code).map(item=>[item.timestamp, item[param]]);
 
-    if (stationData.length === 0) {
-        Highcharts.chart("single-chart", {
-            title: { text: "暫無歷史數據，請等待數據累積" },
-            credits: { enabled: false }
+    if(!data.length){
+        Highcharts.chart(DOM.chartBox, {
+            title:{text:"暫無歷史數據"}, credits:{enabled:false}
         });
         return;
     }
 
-    // Format data for Highcharts datetime X-axis
-    const chartData = stationData.map(item => [
-        item.timestamp,
-        item[param]
-    ]);
-
-    Highcharts.chart("single-chart", {
-        chart: {
-            backgroundColor: "#fff",
-            type: config.type
+    Highcharts.chart(DOM.chartBox, {
+        chart:{type:cfg.type, backgroundColor:"#fff"},
+        title:{text:""},
+        xAxis:{
+            type:"datetime",
+            title:{text:"時間"},
+            dateTimeLabelFormats:{minute:'%H:%M', hour:'%H:%M'}
         },
-        title: { text: "" },
-        xAxis: {
-            type: 'datetime',
-            dateTimeLabelFormats: {
-                minute: '%H:%M',
-                hour: '%H:%M',
-                day: '%m-%d %H:%M'
-            },
-            title: { text: '時間' }
-        },
-        yAxis: {
-            title: { text: `${config.label} (${config.unit})` }
-        },
-        tooltip: {
-            xDateFormat: '%Y-%m-%d %H:%M',
-            valueSuffix: ` ${config.unit}`
-        },
-        legend: { enabled: false },
-        credits: { enabled: false },
-        series: [{
-            name: config.label,
-            data: chartData,
-            color: config.color,
-            lineWidth: config.type === 'line' ? 3 : undefined,
-            marker: config.type === 'scatter' ? { radius: 5, enabled: true } : { enabled: true }
+        yAxis:{title:{text:`${cfg.label} (${cfg.unit})`}},
+        tooltip:{xDateFormat:'%H:%M', valueSuffix:` ${cfg.unit}`},
+        legend:{enabled:false},
+        credits:{enabled:false},
+        series:[{
+            data: data,
+            color: cfg.color,
+            lineWidth: cfg.type==='line'?3:undefined,
+            marker: cfg.type==='scatter'?{radius:5}:{enabled:true}
         }]
     });
 }
 
-// Accordion toggle
-document.querySelectorAll(".accordion-header").forEach(header => {
-    header.addEventListener("click", () => {
-        const content = header.nextElementSibling;
-        const isActive = header.classList.contains("active");
-        document.querySelectorAll(".accordion-header").forEach(h => h.classList.remove("active"));
-        document.querySelectorAll(".accordion-content").forEach(c => c.classList.remove("active"));
-        if (!isActive) {
-            header.classList.add("active");
+// Accordion click
+document.querySelectorAll(".accordion-header").forEach(h=>{
+    h.onclick = ()=>{
+        const content = h.nextElementSibling;
+        const active = h.classList.contains("active");
+        document.querySelectorAll(".accordion-header").forEach(x=>x.classList.remove("active"));
+        document.querySelectorAll(".accordion-content").forEach(x=>x.classList.remove("active"));
+        if(!active){
+            h.classList.add("active");
             content.classList.add("active");
         }
-    });
+    };
 });
 
-function showError(msg) {
-    document.getElementById('grid-container').innerHTML = `<div class="loading" style="color: #e74c3c;">${msg}</div>`;
-}
-
-async function init() {
+async function main() {
     try {
-        await fetchGridData();
-    } catch (err) {
-        console.error(err);
-        showError(`載入失敗，請稍後重試`);
+        const xml = await fetchData();
+        const stations = buildTablesAndCards(xml);
+        saveHistory(stations);
+    } catch {
+        DOM.gridContainer.innerHTML = `<div class="loading" style="color:#e74c3c;">載入失敗，請稍後重試</div>`;
     }
 }
-init();
-setInterval(init, 5 * 60 * 1000);
+
+main();
+setInterval(main, 5 * 60 * 1000);
 </script>
 </body>
 </html>
