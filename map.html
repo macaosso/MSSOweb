@@ -238,14 +238,14 @@
         </div>
         <div class="meta-info">
             <div>資料更新時間：<span id="pub-date">載入中...</span></div>
-            <div>每60秒自動刷新</div>
+            <div>每5分鐘自動刷新</div>
         </div>
     </header>
 
     <!-- All Split Map Tabs -->
     <div class="tab-wrapper">
         <div class="tab-buttons">
-            <button class="tab-btn active" data-type="tempCurrent">即時氣溫</button>
+            <button class="tab-btn active" data-type="tempCurrent">氣溫</button>
             <button class="tab-btn" data-type="tempMax">最高氣溫</button>
             <button class="tab-btn" data-type="tempMin">最低氣溫</button>
             <button class="tab-btn" data-type="humidity">相對濕度</button>
@@ -256,7 +256,7 @@
             <button class="tab-btn" data-type="rain1h">一小時雨量</button>
             <button class="tab-btn" data-type="rainTotal">累計日雨量</button>
             <button class="tab-btn" data-type="pressSea">海平面氣壓</button>
-            <button class="tab-btn" data-type="pressStation">站點氣壓</button>
+            <button class="tab-btn" data-type="pressStation">站氣壓</button>
         </div>
     </div>
 
@@ -411,7 +411,7 @@ function updateLegendPanel(tabType) {
             legendHTML = `
                 <div class="legend-item"><div class="legend-color" style="background:#553C9A"></div>非常潮濕(95-100%)</div>
                 <div class="legend-item"><div class="legend-color" style="background:#5DADEC"></div>潮濕(85-95%)</div>
-                <div class="legend-item"><div class="legend-color" style="background:#6EE7B7"></div>71-84%</div>
+                <div class="legend-item"><div class="legend-color" style="background:#6EE7B7"></div>正常</div>
                 <div class="legend-item"><div class="legend-color" style="background:#E6B34B"></div>乾燥(40-70%)</div>
                 <div class="legend-item"><div class="legend-color" style="background:#7b1818"></div>非常乾燥(0-40%)</div>
             `;
@@ -419,11 +419,11 @@ function updateLegendPanel(tabType) {
         case "windSpeed":
         case "windGust":
             legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>>=118 km/h</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f2a938"></div>88-117 km/h</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f9e559"></div>63-87 km/h</div>
-                <div class="legend-item"><div class="legend-color" style="background:#60c070"></div>41-62 km/h</div>
-                <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>0-40 km/h</div>
+                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>颶風</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f2a938"></div>暴風</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f9e559"></div>烈風</div>
+                <div class="legend-item"><div class="legend-color" style="background:#60c070"></div>強風</div>
+                <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>強風以下</div>
             `;
             break;
         case "rain1m":
