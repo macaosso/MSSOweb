@@ -178,23 +178,21 @@ function renderData(data, updateTime) {
     });
 }
 
-// 抓取 SMG 空氣質量 XML 接口
+// 抓取 XML：使用 allorigins 穩定代理
 function fetchAQI() {
-    const proxy = "https://corsproxy.io/?";
     const xmlUrl = "https://xml.smg.gov.mo/c_airquality.xml";
-    const url = proxy + encodeURIComponent(xmlUrl) + `?t=${Date.now()}`;
+    // 替換為穩定代理
+    const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(xmlUrl)}&_=${Date.now()}`;
 
     fetch(url)
     .then(res => {
-        if(!res.ok) throw new Error("請求失敗");
+        if(!res.ok) throw new Error("接口異常");
         return res.text();
     })
     .then(xmlStr => {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
-        // 取得更新時間
         const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent || "";
-        // 解析測站數據
         const stationNodes = xmlDoc.querySelectorAll("AirQuality station");
         const data = [];
 
@@ -206,9 +204,7 @@ function fetchAQI() {
             }
         });
 
-        if(data.length === 0){
-            throw new Error("無數據");
-        }
+        if(data.length === 0) throw new Error("無匹配測站數據");
         renderData(data, pubTime);
     })
     .catch(err => {
@@ -217,9 +213,9 @@ function fetchAQI() {
     });
 }
 
-// 啟動 + 自動刷新(2分鐘)
+// 啟動 + 每2分鐘自動刷新
 fetchAQI();
-setInterval(fetchAQI, 60000);
+setInterval(fetchAQI, 120000);
 </script>
 
 </body>
