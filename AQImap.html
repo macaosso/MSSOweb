@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>澳門空氣質量監測地圖</title>
+    <title>澳門空氣質量監測地圖（IQA 標準）</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -64,15 +64,16 @@
             font-size:1rem; font-weight:bold; color:#34495e;
             margin-bottom:10px; border-bottom:1px solid #ecf0f1; padding-bottom:6px;
         }
-        .aqi-container {
-            display: flex; flex-direction: column; align-items: center;
-            justify-content: center; padding: 12px 0;
-            background: #fdfefe; border-radius: 8px; border: 1px solid #eef2f5;
+        .pollutant-grid {
+            display:grid; grid-template-columns:1fr 1fr; gap:8px;
+            font-size:0.85rem; margin-top:10px;
         }
-        .aqi-label {
-            font-size: 0.75rem; color: #7f8c8d; margin-bottom: 4px;
+        .pollutant-item {
+            background:#f8f9fa; padding:6px; border-radius:4px;
+            text-align:center;
         }
-        .aqi-value { font-size:2.2rem; font-weight:800; }
+        .pollutant-label { color:#7f8c8d; font-size:0.7rem; }
+        .pollutant-value { font-weight:bold; color:#2c3e50; }
         .loading { 
             grid-column:1/-1; text-align:center; padding:40px;
             font-size:1.2rem; color:#7f8c8d;
@@ -83,9 +84,9 @@
 <div class="container">
     <header>
         <div>
-            <h1>澳門空氣質量監測地圖</h1>
+            <h1>澳門空氣質量監測地圖（官方IQA標準）</h1>
             <small style="color:#3498db; background:rgba(255,255,255,0.9); padding:2px 8px; border-radius:4px;">
-                實時濃度 + 空氣質量指數 | 每分鐘自動更新
+                實時污染物 + 官方分段線性IQA計算 | 每分鐘自動更新
             </small>
         </div>
         <div class="meta-info">
@@ -104,7 +105,7 @@
             </div>
             <!-- 圖例 -->
             <div class="map-legend">
-                <h4>空氣質量指數 AQI</h4>
+                <h4>空氣質量指數 IQA</h4>
                 <div class="legend-row"><div class="legend-dot" style="background:#b8e994;"></div> 優 (0-50)</div>
                 <div class="legend-row"><div class="legend-dot" style="background:#ffeaa7;"></div> 良好 (51-100)</div>
                 <div class="legend-row"><div class="legend-dot" style="background:#fdcb6e;"></div> 普通 (101-150)</div>
@@ -152,9 +153,81 @@ document.getElementById('zoomAll').addEventListener('click', () => {
 
 let allMarkers = [];
 
-// 根據AQI獲取圓圈顏色（柔和淺色系）
+// 污染物斷點（按澳門官方標準）
+const breakpoints = {
+    PM25: [
+        { C: 0, I: 0 }, { C: 12, I: 50 }, { C: 35, I: 100 },
+        { C: 55, I: 150 }, { C: 150, I: 200 }
+    ],
+    PM10: [
+        { C: 0, I: 0 }, { C: 54, I: 50 }, { C: 154, I: 100 },
+        { C: 254, I: 150 }, { C: 354, I: 200 }
+    ],
+    NO2: [
+        { C: 0, I: 0 }, { C: 53, I: 50 }, { C: 100, I: 100 },
+        { C: 360, I: 150 }, { C: 649, I: 200 }
+    ],
+    SO2: [
+        { C: 0, I: 0 }, { C: 35, I: 50 }, { C: 75, I: 100 },
+        { C: 185, I: 150 }, { C: 304, I: 200 }
+    ],
+    O3: [
+        { C: 0, I: 0 }, { C: 54, I: 50 }, { C: 70, I: 100 },
+        { C: 85, I: 150 }, { C: 105, I: 200 }
+    ],
+    CO: [
+        { C: 0, I: 0 }, { C: 4.4, I: 50 }, { C: 9.4, I: 100 },
+        { C: 12.4, I: 150 }, { C: 15.4, I: 200 }
+    ]
+};
+
+// 分段線性公式計算副指數
+function calculateSubIndex(value, key) {
+    if (value === undefined || value === null) return 0;
+    const bps = breakpoints[key];
+    if (!bps) return 0;
+
+    const val = parseFloat(value);
+    if (isNaN(val)) return 0;
+
+    // 找斷點區間
+    let Clow, Chigh, Ilow, Ihigh;
+    for (let i = 0; i < bps.length - 1; i++) {
+        if (val >= bps[i].C && val <= bps[i + 1].C) {
+            Clow = bps[i].C;
+            Chigh = bps[i + 1].C;
+            Ilow = bps[i].I;
+            Ihigh = bps[i + 1].I;
+            break;
+        }
+    }
+    if (!Clow) {
+        // 超過最高斷點
+        const last = bps[bps.length - 1];
+        Clow = last.C;
+        Chigh = last.C;
+        Ilow = last.I;
+        Ihigh = last.I;
+    }
+
+    if (Chigh === Clow) return Ilow;
+    return Math.round(((Ihigh - Ilow) / (Chigh - Clow)) * (val - Clow) + Ilow);
+}
+
+// 計算IQA（取各污染物副指數最大值）
+function calculateIQA(pollutants) {
+    const pm25 = calculateSubIndex(pollutants.HE_PM2_5, "PM25");
+    const pm10 = calculateSubIndex(pollutants.HE_PM10, "PM10");
+    const no2 = calculateSubIndex(pollutants.NO2, "NO2");
+    const so2 = calculateSubIndex(pollutants.SO2, "SO2");
+    const o3 = calculateSubIndex(pollutants.O3, "O3");
+    const co = calculateSubIndex(pollutants.CO, "CO");
+    return Math.max(pm25, pm10, no2, so2, o3, co);
+}
+
+// 根據IQA獲取圓圈顏色（柔和淺色系）
 function getAQIColor(val) {
-    let v = parseFloat(val);
+    let v = parseInt(val);
     if (isNaN(v) || v <= 50) return "#b8e994";    // 優 淺綠
     if (v <= 100) return "#ffeaa7";               // 良好 淺黃
     if (v <= 150) return "#fdcb6e";               // 普通 淺橙
@@ -163,7 +236,7 @@ function getAQIColor(val) {
 
 // 文字顏色：高濃度深色底用白色字
 function getTextColor(val) {
-    let v = parseFloat(val);
+    let v = parseInt(val);
     return v > 100 ? "#ffffff" : "#000000";
 }
 
@@ -181,14 +254,14 @@ function renderData(airData) {
 
     stationsList.forEach(station => {
         const data = airData[station.code] || {};
-        const aqi = data.aqi || "--";
-        const circleColor = getAQIColor(aqi);
-        const textColor = getTextColor(aqi);
+        const iqa = calculateIQA(data);
+        const circleColor = getAQIColor(iqa);
+        const textColor = getTextColor(iqa);
 
-        // 彈窗內容：站名 + 簡碼 + AQI
+        // 彈窗內容：站名 + 簡碼 + IQA
         const popupHtml = `
             <strong>${station.name}</strong> (${station.code})<br>
-            空氣質量指數 AQI：${aqi}
+            空氣質量指數 IQA：${iqa}
         `;
 
         // 1. 底層彩色圓圈
@@ -202,12 +275,12 @@ function renderData(airData) {
 
         // 2. 透明點擊層（解決彈窗點擊失效）
         const clickMarker = L.marker([station.lat, station.lng], {
-            icon: L.divIcon({ html: "", className: "", iconSize: [30, 30] })
+            icon: L.divIcon({ html: "", className: "", iconSize: [44, 44] })
         }).bindPopup(popupHtml).addTo(map);
 
-        // 3. 中間AQI數字
+        // 3. 中間IQA數字
         const textIcon = L.divIcon({
-            html: `<div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:${textColor};font-weight:bold;font-size:14px;">${aqi}</div>`,
+            html: `<div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:${textColor};font-weight:bold;font-size:14px;">${iqa}</div>`,
             iconSize: [44, 44],
             iconAnchor: [22, 22]
         });
@@ -215,13 +288,36 @@ function renderData(airData) {
 
         allMarkers.push(circleMarker, clickMarker, textMarker);
 
-        // 渲染監測卡片（頂邊顏色同步AQI）
+        // 渲染監測卡片（頂邊顏色同步IQA，顯示所有污染物）
         cardContainer.innerHTML += `
             <div class="station-card" style="border-top-color: ${circleColor};">
                 <div class="station-name">${station.name} (${station.code})</div>
-                <div class="aqi-container">
-                    <span class="aqi-label">空氣質量指數 (AQI)</span>
-                    <div class="aqi-value" style="color:${textColor}">${aqi}</div>
+                <div style="text-align:center; font-size:1.8rem; font-weight:bold; color:${textColor};">${iqa}</div>
+                <div class="pollutant-grid">
+                    <div class="pollutant-item">
+                        <div class="pollutant-label">PM2.5</div>
+                        <div class="pollutant-value">${data.HE_PM2_5 || '--'} μg/m³</div>
+                    </div>
+                    <div class="pollutant-item">
+                        <div class="pollutant-label">PM10</div>
+                        <div class="pollutant-value">${data.HE_PM10 || '--'} μg/m³</div>
+                    </div>
+                    <div class="pollutant-item">
+                        <div class="pollutant-label">NO₂</div>
+                        <div class="pollutant-value">${data.NO2 || '--'} μg/m³</div>
+                    </div>
+                    <div class="pollutant-item">
+                        <div class="pollutant-label">SO₂</div>
+                        <div class="pollutant-value">${data.SO2 || '--'} μg/m³</div>
+                    </div>
+                    <div class="pollutant-item">
+                        <div class="pollutant-label">O₃</div>
+                        <div class="pollutant-value">${data.O3 || '--'} μg/m³</div>
+                    </div>
+                    <div class="pollutant-item">
+                        <div class="pollutant-label">CO</div>
+                        <div class="pollutant-value">${data.CO || '--'} mg/m³</div>
+                    </div>
                 </div>
             </div>
         `;
@@ -246,13 +342,17 @@ async function fetchAirData() {
         const pubTime = pubTimeMatch ? pubTimeMatch[1].trim() : jsonData.datetime;
         document.getElementById("pub-date").innerText = pubTime;
 
-        // 解析數據，簡易計算AQI（基於PM2.5）
+        // 整理數據
         const result = {};
         Object.values(jsonData).forEach(item => {
-            const code = item.CODE;
-            const pm25 = parseFloat(item.HE_PM2_5 || 0);
-            const aqi = Math.round(pm25 * 2.5);
-            result[code] = { aqi: aqi };
+            result[item.CODE] = {
+                HE_PM2_5: item.HE_PM2_5,
+                HE_PM10: item.HE_PM10,
+                NO2: item.NO2,
+                SO2: item.SO2,
+                O3: item.O3,
+                CO: item.CO
+            };
         });
 
         renderData(result);
