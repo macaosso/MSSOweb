@@ -113,13 +113,12 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 let markers = [];
-
 function clearMarkers() {
     markers.forEach(m => map.removeLayer(m));
     markers = [];
 }
 
-// 依IQA取得顏色、等級
+// 根據IQA數值取得顏色、等級
 function getAQIColor(val) {
     const num = parseInt(val);
     if (isNaN(num)) return '#95a5a6';
@@ -141,7 +140,7 @@ function getLevelClass(val) {
     return 'poor';
 }
 
-// 渲染地圖標記與卡片
+// 渲染地圖標記與資訊卡片
 function renderData(data, updateTime) {
     clearMarkers();
     document.getElementById('updateTime').innerText = updateTime || '';
@@ -178,34 +177,48 @@ function renderData(data, updateTime) {
     });
 }
 
-// 抓取 XML：使用 allorigins 穩定代理
+// 抓取並解析官方空氣質量網頁
 function fetchAQI() {
-    const xmlUrl = "https://xml.smg.gov.mo/c_airquality.xml";
-    // 替換為穩定代理
-    const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(xmlUrl)}&_=${Date.now()}`;
+    const targetUrl = "https://www.smg.gov.mo/zh/subpage/64/realtime-iqa-report";
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}&_=${Date.now()}`;
 
-    fetch(url)
+    fetch(proxyUrl)
     .then(res => {
-        if(!res.ok) throw new Error("接口異常");
+        if (!res.ok) throw new Error("請求失敗");
         return res.text();
     })
-    .then(xmlStr => {
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
-        const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent || "";
-        const stationNodes = xmlDoc.querySelectorAll("AirQuality station");
-        const data = [];
+    .then(html => {
+        if (!html || html.trim() === "") throw new Error("頁面內容為空");
 
-        stationNodes.forEach(node => {
-            const name = node.querySelector("StationName")?.textContent?.trim() || "";
-            const iqa = node.querySelector("IQA > dValue")?.textContent?.trim() || "";
-            if(name && iqa && stations[name]){
-                data.push({ name, value: iqa });
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        let updateTime = "";
+        const dataList = [];
+
+        // 擷取更新時間
+        const allTd = doc.querySelectorAll("td");
+        for (let i = 0; i < allTd.length; i++) {
+            if (allTd[i].textContent.includes("更新時間")) {
+                updateTime = allTd[i+1]?.textContent.trim() || "";
+                break;
+            }
+        }
+
+        // 解析表格數據
+        const rows = doc.querySelectorAll("table tr");
+        rows.forEach(row => {
+            const tds = row.querySelectorAll("td");
+            if (tds.length >= 4) {
+                const name = tds[1].textContent.trim();
+                const val = tds[3].textContent.trim();
+                if (name && val && !isNaN(Number(val)) && stations[name]) {
+                    dataList.push({ name: name, value: val });
+                }
             }
         });
 
-        if(data.length === 0) throw new Error("無匹配測站數據");
-        renderData(data, pubTime);
+        if (dataList.length === 0) throw new Error("未讀取到測站數據");
+        renderData(dataList, updateTime);
     })
     .catch(err => {
         console.error(err);
@@ -213,7 +226,7 @@ function fetchAQI() {
     });
 }
 
-// 啟動 + 每2分鐘自動刷新
+// 首次載入 + 每2分鐘自動刷新
 fetchAQI();
 setInterval(fetchAQI, 120000);
 </script>
