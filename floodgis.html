@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -61,8 +61,29 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.08);
             position: relative;
         }
-
-        /* ===== Map Legend ===== */
+        /* 缩放控制按钮 */
+        .zoom-controls {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .zoom-btn {
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+        .zoom-btn:hover {
+            background: #f0f0f0;
+        }
+        /* 图例 */
         .map-legend {
             position: absolute;
             bottom: 20px;
@@ -92,11 +113,9 @@
             margin-right: 8px;
             border: 1px solid #ccc;
         }
-
-        /* ===== Smaller Station Cards (more per row) ===== */
+        /* 水位卡片 */
         .station-grid {
             display: grid;
-            /* Smaller min width → more cards in one row */
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 15px;
         }
@@ -108,7 +127,6 @@
             transition: transform 0.2s, box-shadow 0.2s;
             display: flex;
             flex-direction: column;
-            /* Remove fixed blue top border, use dynamic color */
             border-top: 5px solid #ffffff;
             position: relative;
             overflow: hidden;
@@ -178,7 +196,14 @@
 
     <div class="main-wrap">
         <div id="map">
-            <!-- Map Legend -->
+            <!-- 缩放按钮 -->
+            <div class="zoom-controls">
+                <button class="zoom-btn" id="zoomMacau">澳門半島</button>
+                <button class="zoom-btn" id="zoomTaipa">氹仔</button>
+                <button class="zoom-btn" id="zoomcoloane">路環</button>
+                <button class="zoom-btn" id="zoomAll">全澳</button>
+            </div>
+            <!-- 图例 -->
             <div class="map-legend">
                 <h4>水位分級 (米)</h4>
                 <div class="legend-row"><div class="legend-dot" style="background:#d1d1d1;"></div> 0.00 (無水位)</div>
@@ -197,7 +222,7 @@
 </div>
 
 <script>
-// 19 stations + short code (short form)
+// 19 站點 + 簡碼
 const pointList = [
     { name: "青洲河邊馬路", code: "QZ", lat: 22.212097, lng: 113.535243 },
     { name: "花地瑪教會街", code: "HDM", lat: 22.211374, lng: 113.546674 },
@@ -220,7 +245,7 @@ const pointList = [
     { name: "聖方濟各堂", code: "SFJ", lat: 22.117434, lng: 113.551004 }
 ];
 
-// Init map
+// 初始化地圖
 const map = L.map('map').setView([22.175, 113.55], 13);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
@@ -228,62 +253,101 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 let mapMarkers = [];
 
-// Get artistic light color by water level range
+// -------- 3 個縮放視圖 --------
+const views = {
+    macau: { center: [22.197456, 113.544010], zoom: 14 },
+    taipa: { center: [22.158535, 113.557303], zoom: 14 },
+    coloane:{ center: [22.128377, 113.561229], zoom: 14 },
+    all: { center: [22.175, 113.55], zoom: 12 }
+};
+document.getElementById('zoomMacau').addEventListener('click', () => {
+    map.setView(views.macau.center, views.macau.zoom);
+});
+document.getElementById('zoomTaipa').addEventListener('click', () => {
+    map.setView(views.taipa.center, views.taipa.zoom);
+});
+document.getElementById('zoomcoloane').addEventListener('click', () => {
+    map.setView(views.coloane.center, views.coloane.zoom);
+});
+document.getElementById('zoomAll').addEventListener('click', () => {
+    map.setView(views.all.center, views.all.zoom);
+});
+
+// -------- 顏色 + 文字顏色規則 --------
 function getColor(level) {
     const val = parseFloat(level);
-    if (isNaN(val) || val === 0) return "#d1d1d1";        // 0 → Light Gray
-    if (val >= 0.01 && val <= 0.09) return "#b8e994";      // Light Green
-    if (val >= 0.1 && val <= 0.49) return "#74b9ff";      // Light Blue
-    if (val >= 0.5 && val <= 0.99) return "#ffeaa7";      // Light Yellow
-    if (val >= 1.0 && val <= 1.49) return "#fdcb6e";      // Light Orange
-    if (val >= 1.5 && val <= 2.49) return "#e17055";      // Light Red
-    return "#2d3436";                                     // >=2.5 → Dark Gray/Black
+    if (isNaN(val) || val === 0) return "#d1d1d1";      // 0 → 淺灰
+    if (val >= 0.01 && val <= 0.09) return "#b8e994";  // 淺綠
+    if (val >= 0.1 && val <= 0.49) return "#74b9ff";    // 淺藍
+    if (val >= 0.5 && val <= 0.99) return "#ffeaa7";    // 淺黃
+    if (val >= 1.0 && val <= 1.49) return "#fdcb6e";    // 淺橙
+    if (val >= 1.5 && val <= 2.49) return "#e17055";    // 淺紅
+    return "#2d3436";                                       // ≥2.5 → 深灰
+}
+// ≥1.5m 文字白色，其他黑色
+function getTextColor(level) {
+    const val = parseFloat(level);
+    if (val >= 1.5) return "#ffffff";
+    return "#000000";
 }
 
-// Clear old markers
+// -------- 清除舊標記 --------
 function clearAllMarkers() {
     mapMarkers.forEach(marker => map.removeLayer(marker));
     mapMarkers = [];
 }
 
-// Create circle markers + show level inside circle + short code in popup
+// -------- 刷新標記（圓圈+水位數字+popup） --------
 function refreshMarkers(stationData) {
     clearAllMarkers();
-    pointList.forEach(point => {
+    const currentZoom = map.getZoom();
+    pointList.forEach((point, idx) => {
         const match = stationData.find(s => s.name.includes(point.name));
         const level = match ? match.level : "--";
         const fillColor = getColor(level);
+        const textColor = getTextColor(level);
 
-        // Popup: Station Name + Short Code + Water Level
-        const popup = `
+        // Popup 內容
+        const popupContent = `
             <strong>${point.name}</strong> (${point.code})<br>
             水位: ${level} 米
         `;
 
-        // Use CIRCLE MARKER (instead of default pin marker)
+        // 1. 底層 circleMarker（不綁popup，避免被文字層擋住）
         const circleMarker = L.circleMarker([point.lat, point.lng], {
-            radius: 22,
+            radius: currentZoom >= 14 ? 25 : 20,
             fillColor: fillColor,
             color: "#fff",
             weight: 2,
             fillOpacity: 0.9
-        })
-        .bindPopup(popup)
-        .addTo(map);
+        }).addTo(map);
 
-        // Add water level text inside circle
+        // 2. 上層透明 marker（專門綁 popup，可點擊）
+        const clickMarker = L.marker([point.lat, point.lng], {
+            icon: L.divIcon({
+                html: '',
+                className: 'invisible-marker',
+                iconSize: [30, 30]
+            })
+        }).bindPopup(popupContent).addTo(map);
+
+        // 3. 水位文字（避免堆疊：不同縮放大小/偏移不同）
+        const fontSize = currentZoom >= 14 ? '15px' : '12px';
+        const offsetX = (idx % 2 === 0) ? '0px' : '1px';
+        const offsetY = (idx % 3 === 0) ? '-1px' : '0px';
         const textIcon = L.divIcon({
-            html: `<div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:#000;font-weight:bold;font-size:14px;">${level !== "--" ? level : "-"}</div>`,
+            html: `<div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;color:${textColor};font-weight:bold;font-size:${fontSize};transform:translate(${offsetX},${offsetY});">${level !== "--" ? level : "-"}</div>`,
             className: "",
-            iconSize: [44,44],
-            iconAnchor: [22,22]
+            iconSize: [50, 50],
+            iconAnchor: [25, 25]
         });
-        const textMarker = L.marker([point.lat, point.lng], {icon: textIcon}).addTo(map);
+        const textMarker = L.marker([point.lat, point.lng], { icon: textIcon }).addTo(map);
 
-        mapMarkers.push(circleMarker, textMarker);
+        mapMarkers.push(circleMarker, clickMarker, textMarker);
     });
 }
 
+// -------- 讀取水位 XML --------
 function fetchWaterLevelData() {
     const cacheBuster = Date.now();
     const freshUrl = `https://corsproxy.io/?https://xml.smg.gov.mo/c_ftgms.xml?t=${cacheBuster}`;
@@ -356,6 +420,11 @@ function fetchWaterLevelData() {
             refreshMarkers([]);
         });
 }
+
+// 地圖縮放變化時重新繪製（解決大小/堆疊）
+map.on('zoomend', () => {
+    fetchWaterLevelData();
+});
 
 fetchWaterLevelData();
 setInterval(fetchWaterLevelData, 30000);
