@@ -153,7 +153,7 @@
     <header>
         <div>
             <h1>澳門各區天氣實況</h1>
-            <small style="color: #2ecc71;">● 5分鐘更新 | 滾動24小時雨量計算</small>
+            <small style="color: #2ecc71;">● 5分鐘更新 | 滾動24小時雨量 (防重複記錄)</small>
         </div>
         <div class="meta-info">
             <div>資料更新時間：<span id="pub-date">載入中...</span></div>
@@ -171,7 +171,7 @@
 // ===================== Global Config =====================
 const STORAGE_KEY = "MACAU_5MIN_RAIN_DATA";
 const RECORDS_PER_24H = 288;       // 5min * 288 = 24h
-const MAX_STORE_RECORDS = 576;     // Keep 48h data as buffer
+const MAX_STORE_RECORDS = 576;     // Keep 48h data buffer
 
 // Read records from LocalStorage
 function getRainRecords() {
@@ -179,20 +179,30 @@ function getRainRecords() {
     return raw ? JSON.parse(raw) : [];
 }
 
-// Save & trim old records
-function saveRainRecords(records) {
-    if (records.length > MAX_STORE_RECORDS) {
-        records = records.slice(-MAX_STORE_RECORDS);
+// Save records + DUPICATE CHECK
+function saveRainRecords(oldRecords, newBatch) {
+    const merged = [...oldRecords];
+    // Skip duplicate: same station code + same capture time
+    newBatch.forEach(newItem => {
+        const exists = merged.some(
+            r => r.code === newItem.code && r.time === newItem.time
+        );
+        if (!exists) {
+            merged.push(newItem);
+        }
+    });
+    // Trim old records (keep latest MAX_STORE_RECORDS)
+    if (merged.length > MAX_STORE_RECORDS) {
+        merged.splice(0, merged.length - MAX_STORE_RECORDS);
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
+    return merged;
 }
 
-// Calculate Rolling 24h Rainfall (sum latest 288 records per station)
+// Calculate Rolling 24h Rainfall
 function getRolling24hRain(stationCode) {
     const allRecords = getRainRecords();
-    // Filter records for target station
     const stationRecords = allRecords.filter(r => r.code === stationCode);
-    // Take latest 288 records (full 24h window)
     const windowRecords = stationRecords.slice(-RECORDS_PER_24H);
 
     let total = 0;
@@ -244,9 +254,8 @@ function fetchGridData() {
         .then(xmlStr => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
-            const currentCaptureTime = new Date().toISOString(); // Standard timestamp
+            const currentCaptureTime = new Date().toISOString();
 
-            // Update official publish time
             const pubDateNode = xmlDoc.querySelector("SysPubdate");
             if (pubDateNode) {
                 document.getElementById("pub-date").textContent = pubDateNode.textContent;
@@ -269,7 +278,6 @@ function fetchGridData() {
                 const name = station.querySelector("stationname")?.textContent || "未命名站點";
                 const nameDisplay = `${name}(${code})`;
 
-                // Basic weather data
                 const temp = getVal("Temperature", station);
                 const tempMax = getVal("Temperature_daily_max", station);
                 const tempMin = getVal("Temperature_daily_min", station);
@@ -279,7 +287,6 @@ function fetchGridData() {
                 const mslPress = getVal("MeanSeaLevelPressure", station);
                 const stPress = getVal("StationPressure", station);
 
-                // Wind direction
                 let windDir = "--";
                 const windDirNode = station.querySelector("WindDirection");
                 if (windDirNode) {
@@ -290,7 +297,6 @@ function fetchGridData() {
                     else if (deg) windDir = `${deg}°`;
                 }
 
-                // Rainfall values
                 let rain1m = "0.0", rain1h = "0.0", rainDay = "0.0";
                 station.querySelectorAll("Rainfall").forEach(node => {
                     const type = node.querySelector("Type")?.textContent;
@@ -300,7 +306,6 @@ function fetchGridData() {
                     if (type === "5") rainDay = val;
                 });
 
-                // Save current 1h rain to record batch
                 newBatch.push({
                     time: currentCaptureTime,
                     code: code,
@@ -308,15 +313,12 @@ function fetchGridData() {
                     hourRain: rain1h
                 });
 
-                // Highlight rain fields
                 const class1m = parseFloat(rain1m) > 0 ? "rain-active" : "";
                 const class1h = parseFloat(rain1h) > 0 ? "rain-active" : "";
                 const classDay = parseFloat(rainDay) > 0 ? "rain-active" : "";
 
-                // Calculate rolling 24h total
                 const total24h = getRolling24hRain(code);
 
-                // Render station card
                 const card = `
                 <div class="station-card">
                     <div class="station-name">${nameDisplay}</div>
@@ -376,10 +378,9 @@ function fetchGridData() {
                 gridContainer.innerHTML += card;
             });
 
-            // Append new records and save to storage
+            // Merge + prevent duplicate records
             const oldRecords = getRainRecords();
-            const merged = [...oldRecords, ...newBatch];
-            saveRainRecords(merged);
+            saveRainRecords(oldRecords, newBatch);
         })
         .catch(err => {
             console.error(err);
@@ -390,7 +391,7 @@ function fetchGridData() {
         });
 }
 
-// First run + 5-minute auto refresh (300000 ms)
+// Initial run + 5-minute auto refresh (300000ms)
 fetchGridData();
 setInterval(fetchGridData, 300000);
 </script>
