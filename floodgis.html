@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>澳門實時水位監測系統 (GIS)</title>
-    <!-- Leaflet CSS & JS -->
+    <title>澳門實時水位監測系統 - 地圖標點</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -44,7 +43,6 @@
             font-size: 0.9rem;
             opacity: 0.95;
         }
-        /* Map + Grid Layout */
         .main-wrap {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -61,21 +59,57 @@
             height: 600px;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+            position: relative;
         }
+
+        /* ===== Map Legend ===== */
+        .map-legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: #fff;
+            padding: 12px 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            font-size: 13px;
+            z-index: 1000;
+            min-width: 180px;
+        }
+        .map-legend h4 {
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #333;
+        }
+        .legend-row {
+            display: flex;
+            align-items: center;
+            margin: 4px 0;
+        }
+        .legend-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            margin-right: 8px;
+            border: 1px solid #ccc;
+        }
+
+        /* ===== Smaller Station Cards (more per row) ===== */
         .station-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
+            /* Smaller min width → more cards in one row */
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
         }
         .station-card {
             background: white;
             border-radius: 12px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.03);
-            padding: 20px;
+            padding: 15px;
             transition: transform 0.2s, box-shadow 0.2s;
             display: flex;
             flex-direction: column;
-            border-top: 5px solid #3498db;
+            /* Remove fixed blue top border, use dynamic color */
+            border-top: 5px solid #ffffff;
             position: relative;
             overflow: hidden;
         }
@@ -84,55 +118,38 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.08);
         }
         .station-name {
-            font-size: 1.15rem;
+            font-size: 1rem;
             font-weight: bold;
             color: #34495e;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             border-bottom: 1px solid #ecf0f1;
-            padding-bottom: 8px;
+            padding-bottom: 6px;
         }
         .water-level-container {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 15px 0;
+            padding: 12px 0;
             background: #fdfefe;
             border-radius: 8px;
             border: 1px solid #eef2f5;
         }
         .water-level-label {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             color: #7f8c8d;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
         .water-level-value {
-            font-size: 2.8rem;
+            font-size: 2.2rem;
             font-weight: 800;
             color: #2c3e50;
         }
         .water-level-unit {
-            font-size: 1.2rem;
+            font-size: 1rem;
             font-weight: 500;
             color: #7f8c8d;
-            margin-left: 3px;
-        }
-        /* Active Flood Alert Warning States (Triggers if depth > 0.00) */
-        .flood-active {
-            border-top-color: #e67e22;
-            background: #fff9f4;
-        }
-        .flood-active .station-name {
-            color: #d35400;
-        }
-        .flood-active .water-level-container {
-            background: #fdf2e9;
-            border-color: #fadbd8;
-        }
-        .flood-active .water-level-value {
-            color: #e67e22;
+            margin-left: 2px;
         }
         .loading {
             grid-column: 1 / -1;
@@ -148,20 +165,31 @@
 <div class="container">
     <header>
         <div>
-            <h1>澳門低窪地區即時水位監測（正確站點）</h1>
+            <h1>澳門低窪地區即時水位監測</h1>
             <small style="color: #3498db; background: rgba(255,255,255,0.9); padding: 2px 8px; border-radius: 4px; margin-top: 5px; display: inline-block;">
-                ● 19個低窪站點 · 地圖標點+實時水位
+                ● 彩色圓點標記 + 分級圖例
             </small>
         </div>
         <div class="meta-info">
             <div>數據更新時間：<span id="pub-date">載入中...</span></div>
-            <div>每1分鐘自動刷新</div>
+            <div>每30秒自動刷新</div>
         </div>
     </header>
 
-    <!-- Map + Card Grid -->
     <div class="main-wrap">
-        <div id="map"></div>
+        <div id="map">
+            <!-- Map Legend -->
+            <div class="map-legend">
+                <h4>水位分級 (米)</h4>
+                <div class="legend-row"><div class="legend-dot" style="background:#d1d1d1;"></div> 0.00 (無水位)</div>
+                <div class="legend-row"><div class="legend-dot" style="background:#b8e994;"></div> 0.01 - 0.09</div>
+                <div class="legend-row"><div class="legend-dot" style="background:#74b9ff;"></div> 0.10 - 0.49</div>
+                <div class="legend-row"><div class="legend-dot" style="background:#ffeaa7;"></div> 0.50 - 0.99</div>
+                <div class="legend-row"><div class="legend-dot" style="background:#fdcb6e;"></div> 1.00 - 1.49</div>
+                <div class="legend-row"><div class="legend-dot" style="background:#e17055;"></div> 1.50 - 2.49</div>
+                <div class="legend-row"><div class="legend-dot" style="background:#2d3436;"></div> ≥ 2.50</div>
+            </div>
+        </div>
         <div id="grid-container" class="station-grid">
             <div class="loading">正在擷取區域實時水位數據...</div>
         </div>
@@ -169,30 +197,30 @@
 </div>
 
 <script>
-// ✅ 替換為你提供的 19 個正確低洼水位站坐標
+// 19 stations + short code (short form)
 const pointList = [
-    { name: "青洲河邊馬路", lat: 22.212097, lng: 113.535243 },
-    { name: "花地瑪教會街", lat: 22.211374, lng: 113.546674 },
-    { name: "紅街市", lat: 22.205155, lng: 113.544597 },
-    { name: "光復街", lat: 22.202498, lng: 113.544916 },
-    { name: "永樂戲院", lat: 22.202574, lng: 113.542885 },
-    { name: "內港北", lat: 22.199984, lng: 113.536861 },
-    { name: "內港", lat: 22.198031, lng: 113.536426 },
-    { name: "康公廟", lat: 22.197330, lng: 113.537858 },
-    { name: "司打口", lat: 22.193228, lng: 113.536822 },
-    { name: "內港南", lat: 22.190755, lng: 113.532853 },
-    { name: "下環街", lat: 22.189418, lng: 113.534413 },
-    { name: "菜園路", lat: 22.159073, lng: 113.558961 },
-    { name: "沙維斯街", lat: 22.157666, lng: 113.550649 },
-    { name: "柯維納馬路", lat: 22.157473, lng: 113.548550 },
-    { name: "益隆", lat: 22.156058, lng: 113.559474 },
-    { name: "松樹尾", lat: 22.154766, lng: 113.557309 },
-    { name: "黑橋街", lat: 22.154409, lng: 113.556284 },
-    { name: "石排灣", lat: 22.131648, lng: 113.562820 },
-    { name: "聖方濟各堂", lat: 22.117434, lng: 113.551004 }
+    { name: "青洲河邊馬路", code: "QZ", lat: 22.212097, lng: 113.535243 },
+    { name: "花地瑪教會街", code: "HDM", lat: 22.211374, lng: 113.546674 },
+    { name: "紅街市", code: "HJS", lat: 22.205155, lng: 113.544597 },
+    { name: "光復街", code: "GFJ", lat: 22.202498, lng: 113.544916 },
+    { name: "永樂戲院", code: "YL", lat: 22.202574, lng: 113.542885 },
+    { name: "內港北", code: "NGN", lat: 22.199984, lng: 113.536861 },
+    { name: "內港", code: "NG", lat: 22.198031, lng: 113.536426 },
+    { name: "康公廟", code: "KGM", lat: 22.197330, lng: 113.537858 },
+    { name: "司打口", code: "SDK", lat: 22.193228, lng: 113.536822 },
+    { name: "內港南", code: "NGS", lat: 22.190755, lng: 113.532853 },
+    { name: "下環街", code: "XHJ", lat: 22.189418, lng: 113.534413 },
+    { name: "菜園路", code: "CYL", lat: 22.159073, lng: 113.558961 },
+    { name: "沙維斯街", code: "SWS", lat: 22.157666, lng: 113.550649 },
+    { name: "柯維納馬路", code: "KWN", lat: 22.157473, lng: 113.548550 },
+    { name: "益隆", code: "YLON", lat: 22.156058, lng: 113.559474 },
+    { name: "松樹尾", code: "SSW", lat: 22.154766, lng: 113.557309 },
+    { name: "黑橋街", code: "HQJ", lat: 22.154409, lng: 113.556284 },
+    { name: "石排灣", code: "SPW", lat: 22.131648, lng: 113.562820 },
+    { name: "聖方濟各堂", code: "SFJ", lat: 22.117434, lng: 113.551004 }
 ];
 
-// Init Leaflet Map
+// Init map
 const map = L.map('map').setView([22.175, 113.55], 13);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
@@ -200,24 +228,59 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 let mapMarkers = [];
 
+// Get artistic light color by water level range
+function getColor(level) {
+    const val = parseFloat(level);
+    if (isNaN(val) || val === 0) return "#d1d1d1";        // 0 → Light Gray
+    if (val >= 0.01 && val <= 0.09) return "#b8e994";      // Light Green
+    if (val >= 0.1 && val <= 0.49) return "#74b9ff";      // Light Blue
+    if (val >= 0.5 && val <= 0.99) return "#ffeaa7";      // Light Yellow
+    if (val >= 1.0 && val <= 1.49) return "#fdcb6e";      // Light Orange
+    if (val >= 1.5 && val <= 2.49) return "#e17055";      // Light Red
+    return "#2d3436";                                     // >=2.5 → Dark Gray/Black
+}
+
 // Clear old markers
 function clearAllMarkers() {
     mapMarkers.forEach(marker => map.removeLayer(marker));
     mapMarkers = [];
 }
 
-// Update map markers with water level data
+// Create circle markers + show level inside circle + short code in popup
 function refreshMarkers(stationData) {
     clearAllMarkers();
     pointList.forEach(point => {
         const match = stationData.find(s => s.name.includes(point.name));
         const level = match ? match.level : "--";
-        const popupText = `<strong>${point.name}</strong><br>水位: ${level} 米`;
+        const fillColor = getColor(level);
 
-        const marker = L.marker([point.lat, point.lng])
-            .addTo(map)
-            .bindPopup(popupText);
-        mapMarkers.push(marker);
+        // Popup: Station Name + Short Code + Water Level
+        const popup = `
+            <strong>${point.name}</strong> (${point.code})<br>
+            水位: ${level} 米
+        `;
+
+        // Use CIRCLE MARKER (instead of default pin marker)
+        const circleMarker = L.circleMarker([point.lat, point.lng], {
+            radius: 22,
+            fillColor: fillColor,
+            color: "#fff",
+            weight: 2,
+            fillOpacity: 0.9
+        })
+        .bindPopup(popup)
+        .addTo(map);
+
+        // Add water level text inside circle
+        const textIcon = L.divIcon({
+            html: `<div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:#000;font-weight:bold;font-size:14px;">${level !== "--" ? level : "-"}</div>`,
+            className: "",
+            iconSize: [44,44],
+            iconAnchor: [22,22]
+        });
+        const textMarker = L.marker([point.lat, point.lng], {icon: textIcon}).addTo(map);
+
+        mapMarkers.push(circleMarker, textMarker);
     });
 }
 
@@ -234,7 +297,6 @@ function fetchWaterLevelData() {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlString, "text/xml");
 
-            // Update publish time
             const pubDateNode = xmlDoc.querySelector("SysPubdate");
             if (pubDateNode) {
                 document.getElementById('pub-date').textContent = pubDateNode.textContent;
@@ -266,12 +328,11 @@ function fetchWaterLevelData() {
 
                 parsedData.push({ name: name, level: waterLevel });
 
-                const parseWl = parseFloat(waterLevel);
-                const isFlooding = !isNaN(parseWl) && parseWl > 0;
-                const alertClass = isFlooding ? 'flood-active' : '';
+                const wlNum = parseFloat(waterLevel);
+                const cardTopColor = getColor(wlNum);
 
                 const cardHtml = `
-                    <div class="station-card ${alertClass}">
+                    <div class="station-card" style="border-top-color: ${cardTopColor};">
                         <div class="station-name">${nameDisplay}</div>
                         <div class="water-level-container">
                             <span class="water-level-label">實時水位高度</span>
@@ -284,7 +345,6 @@ function fetchWaterLevelData() {
                 gridContainer.innerHTML += cardHtml;
             });
 
-            // Refresh map markers
             refreshMarkers(parsedData);
         })
         .catch(err => {
@@ -297,7 +357,6 @@ function fetchWaterLevelData() {
         });
 }
 
-// Run
 fetchWaterLevelData();
 setInterval(fetchWaterLevelData, 30000);
 </script>
