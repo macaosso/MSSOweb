@@ -303,13 +303,13 @@ const allPoints = {
 function getTempColor(tempStr) {
     const temp = parseFloat(tempStr);
     if (isNaN(temp)) return "#3498db";
-    if (temp >= 35.0) return "#7b1818";
-    if (temp >= 33.0) return "#d64040";
-    if (temp >= 28.0) return "#ed7a7a";
-    if (temp >= 22.1) return "#e8b03e";
-    if (temp >= 17.1) return "#f0d390";
-    if (temp >= 12.1) return "#62e0b1";
-    if (temp >= 7.1) return "#64b5e7";
+    if (temp >= 35.5) return "#7b1818";
+    if (temp >= 32.5) return "#d64040";
+    if (temp >= 27.5) return "#ed7a7a";
+    if (temp >= 21.5) return "#e8b03e";
+    if (temp >= 17.5) return "#f0d390";
+    if (temp >= 12.5) return "#62e0b1";
+    if (temp >= 7.5) return "#64b5e7";
     return "#5c48a1";
 }
 
@@ -317,9 +317,9 @@ function getTempColor(tempStr) {
 function getHumidityColor(humStr) {
     const hum = parseFloat(humStr);
     if (isNaN(hum)) return "#3498db";
-    if (hum >= 95) return "#553C9A";
-    if (hum >= 85) return "#5DADEC";
-    if (hum >= 71) return "#6EE7B7";
+    if (hum >= 94.5) return "#553C9A";
+    if (hum >= 84.5) return "#5DADEC";
+    if (hum >= 50.5) return "#6EE7B7";
     if (hum >= 40) return "#E6B34B";
     return "#7b1818";
 }
