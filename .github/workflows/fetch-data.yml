@@ -1,0 +1,42 @@
+name: Fetch Air Quality Data
+
+# Run every 5 minutes (auto update)
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # Allow manual run
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch SMG API & save to data.json
+        run: |
+          node -e "
+            const https = require('https');
+            const fs = require('fs');
+            const url = 'https://www.smg.gov.mo/smg/airQuality/latestAirConcentration.json';
+            https.get(url, (res) => {
+              let body = '';
+              res.on('data', chunk => body += chunk);
+              res.on('end', () => {
+                fs.writeFileSync('data.json', body);
+              });
+            }).on('error', err => console.error(err));
+          "
+
+      - name: Commit & push updated data
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          git add data.json
+          git commit -m "Auto update air quality data" || echo "No changes"
+          git push
