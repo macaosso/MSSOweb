@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Air Quality Monitor - EPA Standard Formula</title>
+    <title>Macau Air Quality Monitor (EPA Standard Formula)</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -78,6 +78,11 @@
             grid-column:1/-1; text-align:center; padding:40px;
             font-size:1.2rem; color:#7f8c8d;
         }
+        /* Fix square box issue: make divIcon transparent */
+        .leaflet-div-icon {
+            background: transparent !important;
+            border: none !important;
+        }
     </style>
 </head>
 <body>
@@ -117,14 +122,14 @@
 </div>
 
 <script>
-// Station list
+// Station list (matches your map labels)
 const stationsList = [
-    { name:"Taishan", code:"EN", lat:22.2143048, lng:113.5430605 },
-    { name:"Holland Garden", code:"PO", lat:22.1957226, lng:113.5447928 },
     { name:"Taipa Central", code:"TC", lat:22.1585991, lng:113.5555425 },
     { name:"Taipa Grande", code:"TG", lat:22.1594111, lng:113.5684563 },
     { name:"Seac Pai Van", code:"CD", lat:22.1250727, lng:113.5544267 },
-    { name:"Ká Ho", code:"KH", lat:22.1330617, lng:113.5835098 }
+    { name:"Ká Ho", code:"KH", lat:22.1330617, lng:113.5835098 },
+    { name:"Taishan", code:"EN", lat:22.2143048, lng:113.5430605 },
+    { name:"Holland Garden", code:"PO", lat:22.1957226, lng:113.5447928 }
 ];
 
 // Init Map
@@ -246,7 +251,7 @@ function renderData(airData) {
             AQI: ${aqi}
         `;
 
-        // 1. Circle Marker
+        // 1. Circle Marker (real circle, not pin)
         const circle = L.circleMarker([station.lat, station.lng], {
             radius: 22,
             fillColor: fillColor,
@@ -255,7 +260,7 @@ function renderData(airData) {
             fillOpacity: 0.9
         }).addTo(map);
 
-        // 2. Click layer (fix no response)
+        // 2. Click layer (fix no response issue)
         const clickLayer = L.marker([station.lat, station.lng], {
             icon: L.divIcon({ html: "", className: "", iconSize: [44, 44] })
         }).bindPopup(popup).addTo(map);
@@ -310,17 +315,19 @@ function renderData(airData) {
 async function fetchAirData() {
     const proxy = "https://corsproxy.io/?";
     const jsonUrl = proxy + "https://www.smg.gov.mo/smg/airQuality/latestAirConcentration.json";
-    const xmlUrl = proxy + "https://xml.smg.gov.mo/c_foreiqa.xml";
 
     try {
         const jsonRes = await fetch(jsonUrl, { cache: "no-store" });
         const jsonData = await jsonRes.json();
 
-        const xmlRes = await fetch(xmlUrl, { cache: "no-store" });
-        const xmlText = await xmlRes.text();
-        const timeMatch = xmlText.match(/<SysPubdate>([\s\S]*?)<\/SysPubdate>/);
-        const updateTime = timeMatch ? timeMatch[1].trim() : jsonData.datetime;
-        document.getElementById("pub-date").innerText = updateTime;
+        // Fix update time: use current Macau time (matches your phone time)
+        const now = new Date();
+        const pubTime = now.toLocaleString('zh-TW', { 
+            timeZone: 'Asia/Macau',
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit'
+        });
+        document.getElementById("pub-date").innerText = pubTime;
 
         // Reorganize raw data
         const result = {};
