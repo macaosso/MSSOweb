@@ -43,7 +43,7 @@
             opacity: 0.9;
         }
 
-        /* --- 折叠面板样式 --- */
+        /* Accordion */
         .accordion {
             background: white;
             border-radius: 12px;
@@ -84,7 +84,7 @@
             overflow-y: auto;
         }
 
-        /* --- 分类表格样式 --- */
+        /* Table */
         .param-table {
             width: 100%;
             border-collapse: collapse;
@@ -109,7 +109,7 @@
             background: #dceaf8;
         }
 
-        /* --- 图表容器 --- */
+        /* Chart */
         .chart-wrapper {
             background: #fff;
             border-radius: 12px;
@@ -128,7 +128,7 @@
             height: 400px;
         }
 
-        /* --- 原有卡片样式保持不变 --- */
+        /* Station Card */
         .station-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -221,9 +221,7 @@
         </div>
     </header>
 
-    <!-- 分类折叠面板 -->
     <div id="accordion-container">
-        <!-- 氣溫 -->
         <div class="accordion">
             <div class="accordion-header" data-param="temp">
                 <span>氣溫 (°C)</span>
@@ -243,7 +241,6 @@
             </div>
         </div>
 
-        <!-- 濕度 -->
         <div class="accordion">
             <div class="accordion-header" data-param="humidity">
                 <span>相對濕度 (%)</span>
@@ -263,7 +260,6 @@
             </div>
         </div>
 
-        <!-- 風速 -->
         <div class="accordion">
             <div class="accordion-header" data-param="windSpeed">
                 <span>風速 (km/h)</span>
@@ -283,7 +279,6 @@
             </div>
         </div>
 
-        <!-- 陣風 -->
         <div class="accordion">
             <div class="accordion-header" data-param="windGust">
                 <span>陣風 (km/h)</span>
@@ -303,7 +298,6 @@
             </div>
         </div>
 
-        <!-- 風向 -->
         <div class="accordion">
             <div class="accordion-header" data-param="windDir">
                 <span>風向 (°)</span>
@@ -323,7 +317,6 @@
             </div>
         </div>
 
-        <!-- 海平面氣壓 -->
         <div class="accordion">
             <div class="accordion-header" data-param="mslPressure">
                 <span>海平面氣壓 (hPa)</span>
@@ -343,7 +336,6 @@
             </div>
         </div>
 
-        <!-- 站氣壓 -->
         <div class="accordion">
             <div class="accordion-header" data-param="stationPressure">
                 <span>站氣壓 (hPa)</span>
@@ -363,7 +355,6 @@
             </div>
         </div>
 
-        <!-- 1分鐘雨量 -->
         <div class="accordion">
             <div class="accordion-header" data-param="rain1m">
                 <span>1分鐘雨量 (mm)</span>
@@ -383,7 +374,6 @@
             </div>
         </div>
 
-        <!-- 1小時雨量 -->
         <div class="accordion">
             <div class="accordion-header" data-param="rain1h">
                 <span>1小時雨量 (mm)</span>
@@ -404,31 +394,26 @@
         </div>
     </div>
 
-    <!-- 單參數趨勢圖 -->
     <div class="chart-wrapper" id="chart-wrapper">
         <div class="chart-title" id="chart-title">參數趨勢圖</div>
         <div id="single-chart"></div>
     </div>
 
-    <!-- 原有站點卡片 -->
     <div id="grid-container" class="station-grid">
         <div class="loading">正在擷取區域數據...</div>
     </div>
 </div>
 
 <script>
-// 代理配置
 const XML_URL = 'https://xml.smg.gov.mo/c_actualweather.xml';
 const PROXY1 = 'https://api.allorigins.win/raw?url=';
 const PROXY2 = 'https://corsproxy.io/?';
 const TIMEOUT = 8000;
 const RETRY_TIMES = 2;
 
-// 24小時歷史存儲
 const HISTORY_KEY = "macao_weather_24h_history";
-const MAX_RECORDS = 288; // 5min * 24h
+const MAX_RECORDS = 288;
 
-// 參數配置
 const PARAM_CONFIG = {
     temp: { label: '氣溫', unit: '°C', color: '#e74c3c', type: 'line' },
     humidity: { label: '相對濕度', unit: '%', color: '#27ae60', type: 'line' },
@@ -441,14 +426,12 @@ const PARAM_CONFIG = {
     rain1h: { label: '1小時雨量', unit: 'mm', color: '#0984e3', type: 'bar' }
 };
 
-// 安全取值
 function getValue(element) {
     if (!element) return null;
     let val = element.querySelector("dValue")?.textContent || element.querySelector("Value")?.textContent;
     return (val === '--' || val === undefined) ? null : parseFloat(val);
 }
 
-// 帶超時+重試的fetch
 async function fetchWithTimeoutAndRetry(url, retries = RETRY_TIMES) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT);
@@ -467,7 +450,6 @@ async function fetchWithTimeoutAndRetry(url, retries = RETRY_TIMES) {
     }
 }
 
-// 主數據獲取
 async function fetchGridData() {
     const cacheBuster = Date.now();
     const targetUrl = encodeURIComponent(`${XML_URL}?t=${cacheBuster}`);
@@ -496,7 +478,6 @@ async function fetchGridData() {
     recordCurrentData(stations);
 }
 
-// 渲染所有參數表格
 function renderAllParamTables(stations) {
     Object.keys(PARAM_CONFIG).forEach(param => {
         const tbody = document.querySelector(`#table-${param} .param-tbody`);
@@ -536,7 +517,6 @@ function renderAllParamTables(stations) {
     });
 }
 
-// 渲染站點卡片（保持原有樣式）
 function renderStationCards(stations) {
     const gridContainer = document.getElementById('grid-container');
     gridContainer.innerHTML = '';
@@ -632,10 +612,10 @@ function renderStationCards(stations) {
     });
 }
 
-// 記錄24小時歷史數據
 function recordCurrentData(stationList) {
     let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
     const now = new Date();
+    const timeStamp = now.getTime();
     const timeStr = now.toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
 
     stationList.forEach(station => {
@@ -661,7 +641,7 @@ function recordCurrentData(stationList) {
 
         history.push({
             time: timeStr,
-            timestamp: now.getTime(),
+            timestamp: timeStamp,
             code, name,
             temp, humidity: hum, windSpeed: ws, windGust: wg,
             windDir: wd, mslPressure: mslp, stationPressure: stp,
@@ -673,7 +653,7 @@ function recordCurrentData(stationList) {
     localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 }
 
-// 渲染單參數趨勢圖
+// Main chart function: X = real datetime, Y = pure value
 function renderSingleChart(param, code, name) {
     const chartWrap = document.getElementById("chart-wrapper");
     const chartTitle = document.getElementById("chart-title");
@@ -683,6 +663,7 @@ function renderSingleChart(param, code, name) {
 
     const fullHistory = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
     const stationData = fullHistory.filter(d => d.code === code);
+
     if (stationData.length === 0) {
         Highcharts.chart("single-chart", {
             title: { text: "暫無歷史數據，請等待數據累積" },
@@ -691,28 +672,47 @@ function renderSingleChart(param, code, name) {
         return;
     }
 
-    const timeLabels = stationData.map(d => d.time);
-    const data = stationData.map(d => d[param]);
+    // Format data for Highcharts datetime X-axis
+    const chartData = stationData.map(item => [
+        item.timestamp,
+        item[param]
+    ]);
 
     Highcharts.chart("single-chart", {
-        chart: { backgroundColor: "#fff", type: config.type },
+        chart: {
+            backgroundColor: "#fff",
+            type: config.type
+        },
         title: { text: "" },
-        xAxis: { categories: timeLabels, tickInterval: 12, labels: { rotation: -30 } },
-        yAxis: { title: { text: `${config.label} (${config.unit})` } },
-        tooltip: { valueSuffix: ` ${config.unit}` },
+        xAxis: {
+            type: 'datetime',
+            dateTimeLabelFormats: {
+                minute: '%H:%M',
+                hour: '%H:%M',
+                day: '%m-%d %H:%M'
+            },
+            title: { text: '時間' }
+        },
+        yAxis: {
+            title: { text: `${config.label} (${config.unit})` }
+        },
+        tooltip: {
+            xDateFormat: '%Y-%m-%d %H:%M',
+            valueSuffix: ` ${config.unit}`
+        },
         legend: { enabled: false },
         credits: { enabled: false },
         series: [{
             name: config.label,
-            data: data,
+            data: chartData,
             color: config.color,
             lineWidth: config.type === 'line' ? 3 : undefined,
-            marker: config.type === 'scatter' ? { radius: 5 } : undefined
+            marker: config.type === 'scatter' ? { radius: 5, enabled: true } : { enabled: true }
         }]
     });
 }
 
-// 折疊面板交互
+// Accordion toggle
 document.querySelectorAll(".accordion-header").forEach(header => {
     header.addEventListener("click", () => {
         const content = header.nextElementSibling;
@@ -726,12 +726,10 @@ document.querySelectorAll(".accordion-header").forEach(header => {
     });
 });
 
-// 錯誤處理
 function showError(msg) {
     document.getElementById('grid-container').innerHTML = `<div class="loading" style="color: #e74c3c;">${msg}</div>`;
 }
 
-// 初始化
 async function init() {
     try {
         await fetchGridData();
