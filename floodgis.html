@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澳門實時水位監測系統 (GIS)</title>
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: #2c3e50;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        header {
+            background: linear-gradient(135deg, #2980b9, #2c3e50);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 15px rgba(41, 128, 185, 0.2);
+        }
+        header h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+        }
+        .meta-info {
+            text-align: right;
+            font-size: 0.9rem;
+            opacity: 0.95;
+        }
+        /* Map + Grid Layout */
+        .main-wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        @media (max-width: 900px) {
+            .main-wrap {
+                grid-template-columns: 1fr;
+            }
+        }
+        #map {
+            width: 100%;
+            height: 600px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+        }
+        .station-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .station-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            padding: 20px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            border-top: 5px solid #3498db;
+            position: relative;
+            overflow: hidden;
+        }
+        .station-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+        }
+        .station-name {
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: #34495e;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #ecf0f1;
+            padding-bottom: 8px;
+        }
+        .water-level-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 0;
+            background: #fdfefe;
+            border-radius: 8px;
+            border: 1px solid #eef2f5;
+        }
+        .water-level-label {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        .water-level-value {
+            font-size: 2.8rem;
+            font-weight: 800;
+            color: #2c3e50;
+        }
+        .water-level-unit {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #7f8c8d;
+            margin-left: 3px;
+        }
+        /* Active Flood Alert Warning States (Triggers if depth > 0.00) */
+        .flood-active {
+            border-top-color: #e67e22;
+            background: #fff9f4;
+        }
+        .flood-active .station-name {
+            color: #d35400;
+        }
+        .flood-active .water-level-container {
+            background: #fdf2e9;
+            border-color: #fadbd8;
+        }
+        .flood-active .water-level-value {
+            color: #e67e22;
+        }
+        .loading {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>澳門低窪地區即時水位監測（正確站點）</h1>
+            <small style="color: #3498db; background: rgba(255,255,255,0.9); padding: 2px 8px; border-radius: 4px; margin-top: 5px; display: inline-block;">
+                ● 19個低窪站點 · 地圖標點+實時水位
+            </small>
+        </div>
+        <div class="meta-info">
+            <div>數據更新時間：<span id="pub-date">載入中...</span></div>
+            <div>每1分鐘自動刷新</div>
+        </div>
+    </header>
+
+    <!-- Map + Card Grid -->
+    <div class="main-wrap">
+        <div id="map"></div>
+        <div id="grid-container" class="station-grid">
+            <div class="loading">正在擷取區域實時水位數據...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ✅ 替換為你提供的 19 個正確低洼水位站坐標
+const pointList = [
+    { name: "青洲河邊馬路", lat: 22.212097, lng: 113.535243 },
+    { name: "花地瑪教會街", lat: 22.211374, lng: 113.546674 },
+    { name: "紅街市", lat: 22.205155, lng: 113.544597 },
+    { name: "光復街", lat: 22.202498, lng: 113.544916 },
+    { name: "永樂戲院", lat: 22.202574, lng: 113.542885 },
+    { name: "內港北", lat: 22.199984, lng: 113.536861 },
+    { name: "內港", lat: 22.198031, lng: 113.536426 },
+    { name: "康公廟", lat: 22.197330, lng: 113.537858 },
+    { name: "司打口", lat: 22.193228, lng: 113.536822 },
+    { name: "內港南", lat: 22.190755, lng: 113.532853 },
+    { name: "下環街", lat: 22.189418, lng: 113.534413 },
+    { name: "菜園路", lat: 22.159073, lng: 113.558961 },
+    { name: "沙維斯街", lat: 22.157666, lng: 113.550649 },
+    { name: "柯維納馬路", lat: 22.157473, lng: 113.548550 },
+    { name: "益隆", lat: 22.156058, lng: 113.559474 },
+    { name: "松樹尾", lat: 22.154766, lng: 113.557309 },
+    { name: "黑橋街", lat: 22.154409, lng: 113.556284 },
+    { name: "石排灣", lat: 22.131648, lng: 113.562820 },
+    { name: "聖方濟各堂", lat: 22.117434, lng: 113.551004 }
+];
+
+// Init Leaflet Map
+const map = L.map('map').setView([22.175, 113.55], 13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+let mapMarkers = [];
+
+// Clear old markers
+function clearAllMarkers() {
+    mapMarkers.forEach(marker => map.removeLayer(marker));
+    mapMarkers = [];
+}
+
+// Update map markers with water level data
+function refreshMarkers(stationData) {
+    clearAllMarkers();
+    pointList.forEach(point => {
+        const match = stationData.find(s => s.name.includes(point.name));
+        const level = match ? match.level : "--";
+        const popupText = `<strong>${point.name}</strong><br>水位: ${level} 米`;
+
+        const marker = L.marker([point.lat, point.lng])
+            .addTo(map)
+            .bindPopup(popupText);
+        mapMarkers.push(marker);
+    });
+}
+
+function fetchWaterLevelData() {
+    const cacheBuster = Date.now();
+    const freshUrl = `https://corsproxy.io/?https://xml.smg.gov.mo/c_ftgms.xml?t=${cacheBuster}`;
+
+    fetch(freshUrl, { cache: "no-store" })
+        .then(response => {
+            if (!response.ok) throw new Error('Network error');
+            return response.text();
+        })
+        .then(xmlString => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+
+            // Update publish time
+            const pubDateNode = xmlDoc.querySelector("SysPubdate");
+            if (pubDateNode) {
+                document.getElementById('pub-date').textContent = pubDateNode.textContent;
+            }
+
+            const stations = xmlDoc.querySelectorAll("WLReport station") || xmlDoc.querySelectorAll("station");
+            const gridContainer = document.getElementById('grid-container');
+            gridContainer.innerHTML = '';
+
+            const parsedData = [];
+
+            if (stations.length === 0) {
+                gridContainer.innerHTML = `<div class="loading">暫無即時低窪地區水位數據。</div>`;
+                refreshMarkers(parsedData);
+                return;
+            }
+
+            stations.forEach(station => {
+                const name = station.querySelector("stationname")?.textContent || "未知監測點";
+                const code = station.getAttribute("code") || station.querySelector("stationcode")?.textContent || "";
+                const nameDisplay = code ? `${name} (${code})` : name;
+
+                let waterLevel = "--";
+                const wlNode = station.querySelector("WaterLevel") || station.querySelector("Value") || station.querySelector("dValue");
+                if (wlNode) {
+                    waterLevel = wlNode.textContent.trim();
+                }
+                if (!waterLevel || waterLevel === "") waterLevel = "--";
+
+                parsedData.push({ name: name, level: waterLevel });
+
+                const parseWl = parseFloat(waterLevel);
+                const isFlooding = !isNaN(parseWl) && parseWl > 0;
+                const alertClass = isFlooding ? 'flood-active' : '';
+
+                const cardHtml = `
+                    <div class="station-card ${alertClass}">
+                        <div class="station-name">${nameDisplay}</div>
+                        <div class="water-level-container">
+                            <span class="water-level-label">實時水位高度</span>
+                            <div class="water-level-value">
+                                ${waterLevel}<span class="water-level-unit">${waterLevel !== '--' ? '米' : ''}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                gridContainer.innerHTML += cardHtml;
+            });
+
+            // Refresh map markers
+            refreshMarkers(parsedData);
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById('grid-container').innerHTML = `
+                <div class="loading" style="color: #e74c3c;">
+                    未能載入微細尺度水位監測數據。
+                </div>`;
+            refreshMarkers([]);
+        });
+}
+
+// Run
+fetchWaterLevelData();
+setInterval(fetchWaterLevelData, 30000);
+</script>
+
+</body>
+</html>
