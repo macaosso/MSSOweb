@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Macau Air Quality Monitor (EPA Standard Formula)</title>
+    <title>Macau Air Quality Monitor</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -14,149 +14,90 @@
             background:linear-gradient(135deg,#2980b9,#2c3e50); 
             color:white; padding:25px 30px; border-radius:12px; margin-bottom:25px;
             display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;
-            box-shadow:0 4px 15px rgba(41,128,185,0.2);
         }
         header h1 { font-size:1.6rem; font-weight:600; }
-        .meta-info { font-size:0.9rem; opacity:0.95; text-align:right; }
+        .meta-info { font-size:0.9rem; text-align:right; }
         .main-wrap { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
         @media (max-width:900px) { .main-wrap { grid-template-columns:1fr; } }
-        #map { 
-            width:100%; height:600px; border-radius:12px; 
-            box-shadow:0 4px 6px rgba(0,0,0,0.08); position:relative;
-        }
-        .zoom-controls { 
-            position:absolute; top:15px; left:15px; z-index:1000;
-            display:flex; flex-direction:column; gap:8px;
-        }
-        .zoom-btn { 
-            background:#fff; border:1px solid #ccc; padding:6px 10px;
-            border-radius:6px; cursor:pointer; font-weight:bold;
-            box-shadow:0 2px 5px rgba(0,0,0,0.15);
-        }
-        .zoom-btn:hover { background:#f0f0f0; }
-        .map-legend { 
-            position:absolute; bottom:20px; left:20px; background:#fff;
-            padding:12px 15px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.15);
-            font-size:13px; z-index:1000; min-width:180px;
-        }
-        .map-legend h4 { margin-bottom:8px; font-size:14px; color:#333; }
+        #map { width:100%; height:600px; border-radius:12px; position:relative; }
+        .zoom-controls { position:absolute; top:15px; left:15px; z-index:1000; display:flex; flex-direction:column; gap:8px; }
+        .zoom-btn { background:#fff; border:1px solid #ccc; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:bold; }
+        .map-legend { position:absolute; bottom:20px; left:20px; background:#fff; padding:12px 15px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.15); font-size:13px; z-index:1000; }
         .legend-row { display:flex; align-items:center; margin:4px 0; }
-        .legend-dot { 
-            width:14px; height:14px; border-radius:50%;
-            margin-right:8px; border:1px solid #ccc;
-        }
-        .station-grid { 
-            display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
-            gap:15px;
-        }
-        .station-card { 
-            background:white; border-radius:12px;
-            box-shadow:0 4px 6px rgba(0,0,0,0.03); padding:15px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex; flex-direction: column;
-            border-top:5px solid #ffffff; position:relative; overflow:hidden;
-        }
-        .station-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-        }
-        .station-name { 
-            font-size:1rem; font-weight:bold; color:#34495e;
-            margin-bottom:10px; border-bottom:1px solid #ecf0f1; padding-bottom:6px;
-        }
-        .pollutant-grid {
-            display:grid; grid-template-columns:1fr 1fr; gap:8px;
-            font-size:0.85rem; margin-top:10px;
-        }
-        .pollutant-item {
-            background:#f8f9fa; padding:6px; border-radius:4px;
-            text-align:center;
-        }
+        .legend-dot { width:14px; height:14px; border-radius:50%; margin-right:8px; border:1px solid #ccc; }
+        .station-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:15px; }
+        .station-card { background:white; border-radius:12px; padding:15px; border-top:5px solid #fff; }
+        .station-name { font-size:1rem; font-weight:bold; margin-bottom:10px; border-bottom:1px solid #ecf0f1; padding-bottom:6px; }
+        .pollutant-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.85rem; margin-top:10px; }
+        .pollutant-item { background:#f8f9fa; padding:6px; border-radius:4px; text-align:center; }
         .pollutant-label { color:#7f8c8d; font-size:0.7rem; }
-        .pollutant-value { font-weight:bold; color:#2c3e50; }
-        .loading { 
-            grid-column:1/-1; text-align:center; padding:40px;
-            font-size:1.2rem; color:#7f8c8d;
-        }
-        /* Fix square box issue: make divIcon transparent */
-        .leaflet-div-icon {
-            background: transparent !important;
-            border: none !important;
-        }
+        .pollutant-value { font-weight:bold; }
+        .loading { grid-column:1/-1; text-align:center; padding:40px; font-size:1.2rem; color:#7f8c8d; }
+        .leaflet-div-icon { background:transparent !important; border:none !important; }
     </style>
 </head>
 <body>
+
 <div class="container">
     <header>
         <div>
-            <h1>Macau Air Quality Monitor (EPA Standard Formula)</h1>
-            <small style="color:#3498db; background:rgba(255,255,255,0.9); padding:2px 8px; border-radius:4px;">
-                EPA Linear Sub-index Calculation | Auto Refresh every 1 minute
+            <h1>澳門空氣質量監測地圖</h1>
+            <small style="background:rgba(255,255,255,0.9); color:#3498db; padding:2px 8px; border-radius:4px;">
+                實時數據 · 每分鐘更新
             </small>
         </div>
         <div class="meta-info">
-            <div>Update Time: <span id="pub-date">Loading...</span></div>
-            <div>Refresh: 60s</div>
+            <div>更新時間：<span id="pub-date">載入中...</span></div>
+            <div>Auto-refresh: 60s</div>
         </div>
     </header>
 
     <div class="main-wrap">
         <div id="map">
             <div class="zoom-controls">
-                <button class="zoom-btn" id="zoomMacau">1 - Macau Peninsula</button>
-                <button class="zoom-btn" id="zoomTaipa">2 - Taipa & Coloane</button>
-                <button class="zoom-btn" id="zoomAll">3 - All Areas</button>
+                <button class="zoom-btn" id="zoomMacau">1 澳門半島</button>
+                <button class="zoom-btn" id="zoomTaipa">2 路氹</button>
+                <button class="zoom-btn" id="zoomAll">3 全區</button>
             </div>
             <div class="map-legend">
-                <h4>AQI / IQA Level</h4>
-                <div class="legend-row"><div class="legend-dot" style="background:#b8e994;"></div> Good (0-50)</div>
-                <div class="legend-row"><div class="legend-dot" style="background:#ffeaa7;"></div> Moderate (51-100)</div>
-                <div class="legend-row"><div class="legend-dot" style="background:#fdcb6e;"></div> Unhealthy for Sensitive (101-150)</div>
-                <div class="legend-row"><div class="legend-dot" style="background:#e17055;"></div> Unhealthy (>150)</div>
+                <h4>AQI 水平</h4>
+                <div class="legend-row"><div class="legend-dot" style="background:#b8e994;"></div> 優 0-50</div>
+                <div class="legend-row"><div class="legend-dot" style="background:#ffeaa7;"></div> 良好 51-100</div>
+                <div class="legend-row"><div class="legend-dot" style="background:#fdcb6e;"></div> 普通 101-150</div>
+                <div class="legend-row"><div class="legend-dot" style="background:#e17055;"></div> 不良 >150</div>
             </div>
         </div>
+
         <div id="stationCards" class="station-grid">
-            <div class="loading">Loading air quality data...</div>
+            <div class="loading">載入空氣質量數據中...</div>
         </div>
     </div>
 </div>
 
 <script>
-// Station list (matches your map labels)
 const stationsList = [
-    { name:"Taipa Central", code:"TC", lat:22.1585991, lng:113.5555425 },
-    { name:"Taipa Grande", code:"TG", lat:22.1594111, lng:113.5684563 },
-    { name:"Seac Pai Van", code:"CD", lat:22.1250727, lng:113.5544267 },
-    { name:"Ká Ho", code:"KH", lat:22.1330617, lng:113.5835098 },
-    { name:"Taishan", code:"EN", lat:22.2143048, lng:113.5430605 },
-    { name:"Holland Garden", code:"PO", lat:22.1957226, lng:113.5447928 }
+    { name:"台山", code:"EN", lat:22.2143048, lng:113.5430605 },
+    { name:"荷蘭園", code:"PO", lat:22.1957226, lng:113.5447928 },
+    { name:"氹仔中心區", code:"TC", lat:22.1585991, lng:113.5555425 },
+    { name:"大潭山", code:"TG", lat:22.1594111, lng:113.5684563 },
+    { name:"石排灣", code:"CD", lat:22.1250727, lng:113.5544267 },
+    { name:"九澳", code:"KH", lat:22.1330617, lng:113.5835098 }
 ];
 
-// Init Map
 const map = L.map('map').setView([22.175, 113.55], 12);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'©OSM' }).addTo(map);
 
-// Map view control
 const views = {
-    macau: { center: [22.20, 113.54], zoom: 14 },
-    taipa: { center: [22.15, 113.555], zoom: 14 },
-    all: { center: [22.175, 113.55], zoom: 12 }
+    macau: { center:[22.20,113.54], zoom:14 },
+    taipa: { center:[22.15,113.555], zoom:14 },
+    all: { center:[22.175,113.55], zoom:12 }
 };
-document.getElementById('zoomMacau').addEventListener('click', () => {
-    map.setView(views.macau.center, views.macau.zoom);
-});
-document.getElementById('zoomTaipa').addEventListener('click', () => {
-    map.setView(views.taipa.center, views.taipa.zoom);
-});
-document.getElementById('zoomAll').addEventListener('click', () => {
-    map.setView(views.all.center, views.all.zoom);
-});
+document.getElementById('zoomMacau').onclick = ()=>map.setView(views.macau.center, views.macau.zoom);
+document.getElementById('zoomTaipa').onclick = ()=>map.setView(views.taipa.center, views.taipa.zoom);
+document.getElementById('zoomAll').onclick = ()=>map.setView(views.all.center, views.all.zoom);
 
 let allMarkers = [];
 
-// EPA Breakpoints (Macau standard)
 const breakpoints = {
     PM25:  [{C:0,I:0},{C:12,I:50},{C:35,I:100},{C:55,I:150},{C:150,I:200}],
     PM10:  [{C:0,I:0},{C:54,I:50},{C:154,I:100},{C:254,I:150},{C:354,I:200}],
@@ -166,195 +107,133 @@ const breakpoints = {
     CO:    [{C:0,I:0},{C:4.4,I:50},{C:9.4,I:100},{C:12.4,I:150},{C:15.4,I:200}]
 };
 
-// --------------------------
-// EPA Standard Linear Formula
-// I = [(Ihigh - Ilow) / (Chigh - Clow)] * (C - Clow) + Ilow
-// --------------------------
-function calcSubIndex(rawValue, pollutantKey) {
-    // Handle empty / null / non-numeric data
-    const C = parseFloat(rawValue);
-    if (isNaN(C) || C < 0) return 0;
-
-    const bpList = breakpoints[pollutantKey];
-    let Clow = 0, Chigh = 0, Ilow = 0, Ihigh = 0;
-
-    // Find matched concentration range
-    for (let i = 0; i < bpList.length - 1; i++) {
-        if (C >= bpList[i].C && C <= bpList[i+1].C) {
-            Clow = bpList[i].C;
-            Chigh = bpList[i+1].C;
-            Ilow = bpList[i].I;
-            Ihigh = bpList[i+1].I;
-            break;
-        }
-    }
-    // Exceed max breakpoint
-    if (Chigh === 0) {
-        const last = bpList[bpList.length - 1];
-        Clow = last.C;
-        Chigh = last.C;
-        Ilow = last.I;
-        Ihigh = last.I;
-    }
-
-    // Apply EPA formula
-    const ratio = (Ihigh - Ilow) / (Chigh - Clow);
-    const subIndex = ratio * (C - Clow) + Ilow;
-    return Math.round(subIndex);
+function calcSubIndex(val, type) {
+    const C = parseFloat(val);
+    if (isNaN(C)) return 0;
+    const b = breakpoints[type];
+    let i = 0;
+    while (i < b.length-1 && C > b[i+1].C) i++;
+    const Cl = b[i].C, Ch = b[i+1].C, Il = b[i].I, Ih = b[i+1].I;
+    return Math.round(((Ih - Il) / (Ch - Cl)) * (C - Cl) + Il);
 }
 
-// Calculate final AQI = MAX of all sub-index
-function calcFinalAQI(data) {
-    const idxPM25 = calcSubIndex(data.HE_PM2_5, "PM25");
-    const idxPM10 = calcSubIndex(data.HE_PM10, "PM10");
-    const idxNO2  = calcSubIndex(data.NO2, "NO2");
-    const idxSO2  = calcSubIndex(data.SO2, "SO2");
-    const idxO3   = calcSubIndex(data.O3, "O3");
-    const idxCO   = calcSubIndex(data.CO, "CO");
-    return Math.max(idxPM25, idxPM10, idxNO2, idxSO2, idxO3, idxCO);
+function getAQI(data) {
+    const pm25 = calcSubIndex(data.HE_PM2_5, "PM25");
+    const pm10 = calcSubIndex(data.HE_PM10, "PM10");
+    const no2  = calcSubIndex(data.HE_NO2, "NO2");
+    const so2  = calcSubIndex(data.HE_SO2, "SO2");
+    const o3   = calcSubIndex(data.HE_O3, "O3");
+    const co   = calcSubIndex(data.HE_CO, "CO");
+    return Math.max(pm25, pm10, no2, so2, o3, co);
 }
 
-// Color for circle marker (match legend)
-function getMarkerColor(aqi) {
+function getColor(aqi) {
     if (aqi <= 50) return "#b8e994";
     if (aqi <= 100) return "#ffeaa7";
     if (aqi <= 150) return "#fdcb6e";
     return "#e17055";
 }
 
-// Text color for readability
-function getTextColor(aqi) {
-    return aqi > 100 ? "#ffffff" : "#000000";
+function getTextCol(aqi) {
+    return aqi > 100 ? "#fff" : "#000";
 }
 
-// Clear all map markers
-function clearAllMarkers() {
+function clearMarkers() {
     allMarkers.forEach(m => map.removeLayer(m));
     allMarkers = [];
 }
 
-// Render map & station cards
-function renderData(airData) {
-    clearAllMarkers();
+function render(data) {
+    clearMarkers();
     const cardContainer = document.getElementById("stationCards");
     cardContainer.innerHTML = "";
 
-    stationsList.forEach(station => {
-        const d = airData[station.code] || {};
-        const aqi = calcFinalAQI(d);
-        const fillColor = getMarkerColor(aqi);
-        const txtColor = getTextColor(aqi);
+    stationsList.forEach(s => {
+        const d = data[s.code];
+        const aqi = getAQI(d);
+        const col = getColor(aqi);
+        const tcol = getTextCol(aqi);
 
-        // Popup content
-        const popup = `
-            <strong>${station.name}</strong> (${station.code})<br>
-            AQI: ${aqi}
-        `;
+        const popup = `<strong>${s.name}</strong> (${s.code})<br>AQI: ${aqi}`;
 
-        // 1. Circle Marker (real circle, not pin)
-        const circle = L.circleMarker([station.lat, station.lng], {
-            radius: 22,
-            fillColor: fillColor,
-            color: "#fff",
-            weight: 2,
-            fillOpacity: 0.9
+        const circle = L.circleMarker([s.lat, s.lng], {
+            radius:22, fillColor:col, color:"#fff", weight:2, fillOpacity:0.9
         }).addTo(map);
 
-        // 2. Click layer (fix no response issue)
-        const clickLayer = L.marker([station.lat, station.lng], {
-            icon: L.divIcon({ html: "", className: "", iconSize: [44, 44] })
+        const clicker = L.marker([s.lat, s.lng], {
+            icon:L.divIcon({html:"", iconSize:[44,44]})
         }).bindPopup(popup).addTo(map);
 
-        // 3. AQI text inside circle
-        const textIcon = L.divIcon({
-            html: `<div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:${txtColor};font-weight:bold;font-size:14px;">${aqi}</div>`,
-            iconSize: [44, 44],
-            iconAnchor: [22, 22]
-        });
-        const textLayer = L.marker([station.lat, station.lng], { icon: textIcon }).addTo(map);
+        const txt = L.marker([s.lat, s.lng], {
+            icon:L.divIcon({
+                html:`<div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:${tcol};font-weight:bold;">${aqi}</div>`,
+                iconSize:[44,44], iconAnchor:[22,22]
+            })
+        }).addTo(map);
 
-        allMarkers.push(circle, clickLayer, textLayer);
+        allMarkers.push(circle, clicker, txt);
 
-        // Render card: show ALL pollutants, empty data = display "N/A"
         cardContainer.innerHTML += `
-        <div class="station-card" style="border-top-color: ${fillColor};">
-            <div class="station-name">${station.name} (${station.code})</div>
-            <div style="text-align:center; font-size:1.8rem; font-weight:bold; color:${txtColor};">${aqi}</div>
+        <div class="station-card" style="border-top-color:${col}">
+            <div class="station-name">${s.name} (${s.code})</div>
+            <div style="text-align:center; font-size:1.8rem; font-weight:bold; color:${tcol}">${aqi}</div>
             <div class="pollutant-grid">
                 <div class="pollutant-item">
                     <div class="pollutant-label">PM2.5</div>
-                    <div class="pollutant-value">${d.HE_PM2_5 ?? 'N/A'} μg/m³</div>
+                    <div class="pollutant-value">${d.HE_PM2_5}</div>
                 </div>
                 <div class="pollutant-item">
                     <div class="pollutant-label">PM10</div>
-                    <div class="pollutant-value">${d.HE_PM10 ?? 'N/A'} μg/m³</div>
+                    <div class="pollutant-value">${d.HE_PM10}</div>
                 </div>
                 <div class="pollutant-item">
-                    <div class="pollutant-label">NO₂</div>
-                    <div class="pollutant-value">${d.NO2 ?? 'N/A'} μg/m³</div>
+                    <div class="pollutant-label">NO2</div>
+                    <div class="pollutant-value">${d.HE_NO2}</div>
                 </div>
                 <div class="pollutant-item">
-                    <div class="pollutant-label">SO₂</div>
-                    <div class="pollutant-value">${d.SO2 ?? 'N/A'} μg/m³</div>
+                    <div class="pollutant-label">SO2</div>
+                    <div class="pollutant-value">${d.HE_SO2}</div>
                 </div>
                 <div class="pollutant-item">
-                    <div class="pollutant-label">O₃</div>
-                    <div class="pollutant-value">${d.O3 ?? 'N/A'} μg/m³</div>
+                    <div class="pollutant-label">O3</div>
+                    <div class="pollutant-value">${d.HE_O3}</div>
                 </div>
                 <div class="pollutant-item">
                     <div class="pollutant-label">CO</div>
-                    <div class="pollutant-value">${d.CO ?? 'N/A'} mg/m³</div>
+                    <div class="pollutant-value">${d.HE_CO}</div>
                 </div>
             </div>
-        </div>
-        `;
+        </div>`;
     });
 }
 
-// Fetch data with CORS proxy
-async function fetchAirData() {
-    const proxy = "https://corsproxy.io/?";
-    const jsonUrl = proxy + "https://www.smg.gov.mo/smg/airQuality/latestAirConcentration.json";
-
+async function fetchData() {
     try {
-        const jsonRes = await fetch(jsonUrl, { cache: "no-store" });
-        const jsonData = await jsonRes.json();
+        const r = await fetch("https://www.smg.gov.mo/smg/airQuality/latestAirConcentration.json");
+        const j = await r.json();
 
-        // Fix update time: use current Macau time (matches your phone time)
-        const now = new Date();
-        const pubTime = now.toLocaleString('zh-TW', { 
-            timeZone: 'Asia/Macau',
-            year: 'numeric', month: '2-digit', day: '2-digit',
-            hour: '2-digit', minute: '2-digit'
-        });
-        document.getElementById("pub-date").innerText = pubTime;
+        document.getElementById("pub-date").innerText = j.datetime;
 
-        // Reorganize raw data
         const result = {};
-        Object.values(jsonData).forEach(item => {
+        Object.values(j).forEach(item => {
             result[item.CODE] = {
+                HE_NO2: item.HE_NO2,
                 HE_PM2_5: item.HE_PM2_5,
                 HE_PM10: item.HE_PM10,
-                NO2: item.NO2,
-                SO2: item.SO2,
-                O3: item.O3,
-                CO: item.CO
+                HE_SO2: item.HE_SO2,
+                HE_O3: item.HE_O3,
+                HE_CO: item.HE_CO
             };
         });
 
-        renderData(result);
-    } catch (err) {
-        console.error(err);
-        document.getElementById("stationCards").innerHTML = `
-            <div class="loading" style="color:#e74c3c;">Data load failed</div>
-        `;
-        clearAllMarkers();
+        render(result);
+    } catch(e) {
+        document.getElementById("stationCards").innerHTML = `<div class="loading">載入失敗</div>`;
     }
 }
 
-// Start & auto refresh
-fetchAirData();
-setInterval(fetchAirData, 60000);
+fetchData();
+setInterval(fetchData, 60000);
 </script>
 
 </body>
