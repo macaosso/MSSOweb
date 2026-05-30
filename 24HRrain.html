@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>澳門各區天氣實況 | 雨量記錄與24小時累計</title>
+    <title>澳門各區天氣實況 | 5分鐘滾動24小時雨量</title>
     <style>
         * {
             box-sizing: border-box;
@@ -42,7 +42,6 @@
             font-size: 0.9rem;
             opacity: 0.9;
         }
-        /* 导出CSV按钮样式 */
         .export-btn {
             background: #27ae60;
             color: #fff;
@@ -117,7 +116,6 @@
         .col-third {
             grid-column: span 2;
         }
-        /* 新增：24小时雨量独占整行 */
         .col-full {
             grid-column: span 6;
             background: #f0f8ff;
@@ -155,12 +153,11 @@
     <header>
         <div>
             <h1>澳門各區天氣實況</h1>
-            <small style="color: #2ecc71;">● 即時監控網格 | 雨量自動記錄</small>
+            <small style="color: #2ecc71;">● 5分鐘更新 | 滾動24小時雨量計算</small>
         </div>
         <div class="meta-info">
             <div>資料更新時間：<span id="pub-date">載入中...</span></div>
-            <div>每1分鐘自動刷新</div>
-            <!-- CSV导出按钮 -->
+            <div>每5分鐘自動刷新</div>
             <button class="export-btn" id="exportCsvBtn">匯出歷史雨量 CSV</button>
         </div>
     </header>
@@ -171,42 +168,45 @@
 </div>
 
 <script>
-// ===================== 全局配置 & 本地存儲初始化 =====================
-const STORAGE_KEY = "MACAU_WEATHER_RAIN_RECORDS";
-// 保留最近 24 條逐小時記錄 (對應24小時雨量)
-const MAX_RECORD_COUNT = 24;
+// ===================== Global Config =====================
+const STORAGE_KEY = "MACAU_5MIN_RAIN_DATA";
+const RECORDS_PER_24H = 288;       // 5min * 288 = 24h
+const MAX_STORE_RECORDS = 576;     // Keep 48h data as buffer
 
-// 從LocalStorage讀取歷史雨量記錄
+// Read records from LocalStorage
 function getRainRecords() {
-    const data = localStorage.getItem(STORAGE_KEY);
-    return data ? JSON.parse(data) : [];
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
 }
 
-// 保存記錄到LocalStorage
+// Save & trim old records
 function saveRainRecords(records) {
-    // 只保留最新24條，超出刪除舊數據
-    if (records.length > MAX_RECORD_COUNT) {
-        records = records.slice(-MAX_RECORD_COUNT);
+    if (records.length > MAX_STORE_RECORDS) {
+        records = records.slice(-MAX_STORE_RECORDS);
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
 }
 
-// 計算單個站點 24小時累計雨量
-function calc24hRain(stationCode) {
-    const records = getRainRecords();
+// Calculate Rolling 24h Rainfall (sum latest 288 records per station)
+function getRolling24hRain(stationCode) {
+    const allRecords = getRainRecords();
+    // Filter records for target station
+    const stationRecords = allRecords.filter(r => r.code === stationCode);
+    // Take latest 288 records (full 24h window)
+    const windowRecords = stationRecords.slice(-RECORDS_PER_24H);
+
     let total = 0;
-    records.forEach(item => {
-        if (item.code === stationCode && !isNaN(parseFloat(item.hourRain))) {
-            total += parseFloat(item.hourRain);
-        }
+    windowRecords.forEach(item => {
+        const val = parseFloat(item.hourRain);
+        if (!isNaN(val)) total += val;
     });
     return total.toFixed(2);
 }
 
-// 生成CSV文本
+// Generate CSV content
 function generateCsv() {
     const records = getRainRecords();
-    if (records.length === 0) return "時間,站點代碼,站點名稱,一小時雨量(mm)\n無數據";
+    if (records.length === 0) return "採集時間,站點代碼,站點名稱,一小時雨量(mm)\n無數據";
 
     let csv = "採集時間,站點代碼,站點名稱,一小時雨量(mm)\n";
     records.forEach(row => {
@@ -215,185 +215,184 @@ function generateCsv() {
     return csv;
 }
 
-// 下載CSV文件
+// Download CSV file
 function downloadCsv() {
-    const csvContent = generateCsv();
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const csvText = generateCsv();
+    const blob = new Blob([csvText], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `澳門天氣雨量記錄_${new Date().toLocaleString()}.csv`;
+    a.download = `澳門5分鐘雨量記錄_${new Date().toLocaleString()}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
 
-// 綁定導出按鈕事件
 document.getElementById("exportCsvBtn").addEventListener("click", downloadCsv);
 
-// ===================== 數據請求 & 頁面渲染邏輯 =====================
+// ===================== Fetch & Render Data =====================
 function fetchGridData() {
     const cacheBuster = Date.now();
-    const freshUrl = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
+    const apiUrl = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
 
-    fetch(freshUrl, { cache: "no-store" })
-        .then(response => {
-            if (!response.ok) throw new Error('Network error');
-            return response.text();
+    fetch(apiUrl, { cache: "no-store" })
+        .then(res => {
+            if (!res.ok) throw new Error("Network Error");
+            return res.text();
         })
-        .then(xmlString => {
+        .then(xmlStr => {
             const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlString, "text/xml");
-            const nowTime = new Date().toLocaleString(); // 當前採集時間
+            const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
+            const currentCaptureTime = new Date().toISOString(); // Standard timestamp
 
+            // Update official publish time
             const pubDateNode = xmlDoc.querySelector("SysPubdate");
             if (pubDateNode) {
-                document.getElementById('pub-date').textContent = pubDateNode.textContent;
+                document.getElementById("pub-date").textContent = pubDateNode.textContent;
             }
 
             const stations = xmlDoc.querySelectorAll("WeatherReport station");
-            const gridContainer = document.getElementById('grid-container');
-            gridContainer.innerHTML = '';
+            const gridContainer = document.getElementById("grid-container");
+            gridContainer.innerHTML = "";
 
-            const extractNodeValue = (selector, parent) => {
+            const getVal = (selector, parent) => {
                 const el = parent.querySelector(selector);
-                if (!el) return '0.0';
-                return el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || '0.0';
+                if (!el) return "0.0";
+                return el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || "0.0";
             };
 
-            // 本次輪次新增的記錄
-            const newRecords = [];
+            const newBatch = [];
 
             stations.forEach(station => {
-                const code = station.getAttribute("code")?.trim() || "N/A";
+                const code = (station.getAttribute("code") || "").trim() || "N/A";
                 const name = station.querySelector("stationname")?.textContent || "未命名站點";
                 const nameDisplay = `${name}(${code})`;
 
-                const currentTemp = extractNodeValue("Temperature", station);
-                const maxTemp = extractNodeValue("Temperature_daily_max", station);
-                const minTemp = extractNodeValue("Temperature_daily_min", station);
-                const humidity = extractNodeValue("Humidity", station);
-                const windSpeed = extractNodeValue("WindSpeed", station);
-                const windGust = extractNodeValue("WindGust", station);
-                const mslPressure = extractNodeValue("MeanSeaLevelPressure", station);
-                const stationPressure = extractNodeValue("StationPressure", station);
+                // Basic weather data
+                const temp = getVal("Temperature", station);
+                const tempMax = getVal("Temperature_daily_max", station);
+                const tempMin = getVal("Temperature_daily_min", station);
+                const humidity = getVal("Humidity", station);
+                const windSpeed = getVal("WindSpeed", station);
+                const windGust = getVal("WindGust", station);
+                const mslPress = getVal("MeanSeaLevelPressure", station);
+                const stPress = getVal("StationPressure", station);
 
+                // Wind direction
+                let windDir = "--";
                 const windDirNode = station.querySelector("WindDirection");
-                const winddValue = windDirNode?.querySelector("dValue")?.textContent || '--';
-                const windDegree = windDirNode?.querySelector("Degree")?.textContent || '--';
-                let windDirDisplay = '--';
-                if (winddValue !== '--' && windDegree !== '--') {
-                    windDirDisplay = `${winddValue}(${windDegree}°)`;
-                } else if (winddValue !== '--') {
-                    windDirDisplay = winddValue;
-                } else if (windDegree !== '--') {
-                    windDirDisplay = `${windDegree}°`;
+                if (windDirNode) {
+                    const dVal = windDirNode.querySelector("dValue")?.textContent;
+                    const deg = windDirNode.querySelector("Degree")?.textContent;
+                    if (dVal && deg) windDir = `${dVal}(${deg}°)`;
+                    else if (dVal) windDir = dVal;
+                    else if (deg) windDir = `${deg}°`;
                 }
 
-                let rain1m = "0.0", rain1h = "0.0", rainToday = "0.0";
-                const rainfallNodes = station.querySelectorAll("Rainfall");
-                rainfallNodes.forEach(node => {
+                // Rainfall values
+                let rain1m = "0.0", rain1h = "0.0", rainDay = "0.0";
+                station.querySelectorAll("Rainfall").forEach(node => {
                     const type = node.querySelector("Type")?.textContent;
                     const val = node.querySelector("dValue")?.textContent || node.querySelector("Value")?.textContent || "0.0";
                     if (type === "3") rain1m = val;
-                    if (type === "4") rain1h = val; // 重點：一小時雨量
-                    if (type === "5") rainToday = val;
+                    if (type === "4") rain1h = val;
+                    if (type === "5") rainDay = val;
                 });
 
-                // 記錄本輪一小時雨量（用於24小時累加）
-                newRecords.push({
-                    time: nowTime,
+                // Save current 1h rain to record batch
+                newBatch.push({
+                    time: currentCaptureTime,
                     code: code,
                     name: name,
                     hourRain: rain1h
                 });
 
-                const rain1mClass = parseFloat(rain1m) > 0 ? 'rain-active' : '';
-                const rain1hClass = parseFloat(rain1h) > 0 ? 'rain-active' : '';
-                const rainTodayClass = parseFloat(rainToday) > 0 ? 'rain-active' : '';
+                // Highlight rain fields
+                const class1m = parseFloat(rain1m) > 0 ? "rain-active" : "";
+                const class1h = parseFloat(rain1h) > 0 ? "rain-active" : "";
+                const classDay = parseFloat(rainDay) > 0 ? "rain-active" : "";
 
-                // 計算該站點24小時累計雨量
-                const total24hRain = calc24hRain(code);
+                // Calculate rolling 24h total
+                const total24h = getRolling24hRain(code);
 
-                // 渲染卡片（新增 24小時累計雨量 欄位）
-                const cardHtml = `
-                    <div class="station-card">
-                        <div class="station-name">${nameDisplay}</div>
-                        <div class="temp-row">
-                            <div class="current-temp">${currentTemp}°C</div>
-                            <div class="temp-range">
-                                <div>最高: <span class="high-temp">${maxTemp}°C</span></div>
-                                <div>最低: <span class="low-temp">${minTemp}°C</span></div>
-                            </div>
-                        </div>
-                        <div class="metrics-grid">
-                            <div class="metric col-half">
-                                <span>相對濕度(%)</span>
-                                <strong>${humidity}%</strong>
-                            </div>
-                            <div class="metric col-half">
-                                <span>風向(°)</span>
-                                <strong>${windDirDisplay}</strong>
-                            </div>
-                            <div class="metric col-half">
-                                <span>風速(km/h)</span>
-                                <strong>${windSpeed}${windSpeed !== '--' ? ' <small>km/h</small>' : ''}</strong>
-                            </div>
-                            <div class="metric col-half">
-                                <span>陣風(km/h)</span>
-                                <strong>${windGust}${windGust !== '--' ? ' <small>km/h</small>' : ''}</strong>
-                            </div>
-                            <div class="metric col-half">
-                                <span>平均海平面氣壓(hPa)</span>
-                                <strong>${mslPressure}${mslPressure !== '--' ? ' <small>hPa</small>' : ''}</strong>
-                            </div>
-                            <div class="metric col-half">
-                                <span>站氣壓(hPa)</span>
-                                <strong>${stationPressure}${stationPressure !== '--' ? ' <small>hPa</small>' : ''}</strong>
-                            </div>
-                            
-                            <div class="metric col-third ${rain1mClass}">
-                                <span>一分鐘雨量</span>
-                                <strong>${rain1m}${rain1m !== '--' ? ' <small>mm</small>' : ''}</strong>
-                            </div>
-                            <div class="metric col-third ${rain1hClass}">
-                                <span>一小時雨量</span>
-                                <strong>${rain1h}${rain1h !== '--' ? ' <small>mm</small>' : ''}</strong>
-                            </div>
-                            <div class="metric col-third ${rainTodayClass}">
-                                <span>日總雨量</span>
-                                <strong>${rainToday}${rainToday !== '--' ? ' <small>mm</small>' : ''}</strong>
-                            </div>
-
-                            <!-- 新增：24小時累計雨量 -->
-                            <div class="metric col-full">
-                                <span>近24小時累計雨量 (逐小時累加)</span>
-                                <strong>${total24hRain} mm</strong>
-                            </div>
+                // Render station card
+                const card = `
+                <div class="station-card">
+                    <div class="station-name">${nameDisplay}</div>
+                    <div class="temp-row">
+                        <div class="current-temp">${temp}°C</div>
+                        <div class="temp-range">
+                            <div>最高: <span class="high-temp">${tempMax}°C</span></div>
+                            <div>最低: <span class="low-temp">${tempMin}°C</span></div>
                         </div>
                     </div>
+                    <div class="metrics-grid">
+                        <div class="metric col-half">
+                            <span>相對濕度(%)</span>
+                            <strong>${humidity}%</strong>
+                        </div>
+                        <div class="metric col-half">
+                            <span>風向(°)</span>
+                            <strong>${windDir}</strong>
+                        </div>
+                        <div class="metric col-half">
+                            <span>風速(km/h)</span>
+                            <strong>${windSpeed}${windSpeed !== '--' ? ' <small>km/h</small>' : ''}</strong>
+                        </div>
+                        <div class="metric col-half">
+                            <span>陣風(km/h)</span>
+                            <strong>${windGust}${windGust !== '--' ? ' <small>km/h</small>' : ''}</strong>
+                        </div>
+                        <div class="metric col-half">
+                            <span>平均海平面氣壓(hPa)</span>
+                            <strong>${mslPress}${mslPress !== '--' ? ' <small>hPa</small>' : ''}</strong>
+                        </div>
+                        <div class="metric col-half">
+                            <span>站氣壓(hPa)</span>
+                            <strong>${stPress}${stPress !== '--' ? ' <small>hPa</small>' : ''}</strong>
+                        </div>
+
+                        <div class="metric col-third ${class1m}">
+                            <span>一分鐘雨量</span>
+                            <strong>${rain1m}${rain1m !== '--' ? ' <small>mm</small>' : ''}</strong>
+                        </div>
+                        <div class="metric col-third ${class1h}">
+                            <span>一小時雨量</span>
+                            <strong>${rain1h}${rain1h !== '--' ? ' <small>mm</small>' : ''}</strong>
+                        </div>
+                        <div class="metric col-third ${classDay}">
+                            <span>日總雨量</span>
+                            <strong>${rainDay}${rainDay !== '--' ? ' <small>mm</small>' : ''}</strong>
+                        </div>
+
+                        <div class="metric col-full">
+                            <span>滾動24小時累計雨量 (5分鐘滑動視窗)</span>
+                            <strong>${total24h} mm</strong>
+                        </div>
+                    </div>
+                </div>
                 `;
-                gridContainer.innerHTML += cardHtml;
+                gridContainer.innerHTML += card;
             });
 
-            // 合併新記錄 + 保存到本地存儲
+            // Append new records and save to storage
             const oldRecords = getRainRecords();
-            const allRecords = [...oldRecords, ...newRecords];
-            saveRainRecords(allRecords);
+            const merged = [...oldRecords, ...newBatch];
+            saveRainRecords(merged);
         })
         .catch(err => {
             console.error(err);
-            document.getElementById('grid-container').innerHTML = `
+            document.getElementById("grid-container").innerHTML = `
                 <div class="loading" style="color: #e74c3c;">
                     載入失敗，請檢查網絡或代理狀態
                 </div>`;
         });
 }
 
-// 初始化執行 + 定時刷新（1分鐘執行一次，累計雨量自動更新）
+// First run + 5-minute auto refresh (300000 ms)
 fetchGridData();
-setInterval(fetchGridData, 60000);
+setInterval(fetchGridData, 300000);
 </script>
 
 </body>
