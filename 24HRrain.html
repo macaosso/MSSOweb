@@ -72,7 +72,7 @@
             background: white;
             appearance: none;
             cursor: pointer;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%232c3e50' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%232c3e50' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 15px center;
         }
@@ -271,7 +271,7 @@ const PROXY1 = 'https://api.allorigins.win/raw?url=';
 const PROXY2 = 'https://corsproxy.io/?';
 const TIMEOUT = 6000;
 const HISTORY_KEY = "macao_weather_24h_history";
-const MAX_RECORDS = 288; // 5min * 24h = 288 points
+const MAX_RECORDS = 288;
 
 const PARAM_CONFIG = {
     temp: { label: '氣溫', unit: '°C', color: '#e74c3c', type: 'line' },
@@ -296,7 +296,8 @@ const DOM = {
 };
 
 let globalStations = [];
-let globalPubTime = "";
+let globalUpdateTimeStr = "";
+let globalUpdateTimeTs = 0;
 
 function getValue(el) {
     if (!el) return null;
@@ -422,17 +423,15 @@ function renderCards() {
 
 function saveHistory() {
     let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-    const pubDateObj = new Date(globalPubTime);
-    const dataTs = pubDateObj.getTime();
 
-    // 1. 去重：如果当前时间戳已经存在，就不再追加
-    const existingTimes = new Set(history.map(d => d.timestamp));
-    if (existingTimes.has(dataTs)) {
-        console.log("当前时间点数据已存在，跳过保存");
+    // 用 UpdateTime 做唯一 key，避免重复
+    const existing = history.some(d => d.timeStr === globalUpdateTimeStr);
+    if (existing) {
+        console.log("UpdateTime already exists, skip");
         return;
     }
 
-    // 2. 只保留最近24小时的数据
+    // 只保留最近24小时
     const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
     history = history.filter(d => d.timestamp >= oneDayAgo);
 
@@ -455,8 +454,8 @@ function saveHistory() {
         });
 
         history.push({
-            timestamp: dataTs,
-            timeStr: globalPubTime,
+            timestamp: globalUpdateTimeTs,
+            timeStr: globalUpdateTimeStr,
             code, name,
             temp, humidity: hum, windSpeed: ws, windGust: wg,
             windDir: wd, mslPressure: mslp, stationPressure: stp,
@@ -475,8 +474,6 @@ function renderChart(param, code, name) {
 
     const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
     let stationData = history.filter(d => d.code === code);
-
-    // 3. 按时间戳排序，保证图表顺序正确
     stationData.sort((a, b) => a.timestamp - b.timestamp);
 
     if (stationData.length === 0) {
@@ -521,8 +518,15 @@ DOM.paramSelect.addEventListener('change', () => {
 async function main() {
     try {
         const xml = await fetchData();
-        globalPubTime = xml.querySelector("SysPubdate")?.textContent || "";
-        DOM.pubDate.textContent = globalPubTime;
+
+        // 只抓 <ActualWeather><Custom><UpdateTime>
+        const updateTimeEl = xml.querySelector("ActualWeather > Custom > UpdateTime");
+        if (!updateTimeEl) throw new Error("UpdateTime not found");
+        globalUpdateTimeStr = updateTimeEl.textContent.trim();[[__LINK_ICON]](https://www.smg.gov.mo/en/subpage/73/actualWeather?f_link_type=f_linkinlinenote&flow_extra=eyJpbmxpbmVfZGlzcGxheV9wb3NpdGlvbiI6MCwiZG9jX3Bvc2l0aW9uIjowLCJkb2NfaWQiOiJjNWM2MjAyYjg3MDZkM2IxLTFiMWRhMTZhNDM5NzkwZTYifQ%3D%3D "__LINK_ICON")
+        globalUpdateTimeTs = new Date(globalUpdateTimeStr).getTime();
+
+        DOM.pubDate.textContent = globalUpdateTimeStr;
+
         globalStations = Array.from(xml.querySelectorAll("WeatherReport station"));
 
         renderTable(DOM.paramSelect.value);
@@ -530,6 +534,7 @@ async function main() {
         saveHistory();
     } catch (err) {
         DOM.gridContainer.innerHTML = `<div class="loading" style="color:#e74c3c;">載入失敗，請稍後重試</div>`;
+        console.error(err);
     }
 }
 
