@@ -271,7 +271,7 @@ const PROXY1 = 'https://api.allorigins.win/raw?url=';
 const PROXY2 = 'https://corsproxy.io/?';
 const TIMEOUT = 6000;
 const HISTORY_KEY = "macao_weather_24h_history";
-const MAX_RECORDS = 288;
+const MAX_RECORDS = 288; // 5min * 24h = 288 points
 
 const PARAM_CONFIG = {
     temp: { label: '氣溫', unit: '°C', color: '#e74c3c', type: 'line' },
@@ -425,6 +425,17 @@ function saveHistory() {
     const pubDateObj = new Date(globalPubTime);
     const dataTs = pubDateObj.getTime();
 
+    // 1. 去重：如果当前时间戳已经存在，就不再追加
+    const existingTimes = new Set(history.map(d => d.timestamp));
+    if (existingTimes.has(dataTs)) {
+        console.log("当前时间点数据已存在，跳过保存");
+        return;
+    }
+
+    // 2. 只保留最近24小时的数据
+    const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000;
+    history = history.filter(d => d.timestamp >= oneDayAgo);
+
     globalStations.forEach(station => {
         const code = station.getAttribute("code") || "";
         const name = station.querySelector("stationname")?.textContent || "";
@@ -463,7 +474,10 @@ function renderChart(param, code, name) {
     DOM.chartTitle.textContent = `${name} (${code}) - ${cfg.label} 24小時趨勢`;
 
     const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-    const stationData = history.filter(d => d.code === code);
+    let stationData = history.filter(d => d.code === code);
+
+    // 3. 按时间戳排序，保证图表顺序正确
+    stationData.sort((a, b) => a.timestamp - b.timestamp);
 
     if (stationData.length === 0) {
         Highcharts.chart(DOM.chartBox, { title: { text: "暫無歷史數據" }, credits: { enabled: false } });
@@ -500,7 +514,6 @@ function renderChart(param, code, name) {
     });
 }
 
-// Switch dropdown → refresh table immediately
 DOM.paramSelect.addEventListener('change', () => {
     renderTable(DOM.paramSelect.value);
 });
