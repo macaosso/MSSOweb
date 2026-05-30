@@ -8,7 +8,7 @@ const tcWarnings = [
 //icon:
 
 const forecastInfo = {
-  updated: "05-30 12:00 MST"
+  updated: "05-31 05:00 MST"
 };
 
 const pastPoints = [
@@ -27,26 +27,30 @@ const pastPoints = [
   {lat:16.2, lon:132.0, time: "05-29 20H", wind: 90}, 
   {lat:16.8, lon:131.0, time: "05-30 02H", wind: 105}, 
   {lat:17.3, lon:130.2, time: "05-30 08H", wind: 120}, 
-  {lat:17.9, lon:129.8, time: "05-30 12H", wind: 130}, 
+  {lat:18.2, lon:129.5, time: "05-30 14H", wind: 120}, 
+  {lat:19.1, lon:129.0, time: "05-30 20H", wind: 130}, 
+  {lat:20.0, lon:128.4, time: "05-31 02H", wind: 130}, 
+  {lat:20.4, lon:128.6, time: "05-31 05H", wind: 130}, 
+  
 ];
 
 const forecastPoints = [
-  {lat:17.9, lon:129.8, time: "05-30 12H",wind: 130,
+  {lat:20.4, lon:128.6, time: "05-31 05H",wind: 130,
    
     wind41: { ne: 230, se: 270, sw: 220, nw: 200 }, 
     wind88: { ne: 80, se: 120, sw: 80,  nw: 60 } 
   },
 
-  {lat:19.4, lon:128.7, time:"05-31 00H", wind: 150},
-  {lat:21.2, lon:128.0, time:"05-30 12H", wind: 165},
-  {lat:25.6, lon:127.6, time:"05-31 12H", wind: 175},
-  {lat:30.0, lon:130.9, time:"06-01 12H", wind: 145},
-  {lat:34.2, lon:138.3, time:"06-02 12H", wind: 105},
-  {lat:36.5, lon:146.8, time:"06-03 12H", wind: "-"},
+  {lat:19.4, lon:128.7, time:"05-31 17H", wind: 155},
+  {lat:23.6, lon:127.2, time:"06-01 05H", wind: 155},
+  {lat:28.2, lon:128.8, time:"06-02 05H", wind: 145},
+  {lat:33.4, lon:136.0, time:"06-03 05H", wind: 130},
+  {lat:36.4, lon:144.9, time:"06-04 05H", wind: 105},
+  {lat:38.0, lon:149, time:"06-05 05H", wind: "-"},
 ];
 
 window.tcInfo = {
   name: "薔薇 (2606)", 
   wind: forecastPoints[0].wind,
-  pressure: 975
+  pressure: 965
 };
