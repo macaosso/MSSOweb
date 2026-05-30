@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澳門即時空氣質量指數 - GIS地圖</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * { box-sizing:border-box; margin:0; padding:0; }
+        body { font-family:Arial,sans-serif; background:#f1f5f9; padding:15px; }
+        .container { max-width:1400px; margin:0 auto; }
+        header { background:#2c3e50; color:white; padding:18px 20px; border-radius:12px; margin-bottom:15px; }
+        header h1 { font-size:1.4rem; }
+        .time-info { font-size:0.9rem; opacity:0.9; margin-top:5px; }
+
+        .main-grid {
+            display:grid;
+            grid-template-columns:1fr 1fr;
+            gap:15px;
+        }
+        @media(max-width:900px){
+            .main-grid { grid-template-columns:1fr; }
+        }
+
+        #map {
+            width:100%;
+            height:620px;
+            border-radius:10px;
+            box-shadow:0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .legend {
+            position:absolute;
+            bottom:20px;
+            right:20px;
+            background:white;
+            padding:10px 12px;
+            border-radius:8px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.15);
+            font-size:0.8rem;
+            z-index:1000;
+        }
+        .legend h4 { margin-bottom:6px; font-size:0.9rem; }
+        .legend-item { display:flex; align-items:center; margin-bottom:4px; }
+        .legend-color { width:12px; height:12px; border-radius:50%; margin-right:6px; }
+
+        .station-grid {
+            display:grid;
+            grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+            gap:12px;
+        }
+        .station-card {
+            background:white;
+            border-radius:10px;
+            padding:16px;
+            box-shadow:0 2px 6px rgba(0,0,0,0.08);
+            border-left:5px solid #3498db;
+        }
+        .station-name { font-weight:bold; font-size:1rem; margin-bottom:8px; }
+        .aqi-display { font-size:1.8rem; font-weight:bold; margin:8px 0; }
+        .level { padding:4px 8px; border-radius:6px; color:white; font-size:0.8rem; display:inline-block; }
+        .good { background:#2ecc71; }
+        .normal { background:#f39c12; }
+        .poor { background:#e74c3c; }
+
+        .loading { text-align:center; padding:40px; font-size:1.1rem; color:#666; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>澳門即時空氣質量指數 IQA | 實時監測地圖</h1>
+        <div class="time-info">
+            資料來源：澳門地球物理氣象局 SMG &nbsp;|&nbsp;
+            更新時間：<span id="updateTime">載入中...</span>
+        </div>
+    </header>
+
+    <div class="main-grid">
+        <div style="position:relative;">
+            <div id="map"></div>
+            <div class="legend">
+                <h4>空氣質量指數</h4>
+                <div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div> 良好 (0‑50)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div> 普通 (51‑100)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div> 不良 (>100)</div>
+            </div>
+        </div>
+
+        <div class="station-grid" id="stationCards">
+            <div class="loading">載入空氣質量數據中...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 6 AQI stations with coordinates
+const stations = {
+    "台山":       { lat:22.2143048, lng:113.5430605 },
+    "荷蘭園":     { lat:22.1957226, lng:113.5447928 },
+    "氹仔中心區":  { lat:22.1585991, lng:113.5555425 },
+    "大潭山":     { lat:22.1594111, lng:113.5684563 },
+    "石排灣":     { lat:22.1250727, lng:113.5544267 },
+    "九澳":       { lat:22.1330617, lng:113.5835098 }
+};
+
+// Initialize map
+const map = L.map('map').setView([22.175, 113.55], 13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:'&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+let markers = [];
+
+function clearMarkers() {
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+}
+
+function getAQIColor(val) {
+    const num = parseInt(val);
+    if (isNaN(num)) return '#95a5a6';
+    if (num <= 50) return '#2ecc71';
+    if (num <= 100) return '#f39c12';
+    return '#e74c3c';
+}
+
+function getLevel(val) {
+    const num = parseInt(val);
+    if (isNaN(num)) return '未知';
+    if (num <= 50) return '良好';
+    if (num <= 100) return '普通';
+    return '不良';
+}
+
+function getLevelClass(val) {
+    const num = parseInt(val);
+    if (num <= 50) return 'good';
+    if (num <= 100) return 'normal';
+    return 'poor';
+}
+
+// Render map + cards
+function renderData(data) {
+    clearMarkers();
+    const container = document.getElementById('stationCards');
+    container.innerHTML = '';
+
+    data.forEach(item => {
+        const name = item.name;
+        const aqi = item.value;
+        const color = getAQIColor(aqi);
+        const level = getLevel(aqi);
+        const levelClass = getLevelClass(aqi);
+
+        if (stations[name]) {
+            const latlng = [stations[name].lat, stations[name].lng];
+            const icon = L.divIcon({
+                html: `<div style="background:${color};color:white; width:46px; height:46px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:15px;">${aqi}</div>`,
+                className: '',
+                iconSize: [46,46],
+                iconAnchor: [23,23]
+            });
+            const marker = L.marker(latlng, {icon}).addTo(map);
+            marker.bindPopup(`<strong>${name}</strong><br>IQA: ${aqi} (${level})`);
+            markers.push(marker);
+        }
+
+        // Card HTML
+        container.innerHTML += `
+        <div class="station-card">
+            <div class="station-name">${name}</div>
+            <div class="aqi-display">${aqi}</div>
+            <div class="level ${levelClass}">${level}</div>
+        </div>
+        `;
+    });
+}
+
+// Fetch from SMG (using CORS proxy)
+function fetchAQI() {
+    const url = `https://corsproxy.io/?https://www.smg.gov.mo/zh/subpage/64/realtime-iqa-report&t=${Date.now()}`;
+    fetch(url)
+    .then(res => res.text())
+    .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const updateTime = doc.querySelector('td:contains("更新時間")')?.parentNode?.querySelectorAll('td')[1]?.textContent || '';
+        document.getElementById('updateTime').innerText = updateTime.trim();
+
+        const rows = doc.querySelectorAll('table tr');
+        const data = [];
+        rows.forEach(row => {
+            const tds = row.querySelectorAll('td');
+            if (tds.length >= 4) {
+                const name = tds[1].innerText.trim();
+                const val = tds[3].innerText.trim();
+                if (name && !isNaN(parseInt(val)) && stations[name]) {
+                    data.push({ name, value: val });
+                }
+            }
+        });
+        renderData(data);
+    })
+    .catch(err => {
+        console.error(err);
+        document.getElementById('stationCards').innerHTML = '<div class="loading">載入失敗，請稍後重試</div>';
+    });
+}
+
+// Run
+fetchAQI();
+setInterval(fetchAQI, 60000);
+</script>
+
+</body>
+</html>
