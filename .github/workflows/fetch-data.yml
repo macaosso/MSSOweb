@@ -1,16 +1,20 @@
-name: Fetch Air Quality Data 
+name: Fetch Air Quality Data
+run-name: Auto fetch latest air data
 
-# Run every 5 minutes (auto update)
+# Run every 5 minutes
 on:
   schedule:
     - cron: '*/5 * * * *'
-  workflow_dispatch: # Allow manual run
+  workflow_dispatch:
+
+permissions:
+  contents: write # Critical: allow push commits
 
 jobs:
-  fetch:
+  get-data:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -18,25 +22,29 @@ jobs:
         with:
           node-version: 20
 
-      - name: Fetch SMG API & save to data.json
+      - name: Fetch SMG API and write data.json
         run: |
-          node -e "
-            const https = require('https');
-            const fs = require('fs');
-            const url = 'https://www.smg.gov.mo/smg/airQuality/latestAirConcentration.json';
-            https.get(url, (res) => {
-              let body = '';
-              res.on('data', chunk => body += chunk);
-              res.on('end', () => {
-                fs.writeFileSync('data.json', body);
-              });
-            }).on('error', err => console.error(err));
-          "
+          node << 'EOF'
+          const https = require('https');
+          const fs = require('fs');
+          const url = "https://www.smg.gov.mo/smg/airQuality/latestAirConcentration.json";
+          
+          https.get(url, (res) => {
+            let raw = "";
+            res.on("data", d => raw += d);
+            res.on("end", () => {
+              fs.writeFileSync("data.json", raw, "utf8");
+              console.log("Data saved to data.json");
+            });
+          }).on("error", e => {
+            console.error("API fetch error:", e);
+          });
+          EOF
 
-      - name: Commit & push updated data
+      - name: Commit & Push data
         run: |
-          git config --global user.name "GitHub Actions"
-          git config --global user.email "actions@github.com"
+          git config user.name "GitHub Actions Bot"
+          git config user.email "bot@github.com"
           git add data.json
-          git commit -m "Auto update air quality data" || echo "No changes"
+          git commit -m "Update air quality data" || echo "No new data"
           git push
