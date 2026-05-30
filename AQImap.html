@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>澳門空氣質量監測地圖（IQA 標準）</title>
+    <title>Air Quality Monitor - EPA Standard Formula</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -84,58 +84,56 @@
 <div class="container">
     <header>
         <div>
-            <h1>澳門空氣質量監測地圖（官方IQA標準）</h1>
+            <h1>Macau Air Quality Monitor (EPA Standard Formula)</h1>
             <small style="color:#3498db; background:rgba(255,255,255,0.9); padding:2px 8px; border-radius:4px;">
-                實時污染物 + 官方分段線性IQA計算 | 每分鐘自動更新
+                EPA Linear Sub-index Calculation | Auto Refresh every 1 minute
             </small>
         </div>
         <div class="meta-info">
-            <div>數據更新時間：<span id="pub-date">載入中...</span></div>
-            <div>自動刷新頻率：1 分鐘</div>
+            <div>Update Time: <span id="pub-date">Loading...</span></div>
+            <div>Refresh: 60s</div>
         </div>
     </header>
 
     <div class="main-wrap">
         <div id="map">
-            <!-- 地圖縮放按鈕 -->
             <div class="zoom-controls">
-                <button class="zoom-btn" id="zoomMacau">1 - 澳門半島</button>
-                <button class="zoom-btn" id="zoomTaipa">2 - 路氹</button>
-                <button class="zoom-btn" id="zoomAll">3 - 全區</button>
+                <button class="zoom-btn" id="zoomMacau">1 - Macau Peninsula</button>
+                <button class="zoom-btn" id="zoomTaipa">2 - Taipa & Coloane</button>
+                <button class="zoom-btn" id="zoomAll">3 - All Areas</button>
             </div>
-            <!-- 圖例 -->
             <div class="map-legend">
-                <h4>空氣質量指數 IQA</h4>
-                <div class="legend-row"><div class="legend-dot" style="background:#b8e994;"></div> 優 (0-50)</div>
-                <div class="legend-row"><div class="legend-dot" style="background:#ffeaa7;"></div> 良好 (51-100)</div>
-                <div class="legend-row"><div class="legend-dot" style="background:#fdcb6e;"></div> 普通 (101-150)</div>
-                <div class="legend-row"><div class="legend-dot" style="background:#e17055;"></div> 不良 (>150)</div>
+                <h4>AQI / IQA Level</h4>
+                <div class="legend-row"><div class="legend-dot" style="background:#b8e994;"></div> Good (0-50)</div>
+                <div class="legend-row"><div class="legend-dot" style="background:#ffeaa7;"></div> Moderate (51-100)</div>
+                <div class="legend-row"><div class="legend-dot" style="background:#fdcb6e;"></div> Unhealthy for Sensitive (101-150)</div>
+                <div class="legend-row"><div class="legend-dot" style="background:#e17055;"></div> Unhealthy (>150)</div>
             </div>
         </div>
         <div id="stationCards" class="station-grid">
-            <div class="loading">正在載入空氣質量數據...</div>
+            <div class="loading">Loading air quality data...</div>
         </div>
     </div>
 </div>
 
 <script>
-// 空氣質量監測站點 + 簡碼 + 經緯度
+// Station list
 const stationsList = [
-    { name:"台山", code:"EN", lat:22.2143048, lng:113.5430605 },
-    { name:"荷蘭園", code:"PO", lat:22.1957226, lng:113.5447928 },
-    { name:"氹仔中心區", code:"TC", lat:22.1585991, lng:113.5555425 },
-    { name:"大潭山", code:"TG", lat:22.1594111, lng:113.5684563 },
-    { name:"石排灣", code:"CD", lat:22.1250727, lng:113.5544267 },
-    { name:"九澳", code:"KH", lat:22.1330617, lng:113.5835098 }
+    { name:"Taishan", code:"EN", lat:22.2143048, lng:113.5430605 },
+    { name:"Holland Garden", code:"PO", lat:22.1957226, lng:113.5447928 },
+    { name:"Taipa Central", code:"TC", lat:22.1585991, lng:113.5555425 },
+    { name:"Taipa Grande", code:"TG", lat:22.1594111, lng:113.5684563 },
+    { name:"Seac Pai Van", code:"CD", lat:22.1250727, lng:113.5544267 },
+    { name:"Ká Ho", code:"KH", lat:22.1330617, lng:113.5835098 }
 ];
 
-// 初始化地圖
+// Init Map
 const map = L.map('map').setView([22.175, 113.55], 12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
 
-// 地圖視圖配置
+// Map view control
 const views = {
     macau: { center: [22.20, 113.54], zoom: 14 },
     taipa: { center: [22.15, 113.555], zoom: 14 },
@@ -153,196 +151,178 @@ document.getElementById('zoomAll').addEventListener('click', () => {
 
 let allMarkers = [];
 
-// 污染物斷點（按澳門官方標準）
+// EPA Breakpoints (Macau standard)
 const breakpoints = {
-    PM25: [
-        { C: 0, I: 0 }, { C: 12, I: 50 }, { C: 35, I: 100 },
-        { C: 55, I: 150 }, { C: 150, I: 200 }
-    ],
-    PM10: [
-        { C: 0, I: 0 }, { C: 54, I: 50 }, { C: 154, I: 100 },
-        { C: 254, I: 150 }, { C: 354, I: 200 }
-    ],
-    NO2: [
-        { C: 0, I: 0 }, { C: 53, I: 50 }, { C: 100, I: 100 },
-        { C: 360, I: 150 }, { C: 649, I: 200 }
-    ],
-    SO2: [
-        { C: 0, I: 0 }, { C: 35, I: 50 }, { C: 75, I: 100 },
-        { C: 185, I: 150 }, { C: 304, I: 200 }
-    ],
-    O3: [
-        { C: 0, I: 0 }, { C: 54, I: 50 }, { C: 70, I: 100 },
-        { C: 85, I: 150 }, { C: 105, I: 200 }
-    ],
-    CO: [
-        { C: 0, I: 0 }, { C: 4.4, I: 50 }, { C: 9.4, I: 100 },
-        { C: 12.4, I: 150 }, { C: 15.4, I: 200 }
-    ]
+    PM25:  [{C:0,I:0},{C:12,I:50},{C:35,I:100},{C:55,I:150},{C:150,I:200}],
+    PM10:  [{C:0,I:0},{C:54,I:50},{C:154,I:100},{C:254,I:150},{C:354,I:200}],
+    NO2:   [{C:0,I:0},{C:53,I:50},{C:100,I:100},{C:360,I:150},{C:649,I:200}],
+    SO2:   [{C:0,I:0},{C:35,I:50},{C:75,I:100},{C:185,I:150},{C:304,I:200}],
+    O3:    [{C:0,I:0},{C:54,I:50},{C:70,I:100},{C:85,I:150},{C:105,I:200}],
+    CO:    [{C:0,I:0},{C:4.4,I:50},{C:9.4,I:100},{C:12.4,I:150},{C:15.4,I:200}]
 };
 
-// 分段線性公式計算副指數
-function calculateSubIndex(value, key) {
-    if (value === undefined || value === null) return 0;
-    const bps = breakpoints[key];
-    if (!bps) return 0;
+// --------------------------
+// EPA Standard Linear Formula
+// I = [(Ihigh - Ilow) / (Chigh - Clow)] * (C - Clow) + Ilow
+// --------------------------
+function calcSubIndex(rawValue, pollutantKey) {
+    // Handle empty / null / non-numeric data
+    const C = parseFloat(rawValue);
+    if (isNaN(C) || C < 0) return 0;
 
-    const val = parseFloat(value);
-    if (isNaN(val)) return 0;
+    const bpList = breakpoints[pollutantKey];
+    let Clow = 0, Chigh = 0, Ilow = 0, Ihigh = 0;
 
-    // 找斷點區間
-    let Clow, Chigh, Ilow, Ihigh;
-    for (let i = 0; i < bps.length - 1; i++) {
-        if (val >= bps[i].C && val <= bps[i + 1].C) {
-            Clow = bps[i].C;
-            Chigh = bps[i + 1].C;
-            Ilow = bps[i].I;
-            Ihigh = bps[i + 1].I;
+    // Find matched concentration range
+    for (let i = 0; i < bpList.length - 1; i++) {
+        if (C >= bpList[i].C && C <= bpList[i+1].C) {
+            Clow = bpList[i].C;
+            Chigh = bpList[i+1].C;
+            Ilow = bpList[i].I;
+            Ihigh = bpList[i+1].I;
             break;
         }
     }
-    if (!Clow) {
-        // 超過最高斷點
-        const last = bps[bps.length - 1];
+    // Exceed max breakpoint
+    if (Chigh === 0) {
+        const last = bpList[bpList.length - 1];
         Clow = last.C;
         Chigh = last.C;
         Ilow = last.I;
         Ihigh = last.I;
     }
 
-    if (Chigh === Clow) return Ilow;
-    return Math.round(((Ihigh - Ilow) / (Chigh - Clow)) * (val - Clow) + Ilow);
+    // Apply EPA formula
+    const ratio = (Ihigh - Ilow) / (Chigh - Clow);
+    const subIndex = ratio * (C - Clow) + Ilow;
+    return Math.round(subIndex);
 }
 
-// 計算IQA（取各污染物副指數最大值）
-function calculateIQA(pollutants) {
-    const pm25 = calculateSubIndex(pollutants.HE_PM2_5, "PM25");
-    const pm10 = calculateSubIndex(pollutants.HE_PM10, "PM10");
-    const no2 = calculateSubIndex(pollutants.NO2, "NO2");
-    const so2 = calculateSubIndex(pollutants.SO2, "SO2");
-    const o3 = calculateSubIndex(pollutants.O3, "O3");
-    const co = calculateSubIndex(pollutants.CO, "CO");
-    return Math.max(pm25, pm10, no2, so2, o3, co);
+// Calculate final AQI = MAX of all sub-index
+function calcFinalAQI(data) {
+    const idxPM25 = calcSubIndex(data.HE_PM2_5, "PM25");
+    const idxPM10 = calcSubIndex(data.HE_PM10, "PM10");
+    const idxNO2  = calcSubIndex(data.NO2, "NO2");
+    const idxSO2  = calcSubIndex(data.SO2, "SO2");
+    const idxO3   = calcSubIndex(data.O3, "O3");
+    const idxCO   = calcSubIndex(data.CO, "CO");
+    return Math.max(idxPM25, idxPM10, idxNO2, idxSO2, idxO3, idxCO);
 }
 
-// 根據IQA獲取圓圈顏色（柔和淺色系）
-function getAQIColor(val) {
-    let v = parseInt(val);
-    if (isNaN(v) || v <= 50) return "#b8e994";    // 優 淺綠
-    if (v <= 100) return "#ffeaa7";               // 良好 淺黃
-    if (v <= 150) return "#fdcb6e";               // 普通 淺橙
-    return "#e17055";                            // 不良 淺紅
+// Color for circle marker (match legend)
+function getMarkerColor(aqi) {
+    if (aqi <= 50) return "#b8e994";
+    if (aqi <= 100) return "#ffeaa7";
+    if (aqi <= 150) return "#fdcb6e";
+    return "#e17055";
 }
 
-// 文字顏色：高濃度深色底用白色字
-function getTextColor(val) {
-    let v = parseInt(val);
-    return v > 100 ? "#ffffff" : "#000000";
+// Text color for readability
+function getTextColor(aqi) {
+    return aqi > 100 ? "#ffffff" : "#000000";
 }
 
-// 清空所有地圖標記
+// Clear all map markers
 function clearAllMarkers() {
-    allMarkers.forEach(marker => map.removeLayer(marker));
+    allMarkers.forEach(m => map.removeLayer(m));
     allMarkers = [];
 }
 
-// 渲染地圖標記 + 卡片
+// Render map & station cards
 function renderData(airData) {
     clearAllMarkers();
     const cardContainer = document.getElementById("stationCards");
     cardContainer.innerHTML = "";
 
     stationsList.forEach(station => {
-        const data = airData[station.code] || {};
-        const iqa = calculateIQA(data);
-        const circleColor = getAQIColor(iqa);
-        const textColor = getTextColor(iqa);
+        const d = airData[station.code] || {};
+        const aqi = calcFinalAQI(d);
+        const fillColor = getMarkerColor(aqi);
+        const txtColor = getTextColor(aqi);
 
-        // 彈窗內容：站名 + 簡碼 + IQA
-        const popupHtml = `
+        // Popup content
+        const popup = `
             <strong>${station.name}</strong> (${station.code})<br>
-            空氣質量指數 IQA：${iqa}
+            AQI: ${aqi}
         `;
 
-        // 1. 底層彩色圓圈
-        const circleMarker = L.circleMarker([station.lat, station.lng], {
+        // 1. Circle Marker
+        const circle = L.circleMarker([station.lat, station.lng], {
             radius: 22,
-            fillColor: circleColor,
+            fillColor: fillColor,
             color: "#fff",
             weight: 2,
             fillOpacity: 0.9
         }).addTo(map);
 
-        // 2. 透明點擊層（解決彈窗點擊失效）
-        const clickMarker = L.marker([station.lat, station.lng], {
+        // 2. Click layer (fix no response)
+        const clickLayer = L.marker([station.lat, station.lng], {
             icon: L.divIcon({ html: "", className: "", iconSize: [44, 44] })
-        }).bindPopup(popupHtml).addTo(map);
+        }).bindPopup(popup).addTo(map);
 
-        // 3. 中間IQA數字
+        // 3. AQI text inside circle
         const textIcon = L.divIcon({
-            html: `<div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:${textColor};font-weight:bold;font-size:14px;">${iqa}</div>`,
+            html: `<div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:${txtColor};font-weight:bold;font-size:14px;">${aqi}</div>`,
             iconSize: [44, 44],
             iconAnchor: [22, 22]
         });
-        const textMarker = L.marker([station.lat, station.lng], { icon: textIcon }).addTo(map);
+        const textLayer = L.marker([station.lat, station.lng], { icon: textIcon }).addTo(map);
 
-        allMarkers.push(circleMarker, clickMarker, textMarker);
+        allMarkers.push(circle, clickLayer, textLayer);
 
-        // 渲染監測卡片（頂邊顏色同步IQA，顯示所有污染物）
+        // Render card: show ALL pollutants, empty data = display "N/A"
         cardContainer.innerHTML += `
-            <div class="station-card" style="border-top-color: ${circleColor};">
-                <div class="station-name">${station.name} (${station.code})</div>
-                <div style="text-align:center; font-size:1.8rem; font-weight:bold; color:${textColor};">${iqa}</div>
-                <div class="pollutant-grid">
-                    <div class="pollutant-item">
-                        <div class="pollutant-label">PM2.5</div>
-                        <div class="pollutant-value">${data.HE_PM2_5 || '--'} μg/m³</div>
-                    </div>
-                    <div class="pollutant-item">
-                        <div class="pollutant-label">PM10</div>
-                        <div class="pollutant-value">${data.HE_PM10 || '--'} μg/m³</div>
-                    </div>
-                    <div class="pollutant-item">
-                        <div class="pollutant-label">NO₂</div>
-                        <div class="pollutant-value">${data.NO2 || '--'} μg/m³</div>
-                    </div>
-                    <div class="pollutant-item">
-                        <div class="pollutant-label">SO₂</div>
-                        <div class="pollutant-value">${data.SO2 || '--'} μg/m³</div>
-                    </div>
-                    <div class="pollutant-item">
-                        <div class="pollutant-label">O₃</div>
-                        <div class="pollutant-value">${data.O3 || '--'} μg/m³</div>
-                    </div>
-                    <div class="pollutant-item">
-                        <div class="pollutant-label">CO</div>
-                        <div class="pollutant-value">${data.CO || '--'} mg/m³</div>
-                    </div>
+        <div class="station-card" style="border-top-color: ${fillColor};">
+            <div class="station-name">${station.name} (${station.code})</div>
+            <div style="text-align:center; font-size:1.8rem; font-weight:bold; color:${txtColor};">${aqi}</div>
+            <div class="pollutant-grid">
+                <div class="pollutant-item">
+                    <div class="pollutant-label">PM2.5</div>
+                    <div class="pollutant-value">${d.HE_PM2_5 ?? 'N/A'} μg/m³</div>
+                </div>
+                <div class="pollutant-item">
+                    <div class="pollutant-label">PM10</div>
+                    <div class="pollutant-value">${d.HE_PM10 ?? 'N/A'} μg/m³</div>
+                </div>
+                <div class="pollutant-item">
+                    <div class="pollutant-label">NO₂</div>
+                    <div class="pollutant-value">${d.NO2 ?? 'N/A'} μg/m³</div>
+                </div>
+                <div class="pollutant-item">
+                    <div class="pollutant-label">SO₂</div>
+                    <div class="pollutant-value">${d.SO2 ?? 'N/A'} μg/m³</div>
+                </div>
+                <div class="pollutant-item">
+                    <div class="pollutant-label">O₃</div>
+                    <div class="pollutant-value">${d.O3 ?? 'N/A'} μg/m³</div>
+                </div>
+                <div class="pollutant-item">
+                    <div class="pollutant-label">CO</div>
+                    <div class="pollutant-value">${d.CO ?? 'N/A'} mg/m³</div>
                 </div>
             </div>
+        </div>
         `;
     });
 }
 
-// 請求數據（使用代理解決跨域）
+// Fetch data with CORS proxy
 async function fetchAirData() {
     const proxy = "https://corsproxy.io/?";
     const jsonUrl = proxy + "https://www.smg.gov.mo/smg/airQuality/latestAirConcentration.json";
     const xmlUrl = proxy + "https://xml.smg.gov.mo/c_foreiqa.xml";
 
     try {
-        // 請求JSON實時濃度數據
         const jsonRes = await fetch(jsonUrl, { cache: "no-store" });
         const jsonData = await jsonRes.json();
 
-        // 請求XML獲取更新時間
         const xmlRes = await fetch(xmlUrl, { cache: "no-store" });
         const xmlText = await xmlRes.text();
-        const pubTimeMatch = xmlText.match(/<SysPubdate>([\s\S]*?)<\/SysPubdate>/);
-        const pubTime = pubTimeMatch ? pubTimeMatch[1].trim() : jsonData.datetime;
-        document.getElementById("pub-date").innerText = pubTime;
+        const timeMatch = xmlText.match(/<SysPubdate>([\s\S]*?)<\/SysPubdate>/);
+        const updateTime = timeMatch ? timeMatch[1].trim() : jsonData.datetime;
+        document.getElementById("pub-date").innerText = updateTime;
 
-        // 整理數據
+        // Reorganize raw data
         const result = {};
         Object.values(jsonData).forEach(item => {
             result[item.CODE] = {
@@ -357,17 +337,15 @@ async function fetchAirData() {
 
         renderData(result);
     } catch (err) {
-        console.error("數據載入異常：", err);
+        console.error(err);
         document.getElementById("stationCards").innerHTML = `
-            <div class="loading" style="color:#e74c3c;">
-                數據載入失敗，請稍後重試
-            </div>
+            <div class="loading" style="color:#e74c3c;">Data load failed</div>
         `;
         clearAllMarkers();
     }
 }
 
-// 首次執行 + 定時自動更新（60秒）
+// Start & auto refresh
 fetchAirData();
 setInterval(fetchAirData, 60000);
 </script>
