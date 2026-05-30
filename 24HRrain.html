@@ -127,7 +127,7 @@
             color: #7f8c8d;
         }
 
-        /* --- New: Station Table Style --- */
+        /* --- Station Table --- */
         .table-wrapper {
             background: #fff;
             border-radius: 12px;
@@ -164,7 +164,7 @@
             background: #dceaf8;
         }
 
-        /* --- New: Chart Container --- */
+        /* --- Chart Container --- */
         .chart-wrapper {
             background: #fff;
             border-radius: 12px;
@@ -227,152 +227,18 @@
 </div>
 
 <script>
-// ===================== YOUR ORIGINAL CODE (NO CHANGES) =====================
-function fetchGridData() {
-    const cacheBuster = Date.now();
-    const freshUrl = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
+// --- 配置：備用代理 + 超時 + 重試 ---
+const XML_URL = 'https://xml.smg.gov.mo/c_actualweather.xml';
+const PROXY1 = 'https://api.allorigins.win/raw?url='; // 備用代理1
+const PROXY2 = 'https://corsproxy.io/?'; // 舊代理（備用）
+const TIMEOUT = 8000; // 8秒超時
+const RETRY_TIMES = 2; // 失敗重試2次
 
-    fetch(freshUrl, { cache: "no-store" })
-        .then(response => {
-            if (!response.ok) throw new Error('Network error');
-            return response.text();
-        })
-        .then(xmlString => {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlString, "text/xml");
-
-            const pubDateNode = xmlDoc.querySelector("SysPubdate");
-            if (pubDateNode) {
-                document.getElementById('pub-date').textContent = pubDateNode.textContent;
-            }
-
-            const stations = xmlDoc.querySelectorAll("WeatherReport station");
-            const gridContainer = document.getElementById('grid-container');
-            gridContainer.innerHTML = '';
-
-            const extractNodeValue = (selector, parent) => {
-                const el = parent.querySelector(selector);
-                if (!el) return '--';
-                return el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || '--';
-            };
-
-            stations.forEach(station => {
-                const code = station.getAttribute("code")?.trim() || "N/A";
-                const name = station.querySelector("stationname")?.textContent || "未命名站點";
-                const nameDisplay = `${name}(${code})`;
-
-                const currentTemp = extractNodeValue("Temperature", station);
-                const maxTemp = extractNodeValue("Temperature_daily_max", station);
-                const minTemp = extractNodeValue("Temperature_daily_min", station);
-                const humidity = extractNodeValue("Humidity", station);
-                const windSpeed = extractNodeValue("WindSpeed", station);
-                const windGust = extractNodeValue("WindGust", station);
-                const mslPressure = extractNodeValue("MeanSeaLevelPressure", station);
-                const stationPressure = extractNodeValue("StationPressure", station);
-
-                const windDirNode = station.querySelector("WindDirection");
-                const winddValue = windDirNode?.querySelector("dValue")?.textContent || '--';
-                const windDegree = windDirNode?.querySelector("Degree")?.textContent || '--';
-                let windDirDisplay = '--';
-                if (winddValue !== '--' && windDegree !== '--') {
-                    windDirDisplay = `${winddValue}(${windDegree}°)`;
-                } else if (winddValue !== '--') {
-                    windDirDisplay = winddValue;
-                } else if (windDegree !== '--') {
-                    windDirDisplay = `${windDegree}°`;
-                }
-
-                let rain1m = "--", rain1h = "--", rainToday = "--";
-                const rainfallNodes = station.querySelectorAll("Rainfall");
-                rainfallNodes.forEach(node => {
-                    const type = node.querySelector("Type")?.textContent;
-                    const val = node.querySelector("dValue")?.textContent || node.querySelector("Value")?.textContent || "0.0";
-                    if (type === "3") rain1m = val;
-                    if (type === "4") rain1h = val;
-                    if (type === "5") rainToday = val;
-                });
-
-                const rain1mClass = parseFloat(rain1m) > 0 ? 'rain-active' : '';
-                const rain1hClass = parseFloat(rain1h) > 0 ? 'rain-active' : '';
-                const rainTodayClass = parseFloat(rainToday) > 0 ? 'rain-active' : '';
-
-                const cardHtml = `
-                    <div class="station-card">
-                        <div class="station-name">${nameDisplay}</div>
-                        <div class="temp-row">
-                            <div class="current-temp">${currentTemp}°C</div>
-                            <div class="temp-range">
-                                <div>最高: <span class="high-temp">${maxTemp}°C</span></div>
-                                <div>最低: <span class="low-temp">${minTemp}°C</span></div>
-                            </div>
-                        </div>
-                        <div class="metrics-grid">
-                            <div class="metric col-half">
-                                <span>相對濕度(%)</span>
-                                <strong>${humidity}%</strong>
-                            </div>
-                            <div class="metric col-half">
-                                <span>風向(°)</span>
-                                <strong>${windDirDisplay}</strong>
-                            </div>
-                            <div class="metric col-half">
-                                <span>風速(km/h)</span>
-                                <strong>${windSpeed}${windSpeed !== '--' ? ' <small>km/h</small>' : ''}</strong>
-                            </div>
-                            <div class="metric col-half">
-                                <span>陣風(km/h)</span>
-                                <strong>${windGust}${windGust !== '--' ? ' <small>km/h</small>' : ''}</strong>
-                            </div>
-                            <div class="metric col-half">
-                                <span>平均海平面氣壓(hPa)</span>
-                                <strong>${mslPressure}${mslPressure !== '--' ? ' <small>hPa</small>' : ''}</strong>
-                            </div>
-                            <div class="metric col-half">
-                                <span>站氣壓(hPa)</span>
-                                <strong>${stationPressure}${stationPressure !== '--' ? ' <small>hPa</small>' : ''}</strong>
-                            </div>
-                            
-                            <div class="metric col-third ${rain1mClass}">
-                                <span>一分鐘雨量</span>
-                                <strong>${rain1m}${rain1m !== '--' ? ' <small>mm</small>' : ''}</strong>
-                            </div>
-                            <div class="metric col-third ${rain1hClass}">
-                                <span>一小時雨量</span>
-                                <strong>${rain1h}${rain1h !== '--' ? ' <small>mm</small>' : ''}</strong>
-                            </div>
-                            <div class="metric col-third ${rainTodayClass}">
-                                <span>日總雨量</span>
-                                <strong>${rainToday}${rainToday !== '--' ? ' <small>mm</small>' : ''}</strong>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                gridContainer.innerHTML += cardHtml;
-            });
-
-            // Render table & save history data after XML loaded
-            buildStationTable(stations);
-            recordCurrentData(stations);
-        })
-        .catch(err => {
-            console.error(err);
-            document.getElementById('grid-container').innerHTML = `
-                <div class="loading" style="color: #e74c3c;">
-                    載入失敗，請檢查網絡或代理狀態
-                </div>`;
-            document.getElementById('table-body').innerHTML = `<tr><td colspan="3" style="color:#e74c3c;">載入失敗</td></tr>`;
-        });
-}
-
-fetchGridData();
-setInterval(fetchGridData, 60000);
-
-// ===================== NEW FEATURES START =====================
-// Global storage: persist 24h history data (localStorage)
+// --- 全局存儲：24小時歷史 ---
 const HISTORY_KEY = "macao_weather_24h_history";
-const MAX_RECORDS = 288; // 5min interval * 24h = 288 records
+const MAX_RECORDS = 288; // 5min * 24h
 
-// Extract value helper
+// --- 工具：安全取值 ---
 function getVal(node, selector){
     const el = node.querySelector(selector);
     if(!el) return null;
@@ -380,7 +246,175 @@ function getVal(node, selector){
     return v === '--' ? null : parseFloat(v);
 }
 
-// 1. Record real-time data to 24h history (auto save overtime)
+// --- 工具：帶超時 + 重試的 fetch ---
+async function fetchWithTimeoutAndRetry(url, retries=RETRY_TIMES){
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), TIMEOUT);
+    try {
+        const res = await fetch(url, { signal: controller.signal, cache: "no-store" });
+        if(!res.ok) throw new Error(`HTTP ${res.status}`);
+        return await res.text();
+    } catch (err) {
+        if(retries > 0){
+            console.warn(`重試 (剩${retries})...`, err.message);
+            await new Promise(r => setTimeout(r, 1500));
+            return fetchWithTimeoutAndRetry(url, retries-1);
+        }
+        throw err;
+    } finally {
+        clearTimeout(id);
+    }
+}
+
+// --- 核心：獲取XML（自動切換代理）---
+async function fetchGridData() {
+    const cacheBuster = Date.now();
+    const targetUrl = encodeURIComponent(`${XML_URL}?t=${cacheBuster}`);
+    let xmlString;
+
+    try {
+        // 優先備用代理
+        xmlString = await fetchWithTimeoutAndRetry(PROXY1 + targetUrl);
+    } catch (e1) {
+        console.warn("備用代理1失敗，切換舊代理", e1.message);
+        try {
+            xmlString = await fetchWithTimeoutAndRetry(PROXY2 + targetUrl);
+        } catch (e2) {
+            throw new Error(`雙代理均失敗：${e1.message} | ${e2.message}`);
+        }
+    }
+
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+    if(xmlDoc.querySelector("parsererror")) throw new Error("XML解析錯誤");
+
+    // 更新發布時間
+    const pubDateNode = xmlDoc.querySelector("SysPubdate");
+    if (pubDateNode) document.getElementById('pub-date').textContent = pubDateNode.textContent;
+
+    const stations = xmlDoc.querySelectorAll("WeatherReport station");
+    const gridContainer = document.getElementById('grid-container');
+    gridContainer.innerHTML = '';
+
+    // 生成卡片
+    stations.forEach(station => {
+        const code = station.getAttribute("code")?.trim() || "N/A";
+        const name = station.querySelector("stationname")?.textContent || "未命名站點";
+        const nameDisplay = `${name}(${code})`;
+
+        const currentTemp = getVal(station, "Temperature");
+        const maxTemp = getVal(station, "Temperature_daily_max");
+        const minTemp = getVal(station, "Temperature_daily_min");
+        const humidity = getVal(station, "Humidity");
+        const windSpeed = getVal(station, "WindSpeed");
+        const windGust = getVal(station, "WindGust");
+        const mslPressure = getVal(station, "MeanSeaLevelPressure");
+        const stationPressure = getVal(station, "StationPressure");
+
+        const windDirNode = station.querySelector("WindDirection");
+        const winddValue = windDirNode?.querySelector("dValue")?.textContent || '--';
+        const windDegree = windDirNode?.querySelector("Degree")?.textContent || '--';
+        let windDirDisplay = '--';
+        if (winddValue !== '--' && windDegree !== '--') {
+            windDirDisplay = `${winddValue}(${windDegree}°)`;
+        } else if (winddValue !== '--') {
+            windDirDisplay = winddValue;
+        } else if (windDegree !== '--') {
+            windDirDisplay = `${windDegree}°`;
+        }
+
+        let rain1m = "--", rain1h = "--", rainToday = "--";
+        const rainfallNodes = station.querySelectorAll("Rainfall");
+        rainfallNodes.forEach(node => {
+            const type = node.querySelector("Type")?.textContent;
+            const val = node.querySelector("dValue")?.textContent || node.querySelector("Value")?.textContent || "0.0";
+            if (type === "3") rain1m = val;
+            if (type === "4") rain1h = val;
+            if (type === "5") rainToday = val;
+        });
+
+        const rain1mClass = parseFloat(rain1m) > 0 ? 'rain-active' : '';
+        const rain1hClass = parseFloat(rain1h) > 0 ? 'rain-active' : '';
+        const rainTodayClass = parseFloat(rainToday) > 0 ? 'rain-active' : '';
+
+        const cardHtml = `
+            <div class="station-card">
+                <div class="station-name">${nameDisplay}</div>
+                <div class="temp-row">
+                    <div class="current-temp">${currentTemp}°C</div>
+                    <div class="temp-range">
+                        <div>最高: <span class="high-temp">${maxTemp}°C</span></div>
+                        <div>最低: <span class="low-temp">${minTemp}°C</span></div>
+                    </div>
+                </div>
+                <div class="metrics-grid">
+                    <div class="metric col-half">
+                        <span>相對濕度(%)</span>
+                        <strong>${humidity}%</strong>
+                    </div>
+                    <div class="metric col-half">
+                        <span>風向(°)</span>
+                        <strong>${windDirDisplay}</strong>
+                    </div>
+                    <div class="metric col-half">
+                        <span>風速(km/h)</span>
+                        <strong>${windSpeed}${windSpeed !== '--' ? ' <small>km/h</small>' : ''}</strong>
+                    </div>
+                    <div class="metric col-half">
+                        <span>陣風(km/h)</span>
+                        <strong>${windGust}${windGust !== '--' ? ' <small>km/h</small>' : ''}</strong>
+                    </div>
+                    <div class="metric col-half">
+                        <span>平均海平面氣壓(hPa)</span>
+                        <strong>${mslPressure}${mslPressure !== '--' ? ' <small>hPa</small>' : ''}</strong>
+                    </div>
+                    <div class="metric col-half">
+                        <span>站氣壓(hPa)</span>
+                        <strong>${stationPressure}${stationPressure !== '--' ? ' <small>hPa</small>' : ''}</strong>
+                    </div>
+                    <div class="metric col-third ${rain1mClass}">
+                        <span>一分鐘雨量</span>
+                        <strong>${rain1m}${rain1m !== '--' ? ' <small>mm</small>' : ''}</strong>
+                    </div>
+                    <div class="metric col-third ${rain1hClass}">
+                        <span>一小時雨量</span>
+                        <strong>${rain1h}${rain1h !== '--' ? ' <small>mm</small>' : ''}</strong>
+                    </div>
+                    <div class="metric col-third ${rainTodayClass}">
+                        <span>日總雨量</span>
+                        <strong>${rainToday}${rainToday !== '--' ? ' <small>mm</small>' : ''}</strong>
+                    </div>
+                </div>
+            </div>
+        `;
+        gridContainer.innerHTML += cardHtml;
+    });
+
+    buildStationTable(stations);
+    recordCurrentData(stations);
+}
+
+// --- 錯誤處理 ---
+function showError(msg){
+    document.getElementById('grid-container').innerHTML = `
+        <div class="loading" style="color: #e74c3c;">${msg}</div>`;
+    document.getElementById('table-body').innerHTML = `
+        <tr><td colspan="3" style="color:#e74c3c;">${msg}</td></tr>`;
+}
+
+// --- 啟動 + 定時刷新 ---
+async function init(){
+    try {
+        await fetchGridData();
+    } catch (err) {
+        console.error(err);
+        showError(`載入失敗：${err.message}，請稍後再試`);
+    }
+}
+init();
+setInterval(init, 5 * 60 * 1000); // 5分鐘刷新
+
+// --- 記錄24h歷史 ---
 function recordCurrentData(stationList){
     let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
     const now = new Date();
@@ -417,12 +451,11 @@ function recordCurrentData(stationList){
         });
     });
 
-    // Keep only latest 24h records
     if(history.length > MAX_RECORDS) history = history.slice(-MAX_RECORDS);
     localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 }
 
-// 2. Build clickable station table
+// --- 構建站點表格 ---
 function buildStationTable(stationList){
     const tbody = document.getElementById("table-body");
     tbody.innerHTML = "";
@@ -438,24 +471,21 @@ function buildStationTable(stationList){
         tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${tempText}</td>`;
 
         tr.addEventListener("click", ()=>{
-            // Remove active from all rows
             document.querySelectorAll("#table-body tr").forEach(r=>r.classList.remove("active"));
             tr.classList.add("active");
-            // Load chart
             renderMultiChart(code, name);
         });
         tbody.appendChild(tr);
     });
 }
 
-// 3. Render combined chart: line + scatter(dot) + bar
+// --- 渲染多軸圖（風向點、雨量柱狀）---
 function renderMultiChart(targetCode, targetName){
     const chartWrap = document.getElementById("chart-wrapper");
     const chartTitle = document.getElementById("chart-title");
     chartWrap.style.display = "block";
     chartTitle.textContent = `${targetName} (${targetCode}) - 24小時綜合氣象趨勢`;
 
-    // Filter history for selected station
     const fullHistory = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
     const stationData = fullHistory.filter(d => d.code === targetCode);
     if(stationData.length === 0){
@@ -466,7 +496,6 @@ function renderMultiChart(targetCode, targetName){
         return;
     }
 
-    // Prepare series data
     const timeLabels = stationData.map(d => d.time);
     const tempData = stationData.map(d => d.temp);
     const humData = stationData.map(d => d.humidity);
@@ -479,16 +508,9 @@ function renderMultiChart(targetCode, targetName){
     const r1hData = stationData.map(d => d.rain1h);
 
     Highcharts.chart("multi-chart", {
-        chart: {
-            backgroundColor: "#fff",
-            zoomType: "x"
-        },
+        chart: { backgroundColor: "#fff", zoomType: "x" },
         title: { text: "" },
-        xAxis: {
-            categories: timeLabels,
-            tickInterval: 12,
-            labels: { rotation: -30 }
-        },
+        xAxis: { categories: timeLabels, tickInterval: 12, labels: { rotation: -30 } },
         yAxis: [
             { title: { text: "溫度 / 濕度" }, opposite: false },
             { title: { text: "風速 / 風向" }, opposite: true },
@@ -498,7 +520,6 @@ function renderMultiChart(targetCode, targetName){
         tooltip: { shared: true, crosshairs: true },
         legend: { layout: "horizontal", align: "center", y: 0 },
         credits: { enabled: false },
-
         series: [
             { name: "氣溫 (°C)", type: "line", yAxis: 0, data: tempData, color: "#e74c3c", lineWidth:2 },
             { name: "相對濕度 (%)", type: "line", yAxis: 0, data: humData, color: "#27ae60", lineWidth:2 },
