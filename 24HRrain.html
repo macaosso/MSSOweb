@@ -42,6 +42,93 @@
             font-size: 0.9rem;
             opacity: 0.9;
         }
+
+        /* --- 折叠面板样式 --- */
+        .accordion {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        .accordion-header {
+            padding: 18px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: 600;
+            background: #f8f9fa;
+            transition: background 0.2s;
+        }
+        .accordion-header:hover {
+            background: #eef5fc;
+        }
+        .accordion-header.active {
+            background: #dceaf8;
+        }
+        .accordion-icon {
+            transition: transform 0.2s;
+        }
+        .accordion-header.active .accordion-icon {
+            transform: rotate(180deg);
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .accordion-content.active {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        /* --- 分类表格样式 --- */
+        .param-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .param-table th, .param-table td {
+            padding: 12px 25px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .param-table th {
+            background: #f1f3f5;
+            font-weight: 600;
+        }
+        .param-table tr {
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .param-table tr:hover {
+            background: #eef5fc;
+        }
+        .param-table tr.active {
+            background: #dceaf8;
+        }
+
+        /* --- 图表容器 --- */
+        .chart-wrapper {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 25px 0;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            display: none;
+        }
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+        #single-chart {
+            width: 100%;
+            height: 400px;
+        }
+
+        /* --- 原有卡片样式保持不变 --- */
         .station-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -96,12 +183,8 @@
             padding: 8px 12px;
             border-radius: 6px;
         }
-        .col-half {
-            grid-column: span 3;
-        }
-        .col-third {
-            grid-column: span 2;
-        }
+        .col-half { grid-column: span 3; }
+        .col-third { grid-column: span 2; }
         .metric span {
             display: block;
             color: #7f8c8d;
@@ -109,78 +192,18 @@
             text-transform: uppercase;
             margin-bottom: 2px;
         }
-        .metric strong {
-            color: #2c3e50;
-        }
+        .metric strong { color: #2c3e50; }
         .rain-active {
             background: #e8f4fd;
             border: 1px solid #bcdffb;
         }
-        .rain-active strong {
-            color: #2980b9;
-        }
+        .rain-active strong { color: #2980b9; }
         .loading {
             grid-column: 1 / -1;
             text-align: center;
             padding: 5px;
             font-size: 1.2rem;
             color: #7f8c8d;
-        }
-
-        /* --- Station Table --- */
-        .table-wrapper {
-            background: #fff;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 25px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-        .table-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-        .station-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        .station-table th, .station-table td {
-            padding: 12px 15px;
-            text-align: left;
-            border-bottom: 1px solid #eee;
-        }
-        .station-table th {
-            background: #f7f8fa;
-            font-weight: 600;
-        }
-        .station-table tr {
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .station-table tr:hover {
-            background: #eef5fc;
-        }
-        .station-table tr.active {
-            background: #dceaf8;
-        }
-
-        /* --- Chart Container --- */
-        .chart-wrapper {
-            background: #fff;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 25px 0;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            display: none;
-        }
-        .chart-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-        #multi-chart {
-            width: 100%;
-            height: 450px;
         }
     </style>
 </head>
@@ -198,54 +221,234 @@
         </div>
     </header>
 
-    <!-- Clickable Station Table -->
-    <div class="table-wrapper">
-        <div class="table-title">站點列表 (點擊行查看24小時綜合趨勢圖)</div>
-        <table class="station-table" id="station-table">
-            <thead>
-                <tr>
-                    <th>站點名稱</th>
-                    <th>站點編碼</th>
-                    <th>即時氣溫 (°C)</th>
-                </tr>
-            </thead>
-            <tbody id="table-body">
-                <tr><td colspan="3" class="loading">載入站點數據中...</td></tr>
-            </tbody>
-        </table>
+    <!-- 分类折叠面板 -->
+    <div id="accordion-container">
+        <!-- 氣溫 -->
+        <div class="accordion">
+            <div class="accordion-header" data-param="temp">
+                <span>氣溫 (°C)</span>
+                <span class="accordion-icon">⬇️</span>
+            </div>
+            <div class="accordion-content">
+                <table class="param-table" id="table-temp">
+                    <thead>
+                        <tr>
+                            <th>站點名稱</th>
+                            <th>站點編碼</th>
+                            <th>即時數值</th>
+                        </tr>
+                    </thead>
+                    <tbody class="param-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 濕度 -->
+        <div class="accordion">
+            <div class="accordion-header" data-param="humidity">
+                <span>相對濕度 (%)</span>
+                <span class="accordion-icon">⬇️</span>
+            </div>
+            <div class="accordion-content">
+                <table class="param-table" id="table-humidity">
+                    <thead>
+                        <tr>
+                            <th>站點名稱</th>
+                            <th>站點編碼</th>
+                            <th>即時數值</th>
+                        </tr>
+                    </thead>
+                    <tbody class="param-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 風速 -->
+        <div class="accordion">
+            <div class="accordion-header" data-param="windSpeed">
+                <span>風速 (km/h)</span>
+                <span class="accordion-icon">⬇️</span>
+            </div>
+            <div class="accordion-content">
+                <table class="param-table" id="table-windSpeed">
+                    <thead>
+                        <tr>
+                            <th>站點名稱</th>
+                            <th>站點編碼</th>
+                            <th>即時數值</th>
+                        </tr>
+                    </thead>
+                    <tbody class="param-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 陣風 -->
+        <div class="accordion">
+            <div class="accordion-header" data-param="windGust">
+                <span>陣風 (km/h)</span>
+                <span class="accordion-icon">⬇️</span>
+            </div>
+            <div class="accordion-content">
+                <table class="param-table" id="table-windGust">
+                    <thead>
+                        <tr>
+                            <th>站點名稱</th>
+                            <th>站點編碼</th>
+                            <th>即時數值</th>
+                        </tr>
+                    </thead>
+                    <tbody class="param-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 風向 -->
+        <div class="accordion">
+            <div class="accordion-header" data-param="windDir">
+                <span>風向 (°)</span>
+                <span class="accordion-icon">⬇️</span>
+            </div>
+            <div class="accordion-content">
+                <table class="param-table" id="table-windDir">
+                    <thead>
+                        <tr>
+                            <th>站點名稱</th>
+                            <th>站點編碼</th>
+                            <th>即時數值</th>
+                        </tr>
+                    </thead>
+                    <tbody class="param-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 海平面氣壓 -->
+        <div class="accordion">
+            <div class="accordion-header" data-param="mslPressure">
+                <span>海平面氣壓 (hPa)</span>
+                <span class="accordion-icon">⬇️</span>
+            </div>
+            <div class="accordion-content">
+                <table class="param-table" id="table-mslPressure">
+                    <thead>
+                        <tr>
+                            <th>站點名稱</th>
+                            <th>站點編碼</th>
+                            <th>即時數值</th>
+                        </tr>
+                    </thead>
+                    <tbody class="param-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 站氣壓 -->
+        <div class="accordion">
+            <div class="accordion-header" data-param="stationPressure">
+                <span>站氣壓 (hPa)</span>
+                <span class="accordion-icon">⬇️</span>
+            </div>
+            <div class="accordion-content">
+                <table class="param-table" id="table-stationPressure">
+                    <thead>
+                        <tr>
+                            <th>站點名稱</th>
+                            <th>站點編碼</th>
+                            <th>即時數值</th>
+                        </tr>
+                    </thead>
+                    <tbody class="param-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 1分鐘雨量 -->
+        <div class="accordion">
+            <div class="accordion-header" data-param="rain1m">
+                <span>1分鐘雨量 (mm)</span>
+                <span class="accordion-icon">⬇️</span>
+            </div>
+            <div class="accordion-content">
+                <table class="param-table" id="table-rain1m">
+                    <thead>
+                        <tr>
+                            <th>站點名稱</th>
+                            <th>站點編碼</th>
+                            <th>即時數值</th>
+                        </tr>
+                    </thead>
+                    <tbody class="param-tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 1小時雨量 -->
+        <div class="accordion">
+            <div class="accordion-header" data-param="rain1h">
+                <span>1小時雨量 (mm)</span>
+                <span class="accordion-icon">⬇️</span>
+            </div>
+            <div class="accordion-content">
+                <table class="param-table" id="table-rain1h">
+                    <thead>
+                        <tr>
+                            <th>站點名稱</th>
+                            <th>站點編碼</th>
+                            <th>即時數值</th>
+                        </tr>
+                    </thead>
+                    <tbody class="param-tbody"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
-    <!-- Multi Metrics Chart -->
+    <!-- 單參數趨勢圖 -->
     <div class="chart-wrapper" id="chart-wrapper">
-        <div class="chart-title" id="chart-title">24小時氣象參數趨勢</div>
-        <div id="multi-chart"></div>
+        <div class="chart-title" id="chart-title">參數趨勢圖</div>
+        <div id="single-chart"></div>
     </div>
 
+    <!-- 原有站點卡片 -->
     <div id="grid-container" class="station-grid">
         <div class="loading">正在擷取區域數據...</div>
     </div>
 </div>
 
 <script>
-// Proxy & timeout config
+// 代理配置
 const XML_URL = 'https://xml.smg.gov.mo/c_actualweather.xml';
 const PROXY1 = 'https://api.allorigins.win/raw?url=';
 const PROXY2 = 'https://corsproxy.io/?';
 const TIMEOUT = 8000;
 const RETRY_TIMES = 2;
 
-// 24h history storage
+// 24小時歷史存儲
 const HISTORY_KEY = "macao_weather_24h_history";
-const MAX_RECORDS = 288;
+const MAX_RECORDS = 288; // 5min * 24h
 
-// Fixed: Safe value extractor (no empty selector)
+// 參數配置
+const PARAM_CONFIG = {
+    temp: { label: '氣溫', unit: '°C', color: '#e74c3c', type: 'line' },
+    humidity: { label: '相對濕度', unit: '%', color: '#27ae60', type: 'line' },
+    windSpeed: { label: '風速', unit: 'km/h', color: '#3498db', type: 'line' },
+    windGust: { label: '陣風', unit: 'km/h', color: '#9b59b6', type: 'line' },
+    windDir: { label: '風向', unit: '°', color: '#2c3e50', type: 'scatter' },
+    mslPressure: { label: '海平面氣壓', unit: 'hPa', color: '#f39c12', type: 'line' },
+    stationPressure: { label: '站氣壓', unit: 'hPa', color: '#e67e22', type: 'line' },
+    rain1m: { label: '1分鐘雨量', unit: 'mm', color: '#74b9ff', type: 'bar' },
+    rain1h: { label: '1小時雨量', unit: 'mm', color: '#0984e3', type: 'bar' }
+};
+
+// 安全取值
 function getValue(element) {
     if (!element) return null;
     let val = element.querySelector("dValue")?.textContent || element.querySelector("Value")?.textContent;
     return (val === '--' || val === undefined) ? null : parseFloat(val);
 }
 
-// Fetch with timeout & retry
+// 帶超時+重試的fetch
 async function fetchWithTimeoutAndRetry(url, retries = RETRY_TIMES) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT);
@@ -264,7 +467,7 @@ async function fetchWithTimeoutAndRetry(url, retries = RETRY_TIMES) {
     }
 }
 
-// Main load data function
+// 主數據獲取
 async function fetchGridData() {
     const cacheBuster = Date.now();
     const targetUrl = encodeURIComponent(`${XML_URL}?t=${cacheBuster}`);
@@ -284,15 +487,59 @@ async function fetchGridData() {
     const xmlDoc = parser.parseFromString(xmlString, "text/xml");
     if (xmlDoc.querySelector("parsererror")) throw new Error("XML 解析失敗");
 
-    // Update publish time
     const pubDateNode = xmlDoc.querySelector("SysPubdate");
     if (pubDateNode) document.getElementById('pub-date').textContent = pubDateNode.textContent;
 
     const stations = xmlDoc.querySelectorAll("WeatherReport station");
+    renderAllParamTables(stations);
+    renderStationCards(stations);
+    recordCurrentData(stations);
+}
+
+// 渲染所有參數表格
+function renderAllParamTables(stations) {
+    Object.keys(PARAM_CONFIG).forEach(param => {
+        const tbody = document.querySelector(`#table-${param} .param-tbody`);
+        tbody.innerHTML = '';
+        stations.forEach(station => {
+            const code = station.getAttribute("code") || "";
+            const name = station.querySelector("stationname")?.textContent || "";
+            let val;
+            switch(param) {
+                case 'temp': val = getValue(station.querySelector("Temperature")); break;
+                case 'humidity': val = getValue(station.querySelector("Humidity")); break;
+                case 'windSpeed': val = getValue(station.querySelector("WindSpeed")); break;
+                case 'windGust': val = getValue(station.querySelector("WindGust")); break;
+                case 'windDir': val = getValue(station.querySelector("WindDirection Degree")); break;
+                case 'mslPressure': val = getValue(station.querySelector("MeanSeaLevelPressure")); break;
+                case 'stationPressure': val = getValue(station.querySelector("StationPressure")); break;
+                case 'rain1m':
+                    const r1mNode = Array.from(station.querySelectorAll("Rainfall")).find(n => n.querySelector("Type")?.textContent === "3");
+                    val = getValue(r1mNode); break;
+                case 'rain1h':
+                    const r1hNode = Array.from(station.querySelectorAll("Rainfall")).find(n => n.querySelector("Type")?.textContent === "4");
+                    val = getValue(r1hNode); break;
+            }
+            const valText = val !== null ? `${val} ${PARAM_CONFIG[param].unit}` : "--";
+
+            const tr = document.createElement("tr");
+            tr.dataset.code = code;
+            tr.dataset.param = param;
+            tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${valText}</td>`;
+            tr.addEventListener("click", () => {
+                document.querySelectorAll(".param-table tr").forEach(r => r.classList.remove("active"));
+                tr.classList.add("active");
+                renderSingleChart(param, code, name);
+            });
+            tbody.appendChild(tr);
+        });
+    });
+}
+
+// 渲染站點卡片（保持原有樣式）
+function renderStationCards(stations) {
     const gridContainer = document.getElementById('grid-container');
     gridContainer.innerHTML = '';
-
-    // Generate station cards
     stations.forEach(station => {
         const code = station.getAttribute("code")?.trim() || "N/A";
         const name = station.querySelector("stationname")?.textContent || "未命名站點";
@@ -307,7 +554,6 @@ async function fetchGridData() {
         const mslPressure = getValue(station.querySelector("MeanSeaLevelPressure"));
         const stationPressure = getValue(station.querySelector("StationPressure"));
 
-        // Wind direction display
         const windDirNode = station.querySelector("WindDirection");
         let winddValue = '--', windDegree = '--';
         if (windDirNode) {
@@ -315,15 +561,10 @@ async function fetchGridData() {
             windDegree = windDirNode.querySelector("Degree")?.textContent || '--';
         }
         let windDirDisplay = '--';
-        if (winddValue !== '--' && windDegree !== '--') {
-            windDirDisplay = `${winddValue}(${windDegree}°)`;
-        } else if (winddValue !== '--') {
-            windDirDisplay = winddValue;
-        } else if (windDegree !== '--') {
-            windDirDisplay = `${windDegree}°`;
-        }
+        if (winddValue !== '--' && windDegree !== '--') windDirDisplay = `${winddValue}(${windDegree}°)`;
+        else if (winddValue !== '--') windDirDisplay = winddValue;
+        else if (windDegree !== '--') windDirDisplay = `${windDegree}°`;
 
-        // Rainfall data
         let rain1m = "--", rain1h = "--", rainToday = "--";
         station.querySelectorAll("Rainfall").forEach(node => {
             const type = node.querySelector("Type")?.textContent;
@@ -389,30 +630,9 @@ async function fetchGridData() {
         `;
         gridContainer.innerHTML += cardHtml;
     });
-
-    buildStationTable(stations);
-    recordCurrentData(stations);
 }
 
-// Show error message
-function showError(msg) {
-    document.getElementById('grid-container').innerHTML = `<div class="loading" style="color: #e74c3c;">${msg}</div>`;
-    document.getElementById('table-body').innerHTML = `<tr><td colspan="3" style="color:#e74c3c;">${msg}</td></tr>`;
-}
-
-// Initialize app
-async function init() {
-    try {
-        await fetchGridData();
-    } catch (err) {
-        console.error(err);
-        showError(`載入失敗，請稍後重試`);
-    }
-}
-init();
-setInterval(init, 5 * 60 * 1000);
-
-// Record data to localStorage for 24h history
+// 記錄24小時歷史數據
 function recordCurrentData(stationList) {
     let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
     const now = new Date();
@@ -453,41 +673,18 @@ function recordCurrentData(stationList) {
     localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 }
 
-// Build clickable station table
-function buildStationTable(stationList) {
-    const tbody = document.getElementById("table-body");
-    tbody.innerHTML = "";
-
-    stationList.forEach(station => {
-        const code = station.getAttribute("code") || "";
-        const name = station.querySelector("stationname")?.textContent || "";
-        const temp = getValue(station.querySelector("Temperature"));
-        const tempText = temp !== null ? `${temp} °C` : "--";
-
-        const tr = document.createElement("tr");
-        tr.dataset.code = code;
-        tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${tempText}</td>`;
-
-        tr.addEventListener("click", () => {
-            document.querySelectorAll("#table-body tr").forEach(r => r.classList.remove("active"));
-            tr.classList.add("active");
-            renderMultiChart(code, name);
-        });
-        tbody.appendChild(tr);
-    });
-}
-
-// Render multi-type chart
-function renderMultiChart(targetCode, targetName) {
+// 渲染單參數趨勢圖
+function renderSingleChart(param, code, name) {
     const chartWrap = document.getElementById("chart-wrapper");
     const chartTitle = document.getElementById("chart-title");
+    const config = PARAM_CONFIG[param];
     chartWrap.style.display = "block";
-    chartTitle.textContent = `${targetName} (${targetCode}) - 24小時綜合氣象趨勢`;
+    chartTitle.textContent = `${name} (${code}) - ${config.label} 24小時趨勢`;
 
     const fullHistory = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-    const stationData = fullHistory.filter(d => d.code === targetCode);
+    const stationData = fullHistory.filter(d => d.code === code);
     if (stationData.length === 0) {
-        Highcharts.chart("multi-chart", {
+        Highcharts.chart("single-chart", {
             title: { text: "暫無歷史數據，請等待數據累積" },
             credits: { enabled: false }
         });
@@ -495,43 +692,56 @@ function renderMultiChart(targetCode, targetName) {
     }
 
     const timeLabels = stationData.map(d => d.time);
-    const tempData = stationData.map(d => d.temp);
-    const humData = stationData.map(d => d.humidity);
-    const wsData = stationData.map(d => d.windSpeed);
-    const wgData = stationData.map(d => d.windGust);
-    const mslpData = stationData.map(d => d.mslPressure);
-    const stpData = stationData.map(d => d.stationPressure);
-    const wdData = stationData.map(d => d.windDir);
-    const r1mData = stationData.map(d => d.rain1m);
-    const r1hData = stationData.map(d => d.rain1h);
+    const data = stationData.map(d => d[param]);
 
-    Highcharts.chart("multi-chart", {
-        chart: { backgroundColor: "#fff", zoomType: "x" },
+    Highcharts.chart("single-chart", {
+        chart: { backgroundColor: "#fff", type: config.type },
         title: { text: "" },
         xAxis: { categories: timeLabels, tickInterval: 12, labels: { rotation: -30 } },
-        yAxis: [
-            { title: { text: "溫度 / 濕度" }, opposite: false },
-            { title: { text: "風速 / 風向" }, opposite: true },
-            { title: { text: "氣壓 (hPa)" }, opposite: false },
-            { title: { text: "雨量 (mm)" }, opposite: true }
-        ],
-        tooltip: { shared: true, crosshairs: true },
-        legend: { layout: "horizontal", align: "center", y: 0 },
+        yAxis: { title: { text: `${config.label} (${config.unit})` } },
+        tooltip: { valueSuffix: ` ${config.unit}` },
+        legend: { enabled: false },
         credits: { enabled: false },
-        series: [
-            { name: "氣溫 (°C)", type: "line", yAxis: 0, data: tempData, color: "#e74c3c", lineWidth: 2 },
-            { name: "相對濕度 (%)", type: "line", yAxis: 0, data: humData, color: "#27ae60", lineWidth: 2 },
-            { name: "風速 (km/h)", type: "line", yAxis: 1, data: wsData, color: "#3498db", lineWidth: 2 },
-            { name: "陣風 (km/h)", type: "line", yAxis: 1, data: wgData, color: "#9b59b6", lineWidth: 2 },
-            { name: "風向 (°)", type: "scatter", yAxis: 1, data: wdData, color: "#2c3e50", marker: { radius: 4 } },
-            { name: "海平面氣壓 (hPa)", type: "line", yAxis: 2, data: mslpData, color: "#f39c12", lineWidth: 2 },
-            { name: "站氣壓 (hPa)", type: "line", yAxis: 2, data: stpData, color: "#e67e22", lineWidth: 2 },
-            { name: "1分鐘雨量 (mm)", type: "bar", yAxis: 3, data: r1mData, color: "#74b9ff" },
-            { name: "1小時雨量 (mm)", type: "bar", yAxis: 3, data: "#0984e3", data: r1hData, color: "#0984e3" }
-        ]
+        series: [{
+            name: config.label,
+            data: data,
+            color: config.color,
+            lineWidth: config.type === 'line' ? 3 : undefined,
+            marker: config.type === 'scatter' ? { radius: 5 } : undefined
+        }]
     });
 }
-</script>
 
+// 折疊面板交互
+document.querySelectorAll(".accordion-header").forEach(header => {
+    header.addEventListener("click", () => {
+        const content = header.nextElementSibling;
+        const isActive = header.classList.contains("active");
+        document.querySelectorAll(".accordion-header").forEach(h => h.classList.remove("active"));
+        document.querySelectorAll(".accordion-content").forEach(c => c.classList.remove("active"));
+        if (!isActive) {
+            header.classList.add("active");
+            content.classList.add("active");
+        }
+    });
+});
+
+// 錯誤處理
+function showError(msg) {
+    document.getElementById('grid-container').innerHTML = `<div class="loading" style="color: #e74c3c;">${msg}</div>`;
+}
+
+// 初始化
+async function init() {
+    try {
+        await fetchGridData();
+    } catch (err) {
+        console.error(err);
+        showError(`載入失敗，請稍後重試`);
+    }
+}
+init();
+setInterval(init, 5 * 60 * 1000);
+</script>
 </body>
 </html>
