@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>澳門各區天氣實況</title>
-    <!-- Add Chart Library -->
     <script src="https://code.highcharts.com/highcharts.js"></script>
     <style>
         * {
@@ -128,47 +127,44 @@
             color: #7f8c8d;
         }
 
-        /* ===== New Added Styles (Map + Chart) ===== */
-        .map-wrapper {
+        /* --- New: Station Table Style --- */
+        .table-wrapper {
             background: #fff;
             border-radius: 12px;
             padding: 20px;
             margin-bottom: 25px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            min-height: 320px;
-            position: relative;
         }
-        .map-title {
+        .table-title {
             font-size: 1.1rem;
             font-weight: 600;
             margin-bottom: 15px;
-            color: #2c3e50;
         }
-        .map-area {
+        .station-table {
             width: 100%;
-            height: 260px;
-            background: #eef2f7;
-            border-radius: 8px;
-            position: relative;
-            overflow: hidden;
+            border-collapse: collapse;
         }
-        /* Clickable Circle Marker */
-        .map-marker {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #3498db;
-            border: 3px solid #fff;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-            position: absolute;
+        .station-table th, .station-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .station-table th {
+            background: #f7f8fa;
+            font-weight: 600;
+        }
+        .station-table tr {
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: background 0.2s;
         }
-        .map-marker:hover {
-            transform: scale(1.2);
-            background: #e74c3c;
+        .station-table tr:hover {
+            background: #eef5fc;
         }
-        /* Chart Container */
+        .station-table tr.active {
+            background: #dceaf8;
+        }
+
+        /* --- New: Chart Container --- */
         .chart-wrapper {
             background: #fff;
             border-radius: 12px;
@@ -181,11 +177,10 @@
             font-size: 1.1rem;
             font-weight: 600;
             margin-bottom: 15px;
-            color: #2c3e50;
         }
-        #trend-chart {
+        #multi-chart {
             width: 100%;
-            height: 380px;
+            height: 450px;
         }
     </style>
 </head>
@@ -203,18 +198,27 @@
         </div>
     </header>
 
-    <!-- ===== New Added Map Section ===== -->
-    <div class="map-wrapper">
-        <div class="map-title">澳門監測站點地圖 (點擊圓圈查看24小時趨勢)</div>
-        <div class="map-area" id="map-area">
-            <!-- Dynamic circle markers will be inserted here by JS -->
-        </div>
+    <!-- Clickable Station Table -->
+    <div class="table-wrapper">
+        <div class="table-title">站點列表 (點擊行查看24小時綜合趨勢圖)</div>
+        <table class="station-table" id="station-table">
+            <thead>
+                <tr>
+                    <th>站點名稱</th>
+                    <th>站點編碼</th>
+                    <th>即時氣溫 (°C)</th>
+                </tr>
+            </thead>
+            <tbody id="table-body">
+                <tr><td colspan="3" class="loading">載入站點數據中...</td></tr>
+            </tbody>
+        </table>
     </div>
 
-    <!-- ===== New Added 24h Trend Chart Section ===== -->
+    <!-- Multi Metrics Chart -->
     <div class="chart-wrapper" id="chart-wrapper">
-        <div class="chart-title" id="chart-title">過去24小時氣溫趨勢</div>
-        <div id="trend-chart"></div>
+        <div class="chart-title" id="chart-title">24小時氣象參數趨勢</div>
+        <div id="multi-chart"></div>
     </div>
 
     <div id="grid-container" class="station-grid">
@@ -223,7 +227,7 @@
 </div>
 
 <script>
-// ========== YOUR ORIGINAL CODE (100% UNCHANGED) ==========
+// ===================== YOUR ORIGINAL CODE (NO CHANGES) =====================
 function fetchGridData() {
     const cacheBuster = Date.now();
     const freshUrl = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
@@ -346,8 +350,9 @@ function fetchGridData() {
                 gridContainer.innerHTML += cardHtml;
             });
 
-            // ========== New: Create Circle Markers on Map after data loaded ==========
-            renderMapMarkers(stations);
+            // Render table & save history data after XML loaded
+            buildStationTable(stations);
+            recordCurrentData(stations);
         })
         .catch(err => {
             console.error(err);
@@ -355,104 +360,156 @@ function fetchGridData() {
                 <div class="loading" style="color: #e74c3c;">
                     載入失敗，請檢查網絡或代理狀態
                 </div>`;
+            document.getElementById('table-body').innerHTML = `<tr><td colspan="3" style="color:#e74c3c;">載入失敗</td></tr>`;
         });
 }
 
 fetchGridData();
 setInterval(fetchGridData, 60000);
 
-// ========== NEW FUNCTIONS (Map + Chart Logic) ==========
-// Render clickable circle markers on map
-function renderMapMarkers(stationList) {
-    const mapArea = document.getElementById('map-area');
-    mapArea.innerHTML = '';
+// ===================== NEW FEATURES START =====================
+// Global storage: persist 24h history data (localStorage)
+const HISTORY_KEY = "macao_weather_24h_history";
+const MAX_RECORDS = 288; // 5min interval * 24h = 288 records
 
-    stationList.forEach((station, idx) => {
+// Extract value helper
+function getVal(node, selector){
+    const el = node.querySelector(selector);
+    if(!el) return null;
+    let v = el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent;
+    return v === '--' ? null : parseFloat(v);
+}
+
+// 1. Record real-time data to 24h history (auto save overtime)
+function recordCurrentData(stationList){
+    let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('zh-HK', {hour:'2-digit', minute:'2-digit'});
+
+    stationList.forEach(station => {
         const code = station.getAttribute("code") || "";
         const name = station.querySelector("stationname")?.textContent || "";
-        // Random position for demo (you can replace with real GPS coordinates)
-        const left = 10 + (idx % 8) * 11;
-        const top = 15 + Math.floor(idx / 8) * 25;
 
-        const marker = document.createElement('div');
-        marker.className = 'map-marker';
-        marker.dataset.code = code;
-        marker.dataset.name = name;
-        marker.style.left = `${left}%`;
-        marker.style.top = `${top}%`;
+        const temp = getVal(station, "Temperature");
+        const hum = getVal(station, "Humidity");
+        const ws = getVal(station, "WindSpeed");
+        const wg = getVal(station, "WindGust");
+        const mslp = getVal(station, "MeanSeaLevelPressure");
+        const stp = getVal(station, "StationPressure");
+        const wdNode = station.querySelector("WindDirection");
+        const wd = wdNode ? getVal(wdNode, "Degree") : null;
 
-        // Click event for marker
-        marker.addEventListener('click', () => {
-            load24hTrend(code, name);
+        let r1m = null, r1h = null;
+        station.querySelectorAll("Rainfall").forEach(rn=>{
+            const t = rn.querySelector("Type")?.textContent;
+            const rv = getVal(rn, "");
+            if(t === "3") r1m = rv;
+            if(t === "4") r1h = rv;
         });
 
-        mapArea.appendChild(marker);
+        history.push({
+            time: timeStr,
+            timestamp: now.getTime(),
+            code, name,
+            temp, humidity: hum, windSpeed: ws, windGust: wg,
+            windDir: wd, mslPressure: mslp, stationPressure: stp,
+            rain1m: r1m, rain1h: r1h
+        });
+    });
+
+    // Keep only latest 24h records
+    if(history.length > MAX_RECORDS) history = history.slice(-MAX_RECORDS);
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+}
+
+// 2. Build clickable station table
+function buildStationTable(stationList){
+    const tbody = document.getElementById("table-body");
+    tbody.innerHTML = "";
+
+    stationList.forEach(station=>{
+        const code = station.getAttribute("code") || "";
+        const name = station.querySelector("stationname")?.textContent || "";
+        const temp = getVal(station, "Temperature");
+        const tempText = temp !== null ? `${temp} °C` : "--";
+
+        const tr = document.createElement("tr");
+        tr.dataset.code = code;
+        tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${tempText}</td>`;
+
+        tr.addEventListener("click", ()=>{
+            // Remove active from all rows
+            document.querySelectorAll("#table-body tr").forEach(r=>r.classList.remove("active"));
+            tr.classList.add("active");
+            // Load chart
+            renderMultiChart(code, name);
+        });
+        tbody.appendChild(tr);
     });
 }
 
-// Load 24h data and draw trend chart
-function load24hTrend(stationCode, stationName) {
-    const chartWrapper = document.getElementById('chart-wrapper');
-    const chartTitle = document.getElementById('chart-title');
-    chartWrapper.style.display = 'block';
-    chartTitle.textContent = `${stationName} (${stationCode}) - 過去24小時氣溫趨勢`;
+// 3. Render combined chart: line + scatter(dot) + bar
+function renderMultiChart(targetCode, targetName){
+    const chartWrap = document.getElementById("chart-wrapper");
+    const chartTitle = document.getElementById("chart-title");
+    chartWrap.style.display = "block";
+    chartTitle.textContent = `${targetName} (${targetCode}) - 24小時綜合氣象趨勢`;
 
-    // Simulate 24h time & temperature data (replace with real XML API if needed)
-    const timeLabels = [];
-    const tempData = [];
-    const now = new Date();
-
-    for (let i = 24; i >= 0; i--) {
-        const time = new Date(now - i * 60 * 60 * 1000);
-        const h = time.getHours().toString().padStart(2, '0');
-        const m = time.getMinutes().toString().padStart(2, '0');
-        timeLabels.push(`${h}:${m}`);
-        // Random temperature for demo (22 ~ 32 °C)
-        const randomTemp = (22 + Math.random() * 10).toFixed(1);
-        tempData.push(parseFloat(randomTemp));
+    // Filter history for selected station
+    const fullHistory = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
+    const stationData = fullHistory.filter(d => d.code === targetCode);
+    if(stationData.length === 0){
+        Highcharts.chart("multi-chart", {
+            title:{text:"暫無歷史數據，請等待數據累積"},
+            credits:{enabled:false}
+        });
+        return;
     }
 
-    // Render Highcharts trend chart
-    Highcharts.chart('trend-chart', {
+    // Prepare series data
+    const timeLabels = stationData.map(d => d.time);
+    const tempData = stationData.map(d => d.temp);
+    const humData = stationData.map(d => d.humidity);
+    const wsData = stationData.map(d => d.windSpeed);
+    const wgData = stationData.map(d => d.windGust);
+    const mslpData = stationData.map(d => d.mslPressure);
+    const stpData = stationData.map(d => d.stationPressure);
+    const wdData = stationData.map(d => d.windDir);
+    const r1mData = stationData.map(d => d.rain1m);
+    const r1hData = stationData.map(d => d.rain1h);
+
+    Highcharts.chart("multi-chart", {
         chart: {
-            type: 'spline',
-            backgroundColor: '#ffffff'
+            backgroundColor: "#fff",
+            zoomType: "x"
         },
-        title: {
-            text: ''
-        },
+        title: { text: "" },
         xAxis: {
             categories: timeLabels,
-            tickInterval: 3,
-            labels: {
-                rotation: -30
-            }
+            tickInterval: 12,
+            labels: { rotation: -30 }
         },
-        yAxis: {
-            title: {
-                text: '氣溫 (°C)'
-            },
-            min: 18,
-            max: 35,
-            gridLineColor: '#eaecef'
-        },
-        tooltip: {
-            valueSuffix: ' °C',
-            shared: true
-        },
-        series: [{
-            name: '即時氣溫',
-            data: tempData,
-            color: '#2a5298',
-            lineWidth: 3,
-            marker: {
-                radius: 4,
-                fillColor: '#3498db'
-            }
-        }],
-        credits: {
-            enabled: false
-        }
+        yAxis: [
+            { title: { text: "溫度 / 濕度" }, opposite: false },
+            { title: { text: "風速 / 風向" }, opposite: true },
+            { title: { text: "氣壓 (hPa)" }, opposite: false },
+            { title: { text: "雨量 (mm)" }, opposite: true }
+        ],
+        tooltip: { shared: true, crosshairs: true },
+        legend: { layout: "horizontal", align: "center", y: 0 },
+        credits: { enabled: false },
+
+        series: [
+            { name: "氣溫 (°C)", type: "line", yAxis: 0, data: tempData, color: "#e74c3c", lineWidth:2 },
+            { name: "相對濕度 (%)", type: "line", yAxis: 0, data: humData, color: "#27ae60", lineWidth:2 },
+            { name: "風速 (km/h)", type: "line", yAxis: 1, data: wsData, color: "#3498db", lineWidth:2 },
+            { name: "陣風 (km/h)", type: "line", yAxis: 1, data: wgData, color: "#9b59b6", lineWidth:2 },
+            { name: "風向 (°)", type: "scatter", yAxis: 1, data: wdData, color: "#2c3e50", marker: { radius:4 } },
+            { name: "海平面氣壓 (hPa)", type: "line", yAxis: 2, data: mslpData, color: "#f39c12", lineWidth:2 },
+            { name: "站氣壓 (hPa)", type: "line", yAxis: 2, data: stpData, color: "#e67e22", lineWidth:2 },
+            { name: "1分鐘雨量 (mm)", type: "bar", yAxis: 3, data: r1mData, color: "#74b9ff" },
+            { name: "1小時雨量 (mm)", type: "bar", yAxis: 3, data: r1hData, color: "#0984e3" }
+        ]
     });
 }
 </script>
