@@ -43,7 +43,6 @@
             opacity: 0.9;
         }
 
-        /* --- 下拉选择器样式 --- */
         .selector-row {
             display: flex;
             gap: 20px;
@@ -82,7 +81,6 @@
             border-color: #3498db;
         }
 
-        /* --- 站点表格 --- */
         .station-table-wrapper {
             background: white;
             border-radius: 12px;
@@ -117,7 +115,6 @@
             display: none;
         }
 
-        /* --- 图表容器 --- */
         .chart-wrapper {
             background: #fff;
             border-radius: 12px;
@@ -136,7 +133,6 @@
             height: 400px;
         }
 
-        /* --- 原有卡片样式 --- */
         .station-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -228,7 +224,6 @@
         </div>
     </header>
 
-    <!-- 下拉选择器 -->
     <div class="selector-row">
         <div class="selector-wrapper">
             <div class="selector-label">選擇氣象參數</div>
@@ -246,7 +241,6 @@
         </div>
     </div>
 
-    <!-- 站点表格 -->
     <div class="station-table-wrapper">
         <div class="selector-label" style="margin-bottom: 12px;">選擇站點 (點擊行查看趨勢)</div>
         <table class="station-table" id="station-table">
@@ -261,13 +255,11 @@
         </table>
     </div>
 
-    <!-- 單參數趨勢圖 -->
     <div class="chart-wrapper" id="chart-wrapper">
         <div class="chart-title" id="chart-title">參數趨勢圖</div>
         <div id="single-chart"></div>
     </div>
 
-    <!-- 站點卡片 -->
     <div id="grid-container" class="station-grid">
         <div class="loading">正在擷取區域數據...</div>
     </div>
@@ -278,7 +270,6 @@ const XML_URL = 'https://xml.smg.gov.mo/c_actualweather.xml';
 const PROXY1 = 'https://api.allorigins.win/raw?url=';
 const PROXY2 = 'https://corsproxy.io/?';
 const TIMEOUT = 6000;
-const RETRY_TIMES = 1;
 const HISTORY_KEY = "macao_weather_24h_history";
 const MAX_RECORDS = 288;
 
@@ -304,6 +295,9 @@ const DOM = {
     chartBox: document.getElementById('single-chart')
 };
 
+let globalStations = [];
+let globalPubTime = "";
+
 function getValue(el) {
     if (!el) return null;
     let v = el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent;
@@ -326,13 +320,15 @@ async function fetchData() {
     return xml;
 }
 
-function renderStationTable(stations, param) {
+function renderTable(param) {
     const cfg = PARAM_CONFIG[param];
     DOM.stationTableBody.innerHTML = '';
-    stations.forEach(station => {
+
+    globalStations.forEach(station => {
         const code = station.getAttribute("code") || "";
         const name = station.querySelector("stationname")?.textContent || "";
         let val;
+
         switch(param) {
             case 'temp': val = getValue(station.querySelector("Temperature")); break;
             case 'humidity': val = getValue(station.querySelector("Humidity")); break;
@@ -348,24 +344,25 @@ function renderStationTable(stations, param) {
                 const r1hNode = Array.from(station.querySelectorAll("Rainfall")).find(n => n.querySelector("Type")?.textContent === "4");
                 val = getValue(r1hNode); break;
         }
+
         const valText = val !== null ? `${val} ${cfg.unit}` : "--";
         const tr = document.createElement("tr");
         tr.dataset.code = code;
-        tr.dataset.param = param;
-        tr.classList.toggle("hidden", val === null); // 無數據則隱藏
+        tr.classList.toggle("hidden", val === null);
         tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${valText}</td>`;
+
         tr.addEventListener("click", () => {
             document.querySelectorAll("#station-table-body tr").forEach(r => r.classList.remove("active"));
             tr.classList.add("active");
-            renderSingleChart(param, code, name);
+            renderChart(param, code, name);
         });
         DOM.stationTableBody.appendChild(tr);
     });
 }
 
-function renderStationCards(stations) {
+function renderCards() {
     DOM.gridContainer.innerHTML = '';
-    stations.forEach(station => {
+    globalStations.forEach(station => {
         const code = station.getAttribute("code")?.trim() || "N/A";
         const name = station.querySelector("stationname")?.textContent || "未命名站點";
         const temp = getValue(station.querySelector("Temperature"));
@@ -381,7 +378,7 @@ function renderStationCards(stations) {
         let wdText = "--";
         if (wdNode) {
             const deg = wdNode.querySelector("Degree")?.textContent || "--";
-            wdText = `${deg}°`; // 只顯示度數，不顯示方位詞
+            wdText = `${deg}°`;
         }
 
         let rain1m = "--", rain1h = "--", rainToday = "--";
@@ -423,11 +420,12 @@ function renderStationCards(stations) {
     });
 }
 
-function saveHistory(stations) {
-    const now = Date.now();
-    const timeStr = new Date(now).toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' });
+function saveHistory() {
     let history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
-    stations.forEach(station => {
+    const pubDateObj = new Date(globalPubTime);
+    const dataTs = pubDateObj.getTime();
+
+    globalStations.forEach(station => {
         const code = station.getAttribute("code") || "";
         const name = station.querySelector("stationname")?.textContent || "";
         const temp = getValue(station.querySelector("Temperature"));
@@ -437,45 +435,58 @@ function saveHistory(stations) {
         const mslp = getValue(station.querySelector("MeanSeaLevelPressure"));
         const stp = getValue(station.querySelector("StationPressure"));
         const wd = getValue(station.querySelector("WindDirection Degree"));
+
         let r1m = null, r1h = null;
         station.querySelectorAll("Rainfall").forEach(rn => {
             const t = rn.querySelector("Type")?.textContent;
             if (t === "3") r1m = getValue(rn);
             if (t === "4") r1h = getValue(rn);
         });
+
         history.push({
-            timestamp: now, time: timeStr, code, name,
+            timestamp: dataTs,
+            timeStr: globalPubTime,
+            code, name,
             temp, humidity: hum, windSpeed: ws, windGust: wg,
             windDir: wd, mslPressure: mslp, stationPressure: stp,
             rain1m: r1m, rain1h: r1h
         });
     });
+
     if (history.length > MAX_RECORDS) history = history.slice(-MAX_RECORDS);
     localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
 }
 
-function renderSingleChart(param, code, name) {
+function renderChart(param, code, name) {
     const cfg = PARAM_CONFIG[param];
     DOM.chartWrap.style.display = "block";
     DOM.chartTitle.textContent = `${name} (${code}) - ${cfg.label} 24小時趨勢`;
+
     const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]");
     const stationData = history.filter(d => d.code === code);
+
     if (stationData.length === 0) {
         Highcharts.chart(DOM.chartBox, { title: { text: "暫無歷史數據" }, credits: { enabled: false } });
         return;
     }
+
     const chartData = stationData.map(item => [item.timestamp, item[param]]);
+
     Highcharts.chart(DOM.chartBox, {
         chart: { type: cfg.type, backgroundColor: "#fff" },
         title: { text: "" },
         xAxis: {
             type: 'datetime',
             title: { text: '時間' },
-            dateTimeLabelFormats: { minute: '%H:%M', hour: '%H:%M' }
+            dateTimeLabelFormats: {
+                minute: '%H:%M',
+                hour: '%H:%M',
+                day: '%m-%d %H:%M'
+            }
         },
         yAxis: { title: { text: `${cfg.label} (${cfg.unit})` } },
         tooltip: {
-            xDateFormat: '%H:%M',
+            xDateFormat: '%Y-%m-%d %H:%M',
             valueSuffix: ` ${cfg.unit}`
         },
         legend: { enabled: false },
@@ -489,22 +500,22 @@ function renderSingleChart(param, code, name) {
     });
 }
 
+// Switch dropdown → refresh table immediately
 DOM.paramSelect.addEventListener('change', () => {
-    const param = DOM.paramSelect.value;
-    const stations = document.querySelectorAll("WeatherReport station");
-    if (stations.length) renderStationTable(stations, param);
+    renderTable(DOM.paramSelect.value);
 });
 
 async function main() {
     try {
         const xml = await fetchData();
-        DOM.pubDate.textContent = xml.querySelector("SysPubdate")?.textContent || "";
-        const stations = xml.querySelectorAll("WeatherReport station");
-        renderStationTable(stations, DOM.paramSelect.value);
-        renderStationCards(stations);
-        saveHistory(stations);
+        globalPubTime = xml.querySelector("SysPubdate")?.textContent || "";
+        DOM.pubDate.textContent = globalPubTime;
+        globalStations = Array.from(xml.querySelectorAll("WeatherReport station"));
+
+        renderTable(DOM.paramSelect.value);
+        renderCards();
+        saveHistory();
     } catch (err) {
-        console.error(err);
         DOM.gridContainer.innerHTML = `<div class="loading" style="color:#e74c3c;">載入失敗，請稍後重試</div>`;
     }
 }
