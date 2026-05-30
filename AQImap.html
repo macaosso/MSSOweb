@@ -96,7 +96,7 @@
 </div>
 
 <script>
-// 6 AQI stations with coordinates
+// 測站坐標
 const stations = {
     "台山":       { lat:22.2143048, lng:113.5430605 },
     "荷蘭園":     { lat:22.1957226, lng:113.5447928 },
@@ -106,7 +106,7 @@ const stations = {
     "九澳":       { lat:22.1330617, lng:113.5835098 }
 };
 
-// Initialize map
+// 初始化地圖
 const map = L.map('map').setView([22.175, 113.55], 13);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution:'&copy; OpenStreetMap contributors'
@@ -119,6 +119,7 @@ function clearMarkers() {
     markers = [];
 }
 
+// 依IQA取得顏色、等級
 function getAQIColor(val) {
     const num = parseInt(val);
     if (isNaN(num)) return '#95a5a6';
@@ -126,7 +127,6 @@ function getAQIColor(val) {
     if (num <= 100) return '#f39c12';
     return '#e74c3c';
 }
-
 function getLevel(val) {
     const num = parseInt(val);
     if (isNaN(num)) return '未知';
@@ -134,7 +134,6 @@ function getLevel(val) {
     if (num <= 100) return '普通';
     return '不良';
 }
-
 function getLevelClass(val) {
     const num = parseInt(val);
     if (num <= 50) return 'good';
@@ -142,9 +141,10 @@ function getLevelClass(val) {
     return 'poor';
 }
 
-// Render map + cards
-function renderData(data) {
+// 渲染地圖標記與卡片
+function renderData(data, updateTime) {
     clearMarkers();
+    document.getElementById('updateTime').innerText = updateTime || '';
     const container = document.getElementById('stationCards');
     container.innerHTML = '';
 
@@ -168,7 +168,6 @@ function renderData(data) {
             markers.push(marker);
         }
 
-        // Card HTML
         container.innerHTML += `
         <div class="station-card">
             <div class="station-name">${name}</div>
@@ -179,30 +178,38 @@ function renderData(data) {
     });
 }
 
-// Fetch from SMG (using CORS proxy)
+// 抓取 SMG 空氣質量 XML 接口
 function fetchAQI() {
-    const url = `https://corsproxy.io/?https://www.smg.gov.mo/zh/subpage/64/realtime-iqa-report&t=${Date.now()}`;
-    fetch(url)
-    .then(res => res.text())
-    .then(html => {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const updateTime = doc.querySelector('td:contains("更新時間")')?.parentNode?.querySelectorAll('td')[1]?.textContent || '';
-        document.getElementById('updateTime').innerText = updateTime.trim();
+    const proxy = "https://corsproxy.io/?";
+    const xmlUrl = "https://xml.smg.gov.mo/c_airquality.xml";
+    const url = proxy + encodeURIComponent(xmlUrl) + `?t=${Date.now()}`;
 
-        const rows = doc.querySelectorAll('table tr');
+    fetch(url)
+    .then(res => {
+        if(!res.ok) throw new Error("請求失敗");
+        return res.text();
+    })
+    .then(xmlStr => {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
+        // 取得更新時間
+        const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent || "";
+        // 解析測站數據
+        const stationNodes = xmlDoc.querySelectorAll("AirQuality station");
         const data = [];
-        rows.forEach(row => {
-            const tds = row.querySelectorAll('td');
-            if (tds.length >= 4) {
-                const name = tds[1].innerText.trim();
-                const val = tds[3].innerText.trim();
-                if (name && !isNaN(parseInt(val)) && stations[name]) {
-                    data.push({ name, value: val });
-                }
+
+        stationNodes.forEach(node => {
+            const name = node.querySelector("StationName")?.textContent?.trim() || "";
+            const iqa = node.querySelector("IQA > dValue")?.textContent?.trim() || "";
+            if(name && iqa && stations[name]){
+                data.push({ name, value: iqa });
             }
         });
-        renderData(data);
+
+        if(data.length === 0){
+            throw new Error("無數據");
+        }
+        renderData(data, pubTime);
     })
     .catch(err => {
         console.error(err);
@@ -210,7 +217,7 @@ function fetchAQI() {
     });
 }
 
-// Run
+// 啟動 + 自動刷新(2分鐘)
 fetchAQI();
 setInterval(fetchAQI, 60000);
 </script>
