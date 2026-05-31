@@ -125,26 +125,13 @@
             font-size: 1.2rem;
             color: #7f8c8d;
         }
-        /* New styles for apparent temp button and display */
-        .apparent-temp-btn {
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 4px 10px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            margin-top: 4px;
-            transition: background 0.2s;
+        /* 酷熱指數高亮樣式 */
+        .heat-index-warning {
+            background: #fff0e0;
+            border: 1px solid #f9c784;
         }
-        .apparent-temp-btn:hover {
-            background: #2980b9;
-        }
-        .apparent-temp-display {
-            font-size: 0.9rem;
-            color: #8e44ad;
-            font-weight: 600;
-            margin-top: 4px;
+        .heat-index-warning strong {
+            color: #e67e22;
         }
     </style>
 </head>
@@ -168,15 +155,25 @@
 </div>
 
 <script>
-// Calculate apparent temperature using the given formula
+// 1. 體感溫度計算公式
 function calculateApparentTemp(T, RH, windSpeedKmH) {
-    // Convert wind speed from km/h to m/s
-    const V = windSpeedKmH / 3.6;
-    // Calculate water vapor pressure e (hPa)
+    const V = windSpeedKmH / 3.6; // km/h 轉 m/s
     const e = (RH / 100) * 6.105 * Math.exp((17.27 * T) / (237.7 + T));
-    // Apparent temperature formula
     const apparentTemp = 1.04 * T + 0.2 * e - 0.65 * V - 2.7;
-    return apparentTemp.toFixed(1); // Round to 1 decimal place
+    return isNaN(apparentTemp) ? '--' : apparentTemp.toFixed(1);
+}
+
+// 2. 酷熱指數(Heat Index) 攝氏版公式 (僅使用氣溫+相對濕度)
+function calculateHeatIndex(T, RH) {
+    if (isNaN(T) || isNaN(RH)) return '--';
+    // 攝氏溫標酷熱指數標準公式
+    let hi = -8.7846947556 + 1.61139411 * T + 2.3385488388 * RH
+             - 0.14611605 * T * RH - 0.012308094 * Math.pow(T, 2)
+             - 0.0164248278 * Math.pow(RH, 2)
+             + 0.002211732 * Math.pow(T, 2) * RH
+             + 0.00072546 * T * Math.pow(RH, 2)
+             - 0.000003582 * Math.pow(T, 2) * Math.pow(RH, 2);
+    return hi.toFixed(1);
 }
 
 function fetchGridData() {
@@ -247,14 +244,15 @@ function fetchGridData() {
                 const rain1hClass = parseFloat(rain1h) > 0 ? 'rain-active' : '';
                 const rainTodayClass = parseFloat(rainToday) > 0 ? 'rain-active' : '';
 
-                // Prepare data for apparent temp calculation
+                // 轉換數值並計算
                 const T = parseFloat(currentTemp);
                 const RH = parseFloat(humidity);
                 const windSpeedKmH = parseFloat(windSpeed);
-                let apparentTemp = '--';
-                if (!isNaN(T) && !isNaN(RH) && !isNaN(windSpeedKmH)) {
-                    apparentTemp = calculateApparentTemp(T, RH, windSpeedKmH);
-                }
+
+                const apparentTemp = calculateApparentTemp(T, RH, windSpeedKmH);
+                const heatIndex = calculateHeatIndex(T, RH);
+                // 酷熱指數高於32℃高亮提示
+                const heatIndexClass = parseFloat(heatIndex) >= 32 ? 'metric col-half heat-index-warning' : 'metric col-half';
 
                 const cardHtml = `
                     <div class="station-card">
@@ -264,13 +262,6 @@ function fetchGridData() {
                             <div class="temp-range">
                                 <div>最高: <span class="high-temp">${maxTemp}°C</span></div>
                                 <div>最低: <span class="low-temp">${minTemp}°C</span></div>
-                                <!-- Apparent temperature button and display -->
-                                <button class="apparent-temp-btn" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">
-                                    體感溫度
-                                </button>
-                                <div class="apparent-temp-display" style="display: none;">
-                                    體感: ${apparentTemp}°C
-                                </div>
                             </div>
                         </div>
                         <div class="metrics-grid">
@@ -278,9 +269,17 @@ function fetchGridData() {
                                 <span>相對濕度(%)</span>
                                 <strong>${humidity}%</strong>
                             </div>
+                            <div class="${heatIndexClass}">
+                                <span>酷熱指數(°C)</span>
+                                <strong>${heatIndex}°C</strong>
+                            </div>
                             <div class="metric col-half">
                                 <span>風向(°)</span>
                                 <strong>${windDirDisplay}</strong>
+                            </div>
+                            <div class="metric col-half">
+                                <span>體感溫度(°C)</span>
+                                <strong>${apparentTemp}°C</strong>
                             </div>
                             <div class="metric col-half">
                                 <span>風速(km/h)</span>
