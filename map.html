@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>澳門各區天氣實況 - GIS互動地圖</title>
+    <title>澳門氣象站+水位實況地圖</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -201,7 +201,7 @@
             font-size: 1rem;
         }
 
-        /* 氣象卡片樣式 — 字體縮小 */
+        /* 氣象卡片樣式 */
         .station-card {
             background: white;
             border-radius: 12px;
@@ -323,6 +323,23 @@
             background: #eceff1;
             border: 1px solid #b0bec5;
         }
+        /* 水位/積水樣式 */
+        .flood-normal {
+            background: #e8f4fd;
+            border: 1px solid #bcdffb;
+        }
+        .flood-light {
+            background: #fff9c4;
+            border: 1px solid #ffe082;
+        }
+        .flood-mid {
+            background: #fff3e0;
+            border: 1px solid #ffcc80;
+        }
+        .flood-heavy {
+            background: #ffebee;
+            border: 1px solid #ef9a9a;
+        }
 
         /* 表格區域 */
         .table-container {
@@ -360,8 +377,8 @@
 <div class="container">
     <header>
         <div>
-            <h1>澳門各區天氣實況（互動GIS地圖）</h1>
-            <small style="color: #2ecc71;">● 點擊地圖圓圈查看單站數據</small>
+            <h1>澳門氣象站+水位實況地圖</h1>
+            <small style="color: #2ecc71;">● 點擊地圖圓圈查看數據 | 切換分類查看不同指標</small>
         </div>
         <div class="meta-info">
             <div>資料更新時間：<span id="pub-date">載入中...</span></div>
@@ -375,7 +392,7 @@
         <button id="btn-table">表格</button>
     </div>
 
-    <!-- 通用分類折疊面板 -->
+    <!-- 分類折疊面板 -->
     <div class="tab-wrapper" id="main-tab">
         <div class="tab-group">
             <button class="group-toggle">溫度 ▼</button>
@@ -414,6 +431,13 @@
                 <button class="tab-btn" data-type="pressStation">站氣壓</button>
             </div>
         </div>
+        <!-- 新增水位/積水分類 -->
+        <div class="tab-group">
+            <button class="group-toggle">水位/積水 ▼</button>
+            <div class="group-buttons">
+                <button class="tab-btn" data-type="waterLevel">實時水位</button>
+            </div>
+        </div>
     </div>
 
     <!-- 地圖視圖 -->
@@ -427,7 +451,7 @@
             </div>
         </div>
         <div id="single-card-box" class="station-single">
-            <div class="empty-tip">請點擊地圖上圓圈查看測站數據</div>
+            <div class="empty-tip">請點擊地圖上圓圈查看氣象站實時數據</div>
         </div>
     </div>
 
@@ -470,7 +494,7 @@ function calculateDewPoint(T, RH) {
     return dew.toFixed(1);
 }
 
-// 卡片樣式
+// ========== 卡片樣式 Class ==========
 function getHeatIndexClass(val) {
     let num = parseFloat(val);
     if (!isNaN(num) && num >= 40) return 'metric col-half heat-high';
@@ -502,11 +526,18 @@ function getRainDayClass(val) {
     if (num >= 100) return 'metric col-third rainDay-orange';
     return 'metric col-third';
 }
+function getWaterLevelClass(val) {
+    let num = parseFloat(val);
+    if (isNaN(num) || num <= 0) return 'metric col-third flood-normal';
+    if (num >= 0.5) return 'metric col-third flood-heavy';
+    if (num >= 0.2) return 'metric col-third flood-mid';
+    return 'metric col-third flood-light';
+}
 function formatVal(val, unit) {
     return val === '--' ? val : `${val} ${unit}`;
 }
 
-// 測站座標 & 代碼
+// ========== 測站座標 & 代碼 ==========
 const allPoints = {
     "紀念孫中山市政公園": { code: "DP", lat: 22.215322, lng: 113.543490 },
     "黑沙環": { code: "EM", lat: 22.207129, lng: 113.559971 },
@@ -527,7 +558,7 @@ const allPoints = {
     "蓮花大橋": { code: "LH", lat: 22.139934, lng: 113.549094 }
 };
 
-// 欄位對應
+// ========== 欄位對應 ==========
 const fieldMap = {
     tempCurrent: {field:'temp', label:'實時氣溫', unit:'℃'},
     tempMax: {field:'tempMax', label:'最高氣溫', unit:'℃'},
@@ -540,10 +571,11 @@ const fieldMap = {
     windSpeed: {field:'windSpeed', label:'風速', unit:'km/h'},
     windGust: {field:'windGust', label:'陣風', unit:'km/h'},
     pressSea: {field:'pressSea', label:'海平面氣壓', unit:'hPa'},
-    pressStation: {field:'pressStation', label:'站氣壓', unit:'hPa'}
+    pressStation: {field:'pressStation', label:'站氣壓', unit:'hPa'},
+    waterLevel: {field:'waterLevel', label:'實時水位', unit:'m'}
 };
 
-// 配色規則（新增露點）
+// ========== 地圖標記配色規則 ==========
 function getTempColor(tempStr) {
     const temp = parseFloat(tempStr);
     if (isNaN(temp)) return "#3498db";
@@ -574,7 +606,7 @@ function getHumidityColor(humStr) {
 }
 function getDewColor(dewStr) {
     const dew = parseFloat(dewStr);
-    if (isNaN(dew)) return "#3498db";
+    if (isNaN(dewStr)) return "#3498db";
     if (dew >= 28) return "#2980b9";
     if (dew >= 24) return "#64b5e7";
     if (dew >= 18) return "#62e0b1";
@@ -605,8 +637,15 @@ function getPressStationColor(pressStr) {
     if (press < 985) return "#f9d342";
     return "#3a6ea5";
 }
+function getWaterLevelColor(wlStr) {
+    const wl = parseFloat(wlStr);
+    if (isNaN(wl) || wl <= 0) return "#3498db";
+    if (wl >= 0.5) return "#e74c3c";
+    if (wl >= 0.2) return "#f39c12";
+    return "#f1c40f";
+}
 
-// 更新圖例
+// ========== 圖例更新 ==========
 function updateLegendPanel(tabType) {
     const legendContent = document.getElementById('legend-content');
     let legendHTML = '';
@@ -632,8 +671,11 @@ function updateLegendPanel(tabType) {
         case "pressStation":
             legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#d64040"></div><965hPa</div><div class="legend-item"><div class="legend-color" style="background:#e68938"></div>965~974hPa</div><div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>975~984hPa</div><div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>≥985hPa</div>`;
             break;
-        case "windDir":
-            legendHTML = `<div class="legend-item" style="color:#777;">風向代碼</div>`;
+        case "waterLevel":
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#3498db"></div>無積水 (0m)</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>輕微積水 0~0.2m</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>中度積水 0.2~0.5m</div>
+            <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>嚴重積水 >0.5m</div>`;
             break;
         default:
             legendHTML = `<div class="legend-item" style="color:#777;">無圖例</div>`;
@@ -641,7 +683,7 @@ function updateLegendPanel(tabType) {
     legendContent.innerHTML = legendHTML;
 }
 
-// 地圖初始化
+// ========== 地圖初始化 ==========
 let map = L.map('macau-map').setView([22.17, 113.55], 12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
@@ -650,6 +692,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 let allMarkers = [];
 let currentTab = "tempCurrent";
 let pointDataList = [];
+let floodDataList = [];
 const singleCardBox = document.getElementById("single-card-box");
 
 // 折疊分組按鈕事件
@@ -687,7 +730,7 @@ document.getElementById('btn-table').addEventListener('click',function(){
     renderDataTable(currentTab);
 });
 
-// 提取XML值
+// 提取XML節點值
 const extractNodeValue = (selector, parent) => {
     const el = parent.querySelector(selector);
     if (!el) return '';
@@ -695,16 +738,16 @@ const extractNodeValue = (selector, parent) => {
     return val.trim();
 };
 
-// 清空標記
+// 清空地圖標記
 function clearMarkers() {
     allMarkers.forEach(marker => map.removeLayer(marker));
     allMarkers = [];
 }
 
-// 渲染單一卡片（點擊地圖觸發，新增露點溫度）
+// 渲染單站詳細卡片（包含水位）
 function renderSingleCard(data) {
     const {name,code,temp,tempMax,tempMin,humidity,windDir,windSpeed,windGust,rain1m,rain1h,rainTotal,
-           pressSea,pressStation,apparentTemp,heatIndex,dewPoint} = data;
+           pressSea,pressStation,apparentTemp,heatIndex,dewPoint,waterLevel} = data;
     const fullName = `${name} (${code})`;
 
     const hiClass = getHeatIndexClass(heatIndex);
@@ -713,6 +756,7 @@ function renderSingleCard(data) {
     const r1mClass = getRain1hClass(rain1m);
     const r1hClass = getRain1hClass(rain1h);
     const rTotalClass = getRainDayClass(rainTotal);
+    const wlClass = getWaterLevelClass(waterLevel);
 
     const card = `
     <div class="station-card">
@@ -737,6 +781,7 @@ function renderSingleCard(data) {
             <div class="${r1mClass}"><span>一分鐘雨量</span><strong>${formatVal(rain1m, 'mm')}</strong></div>
             <div class="${r1hClass}"><span>一小時雨量</span><strong>${formatVal(rain1h, 'mm')}</strong></div>
             <div class="${rTotalClass}"><span>日總雨量</span><strong>${formatVal(rainTotal, 'mm')}</strong></div>
+            <div class="${wlClass}" style="grid-column: span 6;"><span>實時水位</span><strong>${formatVal(waterLevel, 'm')}</strong></div>
         </div>
     </div>`;
     singleCardBox.innerHTML = card;
@@ -745,7 +790,9 @@ function renderSingleCard(data) {
 // 更新地圖標記
 function updateMapMarkers() {
     clearMarkers();
-    pointDataList.forEach(point => {
+    let sourceList = currentTab === "waterLevel" ? floodDataList : pointDataList;
+
+    sourceList.forEach(point => {
         const name = point.name;
         const info = allPoints[name];
         if (!info) return;
@@ -772,6 +819,10 @@ function updateMapMarkers() {
                 const hiNum = parseFloat(showVal);
                 if (isNaN(hiNum) || hiNum < 35.5) skipMarker = true;
                 break;
+            case "waterLevel":
+                showVal = point.waterLevel;
+                bgColor = getWaterLevelColor(showVal);
+                break;
         }
 
         if (skipMarker || showVal === '' || showVal === '--') return;
@@ -794,11 +845,12 @@ function renderDataTable(type) {
     const field = cfg.field;
     const label = cfg.label;
     const unit = cfg.unit;
-    document.getElementById('table-title').textContent = `${label} 數據一覽`;
+    document.getElementById('table-title').textContent = `${label} 數據表格`;
     const tbody = document.getElementById('table-body');
     tbody.innerHTML = "";
 
-    pointDataList.forEach(item => {
+    let sourceList = type === "waterLevel" ? floodDataList : pointDataList;
+    sourceList.forEach(item => {
         const name = item.name;
         const code = allPoints[name]?.code || "";
         let val = item[field];
@@ -809,13 +861,23 @@ function renderDataTable(type) {
     });
 }
 
-// 抓取數據
-function fetchGridData() {
+// 合併水位數據到氣象測站
+function mergeFloodData(){
+    floodDataList.forEach(flood => {
+        const match = pointDataList.find(p => p.name === flood.name);
+        if(match){
+            match.waterLevel = flood.waterLevel;
+        }
+    });
+}
+
+// ========== 抓取氣象 XML 數據 ==========
+function fetchWeatherData() {
     const cacheBuster = Date.now();
     const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
-    fetch(url, { cache: "no-store" })
+    return fetch(url, { cache: "no-store" })
         .then(res => {
-            if (!res.ok) throw new Error("Request fail");
+            if (!res.ok) throw new Error("Weather fetch fail");
             return res.text();
         })
         .then(xmlStr => {
@@ -830,7 +892,6 @@ function fetchGridData() {
             singleCardBox.innerHTML = '<div class="empty-tip">請點擊地圖上圓圈查看測站數據</div>';
 
             stations.forEach(station => {
-                const code = station.getAttribute("code") || "";
                 const name = station.querySelector("stationname")?.textContent || "";
                 const temp = extractNodeValue("Temperature", station);
                 const tempMax = extractNodeValue("Temperature_daily_max", station);
@@ -862,22 +923,37 @@ function fetchGridData() {
                 pointDataList.push({
                     name, temp, tempMax, tempMin, humidity, windDir,
                     windSpeed, windGust, rain1m, rain1h, rainTotal,
-                    pressSea, pressStation, apparentTemp, heatIndex, dewPoint
+                    pressSea, pressStation, apparentTemp, heatIndex, dewPoint,
+                    waterLevel: "--"
                 });
             });
-
-            updateMapMarkers();
-            updateLegendPanel(currentTab);
-            renderDataTable(currentTab);
-        })
-        .catch(err => {
-            console.error(err);
-            singleCardBox.innerHTML = '<div class="empty-tip" style="color:#e74c3c;">數據載入失敗</div>';
         });
 }
 
-fetchGridData();
-setInterval(fetchGridData, 60000);
-</script>
-</body>
-</html>
+// ========== 抓取水位/積水 XML 數據 (補全你中斷的代碼) ==========
+function fetchFloodData() {
+    const cacheBuster = Date.now();
+    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_ftgms.xml?t=${cacheBuster}`;
+    return fetch(url, { cache: "no-store" })
+        .then(res => {
+            if (!res.ok) throw new Error("Flood fetch fail");
+            return res.text();
+        })
+        .then(xmlStr => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
+            const stations = xmlDoc.querySelectorAll("WLReport station") || xmlDoc.querySelectorAll("station");
+            floodDataList = [];
+
+            stations.forEach(station => {
+                const name = station.querySelector("stationname")?.textContent || "未知監測點";
+                let waterLevel = "--";
+                const wlNode = station.querySelector("WaterLevel") || station.querySelector("Value") || station.querySelector("dValue");
+                if(wlNode){
+                    waterLevel = wlNode.textContent.trim();
+                }
+                if (!waterLevel || waterLevel === "") waterLevel = "--";
+
+                floodDataList.push({
+                    name: name,
+                    waterLevel: waterLevel
