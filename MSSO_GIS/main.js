@@ -7,18 +7,18 @@ let floodDataList = [];
 let tableSortType = "default"; // default / desc / asc
 
 const singleCardBox = document.getElementById("single-card-box");
-const tableTitleWrap = document.querySelector(".table-title-wrap");
 const tableBody = document.getElementById("table-body");
 
-// ========== 測站基礎座標與代碼配置 ==========
+// ========== Station Coordinates & Codes (FILL YOUR REAL DATA HERE) ==========
 const weatherStations = {
-    /* 自行補全你真實測站名、經緯度、代碼 */
+    // Example format: "Station Name": { lat: 22.17, lng: 113.55, code: "W001" }
 };
+
 const waterStations = [
-    /* 自行補全水位測站名、經緯度、代碼 */
+    // Example format: { name: "Water Station", lat: 22.16, lng: 113.56, code: "F001" }
 ];
 
-// 表格欄位映射
+// Table field mapping
 const fieldMap = {
     tempCurrent: { field: "temp", label: "實時氣溫", unit: "°C" },
     tempMax: { field: "tempMax", label: "最高氣溫", unit: "°C" },
@@ -35,20 +35,19 @@ const fieldMap = {
     waterLevel: { field: "waterLevel", label: "實時水位", unit: "m" }
 };
 
-// ========== 工具函數 - 數值格式化 ==========
+// ========== Utility Functions ==========
 function formatVal(val, unit = "") {
     if (val === "" || val === null || val === undefined || val === "--") return "--";
     return val + (unit ? " " + unit : "");
 }
 
-// 提取XML節點值
 function extractNodeValue(tagName, parent) {
     const node = parent.querySelector(tagName);
     return node ? node.textContent.trim() : "";
 }
 
-// ========== 氣象計算公式 ==========
-// 體感溫度
+// ========== Meteorology Calculations ==========
+// Apparent Temperature
 function calculateApparentTemp(temp, rh, wind) {
     if (isNaN(temp) || isNaN(rh) || isNaN(wind)) return "--";
     let T = parseFloat(temp);
@@ -59,7 +58,7 @@ function calculateApparentTemp(temp, rh, wind) {
     return AT.toFixed(1);
 }
 
-// 酷熱指數
+// Heat Index
 function calculateHeatIndex(temp, rh) {
     if (isNaN(temp) || isNaN(rh)) return "--";
     let T = parseFloat(temp);
@@ -72,7 +71,7 @@ function calculateHeatIndex(temp, rh) {
     return HI.toFixed(1);
 }
 
-// 露點溫度
+// Dew Point
 function calculateDewPoint(temp, rh) {
     if (isNaN(temp) || isNaN(rh)) return "--";
     let T = parseFloat(temp);
@@ -84,7 +83,7 @@ function calculateDewPoint(temp, rh) {
     return dew.toFixed(1);
 }
 
-// ========== 顏色分級函數（地圖點位配色） ==========
+// ========== Color Rules for Map Markers ==========
 function getTempColor(val) {
     let v = parseFloat(val);
     if (isNaN(v)) return "#999";
@@ -162,7 +161,7 @@ function getWaterLevelColor(val) {
     return "#d1d1d1";
 }
 
-// 舊樣式Class（保留相容，現卡片已改用獨立布局）
+// Reserved empty class functions
 function getHeatIndexClass(){return "";}
 function getApparentClass(){return "";}
 function getDewClass(){return "";}
@@ -170,7 +169,7 @@ function getRain1hClass(){return "";}
 function getRainDayClass(){return "";}
 function getWaterLevelClass(){return "";}
 
-// ========== 地圖初始化 & 標點 ==========
+// ========== Map Initialization & Markers ==========
 function initMap() {
     map = L.map('macau-map').setView([22.17, 113.55], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -240,8 +239,7 @@ function updateMapMarkers() {
     });
 }
 
-// ========== 新版 詳情卡片渲染（完全對應你指定布局） ==========
-// ========== 新版 詳情卡片渲染（完全對應你指定布局） ==========
+// ========== Station Detail Card Render ==========
 function renderSingleCard(data) {
     const {
         name, code,
@@ -257,9 +255,8 @@ function renderSingleCard(data) {
     const isWaterStation = typeof waterLevel !== "undefined" && (!temp || temp === "--");
     let html = `<div class="station-card"><div class="card-header">${name} (${code})</div>`;
 
-    // 氣象站版面
     if (!isWaterStation) {
-        // [氣溫] 最低 / 實時(大字) / 最高
+        // Temperature
         html += `
         <div class="section-title">[氣溫]</div>
         <div class="row-3">
@@ -276,7 +273,7 @@ function renderSingleCard(data) {
             </div>
         </div>`;
 
-        // [人體感受與悶熱指標]
+        // Heat Index & Apparent Temp
         html += `
         <div class="section-title">[人體感受與悶熱指標]</div>
         <div class="row-2">
@@ -290,7 +287,7 @@ function renderSingleCard(data) {
             </div>
         </div>`;
 
-        // [空氣中水分含量]
+        // Dew Point & Humidity
         html += `
         <div class="section-title">[空氣中水分含量]</div>
         <div class="row-2">
@@ -304,7 +301,7 @@ function renderSingleCard(data) {
             </div>
         </div>`;
 
-        // [風力]
+        // Wind
         html += `
         <div class="section-title">[風力]</div>
         <div class="row-3-col">
@@ -322,7 +319,7 @@ function renderSingleCard(data) {
             </div>
         </div>`;
 
-        // [氣壓] 無數據則隱藏整區
+        // Pressure
         if ((pressSea && pressSea !== "--") || (pressStation && pressStation !== "--")) {
             html += `<div class="section-title">[氣壓]</div><div class="row-2">`;
             if (pressSea && pressSea !== "--") {
@@ -342,7 +339,7 @@ function renderSingleCard(data) {
             html += `</div>`;
         }
 
-        // [雨量] 無數據則隱藏整區
+        // Rainfall
         if ((rain1m && rain1m !== "--") || (rain1h && rain1h !== "--") || (rainTotal && rainTotal !== "--")) {
             html += `<div class="section-title">[雨量]</div><div class="row-3-col">`;
             if (rain1m && rain1m !== "--") {
@@ -370,7 +367,7 @@ function renderSingleCard(data) {
         }
     }
 
-    // 水位站：只顯示 實時水位 + 對應圖例配色
+    // Water Level
     if (waterLevel && waterLevel !== "--") {
         let wlColor = "#d1d1d1";
         let wlBorder = "#cccccc";
@@ -409,8 +406,7 @@ function renderSingleCard(data) {
     singleCardBox.innerHTML = html;
 }
 
-// ========== 圖例更新 ==========
-// ========== 圖例更新 ==========
+// ========== Legend Panel Update ==========
 function updateLegendPanel(tabType) {
     const legendContent = document.getElementById('legend-content');
     let legendHTML = '';
@@ -431,7 +427,6 @@ function updateLegendPanel(tabType) {
             break;
 
         case "heatIndex":
-            // Only keep DARK color version for white text
             legendHTML = `
                 <div class="legend-item"><div class="legend-color" style="background:#a864c7"></div><span style="color:#fff;">≥54.5℃ 極度危險</span></div>
                 <div class="legend-item"><div class="legend-color" style="background:#e66a6a"></div><span style="color:#fff;">45.5~54.4℃ 危險</span></div>
@@ -486,7 +481,6 @@ function updateLegendPanel(tabType) {
                 <div class="legend-item"><div class="legend-color" style="background:#2d3436"></div>≥ 2.50 m</div>`;
             break;
 
-        // Hide legend completely for windDir & dewPoint
         case "windDir":
         case "dewPoint":
             legendHTML = "";
@@ -495,11 +489,10 @@ function updateLegendPanel(tabType) {
         default:
             legendHTML = `<div class="legend-item" style="color:#777;">無圖例</div>`;
     }
-    // Only ONE assignment here
     legendContent.innerHTML = legendHTML;
 }
 
-// ========== 數據表格渲染 & 排序 ==========
+// ========== Data Table Render & Sort ==========
 function renderDataTable(type) {
     const cfg = fieldMap[type];
     const field = cfg.field;
@@ -513,7 +506,6 @@ function renderDataTable(type) {
         ? waterStations
         : Object.entries(weatherStations).map(([name, info]) => ({ name, ...info }));
 
-    // 排序
     if (tableSortType !== "default") {
         sourceList = [...sourceList].sort((a, b) => {
             const valA = parseFloat(a[field]) || 0;
@@ -537,7 +529,7 @@ function renderDataTable(type) {
     });
 }
 
-// ========== 數據請求 ==========
+// ========== Fetch XML Data ==========
 function fetchWeatherData() {
     const cacheBuster = Date.now();
     const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
@@ -633,13 +625,13 @@ function loadAllData() {
         .catch(err => console.error("整體數據載入失敗：", err));
 }
 
-// ========== 事件綁定 ==========
+// ========== Event Binding ==========
 function bindEvents() {
     document.querySelectorAll('.group-toggle').forEach(toggle => {
         toggle.addEventListener('click', () => toggle.nextElementSibling.classList.toggle('show'));
     });
 
-    // 分類標籤切換
+    // Tab switch
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -652,7 +644,7 @@ function bindEvents() {
         });
     });
 
-    // 地圖 / 表格 視圖切換
+    // Map / Table view switch
     document.getElementById('btn-map').addEventListener('click', function () {
         this.classList.add('active');
         document.getElementById('btn-table').classList.remove('active');
@@ -667,7 +659,7 @@ function bindEvents() {
         renderDataTable(currentTab);
     });
 
-    // 表格排序按鈕
+    // Table sort buttons
     document.getElementById('sort-default').addEventListener('click', () => {
         tableSortType = "default";
         renderDataTable(currentTab);
@@ -682,10 +674,10 @@ function bindEvents() {
     });
 }
 
-// ========== 頁面入口 ==========
+// ========== Page Load Entry ==========
 window.addEventListener('DOMContentLoaded', () => {
     initMap();
     bindEvents();
     loadAllData();
-    setInterval(loadAllData, 300000); // 5分鐘自動刷新
+    setInterval(loadAllData, 300000); // Refresh every 5 minutes
 });
