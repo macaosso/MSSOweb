@@ -29,6 +29,7 @@ select {width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:8px;
 .station-table tr.hide {display:none;}
 
 .chart-box {width:100%; height:360px; margin-top:10px; display:none;}
+.tip-text {color:#e53935; text-align:center; padding:20px; font-size:14px;}
 </style>
 </head>
 <body>
@@ -68,7 +69,9 @@ select {width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:8px;
                     <th>數值</th>
                 </tr>
             </thead>
-            <tbody id="station-list"></tbody>
+            <tbody id="station-list">
+                <tr><td colspan="3" class="tip-text">正在讀取數據，請稍候...</td></tr>
+            </tbody>
         </table>
     </div>
 
@@ -80,9 +83,15 @@ select {width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:8px;
 
 <script>
 const XML_URL = "https://xml.smg.gov.mo/c_actualweather.xml";
-const PROXY = "https://api.allorigins.win/raw?url=";
+// Multiple CORS proxies for fallback
+const PROXY_LIST = [
+    "https://corsproxy.io/?",
+    "https://api.allorigins.win/raw?url=",
+    "https://cors-anywhere.herokuapp.com/"
+];
 const HISTORY_KEY = "weather_history_24h";
 const MAX_POINTS = 288;
+const REQ_TIMEOUT = 8000;
 
 const PARAM = {
     temp:       {name:"氣溫",      unit:"°C",  type:"line",   color:"#e63946"},
@@ -99,6 +108,7 @@ const PARAM = {
 let stationsCache = [];
 let updateTime = "";
 let updateTs = 0;
+let proxyIndex = 0;
 
 const $ = (s)=>document.querySelector(s);
 
@@ -108,16 +118,36 @@ function val(node){
     return (v==='--'||v===null||v===undefined) ? null : parseFloat(v);
 }
 
+// Try proxies one by one
+async function fetchWithProxy() {
+    const targetUrl = XML_URL + "?t=" + Date.now();
+    const encodedUrl = encodeURIComponent(targetUrl);
+
+    while (proxyIndex < PROXY_LIST.length) {
+        const currentProxy = PROXY_LIST[proxyIndex];
+        try {
+            const res = await fetch(currentProxy + encodedUrl, {
+                signal: AbortSignal.timeout(REQ_TIMEOUT),
+                cache: "no-store"
+            });
+            if (res.ok) return await res.text();
+        } catch (e) {
+            proxyIndex++;
+            continue;
+        }
+        proxyIndex++;
+    }
+    throw new Error("所有代理服務器均連線失敗");
+}
+
 async function loadXML(){
     try {
-        let u = encodeURIComponent(XML_URL+"?t="+Date.now());
-        let res = await fetch(PROXY+u, {signal:AbortSignal.timeout(7000)});
-        let txt = await res.text();
-        let xml = new DOMParser().parseFromString(txt,"text/xml");
-        if(xml.querySelector("parsererror")) throw "XML error";
+        const txt = await fetchWithProxy();
+        const xml = new DOMParser().parseFromString(txt,"text/xml");
+        if(xml.querySelector("parsererror")) throw "XML 解析異常";
 
-        let ut = xml.querySelector("ActualWeather > Custom > UpdateTime");
-        if(!ut) throw "No UpdateTime";
+        const ut = xml.querySelector("ActualWeather > Custom > UpdateTime");
+        if(!ut) throw "未找到時間節點";
         updateTime = ut.textContent.trim();
         updateTs = new Date(updateTime).getTime();
         $("#show-time").textContent = updateTime;
@@ -126,8 +156,9 @@ async function loadXML(){
         refreshTable();
         saveHistory();
     }catch(e){
-        console.error(e);
+        $("#station-list").innerHTML = `<tr><td colspan="3" class="tip-text">載入失敗：${e.message}，請稍後重試</td></tr>`;
         $("#show-time").textContent = "載入失敗";
+        console.error(e);
     }
 }
 
@@ -224,7 +255,8 @@ function drawChart(key,code,name){
 
 $("#param-select").addEventListener("change",refreshTable);
 loadXML();
-setInterval(loadXML, 300000);
+// Refresh every 5 minutes
+setInterval(()=>{proxyIndex=0; loadXML();}, 300000);
 </script>
 </body>
 </html>
