@@ -241,6 +241,7 @@ function updateMapMarkers() {
 }
 
 // ========== 新版 詳情卡片渲染（完全對應你指定布局） ==========
+// ========== 新版 詳情卡片渲染（完全對應你指定布局） ==========
 function renderSingleCard(data) {
     const {
         name, code,
