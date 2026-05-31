@@ -7,169 +7,10 @@ let floodDataList = [];
 let tableSortType = "default"; // default / desc / asc
 
 const singleCardBox = document.getElementById("single-card-box");
+const tableTitleWrap = document.querySelector(".table-title-wrap");
 const tableBody = document.getElementById("table-body");
 
-// ========== Station Coordinates & Codes (FILL YOUR REAL DATA HERE) ==========
-const weatherStations = {
-    // Example format: "Station Name": { lat: 22.17, lng: 113.55, code: "W001" }
-};
-
-const waterStations = [
-    // Example format: { name: "Water Station", lat: 22.16, lng: 113.56, code: "F001" }
-];
-
-// Table field mapping
-const fieldMap = {
-    tempCurrent: { field: "temp", label: "實時氣溫", unit: "°C" },
-    tempMax: { field: "tempMax", label: "最高氣溫", unit: "°C" },
-    tempMin: { field: "tempMin", label: "最低氣溫", unit: "°C" },
-    humidity: { field: "humidity", label: "相對濕度", unit: "%" },
-    dewPoint: { field: "dewPoint", label: "露點溫度", unit: "°C" },
-    windDir: { field: "windDir", label: "風向", unit: "" },
-    windSpeed: { field: "windSpeed", label: "風速", unit: "km/h" },
-    windGust: { field: "windGust", label: "陣風", unit: "km/h" },
-    pressSea: { field: "pressSea", label: "平均海平面氣壓", unit: "hPa" },
-    pressStation: { field: "pressStation", label: "站氣壓", unit: "hPa" },
-    apparentTemp: { field: "apparentTemp", label: "體感溫度", unit: "°C" },
-    heatIndex: { field: "heatIndex", label: "酷熱指數", unit: "°C" },
-    waterLevel: { field: "waterLevel", label: "實時水位", unit: "m" }
-};
-
-// ========== Utility Functions ==========
-function formatVal(val, unit = "") {
-    if (val === "" || val === null || val === undefined || val === "--") return "--";
-    return val + (unit ? " " + unit : "");
-}
-
-function extractNodeValue(tagName, parent) {
-    const node = parent.querySelector(tagName);
-    return node ? node.textContent.trim() : "";
-}
-
-// ========== Meteorology Calculations ==========
-// Apparent Temperature
-function calculateApparentTemp(temp, rh, wind) {
-    if (isNaN(temp) || isNaN(rh) || isNaN(wind)) return "--";
-    let T = parseFloat(temp);
-    let RH = parseFloat(rh);
-    let WS = parseFloat(wind) / 3.6;
-    if (WS < 1) WS = 1;
-    let AT = T + 0.33 * RH / 100 * 6.105 * Math.exp(17.27 * T / (237.7 + T)) - 0.7 * WS - 4;
-    return AT.toFixed(1);
-}
-
-// Heat Index
-function calculateHeatIndex(temp, rh) {
-    if (isNaN(temp) || isNaN(rh)) return "--";
-    let T = parseFloat(temp);
-    let RH = parseFloat(rh);
-    if (T < 27) return T.toFixed(1);
-    let HI = -8.784695 + 1.611399 * T + 2.338549 * RH - 0.146116 * T * RH
-        - 0.012308 * T * T - 0.016425 * RH * RH
-        + 0.00221173 * T * T * RH + 0.00072546 * T * RH * RH
-        - 0.000003582 * T * T * RH * RH;
-    return HI.toFixed(1);
-}
-
-// Dew Point
-function calculateDewPoint(temp, rh) {
-    if (isNaN(temp) || isNaN(rh)) return "--";
-    let T = parseFloat(temp);
-    let RH = parseFloat(rh);
-    let a = 17.27;
-    let b = 237.7;
-    let alpha = ((a * T) / (b + T)) + Math.log(RH / 100);
-    let dew = (b * alpha) / (a - alpha);
-    return dew.toFixed(1);
-}
-
-// ========== Color Rules for Map Markers ==========
-function getTempColor(val) {
-    let v = parseFloat(val);
-    if (isNaN(v)) return "#999";
-    if (v >= 38) return "#7b1818";
-    if (v >= 34) return "#d64040";
-    if (v >= 30) return "#ed7a7a";
-    if (v >= 26) return "#e8b03e";
-    if (v >= 22) return "#f0d390";
-    if (v >= 16) return "#62e0b1";
-    if (v >= 8) return "#64b5e7";
-    return "#5c48a1";
-}
-
-function getHumidityColor(val) {
-    let v = parseFloat(val);
-    if (isNaN(v)) return "#999";
-    if (v >= 85) return "#553C9A";
-    if (v >= 70) return "#5DADEC";
-    if (v >= 40) return "#6EE7B7";
-    if (v >= 20) return "#E6B34B";
-    return "#7b1818";
-}
-
-function getDewColor() {
-    return "#62e0b1";
-}
-
-function getWindColor(val) {
-    let v = parseFloat(val);
-    if (isNaN(v)) return "#999";
-    if (v >= 118) return "#d64040";
-    if (v >= 89) return "#f2a938";
-    if (v >= 62) return "#f9e559";
-    if (v >= 39) return "#60c070";
-    return "#64b5e7";
-}
-
-function getPressSeaColor(val) {
-    let v = parseFloat(val);
-    if (isNaN(v)) return "#999";
-    if (v < 980) return "#d64040";
-    if (v < 990) return "#e68938";
-    if (v < 1000) return "#f9d342";
-    return "#3a6ea5";
-}
-
-function getPressStationColor(val) {
-    let v = parseFloat(val);
-    if (isNaN(v)) return "#999";
-    if (v < 965) return "#d64040";
-    if (v < 975) return "#e68938";
-    if (v < 985) return "#f9d342";
-    return "#3a6ea5";
-}
-
-function getHeatIndexColor(val) {
-    let v = parseFloat(val);
-    if (isNaN(v)) return "#999";
-    if (v >= 54.5) return "#d1b4f0";
-    if (v >= 45.5) return "#f8c4c4";
-    if (v >= 39.5) return "#ffe0c0";
-    if (v >= 35.5) return "#ffffcc";
-    return "#d8ffd8";
-}
-
-function getWaterLevelColor(val) {
-    let v = parseFloat(val);
-    if (isNaN(v)) return "#d1d1d1";
-    if (v >= 2.50) return "#2d3436";
-    if (v >= 1.50) return "#e17055";
-    if (v >= 1.00) return "#fdcb6e";
-    if (v >= 0.50) return "#ffeaa7";
-    if (v >= 0.10) return "#74b9ff";
-    if (v >= 0.01) return "#b8e994";
-    return "#d1d1d1";
-}
-
-// Reserved empty class functions
-function getHeatIndexClass(){return "";}
-function getApparentClass(){return "";}
-function getDewClass(){return "";}
-function getRain1hClass(){return "";}
-function getRainDayClass(){return "";}
-function getWaterLevelClass(){return "";}
-
-// ========== Map Initialization & Markers ==========
+// Init Map
 function initMap() {
     map = L.map('macau-map').setView([22.17, 113.55], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -177,11 +18,13 @@ function initMap() {
     }).addTo(map);
 }
 
+// Clear all markers
 function clearMarkers() {
     allMarkers.forEach(marker => map.removeLayer(marker));
     allMarkers = [];
 }
 
+// Update map markers
 function updateMapMarkers() {
     clearMarkers();
     let sourceList, stationPool;
@@ -239,260 +82,91 @@ function updateMapMarkers() {
     });
 }
 
-// ========== Station Detail Card Render ==========
+// Render station detail card
 function renderSingleCard(data) {
-    const {
-        name, code,
-        temp, tempMax, tempMin,
-        heatIndex, apparentTemp,
-        dewPoint, humidity,
-        windDir, windSpeed, windGust,
-        pressSea, pressStation,
-        rain1m, rain1h, rainTotal,
-        waterLevel
-    } = data;
+    const { name, code, temp, tempMax, tempMin, humidity, windDir, windSpeed, windGust, rain1m, rain1h, rainTotal,
+        pressSea, pressStation, apparentTemp, heatIndex, dewPoint, waterLevel } = data;
+    const fullName = `${name} (${code})`;
 
-    const isWaterStation = typeof waterLevel !== "undefined" && (!temp || temp === "--");
-    let html = `<div class="station-card"><div class="card-header">${name} (${code})</div>`;
+    const hiClass = getHeatIndexClass(heatIndex);
+    const apClass = getApparentClass(apparentTemp);
+    const dewClass = getDewClass(dewPoint);
+    const r1mClass = getRain1hClass(rain1m);
+    const r1hClass = getRain1hClass(rain1h);
+    const rTotalClass = getRainDayClass(rainTotal);
+    const wlClass = getWaterLevelClass(waterLevel);
 
-    if (!isWaterStation) {
-        // Temperature
-        html += `
-        <div class="section-title">[氣溫]</div>
-        <div class="row-3">
-            <div class="item">
-                <div class="label">最低氣溫</div>
-                <div class="side-val color-low">${formatVal(tempMin, '°C')}</div>
-            </div>
-            <div class="item">
-                <div class="main-val">${formatVal(temp, '°C')}</div>
-            </div>
-            <div class="item">
-                <div class="label">最高氣溫</div>
-                <div class="side-val color-high">${formatVal(tempMax, '°C')}</div>
-            </div>
-        </div>`;
-
-        // Heat Index & Apparent Temp
-        html += `
-        <div class="section-title">[人體感受與悶熱指標]</div>
-        <div class="row-2">
-            <div class="data-item">
-                <div class="label">酷熱指數</div>
-                <div class="value">${formatVal(heatIndex, '°C')}</div>
-            </div>
-            <div class="data-item">
-                <div class="label">體感溫度</div>
-                <div class="value">${formatVal(apparentTemp, '°C')}</div>
-            </div>
-        </div>`;
-
-        // Dew Point & Humidity
-        html += `
-        <div class="section-title">[空氣中水分含量]</div>
-        <div class="row-2">
-            <div class="data-item">
-                <div class="label">露點溫度</div>
-                <div class="value">${formatVal(dewPoint, '°C')}</div>
-            </div>
-            <div class="data-item">
-                <div class="label">相對濕度</div>
-                <div class="value">${formatVal(humidity, '%')}</div>
-            </div>
-        </div>`;
-
-        // Wind
-        html += `
-        <div class="section-title">[風力]</div>
-        <div class="row-3-col">
-            <div class="data-item">
-                <div class="label">風向</div>
-                <div class="value">${windDir || '--'}</div>
-            </div>
-            <div class="data-item">
-                <div class="label">風速</div>
-                <div class="value">${formatVal(windSpeed, 'km/h')}</div>
-            </div>
-            <div class="data-item">
-                <div class="label">陣風</div>
-                <div class="value">${formatVal(windGust, 'km/h')}</div>
-            </div>
-        </div>`;
-
-        // Pressure
-        if ((pressSea && pressSea !== "--") || (pressStation && pressStation !== "--")) {
-            html += `<div class="section-title">[氣壓]</div><div class="row-2">`;
-            if (pressSea && pressSea !== "--") {
-                html += `
-                <div class="data-item">
-                    <div class="label">平均海平面氣壓</div>
-                    <div class="value">${formatVal(pressSea, 'hPa')}</div>
-                </div>`;
-            }
-            if (pressStation && pressStation !== "--") {
-                html += `
-                <div class="data-item">
-                    <div class="label">站氣壓</div>
-                    <div class="value">${formatVal(pressStation, 'hPa')}</div>
-                </div>`;
-            }
-            html += `</div>`;
-        }
-
-        // Rainfall
-        if ((rain1m && rain1m !== "--") || (rain1h && rain1h !== "--") || (rainTotal && rainTotal !== "--")) {
-            html += `<div class="section-title">[雨量]</div><div class="row-3-col">`;
-            if (rain1m && rain1m !== "--") {
-                html += `
-                <div class="data-item">
-                    <div class="label">一分鐘雨量</div>
-                    <div class="value">${formatVal(rain1m, 'mm')}</div>
-                </div>`;
-            }
-            if (rain1h && rain1h !== "--") {
-                html += `
-                <div class="data-item">
-                    <div class="label">一小時雨量</div>
-                    <div class="value">${formatVal(rain1h, 'mm')}</div>
-                </div>`;
-            }
-            if (rainTotal && rainTotal !== "--") {
-                html += `
-                <div class="data-item">
-                    <div class="label">每日總雨量</div>
-                    <div class="value">${formatVal(rainTotal, 'mm')}</div>
-                </div>`;
-            }
-            html += `</div>`;
-        }
+    // Weather stations hide water level row
+    let wlHtml = "";
+    if (currentTab === "waterLevel") {
+        wlHtml = `<div class="${wlClass}" style="grid-column: span 6;"><span>實時水位</span><strong>${formatVal(waterLevel, 'm')}</strong></div>`;
     }
 
-    // Water Level
-    if (waterLevel && waterLevel !== "--") {
-        let wlColor = "#d1d1d1";
-        let wlBorder = "#cccccc";
-        const wl = parseFloat(waterLevel);
-
-        if (wl >= 2.50) {
-            wlColor = "#2d3436";
-            wlBorder = "#000000";
-        } else if (wl >= 1.50) {
-            wlColor = "#e17055";
-            wlBorder = "#d63031";
-        } else if (wl >= 1.00) {
-            wlColor = "#fdcb6e";
-            wlBorder = "#f39c12";
-        } else if (wl >= 0.50) {
-            wlColor = "#ffeaa7";
-            wlBorder = "#fdcb6e";
-        } else if (wl >= 0.10) {
-            wlColor = "#74b9ff";
-            wlBorder = "#0984e3";
-        } else if (wl >= 0.01) {
-            wlColor = "#b8e994";
-            wlBorder = "#00b894";
-        }
-
-        const textColor = wlColor === "#2d3436" ? "#ffffff" : "#2c3e50";
-        html += `
-        <div class="section-title">[水位]</div>
-        <div class="water-item" style="background:${wlColor}26; border-color:${wlBorder};">
-            <div class="label">實時水位</div>
-            <div class="value" style="color:${textColor};">${formatVal(waterLevel, 'm')}</div>
-        </div>`;
-    }
-
-    html += `</div>`;
-    singleCardBox.innerHTML = html;
+    const card = `
+    <div class="station-card">
+        <div class="station-name">${fullName}</div>
+        <div class="temp-row">
+            <div class="current-temp">${formatVal(temp, '°C')}</div>
+            <div class="temp-range">
+                <div>最高: <span class="high-temp">${formatVal(tempMax, '°C')}</span></div>
+                <div>最低: <span class="low-temp">${formatVal(tempMin, '°C')}</span></div>
+            </div>
+        </div>
+        <div class="metrics-grid">
+            <div class="${hiClass}"><span>酷熱指數</span><strong>${formatVal(heatIndex, '°C')}</strong></div>
+            <div class="${apClass}"><span>體感溫度</span><strong>${formatVal(apparentTemp, '°C')}</strong></div>
+            <div class="${dewClass}"><span>露點溫度</span><strong>${formatVal(dewPoint, '°C')}</strong></div>
+            <div class="metric col-half"><span>相對濕度</span><strong>${formatVal(humidity, '%')}</strong></div>
+            <div class="metric col-half"><span>風向</span><strong>${windDir || '--'}</strong></div>
+            <div class="metric col-half"><span>風速</span><strong>${formatVal(windSpeed, 'km/h')}</strong></div>
+            <div class="metric col-half"><span>陣風</span><strong>${formatVal(windGust, 'km/h')}</strong></div>
+            <div class="metric col-half"><span>平均海平面氣壓</span><strong>${formatVal(pressSea, 'hPa')}</strong></div>
+            <div class="metric col-half"><span>站氣壓</span><strong>${formatVal(pressStation, 'hPa')}</strong></div>
+            <div class="${r1mClass}"><span>一分鐘雨量</span><strong>${formatVal(rain1m, 'mm')}</strong></div>
+            <div class="${r1hClass}"><span>一小時雨量</span><strong>${formatVal(rain1h, 'mm')}</strong></div>
+            <div class="${rTotalClass}"><span>日總雨量</span><strong>${formatVal(rainTotal, 'mm')}</strong></div>
+            ${wlHtml}
+        </div>
+    </div>`;
+    singleCardBox.innerHTML = card;
 }
 
-// ========== Legend Panel Update ==========
+// Update legend
 function updateLegendPanel(tabType) {
     const legendContent = document.getElementById('legend-content');
     let legendHTML = '';
     switch (tabType) {
-        case "tempCurrent":
-        case "tempMax":
-        case "tempMin":
-        case "apparentTemp":
-            legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#7b1818"></div>非常酷熱</div>
-                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>酷熱</div>
-                <div class="legend-item"><div class="legend-color" style="background:#ed7a7a"></div>炎熱</div>
-                <div class="legend-item"><div class="legend-color" style="background:#e8b03e"></div>溫暖</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f0d390"></div>和暖</div>
-                <div class="legend-item"><div class="legend-color" style="background:#62e0b1"></div>清涼</div>
-                <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>寒冷</div>
-                <div class="legend-item"><div class="legend-color" style="background:#5c48a1"></div>非常寒冷</div>`;
+        case "tempCurrent": case "tempMax": case "tempMin": case "apparentTemp":
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#7b1818"></div>非常酷熱</div><div class="legend-item"><div class="legend-color" style="background:#d64040"></div>酷熱</div><div class="legend-item"><div class="legend-color" style="background:#ed7a7a"></div>炎熱</div><div class="legend-item"><div class="legend-color" style="background:#e8b03e"></div>溫暖</div><div class="legend-item"><div class="legend-color" style="background:#f0d390"></div>和暖</div><div class="legend-item"><div class="legend-color" style="background:#62e0b1"></div>清涼</div><div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>寒冷</div><div class="legend-item"><div class="legend-color" style="background:#5c48a1"></div>非常寒冷</div>`;
             break;
-
         case "heatIndex":
-            legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#a864c7"></div><span style="color:#fff;">≥54.5℃ 極度危險</span></div>
-                <div class="legend-item"><div class="legend-color" style="background:#e66a6a"></div><span style="color:#fff;">45.5~54.4℃ 危險</span></div>
-                <div class="legend-item"><div class="legend-color" style="background:#ffb880"></div><span style="color:#fff;">39.5~45.4℃ 特別注意</span></div>
-                <div class="legend-item"><div class="legend-color" style="background:#fff299"></div><span style="color:#fff;">35.5~39.4℃ 注意</span></div>
-                <div class="legend-item"><div class="legend-color" style="background:#99e699"></div><span style="color:#fff;">&lt;35.5℃ 正常</span></div>`;
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#900C3F"></div>≥45.0℃ 危險</div><div class="legend-item"><div class="legend-color" style="background:#C70039"></div>40.0~44.9℃ 極酷熱</div><div class="legend-item"><div class="legend-color" style="background:#FF5733"></div>35.5~39.9℃ 酷熱</div><div class="legend-item" style="color:#777;">低於35.5℃ 不顯示</div>`;
             break;
-
-        case "humidity":
-            legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#553C9A"></div>非常潮濕</div>
-                <div class="legend-item"><div class="legend-color" style="background:#5DADEC"></div>潮濕</div>
-                <div class="legend-item"><div class="legend-color" style="background:#6EE7B7"></div>正常</div>
-                <div class="legend-item"><div class="legend-color" style="background:#E6B34B"></div>乾燥</div>
-                <div class="legend-item"><div class="legend-color" style="background:#7b1818"></div>非常乾燥</div>`;
-            break;
-
-        case "windSpeed":
-        case "windGust":
-            legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>颶風</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f2a938"></div>暴風</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f9e559"></div>烈風</div>
-                <div class="legend-item"><div class="legend-color" style="background:#60c070"></div>強風</div>
-                <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>強風以下</div>`;
-            break;
-
-        case "pressSea":
-            legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>&lt;980hPa</div>
-                <div class="legend-item"><div class="legend-color" style="background:#e68938"></div>980~989hPa</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>990~999hPa</div>
-                <div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>≥1000hPa</div>`;
-            break;
-
-        case "pressStation":
-            legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>&lt;965hPa</div>
-                <div class="legend-item"><div class="legend-color" style="background:#e68938"></div>965~974hPa</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>975~984hPa</div>
-                <div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>≥985hPa</div>`;
-            break;
-
-        case "waterLevel":
-            legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#d1d1d1"></div>0.00 m (無水位)</div>
-                <div class="legend-item"><div class="legend-color" style="background:#b8e994"></div>0.01 - 0.09 m</div>
-                <div class="legend-item"><div class="legend-color" style="background:#74b9ff"></div>0.10 - 0.49 m</div>
-                <div class="legend-item"><div class="legend-color" style="background:#ffeaa7"></div>0.50 - 0.99 m</div>
-                <div class="legend-item"><div class="legend-color" style="background:#fdcb6e"></div>1.00 - 1.49 m</div>
-                <div class="legend-item"><div class="legend-color" style="background:#e17055"></div>1.50 - 2.49 m</div>
-                <div class="legend-item"><div class="legend-color" style="background:#2d3436"></div>≥ 2.50 m</div>`;
-            break;
-
-        case "windDir":
         case "dewPoint":
-            legendHTML = "";
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#2980b9"></div>≥28℃ 高露點</div><div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>24~27.9℃</div><div class="legend-item"><div class="legend-color" style="background:#62e0b1"></div>18~23.9℃</div><div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><18℃</div>`;
             break;
-
+        case "humidity":
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#553C9A"></div>非常潮濕</div><div class="legend-item"><div class="legend-color" style="background:#5DADEC"></div>潮濕</div><div class="legend-item"><div class="legend-color" style="background:#6EE7B7"></div>正常</div><div class="legend-item"><div class="legend-color" style="background:#E6B34B"></div>乾燥</div><div class="legend-item"><div class="legend-color" style="background:#7b1818"></div>非常乾燥</div>`;
+            break;
+        case "windSpeed": case "windGust":
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#d64040"></div>颶風</div><div class="legend-item"><div class="legend-color" style="background:#f2a938"></div>暴風</div><div class="legend-item"><div class="legend-color" style="background:#f9e559"></div>烈風</div><div class="legend-item"><div class="legend-color" style="background:#60c070"></div>強風</div><div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>強風以下</div>`;
+            break;
+        case "pressSea":
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#d64040"></div><980hPa</div><div class="legend-item"><div class="legend-color" style="background:#e68938"></div>980~989hPa</div><div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>990~999hPa</div><div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>≥1000hPa</div>`;
+            break;
+        case "pressStation":
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#d64040"></div><965hPa</div><div class="legend-item"><div class="legend-color" style="background:#e68938"></div>965~974hPa</div><div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>975~984hPa</div><div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>≥985hPa</div>`;
+            break;
+        case "waterLevel":
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#3498db"></div>無積水 (0m)</div><div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>輕微積水 0~0.2m</div><div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>中度積水 0.2~0.5m</div><div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>嚴重積水 >0.5m</div>`;
+            break;
         default:
             legendHTML = `<div class="legend-item" style="color:#777;">無圖例</div>`;
     }
     legendContent.innerHTML = legendHTML;
 }
 
-// ========== Data Table Render & Sort ==========
+// Render table + sort + remove empty rows
 function renderDataTable(type) {
     const cfg = fieldMap[type];
     const field = cfg.field;
@@ -502,10 +176,9 @@ function renderDataTable(type) {
     tableBody.innerHTML = "";
 
     let sourceList = type === "waterLevel" ? floodDataList : pointDataList;
-    let stationPool = type === "waterLevel"
-        ? waterStations
-        : Object.entries(weatherStations).map(([name, info]) => ({ name, ...info }));
+    let stationPool = type === "waterLevel" ? waterStations : Object.entries(weatherStations).map(([name, info]) => ({ name, ...info }));
 
+    // Sort logic
     if (tableSortType !== "default") {
         sourceList = [...sourceList].sort((a, b) => {
             const valA = parseFloat(a[field]) || 0;
@@ -516,6 +189,7 @@ function renderDataTable(type) {
 
     sourceList.forEach(item => {
         const val = item[field];
+        // Remove row if no data
         if (val === '--' || val === '') return;
 
         const name = item.name;
@@ -529,7 +203,7 @@ function renderDataTable(type) {
     });
 }
 
-// ========== Fetch XML Data ==========
+// API: Fetch weather data
 function fetchWeatherData() {
     const cacheBuster = Date.now();
     const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
@@ -588,6 +262,7 @@ function fetchWeatherData() {
         });
 }
 
+// API: Fetch water level data
 function fetchFloodData() {
     const cacheBuster = Date.now();
     const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_ftgms.xml?t=${cacheBuster}`;
@@ -615,6 +290,7 @@ function fetchFloodData() {
         .catch(err => console.error("水位數據載入失敗：", err));
 }
 
+// Load all data & refresh UI
 function loadAllData() {
     Promise.all([fetchWeatherData(), fetchFloodData()])
         .then(() => {
@@ -625,8 +301,9 @@ function loadAllData() {
         .catch(err => console.error("整體數據載入失敗：", err));
 }
 
-// ========== Event Binding ==========
+// Bind all events
 function bindEvents() {
+    // Fold toggle
     document.querySelectorAll('.group-toggle').forEach(toggle => {
         toggle.addEventListener('click', () => toggle.nextElementSibling.classList.toggle('show'));
     });
@@ -644,7 +321,7 @@ function bindEvents() {
         });
     });
 
-    // Map / Table view switch
+    // View switch
     document.getElementById('btn-map').addEventListener('click', function () {
         this.classList.add('active');
         document.getElementById('btn-table').classList.remove('active');
@@ -674,10 +351,10 @@ function bindEvents() {
     });
 }
 
-// ========== Page Load Entry ==========
+// Page entry
 window.addEventListener('DOMContentLoaded', () => {
     initMap();
     bindEvents();
     loadAllData();
-    setInterval(loadAllData, 300000); // Refresh every 5 minutes
+    setInterval(loadAllData, 300000); // 5min auto refresh
 });
