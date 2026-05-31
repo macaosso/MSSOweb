@@ -125,6 +125,27 @@
             font-size: 1.2rem;
             color: #7f8c8d;
         }
+        /* New styles for apparent temp button and display */
+        .apparent-temp-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-top: 4px;
+            transition: background 0.2s;
+        }
+        .apparent-temp-btn:hover {
+            background: #2980b9;
+        }
+        .apparent-temp-display {
+            font-size: 0.9rem;
+            color: #8e44ad;
+            font-weight: 600;
+            margin-top: 4px;
+        }
     </style>
 </head>
 <body>
@@ -147,6 +168,17 @@
 </div>
 
 <script>
+// Calculate apparent temperature using the given formula
+function calculateApparentTemp(T, RH, windSpeedKmH) {
+    // Convert wind speed from km/h to m/s
+    const V = windSpeedKmH / 3.6;
+    // Calculate water vapor pressure e (hPa)
+    const e = (RH / 100) * 6.105 * Math.exp((17.27 * T) / (237.7 + T));
+    // Apparent temperature formula
+    const apparentTemp = 1.04 * T + 0.2 * e - 0.65 * V - 2.7;
+    return apparentTemp.toFixed(1); // Round to 1 decimal place
+}
+
 function fetchGridData() {
     const cacheBuster = Date.now();
     const freshUrl = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
@@ -215,6 +247,15 @@ function fetchGridData() {
                 const rain1hClass = parseFloat(rain1h) > 0 ? 'rain-active' : '';
                 const rainTodayClass = parseFloat(rainToday) > 0 ? 'rain-active' : '';
 
+                // Prepare data for apparent temp calculation
+                const T = parseFloat(currentTemp);
+                const RH = parseFloat(humidity);
+                const windSpeedKmH = parseFloat(windSpeed);
+                let apparentTemp = '--';
+                if (!isNaN(T) && !isNaN(RH) && !isNaN(windSpeedKmH)) {
+                    apparentTemp = calculateApparentTemp(T, RH, windSpeedKmH);
+                }
+
                 const cardHtml = `
                     <div class="station-card">
                         <div class="station-name">${nameDisplay}</div>
@@ -223,6 +264,13 @@ function fetchGridData() {
                             <div class="temp-range">
                                 <div>最高: <span class="high-temp">${maxTemp}°C</span></div>
                                 <div>最低: <span class="low-temp">${minTemp}°C</span></div>
+                                <!-- Apparent temperature button and display -->
+                                <button class="apparent-temp-btn" onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display === 'block' ? 'none' : 'block'">
+                                    體感溫度
+                                </button>
+                                <div class="apparent-temp-display" style="display: none;">
+                                    體感: ${apparentTemp}°C
+                                </div>
                             </div>
                         </div>
                         <div class="metrics-grid">
