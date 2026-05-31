@@ -98,36 +98,41 @@
         .high-temp { color: #e74c3c; font-weight: 600; }
         .low-temp { color: #34495e; font-weight: 600; }
 
-        /* 指標網格新布局 */
+        /* 指標網格：統一 3 列布局，確保三連項等寬 */
         .metrics-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 12px;
             font-size: 0.9rem;
         }
         .metric {
             background: #f8f9fa;
-            padding: 8px 12px;
-            border-radius: 6px;
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 70px;
         }
-        .col-2 { grid-column: span 2; }
-        .col-3 { grid-column: span 3; }
-        .col-4 { grid-column: span 4; }
+        /* 跨列樣式 */
+        .col-span-2 { grid-column: span 2; }
+        .col-span-3 { grid-column: span 3; }
 
         .metric span {
             display: block;
             color: #7f8c8d;
             font-size: 0.75rem;
             text-transform: uppercase;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
         .metric strong {
             color: #2c3e50;
+            font-size: 1.1rem;
         }
         .loading {
             grid-column: 1 / -1;
             text-align: center;
-            padding: 5px;
+            padding: 20px;
             font-size: 1.2rem;
             color: #7f8c8d;
         }
@@ -250,18 +255,18 @@ function calculateDewPoint(T, RH) {
 // 取得欄位樣式
 function getHeatIndexClass(val) {
     let num = parseFloat(val);
-    if (!isNaN(num) && num >= 40) return 'metric col-2 heat-high';
-    return 'metric col-2';
+    if (!isNaN(num) && num >= 40) return 'metric col-span-2 heat-high';
+    return 'metric col-span-2';
 }
 function getApparentClass(val) {
     let num = parseFloat(val);
-    if (!isNaN(num) && num >= 36) return 'metric col-2 apparent-high';
-    return 'metric col-2';
+    if (!isNaN(num) && num >= 36) return 'metric apparent-high';
+    return 'metric';
 }
 function getDewClass(val) {
     let num = parseFloat(val);
-    if (!isNaN(num) && num >= 28) return 'metric col-2 dew-high';
-    return 'metric col-2';
+    if (!isNaN(num) && num >= 28) return 'metric dew-high';
+    return 'metric';
 }
 function getRain1hClass(val) {
     let num = parseFloat(val);
@@ -311,8 +316,11 @@ function renderStations(filterCode = 'all') {
         const rDayClass = getRainDayClass(rainToday);
 
         let metricsHtml = '';
-        // 橋樑站點：只顯示 風向、風速、陣風
+        let tempRowHtml = '';
+
+        // 橋樑站點：隱藏溫度行，只顯示風向、風速、陣風
         if (isBridgeStation(code)) {
+            tempRowHtml = ''; // 完全移除溫度區塊
             metricsHtml = `
                 <div class="metric">
                     <span>風向</span>
@@ -328,9 +336,19 @@ function renderStations(filterCode = 'all') {
                 </div>
             `;
         } else {
-            // 一般站點：完整布局
+            // 一般站點：保留溫度行 + 完整指標布局
+            tempRowHtml = `
+                <div class="temp-row">
+                    <div class="current-temp">${formatVal(currentTemp, '°C')}</div>
+                    <div class="temp-range">
+                        <div>最高: <span class="high-temp">${formatVal(maxTemp, '°C')}</span></div>
+                        <div>最低: <span class="low-temp">${formatVal(minTemp, '°C')}</span></div>
+                    </div>
+                </div>
+            `;
+            // 完整指標布局（3列網格，確保三連項等寬）
             metricsHtml = `
-                <!-- 第一行：酷熱指數 | 體感溫度 -->
+                <!-- 第一行：酷熱指數(跨2列) | 體感溫度 -->
                 <div class="${hiClass}">
                     <span>酷熱指數</span>
                     <strong>${formatVal(heatIndex, '°C')}</strong>
@@ -341,7 +359,7 @@ function renderStations(filterCode = 'all') {
                 </div>
 
                 <!-- 第二行：相對濕度 | 露點溫度 -->
-                <div class="metric col-2">
+                <div class="metric">
                     <span>相對濕度</span>
                     <strong>${formatVal(humidity, '%')}</strong>
                 </div>
@@ -349,8 +367,9 @@ function renderStations(filterCode = 'all') {
                     <span>露點溫度</span>
                     <strong>${formatVal(dewPoint, '°C')}</strong>
                 </div>
+                <div class="metric"></div> <!-- 空列保持對齊 -->
 
-                <!-- 第三行：風向 風速 陣風 (同列) -->
+                <!-- 第三行：風向 | 風速 | 陣風 (等寬三列) -->
                 <div class="metric">
                     <span>風向</span>
                     <strong>${windDirDisplay}</strong>
@@ -364,17 +383,17 @@ function renderStations(filterCode = 'all') {
                     <strong>${formatVal(windGust, 'km/h')}</strong>
                 </div>
 
-                <!-- 第四行：平均海平面氣壓 | 站氣壓 -->
-                <div class="metric col-2">
+                <!-- 第四行：平均海平面氣壓(跨2列) | 站氣壓 -->
+                <div class="metric col-span-2">
                     <span>平均海平面氣壓</span>
                     <strong>${formatVal(mslPressure, 'hPa')}</strong>
                 </div>
-                <div class="metric col-2">
+                <div class="metric">
                     <span>站氣壓</span>
                     <strong>${formatVal(stationPressure, 'hPa')}</strong>
                 </div>
 
-                <!-- 第五行：一分鐘雨量 一小時雨量 日總雨量 -->
+                <!-- 第五行：一分鐘雨量 | 一小時雨量 | 日總雨量 (等寬三列) -->
                 <div class="${r1mClass}">
                     <span>一分鐘雨量</span>
                     <strong>${formatVal(rain1m, 'mm')}</strong>
@@ -393,13 +412,7 @@ function renderStations(filterCode = 'all') {
         const cardHtml = `
             <div class="station-card">
                 <div class="station-name">${nameDisplay}</div>
-                <div class="temp-row">
-                    <div class="current-temp">${formatVal(currentTemp, '°C')}</div>
-                    <div class="temp-range">
-                        <div>最高: <span class="high-temp">${formatVal(maxTemp, '°C')}</span></div>
-                        <div>最低: <span class="low-temp">${formatVal(minTemp, '°C')}</span></div>
-                    </div>
-                </div>
+                ${tempRowHtml}
                 <div class="metrics-grid">
                     ${metricsHtml}
                 </div>
