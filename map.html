@@ -43,7 +43,8 @@
             font-size: 0.9rem;
             opacity: 0.9;
         }
-        /* Tab Buttons */
+
+        /* 分類折疊按鈕區 */
         .tab-wrapper {
             background: #fff;
             border-radius: 8px;
@@ -51,10 +52,31 @@
             margin-bottom: 20px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.08);
         }
-        .tab-buttons {
-            display: flex;
-            gap: 8px;
+        .tab-group {
+            margin-bottom: 10px;
+        }
+        .group-toggle {
+            width: 100%;
+            text-align: left;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            background: #e8edf2;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+        }
+        .group-toggle:hover {
+            background: #d0d9e2;
+        }
+        .group-buttons {
+            display: none;
             flex-wrap: wrap;
+            gap: 8px;
+            padding-left: 10px;
+        }
+        .group-buttons.show {
+            display: flex;
         }
         .tab-btn {
             padding: 8px 12px;
@@ -72,7 +94,8 @@
         .tab-btn:hover:not(.active) {
             background: #d0d9e2;
         }
-        /* Main Layout */
+
+        /* 主布局 */
         .main-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -95,7 +118,8 @@
             height: 650px;
             border-radius: 8px;
         }
-        /* --- Smaller, Always-Visible Legend --- */
+
+        /* 圖例 */
         .map-legend {
             position: absolute;
             bottom: 15px;
@@ -130,7 +154,8 @@
             border-radius: 50%;
             margin-right: 5px;
         }
-        /* --- Time Stamp --- */
+
+        /* 時間戳 */
         .time-stamp {
             position: absolute;
             top: 25px;
@@ -142,12 +167,21 @@
             font-size: 0.9rem;
             z-index: 1000;
         }
-        /* Station Cards */
-        .station-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 20px;
+
+        /* 單個氣象卡片容器 */
+        .station-single {
+            height: 650px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 20px;
         }
+        .empty-tip {
+            color: #999;
+            font-size: 1rem;
+        }
+
+        /* 氣象卡片樣式 */
         .station-card {
             background: white;
             border-radius: 12px;
@@ -157,6 +191,8 @@
             display: flex;
             flex-direction: column;
             border-top: 4px solid #3498db;
+            width: 100%;
+            max-width: 420px;
         }
         .station-card:hover {
             transform: translateY(-3px);
@@ -220,14 +256,6 @@
         .rain-active strong {
             color: #2980b9;
         }
-        .loading {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 50px;
-            font-size: 1.2rem;
-            color: #7f8c8d;
-        }
-        /* 酷熱指數 ≥40℃ */
         .heat-high {
             background: #ffe6e6;
             border: 1px solid #f5a9a9;
@@ -235,7 +263,6 @@
         .heat-high strong {
             color: #c0392b;
         }
-        /* 體感溫度 ≥36℃ */
         .apparent-high {
             background: #f3e5f5;
             border: 1px solid #d2bade;
@@ -243,7 +270,6 @@
         .apparent-high strong {
             color: #8e44ad;
         }
-        /* 1小時雨量分級 */
         .rain1-yellow {
             background: #fff9c4;
             border: 1px solid #ffe082;
@@ -256,7 +282,6 @@
             background: #eceff1;
             border: 1px solid #b0bec5;
         }
-        /* 日總雨量分級 */
         .rainDay-orange {
             background: #fff3e0;
             border: 1px solid #ffcc80;
@@ -276,7 +301,7 @@
     <header>
         <div>
             <h1>澳門各區天氣實況（互動GIS地圖）</h1>
-            <small style="color: #2ecc71;">● 可縮放/拖曳地圖 | 點擊標示查看名稱</small>
+            <small style="color: #2ecc71;">● 點擊地圖圓圈查看單站數據</small>
         </div>
         <div class="meta-info">
             <div>資料更新時間：<span id="pub-date">載入中...</span></div>
@@ -284,54 +309,72 @@
         </div>
     </header>
 
-    <!-- All Split Map Tabs -->
+    <!-- 分類折疊按鈕組 -->
     <div class="tab-wrapper">
-        <div class="tab-buttons">
-            <button class="tab-btn active" data-type="tempCurrent">氣溫</button>
-            <button class="tab-btn" data-type="tempMax">最高氣溫</button>
-            <button class="tab-btn" data-type="tempMin">最低氣溫</button>
-            <button class="tab-btn" data-type="humidity">相對濕度</button>
-            <button class="tab-btn" data-type="windDir">風向</button>
-            <button class="tab-btn" data-type="windSpeed">風速</button>
-            <button class="tab-btn" data-type="windGust">陣風</button>
-            <button class="tab-btn" data-type="rain1m">一分鐘雨量</button>
-            <button class="tab-btn" data-type="rain1h">一小時雨量</button>
-            <button class="tab-btn" data-type="rainTotal">累計日雨量</button>
-            <button class="tab-btn" data-type="pressSea">海平面氣壓</button>
-            <button class="tab-btn" data-type="pressStation">站氣壓</button>
-            <button class="tab-btn" data-type="apparentTemp">體感溫度</button>
-            <button class="tab-btn" data-type="heatIndex">酷熱指數</button>
+        <!-- 溫度類 -->
+        <div class="tab-group">
+            <button class="group-toggle">溫度類 ▼</button>
+            <div class="group-buttons">
+                <button class="tab-btn active" data-type="tempCurrent">氣溫</button>
+                <button class="tab-btn" data-type="tempMax">最高氣溫</button>
+                <button class="tab-btn" data-type="tempMin">最低氣溫</button>
+                <button class="tab-btn" data-type="apparentTemp">體感溫度</button>
+                <button class="tab-btn" data-type="heatIndex">酷熱指數</button>
+            </div>
+        </div>
+        <!-- 風/濕度類 -->
+        <div class="tab-group">
+            <button class="group-toggle">風 & 濕度 ▼</button>
+            <div class="group-buttons">
+                <button class="tab-btn" data-type="humidity">相對濕度</button>
+                <button class="tab-btn" data-type="windDir">風向</button>
+                <button class="tab-btn" data-type="windSpeed">風速</button>
+                <button class="tab-btn" data-type="windGust">陣風</button>
+            </div>
+        </div>
+        <!-- 雨量類 -->
+        <div class="tab-group">
+            <button class="group-toggle">雨量類 ▼</button>
+            <div class="group-buttons">
+                <button class="tab-btn" data-type="rain1m">一分鐘雨量</button>
+                <button class="tab-btn" data-type="rain1h">一小時雨量</button>
+                <button class="tab-btn" data-type="rainTotal">累計日雨量</button>
+            </div>
+        </div>
+        <!-- 氣壓類 -->
+        <div class="tab-group">
+            <button class="group-toggle">氣壓類 ▼</button>
+            <div class="group-buttons">
+                <button class="tab-btn" data-type="pressSea">海平面氣壓</button>
+                <button class="tab-btn" data-type="pressStation">站氣壓</button>
+            </div>
         </div>
     </div>
 
     <div class="main-layout">
         <div class="map-card">
             <div id="macau-map"></div>
-            <!-- Time Stamp -->
             <div id="time-stamp" class="time-stamp"></div>
-            <!-- Smaller, Always-Visible Legend -->
             <div id="map-legend" class="map-legend">
                 <h4>圖例</h4>
                 <div id="legend-content" class="legend-items"></div>
             </div>
         </div>
-        <div id="grid-container" class="station-grid">
-            <div class="loading">正在擷取區域數據...</div>
+        <!-- 單卡片顯示區 -->
+        <div id="single-card-box" class="station-single">
+            <div class="empty-tip">請點擊地圖上圓圈查看測站數據</div>
         </div>
     </div>
 </div>
 
 <script>
 // ========== 計算函數 ==========
-// 體感溫度
 function calculateApparentTemp(T, RH, windSpeedKmH) {
     const V = windSpeedKmH / 3.6;
     const e = (RH / 100) * 6.105 * Math.exp((17.27 * T) / (237.7 + T));
     const apparentTemp = 1.04 * T + 0.2 * e - 0.65 * V - 2.7;
     return isNaN(apparentTemp) ? '--' : apparentTemp.toFixed(1);
 }
-
-// 酷熱指數 Heat Index
 function calculateHeatIndex(T, RH) {
     if (isNaN(T) || isNaN(RH)) return '--';
     let hi = -8.7846947556 + 1.61139411 * T + 2.3385488388 * RH
@@ -343,7 +386,7 @@ function calculateHeatIndex(T, RH) {
     return hi.toFixed(1);
 }
 
-// 取得卡片樣式
+// 卡片樣式
 function getHeatIndexClass(val) {
     let num = parseFloat(val);
     if (!isNaN(num) && num >= 40) return 'metric col-half heat-high';
@@ -370,13 +413,11 @@ function getRainDayClass(val) {
     if (num >= 100) return 'metric col-third rainDay-orange';
     return 'metric col-third';
 }
-
-// 格式化顯示：-- 不顯示單位
 function formatVal(val, unit) {
     return val === '--' ? val : `${val} ${unit}`;
 }
 
-// ========== 測站座標 ==========
+// 測站座標
 const allPoints = {
     "紀念孫中山市政公園": { code: "DP", lat: 22.215322, lng: 113.543490 },
     "黑沙環": { code: "EM", lat: 22.207129, lng: 113.559971 },
@@ -397,8 +438,7 @@ const allPoints = {
     "蓮花大橋": { code: "LH", lat: 22.139934, lng: 113.549094 }
 };
 
-// ========== 配色規則 ==========
-// 氣溫 / 體感溫度 共用色階
+// 配色規則
 function getTempColor(tempStr) {
     const temp = parseFloat(tempStr);
     if (isNaN(temp)) return "#3498db";
@@ -411,18 +451,13 @@ function getTempColor(tempStr) {
     if (temp >= 7.5) return "#64b5e7";
     return "#5c48a1";
 }
-
-// 酷熱指數 專用色階
 function getHeatIndexColor(hiStr) {
     const hi = parseFloat(hiStr);
     if (isNaN(hi) || hi < 35.5) return "";
     if (hi >= 45) return "#900C3F";
     if (hi >= 40) return "#C70039";
-    if (hi >= 35.5) return "#FF5733";
-    return "#FFC300";
+    return "#FF5733";
 }
-
-// 濕度
 function getHumidityColor(humStr) {
     const hum = parseFloat(humStr);
     if (isNaN(hum)) return "#3498db";
@@ -432,8 +467,6 @@ function getHumidityColor(humStr) {
     if (hum >= 30.5) return "#E6B34B";
     return "#7b1818";
 }
-
-// 風速 / 陣風
 function getWindColor(windStr) {
     const wind = parseFloat(windStr);
     if (isNaN(wind)) return "#3498db";
@@ -443,8 +476,6 @@ function getWindColor(windStr) {
     if (wind >= 40.5) return "#60c070";
     return "#64b5e7";
 }
-
-// 一分鐘雨量
 function getRain1mColor(rainStr) {
     const rain = parseFloat(rainStr);
     if (isNaN(rain) || rain === 0) return "#a0a0a0";
@@ -454,7 +485,6 @@ function getRain1mColor(rainStr) {
     if (rain >= 0.2) return "#3a6ea5";
     return "#bdd7ee";
 }
-// 一小時雨量
 function getRain1hColor(rainStr) {
     const rain = parseFloat(rainStr);
     if (isNaN(rain) || rain === 0) return "#a0a0a0";
@@ -465,7 +495,6 @@ function getRain1hColor(rainStr) {
     if (rain >= 10) return "#3a6ea5";
     return "#bdd7ee";
 }
-// 日累計雨量
 function getRainTotalColor(rainStr) {
     const rain = parseFloat(rainStr);
     if (isNaN(rain) || rain === 0) return "#a0a0a0";
@@ -476,17 +505,14 @@ function getRainTotalColor(rainStr) {
     if (rain >= 20) return "#3a6ea5";
     return "#bdd7ee";
 }
-
-// 海平面氣壓
 function getPressSeaColor(pressStr) {
     const press = parseFloat(pressStr);
-    if (isNaN(press)) return "#3498db";
+    if (isNaN(pressStr)) return "#3498db";
     if (press < 980) return "#d64040";
     if (press < 990) return "#e68938";
     if (press < 1000) return "#f9d342";
     return "#3a6ea5";
 }
-// 站點氣壓
 function getPressStationColor(pressStr) {
     const press = parseFloat(pressStr);
     if (isNaN(press)) return "#3498db";
@@ -496,101 +522,37 @@ function getPressStationColor(pressStr) {
     return "#3a6ea5";
 }
 
-// ========== 圖例更新 ==========
+// 更新圖例
 function updateLegendPanel(tabType) {
     const legendContent = document.getElementById('legend-content');
     let legendHTML = '';
-
     switch(tabType) {
-        case "tempCurrent":
-        case "tempMax":
-        case "tempMin":
-        case "apparentTemp":
-            legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#7b1818"></div>非常酷熱</div>
-                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>酷熱</div>
-                <div class="legend-item"><div class="legend-color" style="background:#ed7a7a"></div>炎熱</div>
-                <div class="legend-item"><div class="legend-color" style="background:#e8b03e"></div>溫暖</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f0d390"></div>和暖</div>
-                <div class="legend-item"><div class="legend-color" style="background:#62e0b1"></div>清涼</div>
-                <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>寒冷</div>
-                <div class="legend-item"><div class="legend-color" style="background:#5c48a1"></div>非常寒冷</div>
-            `;
+        case "tempCurrent":case "tempMax":case "tempMin":case "apparentTemp":
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#7b1818"></div>非常酷熱</div><div class="legend-item"><div class="legend-color" style="background:#d64040"></div>酷熱</div><div class="legend-item"><div class="legend-color" style="background:#ed7a7a"></div>炎熱</div><div class="legend-item"><div class="legend-color" style="background:#e8b03e"></div>溫暖</div><div class="legend-item"><div class="legend-color" style="background:#f0d390"></div>和暖</div><div class="legend-item"><div class="legend-color" style="background:#62e0b1"></div>清涼</div><div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>寒冷</div><div class="legend-item"><div class="legend-color" style="background:#5c48a1"></div>非常寒冷</div>`;
             break;
         case "heatIndex":
-            legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#900C3F"></div>≥45.0℃ 危險</div>
-                <div class="legend-item"><div class="legend-color" style="background:#C70039"></div>40.0~44.9℃ 極酷熱</div>
-                <div class="legend-item"><div class="legend-color" style="background:#FF5733"></div>35.5~39.9℃ 酷熱</div>
-                <div class="legend-item" style="color:#777;">低於35.5℃ 不顯示</div>
-            `;
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#900C3F"></div>≥45.0℃ 危險</div><div class="legend-item"><div class="legend-color" style="background:#C70039"></div>40.0~44.9℃ 極酷熱</div><div class="legend-item"><div class="legend-color" style="background:#FF5733"></div>35.5~39.9℃ 酷熱</div><div class="legend-item" style="color:#777;">低於35.5℃ 不顯示</div>`;
             break;
         case "humidity":
-            legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#553C9A"></div>非常潮濕</div>
-                <div class="legend-item"><div class="legend-color" style="background:#5DADEC"></div>潮濕</div>
-                <div class="legend-item"><div class="legend-color" style="background:#6EE7B7"></div>正常</div>
-                <div class="legend-item"><div class="legend-color" style="background:#E6B34B"></div>乾燥</div>
-                <div class="legend-item"><div class="legend-color" style="background:#7b1818"></div>非常乾燥</div>
-            `;
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#553C9A"></div>非常潮濕</div><div class="legend-item"><div class="legend-color" style="background:#5DADEC"></div>潮濕</div><div class="legend-item"><div class="legend-color" style="background:#6EE7B7"></div>正常</div><div class="legend-item"><div class="legend-color" style="background:#E6B34B"></div>乾燥</div><div class="legend-item"><div class="legend-color" style="background:#7b1818"></div>非常乾燥</div>`;
             break;
-        case "windSpeed":
-        case "windGust":
-            legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>颶風</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f2a938"></div>暴風</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f9e559"></div>烈風</div>
-                <div class="legend-item"><div class="legend-color" style="background:#60c070"></div>強風</div>
-                <div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>強風以下</div>
-            `;
+        case "windSpeed":case "windGust":
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#d64040"></div>颶風</div><div class="legend-item"><div class="legend-color" style="background:#f2a938"></div>暴風</div><div class="legend-item"><div class="legend-color" style="background:#f9e559"></div>烈風</div><div class="legend-item"><div class="legend-color" style="background:#60c070"></div>強風</div><div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>強風以下</div>`;
             break;
         case "rain1m":
-            legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#a0a0a0"></div>無雨</div>
-                <div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><0.2mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>0.2~0.3mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>0.4~0.5mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#e68938"></div>0.6~0.7mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>≥0.8mm</div>
-            `;
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#a0a0a0"></div>無雨</div><div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><0.2mm</div><div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>0.2~0.3mm</div><div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>0.4~0.5mm</div><div class="legend-item"><div class="legend-color" style="background:#e68938"></div>0.6~0.7mm</div><div class="legend-item"><div class="legend-color" style="background:#d64040"></div>≥0.8mm</div>`;
             break;
         case "rain1h":
-            legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#a0a0a0"></div>無雨</div>
-                <div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><10mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>10~19mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>20~39mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#e68938"></div>40~49mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>50~79mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#000000"></div>≥80mm</div>
-            `;
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#a0a0a0"></div>無雨</div><div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><10mm</div><div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>10~19mm</div><div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>20~39mm</div><div class="legend-item"><div class="legend-color" style="background:#e68938"></div>40~49mm</div><div class="legend-item"><div class="legend-color" style="background:#d64040"></div>50~79mm</div><div class="legend-item"><div class="legend-color" style="background:#000000"></div>≥80mm</div>`;
             break;
         case "rainTotal":
-            legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#a0a0a0"></div>無雨</div>
-                <div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><20mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>20~49mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>50~79mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#e68938"></div>80~99mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div>100~124mm</div>
-                <div class="legend-item"><div class="legend-color" style="background:#800080"></div>≥125mm</div>
-            `;
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#a0a0a0"></div>無雨</div><div class="legend-item"><div class="legend-color" style="background:#bdd7ee"></div><20mm</div><div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>20~49mm</div><div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>50~79mm</div><div class="legend-item"><div class="legend-color" style="background:#e68938"></div>80~99mm</div><div class="legend-item"><div class="legend-color" style="background:#d64040"></div>100~124mm</div><div class="legend-item"><div class="legend-color" style="background:#800080"></div>≥125mm</div>`;
             break;
         case "pressSea":
-            legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div><980hPa</div>
-                <div class="legend-item"><div class="legend-color" style="background:#e68938"></div>980~989hPa</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>990~999hPa</div>
-                <div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>≥1000hPa</div>
-            `;
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#d64040"></div><980hPa</div><div class="legend-item"><div class="legend-color" style="background:#e68938"></div>980~989hPa</div><div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>990~999hPa</div><div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>≥1000hPa</div>`;
             break;
         case "pressStation":
-            legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#d64040"></div><965hPa</div>
-                <div class="legend-item"><div class="legend-color" style="background:#e68938"></div>965~974hPa</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>975~984hPa</div>
-                <div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>≥985hPa</div>
-            `;
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#d64040"></div><965hPa</div><div class="legend-item"><div class="legend-color" style="background:#e68938"></div>965~974hPa</div><div class="legend-item"><div class="legend-color" style="background:#f9d342"></div>975~984hPa</div><div class="legend-item"><div class="legend-color" style="background:#3a6ea5"></div>≥985hPa</div>`;
             break;
         case "windDir":
             legendHTML = `<div class="legend-item" style="color:#777;">風向代碼</div>`;
@@ -601,7 +563,7 @@ function updateLegendPanel(tabType) {
     legendContent.innerHTML = legendHTML;
 }
 
-// ========== 地圖初始化 ==========
+// 地圖初始化
 let map = L.map('macau-map').setView([22.17, 113.55], 12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
@@ -610,8 +572,17 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 let allMarkers = [];
 let currentTab = "tempCurrent";
 let pointDataList = [];
+const singleCardBox = document.getElementById("single-card-box");
 
-// 分頁切換
+// 折疊分組按鈕事件
+document.querySelectorAll('.group-toggle').forEach(toggle => {
+    toggle.addEventListener('click', () => {
+        const btnGroup = toggle.nextElementSibling;
+        btnGroup.classList.toggle('show');
+    });
+});
+
+// 分類按鈕切換
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -622,7 +593,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     });
 });
 
-// 提取XML節點值
+// 提取XML值
 const extractNodeValue = (selector, parent) => {
     const el = parent.querySelector(selector);
     if (!el) return '';
@@ -636,7 +607,45 @@ function clearMarkers() {
     allMarkers = [];
 }
 
-// 更新地圖標記
+// 渲染單一卡片（點擊地圖觸發）
+function renderSingleCard(data) {
+    const {name,code,temp,tempMax,tempMin,humidity,windDir,windSpeed,windGust,rain1m,rain1h,rainTotal,pressSea,pressStation,apparentTemp,heatIndex} = data;
+    const fullName = `${name} (${code})`;
+
+    const hiClass = getHeatIndexClass(heatIndex);
+    const apClass = getApparentClass(apparentTemp);
+    const r1mClass = getRain1hClass(rain1m);
+    const r1hClass = getRain1hClass(rain1h);
+    const rTotalClass = getRainDayClass(rainTotal);
+
+    const card = `
+    <div class="station-card">
+        <div class="station-name">${fullName}</div>
+        <div class="temp-row">
+            <div class="current-temp">${formatVal(temp, '°C')}</div>
+            <div class="temp-range">
+                <div>最高: <span class="high-temp">${formatVal(tempMax, '°C')}</span></div>
+                <div>最低: <span class="low-temp">${formatVal(tempMin, '°C')}</span></div>
+            </div>
+        </div>
+        <div class="metrics-grid">
+            <div class="${hiClass}"><span>酷熱指數</span><strong>${formatVal(heatIndex, '°C')}</strong></div>
+            <div class="${apClass}"><span>體感溫度</span><strong>${formatVal(apparentTemp, '°C')}</strong></div>
+            <div class="metric col-half"><span>相對濕度</span><strong>${formatVal(humidity, '%')}</strong></div>
+            <div class="metric col-half"><span>風向</span><strong>${windDir || '--'}</strong></div>
+            <div class="metric col-half"><span>風速</span><strong>${formatVal(windSpeed, 'km/h')}</strong></div>
+            <div class="metric col-half"><span>陣風</span><strong>${formatVal(windGust, 'km/h')}</strong></div>
+            <div class="metric col-half"><span>平均海平面氣壓</span><strong>${formatVal(pressSea, 'hPa')}</strong></div>
+            <div class="metric col-half"><span>站氣壓</span><strong>${formatVal(pressStation, 'hPa')}</strong></div>
+            <div class="${r1mClass}"><span>一分鐘雨量</span><strong>${formatVal(rain1m, 'mm')}</strong></div>
+            <div class="${r1hClass}"><span>一小時雨量</span><strong>${formatVal(rain1h, 'mm')}</strong></div>
+            <div class="${rTotalClass}"><span>日總雨量</span><strong>${formatVal(rainTotal, 'mm')}</strong></div>
+        </div>
+    </div>`;
+    singleCardBox.innerHTML = card;
+}
+
+// 更新地圖標記 + 綁定點擊事件
 function updateMapMarkers() {
     clearMarkers();
     pointDataList.forEach(point => {
@@ -650,91 +659,46 @@ function updateMapMarkers() {
         let skipMarker = false;
 
         switch (currentTab) {
-            case "tempCurrent":
-                showVal = point.temp;
-                bgColor = getTempColor(showVal);
-                break;
-            case "tempMax":
-                showVal = point.tempMax;
-                bgColor = getTempColor(showVal);
-                break;
-            case "tempMin":
-                showVal = point.tempMin;
-                bgColor = getTempColor(showVal);
-                break;
-            case "humidity":
-                showVal = point.humidity;
-                bgColor = getHumidityColor(showVal);
-                break;
-            case "windDir":
-                showVal = point.windDir || "--";
-                bgColor = "#9b59b6";
-                break;
-            case "windSpeed":
-                showVal = point.windSpeed;
-                bgColor = getWindColor(showVal);
-                break;
-            case "windGust":
-                showVal = point.windGust;
-                bgColor = getWindColor(showVal);
-                break;
-            case "rain1m":
-                showVal = point.rain1m;
-                bgColor = getRain1mColor(showVal);
-                break;
-            case "rain1h":
-                showVal = point.rain1h;
-                bgColor = getRain1hColor(showVal);
-                break;
-            case "rainTotal":
-                showVal = point.rainTotal;
-                bgColor = getRainTotalColor(showVal);
-                break;
-            case "pressSea":
-                showVal = point.pressSea;
-                bgColor = getPressSeaColor(showVal);
-                break;
-            case "pressStation":
-                showVal = point.pressStation;
-                bgColor = getPressStationColor(showVal);
-                break;
-            case "apparentTemp":
-                showVal = point.apparentTemp;
-                bgColor = getTempColor(showVal);
-                break;
+            case "tempCurrent": showVal = point.temp; bgColor = getTempColor(showVal); break;
+            case "tempMax": showVal = point.tempMax; bgColor = getTempColor(showVal); break;
+            case "tempMin": showVal = point.tempMin; bgColor = getTempColor(showVal); break;
+            case "humidity": showVal = point.humidity; bgColor = getHumidityColor(showVal); break;
+            case "windDir": showVal = point.windDir || "--"; bgColor = "#9b59b6"; break;
+            case "windSpeed": showVal = point.windSpeed; bgColor = getWindColor(showVal); break;
+            case "windGust": showVal = point.windGust; bgColor = getWindColor(showVal); break;
+            case "rain1m": showVal = point.rain1m; bgColor = getRain1mColor(showVal); break;
+            case "rain1h": showVal = point.rain1h; bgColor = getRain1hColor(showVal); break;
+            case "rainTotal": showVal = point.rainTotal; bgColor = getRainTotalColor(showVal); break;
+            case "pressSea": showVal = point.pressSea; bgColor = getPressSeaColor(showVal); break;
+            case "pressStation": showVal = point.pressStation; bgColor = getPressStationColor(showVal); break;
+            case "apparentTemp": showVal = point.apparentTemp; bgColor = getTempColor(showVal); break;
             case "heatIndex":
                 showVal = point.heatIndex;
                 bgColor = getHeatIndexColor(showVal);
-                // 酷熱指數 <35.5 隱藏標記
                 const hiNum = parseFloat(showVal);
-                if (isNaN(hiNum) || hiNum < 35.5) {
-                    skipMarker = true;
-                }
+                if (isNaN(hiNum) || hiNum < 35.5) skipMarker = true;
                 break;
         }
 
         if (skipMarker || showVal === '' || showVal === '--') return;
 
         markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
-
-        const icon = L.divIcon({
-            html: markerIconHtml,
-            className: "",
-            iconSize: [50, 50],
-            iconAnchor: [25, 25]
-        });
-
+        const icon = L.divIcon({html: markerIconHtml, className: "", iconSize: [50,50], iconAnchor: [25,25]});
         const marker = L.marker([info.lat, info.lng], { icon: icon }).addTo(map);
         marker.bindPopup(`<strong>${name} (${info.code})</strong>`);
+
+        // 點擊標記 → 切換卡片
+        marker.on('click', () => {
+            renderSingleCard({...point, code: info.code});
+        });
         allMarkers.push(marker);
     });
 }
 
-// ========== 抓取數據 & 渲染卡片 ==========
+// 抓取數據
 function fetchGridData() {
     const cacheBuster = Date.now();
     const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
-
     fetch(url, { cache: "no-store" })
         .then(res => {
             if (!res.ok) throw new Error("Request fail");
@@ -743,21 +707,17 @@ function fetchGridData() {
         .then(xmlStr => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
-
             const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent || "未知";
             document.getElementById("pub-date").textContent = pubTime;
             document.getElementById("time-stamp").textContent = pubTime;
 
             const stations = xmlDoc.querySelectorAll("WeatherReport station");
-            const gridContainer = document.getElementById("grid-container");
-            gridContainer.innerHTML = "";
             pointDataList = [];
+            singleCardBox.innerHTML = '<div class="empty-tip">請點擊地圖上圓圈查看測站數據</div>';
 
             stations.forEach(station => {
                 const code = station.getAttribute("code") || "";
                 const name = station.querySelector("stationname")?.textContent || "";
-                const fullName = `${name} (${code})`;
-
                 const temp = extractNodeValue("Temperature", station);
                 const tempMax = extractNodeValue("Temperature_daily_max", station);
                 const tempMin = extractNodeValue("Temperature_daily_min", station);
@@ -766,7 +726,6 @@ function fetchGridData() {
                 const windGust = extractNodeValue("WindGust", station);
                 const pressSea = extractNodeValue("MeanSeaLevelPressure", station);
                 const pressStation = extractNodeValue("StationPressure", station);
-
                 const windDirNode = station.querySelector("WindDirection");
                 const windDir = windDirNode?.querySelector("dValue")?.textContent || "";
 
@@ -779,88 +738,18 @@ function fetchGridData() {
                     if (type === "5") rainTotal = val;
                 });
 
-                // 計算體感溫度、酷熱指數
                 const T = parseFloat(temp);
                 const RH = parseFloat(humidity);
                 const windSpeedKmH = parseFloat(windSpeed);
                 const apparentTemp = calculateApparentTemp(T, RH, windSpeedKmH);
                 const heatIndex = calculateHeatIndex(T, RH);
 
-                // 存入全域數據
+                // 存入數據列表（無需預渲染卡片）
                 pointDataList.push({
-                    name, temp, tempMax, tempMin, humidity,
-                    windDir, windSpeed, windGust,
-                    rain1m, rain1h, rainTotal,
-                    pressSea, pressStation,
-                    apparentTemp, heatIndex
+                    name, temp, tempMax, tempMin, humidity, windDir,
+                    windSpeed, windGust, rain1m, rain1h, rainTotal,
+                    pressSea, pressStation, apparentTemp, heatIndex
                 });
-
-                // 欄位樣式
-                const hiClass = getHeatIndexClass(heatIndex);
-                const apClass = getApparentClass(apparentTemp);
-                const r1mClass = getRain1hClass(rain1m);
-                const r1hClass = getRain1hClass(rain1h);
-                const rTotalClass = getRainDayClass(rainTotal);
-
-                // 卡片HTML (固定欄位順序)
-                const card = `
-                <div class="station-card">
-                    <div class="station-name">${fullName}</div>
-                    <div class="temp-row">
-                        <div class="current-temp">${formatVal(temp, '°C')}</div>
-                        <div class="temp-range">
-                            <div>最高: <span class="high-temp">${formatVal(tempMax, '°C')}</span></div>
-                            <div>最低: <span class="low-temp">${formatVal(tempMin, '°C')}</span></div>
-                        </div>
-                    </div>
-                    <div class="metrics-grid">
-                        <div class="${hiClass}">
-                            <span>酷熱指數</span>
-                            <strong>${formatVal(heatIndex, '°C')}</strong>
-                        </div>
-                        <div class="${apClass}">
-                            <span>體感溫度</span>
-                            <strong>${formatVal(apparentTemp, '°C')}</strong>
-                        </div>
-                        <div class="metric col-half">
-                            <span>相對濕度</span>
-                            <strong>${formatVal(humidity, '%')}</strong>
-                        </div>
-                        <div class="metric col-half">
-                            <span>風向</span>
-                            <strong>${windDir || '--'}</strong>
-                        </div>
-                        <div class="metric col-half">
-                            <span>風速</span>
-                            <strong>${formatVal(windSpeed, 'km/h')}</strong>
-                        </div>
-                        <div class="metric col-half">
-                            <span>陣風</span>
-                            <strong>${formatVal(windGust, 'km/h')}</strong>
-                        </div>
-                        <div class="metric col-half">
-                            <span>平均海平面氣壓</span>
-                            <strong>${formatVal(pressSea, 'hPa')}</strong>
-                        </div>
-                        <div class="metric col-half">
-                            <span>站氣壓</span>
-                            <strong>${formatVal(pressStation, 'hPa')}</strong>
-                        </div>
-                        <div class="${r1mClass}">
-                            <span>一分鐘雨量</span>
-                            <strong>${formatVal(rain1m, 'mm')}</strong>
-                        </div>
-                        <div class="${r1hClass}">
-                            <span>一小時雨量</span>
-                            <strong>${formatVal(rain1h, 'mm')}</strong>
-                        </div>
-                        <div class="${rTotalClass}">
-                            <span>日總雨量</span>
-                            <strong>${formatVal(rainTotal, 'mm')}</strong>
-                        </div>
-                    </div>
-                </div>`;
-                gridContainer.innerHTML += card;
             });
 
             updateMapMarkers();
@@ -868,9 +757,7 @@ function fetchGridData() {
         })
         .catch(err => {
             console.error(err);
-            document.getElementById("grid-container").innerHTML = `
-                <div class="loading" style="color:#e74c3c;">載入失敗，請檢查網絡</div>
-            `;
+            singleCardBox.innerHTML = '<div class="empty-tip" style="color:#e74c3c;">數據載入失敗</div>';
         });
 }
 
