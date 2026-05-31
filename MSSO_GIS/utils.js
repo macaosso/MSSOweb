@@ -98,12 +98,7 @@ function getHumidityColor(humStr) {
     return "#7b1818";
 }
 function getDewColor(dewStr) {
-    const dew = parseFloat(dewStr);
-    if (isNaN(dewStr)) return "#3498db";
-    if (dew >= 28) return "#2980b9";
-    if (dew >= 24) return "#64b5e7";
-    if (dew >= 18) return "#62e0b1";
-    return "#bdd7ee";
+    return "#62e0b1";
 }
 function getWindColor(windStr) {
     const wind = parseFloat(windStr);
