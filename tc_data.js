@@ -1,6 +1,6 @@
 const tcWarnings = [
   {
-    text: "上午5時，颱風「薔薇」集結在本澳以東約1570公里，即北緯20.4度，東經128.6度，其中心附近最高持續風速約為每小時130公里，向西北偏北移動，時速18公里，未來數日會逐漸增強，大致移向台灣以東海域至沖繩一帶。"
+    text: ""
   },
 ];
 
@@ -8,7 +8,7 @@ const tcWarnings = [
 //icon:
 
 const forecastInfo = {
-  updated: "05-31 05:00 MST"
+  updated: "05-31 22:00 MST"
 };
 
 const pastPoints = [
@@ -30,27 +30,28 @@ const pastPoints = [
   {lat:18.2, lon:129.5, time: "05-30 14H", wind: 120}, 
   {lat:19.1, lon:129.0, time: "05-30 20H", wind: 130}, 
   {lat:20.0, lon:128.4, time: "05-31 02H", wind: 130}, 
-  {lat:20.4, lon:128.6, time: "05-31 05H", wind: 130}, 
-  
+  {lat:20.8, lon:128.2, time: "05-31 08H", wind: 140}, 
+  {lat:21.8, lon:127.9, time: "05-31 14H", wind: 140},  
+  {lat:22.7, lon:127.7, time: "05-31 20H", wind: 140},
 ];
 
 const forecastPoints = [
-  {lat:20.4, lon:128.6, time: "05-31 05H",wind: 130,
+  {lat:22.7, lon:127.7, time: "05-31 20H",wind: 140,
    
     wind41: { ne: 230, se: 270, sw: 220, nw: 200 }, 
     wind88: { ne: 80, se: 120, sw: 80,  nw: 60 } 
   },
+  { lat: 24.8, lon: 127.6, time: "06-01 08H", wind: 130 },  
+  { lat: 26.8, lon: 127.7, time: "06-01 20H", wind: 120 },
+  { lat: 32.0, lon: 133.2, time: "06-02 20H", wind: 110 },
+  { lat: 36.4, lon: 142.8, time: "06-03 20H", wind: 105 },
+  { lat: 37.7, lon: 147.6, time: "06-04 20H", wind: 85 },
+  { lat: 37.7, lon: 150.4, time: "06-05 20H", wind: "-" }
 
-  {lat:22.2, lon:127.7, time:"05-31 17H", wind: 155},
-  {lat:23.6, lon:127.2, time:"06-01 05H", wind: 155},
-  {lat:28.2, lon:128.8, time:"06-02 05H", wind: 145},
-  {lat:33.4, lon:136.0, time:"06-03 05H", wind: 130},
-  {lat:36.4, lon:144.9, time:"06-04 05H", wind: 105},
-  {lat:38.0, lon:149, time:"06-05 05H", wind: "-"},
 ];
 
 window.tcInfo = {
   name: "薔薇 (2606)", 
   wind: forecastPoints[0].wind,
-  pressure: 965
+  pressure: 960
 };
