@@ -469,6 +469,7 @@
 
 <script>
 // ========== 計算函數 ==========
+// ========== 計算函數 ==========
 function calculateApparentTemp(T, RH, windSpeedKmH) {
     const V = windSpeedKmH / 3.6;
     const e = (RH / 100) * 6.105 * Math.exp((17.27 * T) / (237.7 + T));
@@ -930,7 +931,7 @@ function fetchWeatherData() {
         });
 }
 
-// ========== 抓取水位/積水 XML 數據 (補全你中斷的代碼) ==========
+// ========== 抓取水位/積水 XML 數據 (已補全) ==========
 function fetchFloodData() {
     const cacheBuster = Date.now();
     const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_ftgms.xml?t=${cacheBuster}`;
@@ -957,3 +958,31 @@ function fetchFloodData() {
                 floodDataList.push({
                     name: name,
                     waterLevel: waterLevel
+                });
+            });
+        })
+        .catch(err => {
+            console.error("水位數據載入失敗：", err);
+        });
+}
+
+// ========== 統一載入所有數據 + 更新界面 ==========
+function loadAllData() {
+    Promise.all([fetchWeatherData(), fetchFloodData()])
+        .then(() => {
+            mergeFloodData();
+            updateMapMarkers();
+            updateLegendPanel(currentTab);
+            renderDataTable(currentTab);
+        })
+        .catch(err => {
+            console.error("整體數據載入失敗：", err);
+        });
+}
+
+// 頁面載入完成後執行 + 每5分鐘自動刷新
+window.addEventListener('DOMContentLoaded', loadAllData);
+setInterval(loadAllData, 300000);
+</script>
+</body>
+</html>
