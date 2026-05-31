@@ -430,11 +430,11 @@ function updateLegendPanel(tabType) {
             break;
         case "heatIndex":
             legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#d1b4f0"></div>≥54.5℃ 極度危險</div>
-                <div class="legend-item"><div class="legend-color" style="background:#f8c4c4"></div>45.5~54.4℃ 危險</div>
-                <div class="legend-item"><div class="legend-color" style="background:#ffe0c0"></div>39.5~45.4℃ 特別注意</div>
-                <div class="legend-item"><div class="legend-color" style="background:#ffffcc"></div>35.5~39.4℃ 注意</div>
-                <div class="legend-item"><div class="legend-color" style="background:#d8ffd8"></div>&lt;35.5℃ 正常</div>`;
+                <div class="legend-item"><div class="legend-color" style="background:#a864c7"></div><span style="color:#fff;">≥54.5℃ 極度危險</span></div>
+                <div class="legend-item"><div class="legend-color" style="background:#e66a6a"></div><span style="color:#fff;">45.5~54.4℃ 危險</span></div>
+                <div class="legend-item"><div class="legend-color" style="background:#ffb880"></div><span style="color:#fff;">39.5~45.4℃ 特別注意</span></div>
+                <div class="legend-item"><div class="legend-color" style="background:#fff299"></div><span style="color:#fff;">35.5~39.4℃ 注意</span></div>
+                <div class="legend-item"><div class="legend-color" style="background:#99e699"></div><span style="color:#fff;">&lt;35.5℃ 正常</span></div>`;
             break;
         case "humidity":
             legendHTML = `
@@ -469,7 +469,7 @@ function updateLegendPanel(tabType) {
             break;
         case "waterLevel":
             legendHTML = `
-                <div class="legend-item"><div class="legend-color" style="background:#d1d1d1"></div>0.00 m (無水位)</div>
+                <div class="legend-item"><div class="legend-color" style="background:#d1d1d1"></div>0.00 m</div>
                 <div class="legend-item"><div class="legend-color" style="background:#b8e994"></div>0.01 - 0.09 m</div>
                 <div class="legend-item"><div class="legend-color" style="background:#74b9ff"></div>0.10 - 0.49 m</div>
                 <div class="legend-item"><div class="legend-color" style="background:#ffeaa7"></div>0.50 - 0.99 m</div>
@@ -479,12 +479,12 @@ function updateLegendPanel(tabType) {
             break;
         case "windDir":
         case "dewPoint":
-            legendHTML = `<div class="legend-item" style="color:#777;">無圖例</div>`;
+            legendHTML = "";
             break;
         default:
             legendHTML = `<div class="legend-item" style="color:#777;">無圖例</div>`;
-    }
-    legendContent.innerHTML = legendHTML;
+        }
+        legendContent.innerHTML = legendHTML;
 }
 
 // ========== 數據表格渲染 & 排序 ==========
