@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>澳門氣象站+水位實況地圖</title>
+    <title>澳門氣象及水位實況監測</title>
     <!-- Leaflet 地圖庫 -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -72,28 +72,21 @@
         .tab-group {
             margin-bottom: 10px;
         }
-        .group-toggle {
+        /* 把 group-toggle 改成普通文字，不再是按鈕 */
+        .group-label {
             width: 100%;
-            text-align: left;
             padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
             background: #e8edf2;
-            cursor: pointer;
             font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 6px;
             margin-bottom: 6px;
         }
-        .group-toggle:hover {
-            background: #d0d9e4;
-        }
         .group-buttons {
-            display: none;
+            display: flex;
             flex-wrap: wrap;
             gap: 8px;
             padding-left: 10px;
-        }
-        .group-buttons.show {
-            display: flex;
         }
         .tab-btn {
             padding: 8px 12px;
@@ -353,8 +346,9 @@
         <!-- 分類標籤欄 -->
         <div class="tab-wrapper">
             <div class="tab-group">
-                <button class="group-toggle">氣象數據分類 (點擊展開)</button>
-                <div class="group-buttons show">
+                <!-- 改成普通文字，移除「(點擊展開)」 -->
+                <div class="group-label">氣象數據分類</div>
+                <div class="group-buttons">
                     <button class="tab-btn active" data-type="tempCurrent">實時氣溫</button>
                     <button class="tab-btn" data-type="tempMax">最高氣溫</button>
                     <button class="tab-btn" data-type="tempMin">最低氣溫</button>
@@ -370,17 +364,17 @@
                 </div>
             </div>
             <div class="tab-group">
-                <button class="group-toggle">水位數據分類 (點擊展開)</button>
-                <div class="group-buttons show">
+                <div class="group-label">水位數據分類</div>
+                <div class="group-buttons">
                     <button class="tab-btn" data-type="waterLevel">實時水位</button>
                 </div>
             </div>
         </div>
 
         <!-- 主內容區 -->
-        <div class="main-layout">
+        <div class="main-layout" id="map-view">
             <!-- 左側：地圖 -->
-            <div id="map-view" class="map-card">
+            <div class="map-card">
                 <div id="macau-map"></div>
                 <div class="time-stamp">更新時間：<span id="time-stamp">--</span></div>
                 <div class="map-legend">
@@ -389,13 +383,13 @@
                 </div>
             </div>
 
-            <!-- 右側：單站詳情卡片 -->
+            <!-- 右側：單站詳情卡片 (僅地圖視圖顯示提示) -->
             <div id="single-card-box" class="station-single">
                 <div class="empty-tip">請點擊地圖上圓圈查看測站數據</div>
             </div>
         </div>
 
-        <!-- 表格視圖 (預設隱藏) -->
+        <!-- 表格視圖 (完全移除提示文字) -->
         <div id="table-view" class="table-container hide" style="margin-top:20px;">
             <div class="table-title-wrap">
                 <div class="table-title" id="table-title">數據表格</div>
