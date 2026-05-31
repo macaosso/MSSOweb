@@ -1,427 +1,102 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>澳門氣象及水位實況監測</title>
-    <!-- Leaflet 地圖庫 -->
+    <title>氣象監測地圖</title>
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f3f7;
-            color: #2c3e50;
-            padding: 20px;
-            font-size: 14px;
-        }
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-        header {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: #fff;
-            padding: 20px 30px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        header h1 {
-            font-size: 1.6rem;
-            font-weight: 600;
-        }
-        .meta-info {
-            text-align: right;
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-        .view-switch {
-            margin-bottom: 15px;
-            display: flex;
-            gap: 10px;
-        }
-        .view-switch button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            background: #e8edf2;
-            cursor: pointer;
-            font-size: 0.95rem;
-        }
-        .view-switch button.active {
-            background: #2a5298;
-            color: #fff;
-        }
-        .tab-wrapper {
-            background: #fff;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-        }
-        .tab-group {
-            margin-bottom: 10px;
-        }
-        .group-label {
-            width: 100%;
-            padding: 8px 12px;
-            background: #e8edf2;
-            font-size: 0.9rem;
-            font-weight: 600;
-            border-radius: 6px;
-            margin-bottom: 6px;
-        }
-        .group-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            padding-left: 10px;
-        }
-        .tab-btn {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
-            background: #e8edf2;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
-        .tab-btn.active {
-            background: #2a5298;
-            color: #fff;
-        }
-        .tab-btn:hover:not(.active) {
-            background: #d0d9e4;
-        }
-        .main-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        @media (max-width: 1024px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-        .map-card {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            padding: 15px;
-            position: relative;
-        }
-        #macau-map {
-            width: 100%;
-            height: 650px;
-            border-radius: 8px;
-        }
-        .map-legend {
-            position: absolute;
-            bottom: 15px;
-            right: 15px;
-            background: rgba(255,255,255,0.95);
-            padding: 8px 10px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            z-index: 1000;
-            min-width: 120px;
-        }
-        .map-legend h4 {
-            margin: 0 0 5px 0;
-            font-size: 0.8rem;
-            text-align: center;
-            padding-bottom: 3px;
-            border-bottom: 1px solid #eee;
-        }
-        .legend-items {
-            max-height: 180px;
-            overflow-y: auto;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 3px;
-        }
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 5px;
-        }
-        .time-stamp {
-            position: absolute;
-            top: 25px;
-            right: 25px;
-            background: rgba(0,0,0,0.6);
-            color: #fff;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            z-index: 1000;
-        }
-        .station-single {
-            height: 650px;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            padding-top: 20px;
-        }
-        .empty-tip {
-            color: #999;
-            font-size: 1rem;
-        }
+        /* Basic Layout */
+        #macau-map { width: 100%; height: 600px; }
+        .hide { display: none; }
+        .empty-tip { padding: 20px; color: #666; text-align: center; }
 
-        /* ========== 全新卡片布局樣式 ========== */
-        .station-card {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            padding: 20px;
-            width: 100%;
-            max-width: 420px;
-            font-size: 13px;
-        }
-        .card-header {
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 20px;
-        }
-        .section-title {
-            font-size: 0.9rem;
-            color: #7f8c8d;
-            margin: 16px 0 8px;
-            padding-bottom: 4px;
-            border-bottom: 1px solid #eee;
-        }
-        /* 氣溫三欄：最低 / 實時(大字) / 最高 */
-        .row-3 {
-            display: grid;
-            grid-template-columns: 1fr 2fr 1fr;
-            gap: 8px;
-            margin-bottom: 12px;
-            align-items: center;
-        }
-        .row-3 .item {
-            text-align: center;
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 6px;
-        }
-        .row-3 .main-val {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: #1a1a1a;
-        }
-        .row-3 .side-val {
-            font-size: 1rem;
-        }
-        .row-3 .label {
-            font-size: 0.8rem;
-            color: #7f8c8d;
-            margin-bottom: 4px;
-        }
-        .color-low { color: #34495e; }
-        .color-high { color: #e74c3c; }
+        /* Legend */
+        .legend-item { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+        .legend-color { width: 20px; height: 20px; border-radius: 3px; }
 
-        /* 兩欄布局 */
-        .row-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-        /* 三欄布局 */
-        .row-3-col {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-        .data-item {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 6px;
-        }
-        .data-item .label {
-            font-size: 0.8rem;
-            color: #7f8c8d;
-            margin-bottom: 4px;
-        }
-        .data-item .value {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-        /* 水位專用樣式 */
-        .water-item {
-            padding: 12px;
-            border-radius: 6px;
-            border: 1px solid #ccc;
-        }
-        .water-item .label {
-            font-size: 0.8rem;
-            color: #7f8c8d;
-            margin-bottom: 4px;
-        }
-        .water-item .value {
-            font-size: 1.3rem;
-            font-weight: bold;
-        }
-        /* ====================================== */
+        /* Station Card */
+        .station-card { border: 1px solid #ccc; padding: 15px; margin-top: 10px; border-radius: 6px; }
+        .card-header { font-weight: bold; font-size: 16px; margin-bottom: 10px; }
+        .section-title { font-weight: bold; margin: 12px 0 6px; }
+        .row-2, .row-3, .row-3-col { display: flex; gap: 10px; flex-wrap: wrap; margin: 8px 0; }
+        .data-item { padding: 6px 10px; border: 1px solid #eee; border-radius: 4px; }
+        .water-item { padding: 10px; border-radius: 4px; }
 
-        /* 表格區域 */
-        .table-container {
-            background: #fff;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        /* Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+
+        /* Buttons & Tabs */
+        .tab-btn, #btn-map, #btn-table, #sort-default, #sort-desc, #sort-asc {
+            padding: 6px 12px; margin: 4px; cursor: pointer;
         }
-        .table-title-wrap {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .table-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-        .table-sort-buttons {
-            display: flex;
-            gap: 8px;
-        }
-        .table-sort-buttons button {
-            padding: 6px 12px;
-            border: 1px solid #cbd5e0;
-            border-radius: 4px;
-            background: #f7fafc;
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
-        .table-sort-buttons button:hover {
-            background: #e8edf2;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #e2e8f0;
-            padding: 10px;
-            text-align: center;
-        }
-        th {
-            background-color: #f7fafc;
-            font-weight: 600;
-        }
-        tbody tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-        .hide {
-            display: none !important;
-        }
+        .active { background: #2266cc; color: #fff; border: none; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>澳門氣象及水位實況監測</h1>
-            <div class="meta-info">
-                <div>資料發布時間：<span id="pub-date">載入中...</span></div>
-            </div>
-        </header>
-
-        <!-- 視圖切換：地圖 / 表格 -->
-        <div class="view-switch">
-            <button id="btn-map" class="active">地圖視圖</button>
-            <button id="btn-table">數據表格</button>
-        </div>
-
-        <!-- 分類標籤欄 -->
-        <div class="tab-wrapper">
-            <div class="tab-group">
-                <div class="group-label">氣象數據分類</div>
-                <div class="group-buttons">
-                    <button class="tab-btn active" data-type="tempCurrent">實時氣溫</button>
-                    <button class="tab-btn" data-type="tempMax">最高氣溫</button>
-                    <button class="tab-btn" data-type="tempMin">最低氣溫</button>
-                    <button class="tab-btn" data-type="apparentTemp">體感溫度</button>
-                    <button class="tab-btn" data-type="heatIndex">酷熱指數</button>
-                    <button class="tab-btn" data-type="dewPoint">露點溫度</button>
-                    <button class="tab-btn" data-type="humidity">相對濕度</button>
-                    <button class="tab-btn" data-type="windDir">風向</button>
-                    <button class="tab-btn" data-type="windSpeed">風速</button>
-                    <button class="tab-btn" data-type="windGust">陣風</button>
-                    <button class="tab-btn" data-type="pressSea">海平面氣壓</button>
-                    <button class="tab-btn" data-type="pressStation">站氣壓</button>
-                </div>
-            </div>
-            <div class="tab-group">
-                <div class="group-label">水位數據分類</div>
-                <div class="group-buttons">
-                    <button class="tab-btn" data-type="waterLevel">實時水位</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- 主內容區 -->
-        <div class="main-layout" id="map-view">
-            <!-- 左側：地圖 -->
-            <div class="map-card">
-                <div id="macau-map"></div>
-                <div class="time-stamp">更新時間：<span id="time-stamp">--</span></div>
-                <div class="map-legend">
-                    <h4>圖例</h4>
-                    <div id="legend-content" class="legend-items"></div>
-                </div>
-            </div>
-
-            <!-- 右側：單站詳情卡片 -->
-            <div id="single-card-box" class="station-single">
-                <div class="empty-tip">請點擊地圖上圓圈查看測站數據</div>
-            </div>
-        </div>
-
-        <!-- 表格視圖 (無多餘提示) -->
-        <div id="table-view" class="table-container hide" style="margin-top:20px;">
-            <div class="table-title-wrap">
-                <div class="table-title" id="table-title">數據表格</div>
-                <div class="table-sort-buttons">
-                    <button id="sort-default">預設排序</button>
-                    <button id="sort-desc">高至低</button>
-                    <button id="sort-asc">低至高</button>
-                </div>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>測站名稱</th>
-                        <th>代碼</th>
-                        <th>數值</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body"></tbody>
-            </table>
-        </div>
+    <!-- View Switch -->
+    <div>
+        <button id="btn-map" class="active">地圖視圖</button>
+        <button id="btn-table">表格視圖</button>
     </div>
 
-    <!-- 引入外部 JS 文件 (同目錄) -->
-    <script src="config.js"></script>
-    <script src="utils.js"></script>
+    <!-- Tabs -->
+    <div class="tab-group">
+        <button class="tab-btn" data-type="tempCurrent">實時氣溫</button>
+        <button class="tab-btn" data-type="tempMax">最高氣溫</button>
+        <button class="tab-btn" data-type="tempMin">最低氣溫</button>
+        <button class="tab-btn" data-type="humidity">相對濕度</button>
+        <button class="tab-btn" data-type="dewPoint">露點溫度</button>
+        <button class="tab-btn" data-type="windDir">風向</button>
+        <button class="tab-btn" data-type="windSpeed">風速</button>
+        <button class="tab-btn" data-type="windGust">陣風</button>
+        <button class="tab-btn" data-type="pressSea">海平面氣壓</button>
+        <button class="tab-btn" data-type="pressStation">站氣壓</button>
+        <button class="tab-btn" data-type="apparentTemp">體感溫度</button>
+        <button class="tab-btn" data-type="heatIndex">酷熱指數</button>
+        <button class="tab-btn" data-type="waterLevel">實時水位</button>
+    </div>
+
+    <!-- Legend -->
+    <div id="legend-content"></div>
+
+    <!-- Map View -->
+    <div id="map-view">
+        <div id="macau-map"></div>
+    </div>
+
+    <!-- Table View -->
+    <div id="table-view" class="hide">
+        <h3 id="table-title"></h3>
+        <div>
+            <button id="sort-default">預設排序</button>
+            <button id="sort-desc">由高至低</button>
+            <button id="sort-asc">由低至高</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>測站名稱</th>
+                    <th>測站代碼</th>
+                    <th>數值</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+
+    <!-- Station Detail Card -->
+    <div id="single-card-box"></div>
+
+    <!-- Time Info -->
+    <div>發布時間: <span id="pub-date"></span></div>
+    <div>更新時間: <span id="time-stamp"></span></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Your Main JS -->
     <script src="main.js"></script>
 </body>
 </html>
