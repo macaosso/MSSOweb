@@ -111,13 +111,6 @@
         .metric strong {
             color: #2c3e50;
         }
-        .rain-active {
-            background: #e8f4fd;
-            border: 1px solid #bcdffb;
-        }
-        .rain-active strong {
-            color: #2980b9;
-        }
         .loading {
             grid-column: 1 / -1;
             text-align: center;
@@ -125,13 +118,51 @@
             font-size: 1.2rem;
             color: #7f8c8d;
         }
-        /* 酷熱指數高亮樣式 */
-        .heat-index-warning {
-            background: #fff0e0;
-            border: 1px solid #f9c784;
+
+        /* 酷熱指數 ≥40℃ 樣式 */
+        .heat-high {
+            background: #ffe6e6;
+            border: 1px solid #f5a9a9;
         }
-        .heat-index-warning strong {
-            color: #e67e22;
+        .heat-high strong {
+            color: #c0392b;
+        }
+
+        /* 體感溫度 ≥36℃ 樣式 */
+        .apparent-high {
+            background: #f3e5f5;
+            border: 1px solid #d2bade;
+        }
+        .apparent-high strong {
+            color: #8e44ad;
+        }
+
+        /* 1小時雨量 分級 */
+        .rain1-yellow {
+            background: #fff9c4;
+            border: 1px solid #ffe082;
+        }
+        .rain1-red {
+            background: #ffebee;
+            border: 1px solid #ef9a9a;
+        }
+        .rain1-gray {
+            background: #eceff1;
+            border: 1px solid #b0bec5;
+        }
+
+        /* 日總雨量 分級 */
+        .rainDay-orange {
+            background: #fff3e0;
+            border: 1px solid #ffcc80;
+        }
+        .rainDay-red {
+            background: #ffebee;
+            border: 1px solid #ef9a9a;
+        }
+        .rainDay-gray {
+            background: #eceff1;
+            border: 1px solid #b0bec5;
         }
     </style>
 </head>
@@ -155,18 +186,17 @@
 </div>
 
 <script>
-// 1. 體感溫度計算公式
+// 體感溫度計算
 function calculateApparentTemp(T, RH, windSpeedKmH) {
-    const V = windSpeedKmH / 3.6; // km/h 轉 m/s
+    const V = windSpeedKmH / 3.6;
     const e = (RH / 100) * 6.105 * Math.exp((17.27 * T) / (237.7 + T));
     const apparentTemp = 1.04 * T + 0.2 * e - 0.65 * V - 2.7;
     return isNaN(apparentTemp) ? '--' : apparentTemp.toFixed(1);
 }
 
-// 2. 酷熱指數(Heat Index) 攝氏版公式 (僅使用氣溫+相對濕度)
+// 酷熱指數 Heat Index
 function calculateHeatIndex(T, RH) {
     if (isNaN(T) || isNaN(RH)) return '--';
-    // 攝氏溫標酷熱指數標準公式
     let hi = -8.7846947556 + 1.61139411 * T + 2.3385488388 * RH
              - 0.14611605 * T * RH - 0.012308094 * Math.pow(T, 2)
              - 0.0164248278 * Math.pow(RH, 2)
@@ -174,6 +204,39 @@ function calculateHeatIndex(T, RH) {
              + 0.00072546 * T * Math.pow(RH, 2)
              - 0.000003582 * Math.pow(T, 2) * Math.pow(RH, 2);
     return hi.toFixed(1);
+}
+
+// 取得欄位樣式
+function getHeatIndexClass(val) {
+    let num = parseFloat(val);
+    if (!isNaN(num) && num >= 40) return 'metric col-half heat-high';
+    return 'metric col-half';
+}
+function getApparentClass(val) {
+    let num = parseFloat(val);
+    if (!isNaN(num) && num >= 36) return 'metric col-half apparent-high';
+    return 'metric col-half';
+}
+function getRain1hClass(val) {
+    let num = parseFloat(val);
+    if (isNaN(num)) return 'metric col-third';
+    if (num >= 79.5) return 'metric col-third rain1-gray';
+    if (num >= 49.5) return 'metric col-third rain1-red';
+    if (num >= 19.5) return 'metric col-third rain1-yellow';
+    return 'metric col-third';
+}
+function getRainDayClass(val) {
+    let num = parseFloat(val);
+    if (isNaN(num)) return 'metric col-third';
+    if (num >= 350) return 'metric col-third rainDay-gray';
+    if (num >= 200) return 'metric col-third rainDay-red';
+    if (num >= 100) return 'metric col-third rainDay-orange';
+    return 'metric col-third';
+}
+
+// 格式化顯示：-- 就不加單位
+function formatVal(val, unit) {
+    return val === '--' ? val : `${val} ${unit}`;
 }
 
 function fetchGridData() {
@@ -240,75 +303,83 @@ function fetchGridData() {
                     if (type === "5") rainToday = val;
                 });
 
-                const rain1mClass = parseFloat(rain1m) > 0 ? 'rain-active' : '';
-                const rain1hClass = parseFloat(rain1h) > 0 ? 'rain-active' : '';
-                const rainTodayClass = parseFloat(rainToday) > 0 ? 'rain-active' : '';
-
-                // 轉換數值並計算
                 const T = parseFloat(currentTemp);
                 const RH = parseFloat(humidity);
                 const windSpeedKmH = parseFloat(windSpeed);
 
                 const apparentTemp = calculateApparentTemp(T, RH, windSpeedKmH);
                 const heatIndex = calculateHeatIndex(T, RH);
-                // 酷熱指數高於32℃高亮提示
-                const heatIndexClass = parseFloat(heatIndex) >= 32 ? 'metric col-half heat-index-warning' : 'metric col-half';
+
+                // 取得各欄位樣式
+                const hiClass = getHeatIndexClass(heatIndex);
+                const apClass = getApparentClass(apparentTemp);
+                const r1mClass = getRain1hClass(rain1m);
+                const r1hClass = getRain1hClass(rain1h);
+                const rDayClass = getRainDayClass(rainToday);
 
                 const cardHtml = `
                     <div class="station-card">
                         <div class="station-name">${nameDisplay}</div>
                         <div class="temp-row">
-                            <div class="current-temp">${currentTemp}°C</div>
+                            <div class="current-temp">${formatVal(currentTemp, '°C')}</div>
                             <div class="temp-range">
-                                <div>最高: <span class="high-temp">${maxTemp}°C</span></div>
-                                <div>最低: <span class="low-temp">${minTemp}°C</span></div>
+                                <div>最高: <span class="high-temp">${formatVal(maxTemp, '°C')}</span></div>
+                                <div>最低: <span class="low-temp">${formatVal(minTemp, '°C')}</span></div>
                             </div>
                         </div>
                         <div class="metrics-grid">
-                            <div class="metric col-half">
-                                <span>相對濕度(%)</span>
-                                <strong>${humidity}%</strong>
+                            <!-- 第一行：酷熱指數 | 體感溫度 -->
+                            <div class="${hiClass}">
+                                <span>酷熱指數</span>
+                                <strong>${formatVal(heatIndex, '°C')}</strong>
                             </div>
-                            <div class="${heatIndexClass}">
-                                <span>酷熱指數(°C)</span>
-                                <strong>${heatIndex}°C</strong>
+                            <div class="${apClass}">
+                                <span>體感溫度</span>
+                                <strong>${formatVal(apparentTemp, '°C')}</strong>
+                            </div>
+
+                            <!-- 第二行：相對濕度 | 風向 -->
+                            <div class="metric col-half">
+                                <span>相對濕度</span>
+                                <strong>${formatVal(humidity, '%')}</strong>
                             </div>
                             <div class="metric col-half">
-                                <span>風向(°)</span>
+                                <span>風向</span>
                                 <strong>${windDirDisplay}</strong>
                             </div>
+
+                            <!-- 第三行：風速 | 陣風 -->
                             <div class="metric col-half">
-                                <span>體感溫度(°C)</span>
-                                <strong>${apparentTemp}°C</strong>
+                                <span>風速</span>
+                                <strong>${formatVal(windSpeed, 'km/h')}</strong>
                             </div>
                             <div class="metric col-half">
-                                <span>風速(km/h)</span>
-                                <strong>${windSpeed}${windSpeed !== '--' ? ' <small>km/h</small>' : ''}</strong>
+                                <span>陣風</span>
+                                <strong>${formatVal(windGust, 'km/h')}</strong>
+                            </div>
+
+                            <!-- 第四行：平均海平面氣壓 | 站氣壓 -->
+                            <div class="metric col-half">
+                                <span>平均海平面氣壓</span>
+                                <strong>${formatVal(mslPressure, 'hPa')}</strong>
                             </div>
                             <div class="metric col-half">
-                                <span>陣風(km/h)</span>
-                                <strong>${windGust}${windGust !== '--' ? ' <small>km/h</small>' : ''}</strong>
+                                <span>站氣壓</span>
+                                <strong>${formatVal(stationPressure, 'hPa')}</strong>
                             </div>
-                            <div class="metric col-half">
-                                <span>平均海平面氣壓(hPa)</span>
-                                <strong>${mslPressure}${mslPressure !== '--' ? ' <small>hPa</small>' : ''}</strong>
-                            </div>
-                            <div class="metric col-half">
-                                <span>站氣壓(hPa)</span>
-                                <strong>${stationPressure}${stationPressure !== '--' ? ' <small>hPa</small>' : ''}</strong>
-                            </div>
-                            
-                            <div class="metric col-third ${rain1mClass}">
+
+                            <!-- 雨量三欄 -->
+                            <div class="${r1mClass}">
                                 <span>一分鐘雨量</span>
-                                <strong>${rain1m}${rain1m !== '--' ? ' <small>mm</small>' : ''}</strong>
+                                <strong>${formatVal(rain1m, 'mm')}</strong>
                             </div>
-                            <div class="metric col-third ${rain1hClass}">
+                            <div class="${r1hClass}">
                                 <span>一小時雨量</span>
-                                <strong>${rain1h}${rain1h !== '--' ? ' <small>mm</small>' : ''}</strong>
+                                <strong>${formatVal(rain1h, 'mm')}</strong>
                             </div>
-                            <div class="metric col-third ${rainTodayClass}">
+                            <div class="${rDayClass}">
                                 <span>日總雨量</span>
-                                <strong>${rainToday}${rainToday !== '--' ? ' <small>mm</small>' : ''}</strong>
+                                <strong>${formatVal(rainToday, 'mm')}</strong>
                             </div>
                         </div>
                     </div>
