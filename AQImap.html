@@ -485,14 +485,22 @@ function renderTable(){
     })
 }
 
-//預報改用 corsproxy.io
+// 雙代理備用列表
+const proxyList = [
+    "https://corsproxy.io/?",
+    "https://cors-anywhere.azm.workers.dev/"
+];
+let proxyIdx = 0;
+
+//預報
 async function loadForecast(){
     const tbF=document.getElementById('forecast-body'),tbTip=document.getElementById('tip-body');
     tbF.innerHTML='<tr><td colspan="4">載入預報</td>';tbTip.innerHTML='';
     try{
-        const proxy='https://corsproxy.io/?';
+        const proxy = proxyList[proxyIdx];
         const xml=await fetch(proxy+encodeURIComponent('https://xml.smg.gov.mo/c_foreiqa.xml'));
         const txt=await xml.text();
+        if(txt.trim().startsWith('<!DOCTYPE')) throw '返回HTML非XML';
         const doc=new DOMParser().parseFromString(txt,'text/xml');
         const list=doc.querySelectorAll('AQIForecastReport');
         tbF.innerHTML='';
@@ -511,16 +519,23 @@ async function loadForecast(){
             const gen=comp.querySelector('GeneralPublic')?.textContent||'';
             tbTip.innerHTML=`<tr><td>敏感人群（患有呼吸系統疾病或心臟病人士、孕婦、兒童及長者）</td><td>${sen}</td></tr><tr><td>一般市民</td><td>${gen}</td></tr>`;
         }
-    }catch(e){tbF.innerHTML='<tr><td colspan="4">預報獲取失敗</td>';console.error(e);}
+    }catch(e){
+        proxyIdx=(proxyIdx+1)%proxyList.length;
+        tbF.innerHTML='<tr><td colspan="4">預報載入失敗，切換代理中</td>';
+        console.error(e);
+    }
 }
 
-//實況SMG官方JSON corsproxy.io
+//實況
 async function loadReal(){
-    const proxy='https://corsproxy.io/?';
+    const proxy = proxyList[proxyIdx];
     const url=proxy+encodeURIComponent('https://www.smg.gov.mo/opendata/AirQualityData.json?_='+Date.now());
     try{
         const res=await fetch(url,{cache:'no-store'});
-        const js=await res.json();
+        const raw=await res.text();
+        // 判斷如果開頭是<就是HTML報錯頁
+        if(raw.trim().startsWith('<')) throw new Error('Proxy返回HTML');
+        const js=JSON.parse(raw);
         const time=js.UpdateTime||'';
         document.getElementById('pub-date').textContent=time;
         document.getElementById('time-stamp').textContent=time;
@@ -534,7 +549,9 @@ async function loadReal(){
         })
         updateMapMarkers();updateLegendPanel(currentTab);renderTable();
     }catch(e){
-        document.getElementById('pub-date').textContent='實況載入失敗';console.error(e);
+        proxyIdx=(proxyIdx+1)%proxyList.length;
+        document.getElementById('pub-date').textContent='載入失敗，自動切換備用代理';
+        console.error(e);
     }
     setTimeout(loadReal,5*60*1000);
 }
