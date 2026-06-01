@@ -1030,23 +1030,20 @@ function fetchFloodData() {
             floodDataList = [];
 
             stations.forEach(station => {
-                // Add .trim() to fix name space mismatch
                 const name = (station.querySelector("stationname")?.textContent || "未知監測點").trim();
                 let waterLevel = "--";
-                const wlNode = station.querySelector("dValue");
-                if(wlNode){
-                    waterLevel = wlNode.textContent.trim();
+                // ✅ Correct path: Waterlevel → Value
+                const valNode = station.querySelector("Waterlevel Value");
+                if (valNode) {
+                    waterLevel = val.textContent.trim();
                 }
                 if (!waterLevel || waterLevel === "") waterLevel = "--";
             
-                floodDataList.push({
-                    name: name,
-                    waterLevel: waterLevel
+                floodDataList.push({ name, waterLevel });
                 });
             });
         })
-        .catch(err => {
-            console.error("水位數據載入失敗：", err);
+        .catch(err => console.error("水位數據載入失敗：", err));
         });
 }
 
