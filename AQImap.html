@@ -383,6 +383,154 @@
 </div>
 
 <script>
+//========= 圖例配置（只需在此修改顏色、分級、文字）=========
+const legendMap = {
+  aqi: [
+    {c:"#2a9958",t:"良好"},
+    {c:"#957d1d",t:"普通"},
+    {c:"#c36e25",t:"不良"},
+    {c:"#b02525",t:"非常不良"},
+    {c:"#ae2693",t:"嚴重"},
+    {c:"#280c0c",t:"有害"},
+  ],
+  pm25: [
+    {c:"#2a9958",t:"0 - 49"},
+    {c:"#957d1d",t:"50 - 114"},
+    {c:"#c36e25",t:"115 - 149"},
+    {c:"#b02525",t:"150 - 249"},
+    {c:"#ae2693",t:"250 - 349"},
+    {c:"#280c0c",t:">= 350"},
+  ],
+  pm10: [
+    {c:"#2a9958",t:"0 - 99"},
+    {c:"#957d1d",t:"100 - 249"},
+    {c:"#c36e25",t:"250 - 349"},
+    {c:"#b02525",t:"350 - 419"},
+    {c:"#ae2693",t:"420 - 499"},
+    {c:"#280c0c",t:">= 500"},
+  ],
+  no2: [
+    {c:"#2a9958",t:"0 - 199"},
+    {c:"#957d1d",t:"200 - 699"},
+    {c:"#c36e25",t:"700 - 1199"},
+    {c:"#b02525",t:"1200 - 1999"},
+    {c:"#ae2693",t:"2000 - 2499"},
+    {c:"#280c0c",t:">= 2500"},
+  ],
+  so2: [
+    {c:"#2a9958",t:"0 - 49"},
+    {c:"#957d1d",t:"50 - 149"},
+    {c:"#c36e25",t:"150 - 474"},
+    {c:"#b02525",t:"475 - 799"},
+    {c:"#ae2693",t:"800 - 1599"},
+    {c:"#280c0c",t:">= 1600"},
+  ],
+  o3: [
+    {c:"#2a9958",t:"0 - 159"},
+    {c:"#957d1d",t:"160 - 239"},
+    {c:"#c36e25",t:"240 - 339"},
+    {c:"#b02525",t:"400 - 599"},
+    {c:"#ae2693",t:"600 - 799"},
+    {c:"#280c0c",t:">= 800"},
+  ],
+  co: [
+    {c:"#2a9958",t:"0 - 9"},
+    {c:"#957d1d",t:"10 - 16"},
+    {c:"#c36e25",t:"17 - 33"},
+    {c:"#b02525",t:"34 - 45"},
+    {c:"#ae2693",t:"46 - 56"},
+    {c:"#280c0c",t:">= 57"},
+  ]
+};
+
+//自動生成圖例
+function updateLegendPanel(tabType) {
+  const box = document.getElementById('legend-content');
+  const arr = legendMap[tabType];
+  if(!arr){box.innerHTML=`<div class="legend-item" style="color:#777;">無圖例</div>`;return;}
+  box.innerHTML = arr.map(x=>`<div class="legend-item"><div class="legend-color" style="background:${x.c}"></div>${x.t}</div>`).join('');
+}
+
+//顏色自動綁定legendMap
+function getAqiColor(val) {
+  const n = parseFloat(val);
+  if (isNaN(n)) return "#95a5a6";
+  const list = legendMap.aqi;
+  if(n<=50) return list[0].c;
+  if(n<=100)return list[1].c;
+  if(n<=150)return list[2].c;
+  if(n<=200)return list[3].c;
+  if(n<=300)return list[4].c;
+  return list[5].c;
+}
+function getPm25Color(val) {
+  const n = parseFloat(val);
+  if (isNaN(n)) return "#95a5a6";
+  const list = legendMap.pm25;
+  if(n<=49) return list[0].c;
+  if(n<=114)return list[1].c;
+  if(n<=149)return list[2].c;
+  if(n<=249)return list[3].c;
+  if(n<=349)return list[4].c;
+  return list[5].c;
+}
+function getPm10Color(val) {
+  const n = parseFloat(val);
+  if (isNaN(n)) return "#95a5a6";
+  const list = legendMap.pm10;
+  if(n<=99) return list[0].c;
+  if(n<=249)return list[1].c;
+  if(n<=349)return list[2].c;
+  if(n<=419)return list[3].c;
+  if(n<=499)return list[4].c;
+  return list[5].c;
+}
+function getNo2Color(val) {
+  const n = parseFloat(val);
+  if (isNaN(n)) return "#95a5a6";
+  const list = legendMap.no2;
+  if(n<=199) return list[0].c;
+  if(n<=699)return list[1].c;
+  if(n<=1199)return list[2].c;
+  if(n<=1999)return list[3].c;
+  if(n<=2499)return list[4].c;
+  return list[5].c;
+}
+function getSo2Color(val) {
+  const n = parseFloat(val);
+  if (isNaN(n)) return "#95a5a6";
+  const list = legendMap.so2;
+  if(n<=49) return list[0].c;
+  if(n<=149)return list[1].c;
+  if(n<=474)return list[2].c;
+  if(n<=799)return list[3].c;
+  if(n<=1599)return list[4].c;
+  return list[5].c;
+}
+function getO3Color(val) {
+  const n = parseFloat(val);
+  if (isNaN(n)) return "#95a5a6";
+  const list = legendMap.o3;
+  if(n<=159) return list[0].c;
+  if(n<=239)return list[1].c;
+  if(n<=339)return list[2].c;
+  if(n<=599)return list[3].c;
+  if(n<=799)return list[4].c;
+  return list[5].c;
+}
+function getCoColor(val) {
+  const n = parseFloat(val);
+  if (isNaN(n)) return "#95a5a6";
+  const list = legendMap.co;
+  if(n<=9) return list[0].c;
+  if(n<=16)return list[1].c;
+  if(n<=33)return list[2].c;
+  if(n<=45)return list[3].c;
+  if(n<=56)return list[4].c;
+  return list[5].c;
+}
+
+//站點經緯度(與JSON中文站名完全對應)
 const airStations = {
     "荷蘭園（路邊）": { code: "PO", lat: 22.1957226, lng: 113.5447928 },
     "九澳（路邊）": { code: "KH", lat: 22.1330617, lng: 113.5835098 },
@@ -393,62 +541,14 @@ const airStations = {
 };
 
 const fieldMap = {
-    aqi: { field: "aqi", label: "空氣質素指數 AQI", unit: "" },
-    pm10: { field: "pm10", label: "PM10", unit: "μg/m³" },
-    pm25: { field: "pm25", label: "PM2.5", unit: "μg/m³" },
-    no2: { field: "no2", label: "二氧化氮 NO₂", unit: "μg/m³" },
-    so2: { field: "so2", label: "二氧化硫 SO₂", unit: "μg/m³" },
-    o3: { field: "o3", label: "臭氧 O₃", unit: "μg/m³" },
-    co: { field: "co", label: "一氧化碳 CO", unit: "mg/m³" }
+    aqi:{key:"aqi",name:"AQI",fn:getAqiColor},
+    pm10:{key:"pm10",name:"PM10",fn:getPm10Color},
+    pm25:{key:"pm25",name:"PM2.5",fn:getPm25Color},
+    no2:{key:"no2",name:"NO₂",fn:getNo2Color},
+    so2:{key:"so2",name:"SO₂",fn:getSo2Color},
+    o3:{key:"o3",name:"O₃",fn:getO3Color},
+    co:{key:"co",name:"CO",fn:getCoColor}
 };
-
-function formatVal(val, unit) {
-    return val === '--' ? val : `${val} ${unit}`;
-}
-
-function getAqiLevel(aqi) {
-    let num = parseFloat(aqi);
-    if (isNaN(num)) return { text: "無數據", cls: "" };
-    if (num <= 50) return { text: "優良", cls: "level-good" };
-    if (num <= 100) return { text: "普通", cls: "level-moderate" };
-    if (num <= 150) return { text: "對敏感族群不健康", cls: "level-unhealthy-sensitive" };
-    if (num <= 200) return { text: "不健康", cls: "level-unhealthy" };
-    if (num <= 300) return { text: "非常不健康", cls: "level-very-unhealthy" };
-    return { text: "有害", cls: "level-hazardous" };
-}
-
-function getAqiColor(val) {
-    let n = parseFloat(val);
-    if (isNaN(n)) return "#95a5a6";
-    if (n <= 50) return "#2ecc71";
-    if (n <= 100) return "#f1c40f";
-    if (n <= 150) return "#f39c12";
-    if (n <= 200) return "#e74c3c";
-    if (n <= 300) return "#9b59b6";
-    return "#7b241c";
-}
-function getPm25Color(val){let n=parseFloat(val);if(isNaN(n))return"#95a5a6";if(n<=12)return"#2ecc71";if(n<=35)return"#f1c40f";if(n<=55)return"#f39c12";if(n<=150)return"#e74c3c";return"#9b59b6";}
-function getPm10Color(val){let n=parseFloat(val);if(isNaN(n))return"#95a5a6";if(n<=54)return"#2ecc71";if(n<=154)return"#f1c40f";if(n<=254)return"#f39c12";if(n<=354)return"#e74c3c";return"#9b59b6";}
-function getNo2Color(val){let n=parseFloat(val);if(isNaN(n))return"#95a5a6";if(n<=40)return"#2ecc71";if(n<=80)return"#f1c40f";if(n<=180)return"#f39c12";return"#e74c3c";}
-function getSo2Color(val){let n=parseFloat(val);if(isNaN(n))return"#95a5a6";if(n<=20)return"#2ecc71";if(n<=80)return"#f1c40f";if(n<=250)return"#f39c12";return"#e74c3c";}
-function getO3Color(val){let n=parseFloat(val);if(isNaN(n))return"#95a5a6";if(n<=54)return"#2ecc71";if(n<=70)return"#f1c40f";if(n<=85)return"#f39c12";return"#e74c3c";}
-function getCoColor(val){let n=parseFloat(val);if(isNaN(n))return"#95a5a6";if(n<=4)return"#2ecc71";if(n<=10)return"#f1c40f";if(n<=15)return"#f39c12";return"#e74c3c";}
-
-function updateLegendPanel(tabType) {
-    const legendContent = document.getElementById('legend-content');
-    let html = '';
-    switch(tabType) {
-        case "aqi": html = `<div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-50 優良</div><div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>51-100 普通</div><div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>101-150 敏感族群不宜</div><div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>151-200 不健康</div><div class="legend-item"><div class="legend-color" style="background:#9b59b6"></div>201-300 非常不健康</div><div class="legend-item"><div class="legend-color" style="background:#7b241c"></div>>300 有害</div>`;break;
-        case "pm25":html=`<div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-12 良好</div><div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>13-35 普通</div><div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>36-55 偏高</div><div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>56-150 高</div><div class="legend-item"><div class="legend-color" style="background:#9b59b6"></div>>150 極高</div>`;break;
-        case "pm10":html=`<div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-54 良好</div><div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>55-154 普通</div><div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>155-254 偏高</div><div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>255-354 高</div><div class="legend-item"><div class="legend-color" style="background:#9b59b6"></div>>354 極高</div>`;break;
-        case "no2":html=`<div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-40 正常</div><div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>41-80 略高</div><div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>81-180 偏高</div><div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>>180 高</div>`;break;
-        case "so2":html=`<div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-20 正常</div><div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>21-80 略高</div><div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>81-250 偏高</div><div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>>250 高</div>`;break;
-        case "o3":html=`<div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-54 正常</div><div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>55-70 略高</div><div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>71-85 偏高</div><div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>>85 高</div>`;break;
-        case "co":html=`<div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-4 正常</div><div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>5-10 略高</div><div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>11-15 偏高</div><div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>>15 高</div>`;break;
-        default:html=`<div class="legend-item" style="color:#777;">無圖例</div>`;
-    }
-    legendContent.innerHTML = html;
-}
 
 let map = L.map('macau-map').setView([22.17, 113.55], 12);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '&copy; OpenStreetMap contributors'}).addTo(map);
