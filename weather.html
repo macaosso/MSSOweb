@@ -161,10 +161,11 @@
 
         /* 高亮樣式 */
         .heat-high { background: #ffe6e6; border: 1px solid #f5a9a9; }
+        .heat-high strong { color: #c0392b; }
         .apparent-high { background: #f3e5f5; border: 1px solid #d2bade; }
+        .apparent-high strong { color: #8e44ad; }
         .dew-high { background: #e8f4fd; border: 1px solid #a0cfee; }
-        .composite-high { background: #fff2cc; border:1px solid #ffd966; }
-        .composite-high strong { color:#b35900; }
+        .dew-high strong { color: #2980b9; }
         .rain1-yellow { background: #fff9c4; border: 1px solid #ffe082; }
         .rain1-red { background: #ffebee; border: 1px solid #ef9a9a; }
         .rain1-gray { background: #eceff1; border: 1px solid #b0bec5; }
@@ -245,8 +246,6 @@
                 <option value="dewPoint">露點溫度</option>
                 <option value="apparentTemp">體感溫度</option>
                 <option value="heatIndex">酷熱指數</option>
-                <!-- 新增綜合溫度熱指數 -->
-                <option value="compositeHeat">綜合溫度熱指數</option>
                 <option value="windSpeed">風速</option>
                 <option value="windGust">陣風</option>
                 <option value="mslPressure">平均海平面氣壓</option>
@@ -272,17 +271,12 @@
 
 <script>
 let allStationData = [];
-const sigma = 5.670374419e-8; //史蒂芬玻爾茲曼常數 W/(m²·K⁴)
-const eps = 0.95; //表面發射率預設值
-
 let factorMap = {
     currentTemp: { label: '氣溫', unit: '°C', sort: 'desc' },
     humidity: { label: '相對濕度', unit: '%', sort: 'desc' },
     dewPoint: { label: '露點溫度', unit: '°C', sort: 'desc' },
     apparentTemp: { label: '體感溫度', unit: '°C', sort: 'desc' },
     heatIndex: { label: '酷熱指數', unit: '°C', sort: 'desc' },
-    //新增綜合熱指數配置
-    compositeHeat: { label: '綜合溫度熱指數', unit: '°C', sort: 'desc' },
     windSpeed: { label: '風速', unit: 'km/h', sort: 'desc' },
     windGust: { label: '陣風', unit: 'km/h', sort: 'desc' },
     mslPressure: { label: '平均海平面氣壓', unit: 'hPa', sort: 'asc' },
@@ -322,59 +316,6 @@ function calculateDewPoint(T, RH) {
     return dew.toFixed(1);
 }
 
-//========== 新增：綜合溫度熱指數全套計算公式 ==========
-// Tnw計算
-function calcTnw(Ta, RH) {
-    if(isNaN(Ta)||isNaN(RH)) return NaN;
-    let part1 = Ta * Math.atan(0.151977 * Math.sqrt(RH + 8.313659));
-    let part2 = Math.atan(Ta + RH);
-    let part3 = Math.atan(RH - 1.676331);
-    let part4 = 0.003918383 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH);
-    let Tnw = part1 + part2 - part3 + part4 - 4.686035;
-    return Tnw;
-}
-
-// hc 對流換熱係數 va:m/s
-function calcHc(va) {
-    if(isNaN(va)) return NaN;
-    return 6.3 * Math.pow(va, 0.6) / Math.pow(0.15, 0.4);
-}
-
-//迭代計算Tg、Tmrt、Hr
-function calcTgAndTmrt(Ta, va) {
-    const TaK = Ta + 273.15;
-    let Tg = Ta; //初始迭代值
-    let Tmrt = Ta;
-    let hc = calcHc(va);
-    let hr;
-    //迭代5次收斂
-    for(let iter=0;iter<5;iter++){
-        let TgK = Tg + 273.15;
-        let TmrtK = Tmrt + 273.15;
-        //Hr公式
-        hr = eps * sigma * (TmrtK + TgK) * (Math.pow(TmrtK,2)+Math.pow(TgK,2));
-        //Tg公式
-        Tg = (TaK) * (1 + hr/hc * ((TmrtK/TaK)-1)) - 273.15;
-        //Tmrt公式
-        TmrtK = Math.pow( Math.pow(TgK,4) + hc/(eps*sigma)*(Tg-Ta) , 0.25 );
-        Tmrt = TmrtK - 273.15;
-    }
-    return {Tg, Tmrt, hr, hc};
-}
-
-//綜合溫度熱指數 =0.7*Tnw +0.2*Tg +0.1*Ta
-function calcCompositeHeat(Ta, RH, windKmH) {
-    if(isNaN(Ta)||isNaN(RH)||isNaN(windKmH)) return '--';
-    const va = windKmH / 3.6; //km/h → m/s
-    const Tnw = calcTnw(Ta, RH);
-    const {Tg} = calcTgAndTmrt(Ta, va);
-    let comp = 0.7*Tnw + 0.2*Tg + 0.1*Ta;
-    if(isNaN(comp)) return '--';
-    return comp.toFixed(1);
-}
-
-//====================================================
-
 // 取得欄位樣式
 function getHeatIndexClass(val) {
     let num = parseFloat(val);
@@ -387,11 +328,6 @@ function getApparentClass(val) {
 function getDewClass(val) {
     let num = parseFloat(val);
     return !isNaN(num) && num >= 28 ? 'metric dew-high' : 'metric';
-}
-//綜合熱指數高亮
-function getCompositeClass(val){
-    let num=parseFloat(val);
-    return !isNaN(num)&&num>=38?'metric composite-high':'metric';
 }
 function getRain1hClass(val) {
     let num = parseFloat(val);
@@ -428,7 +364,7 @@ function renderStations(filterCode = 'all') {
 
     allStationData.forEach(station => {
         const { code, nameDisplay, currentTemp, maxTemp, minTemp, humidity, windSpeed, windGust, windDirDisplay,
-                mslPressure, stationPressure, rain1m, rain1h, rainToday, apparentTemp, heatIndex, dewPoint, compositeHeat } = station;
+                mslPressure, stationPressure, rain1m, rain1h, rainToday, apparentTemp, heatIndex, dewPoint } = station;
 
         if (filterCode !== 'all' && filterCode !== code) return;
 
@@ -464,34 +400,26 @@ function renderStations(filterCode = 'all') {
                 </div>
             `;
 
-            //第一行：酷熱指數 + 綜合溫度熱指數
             metricsHtml = `
                 <div class="metrics-grid row-2">
                     <div class="${getHeatIndexClass(heatIndex)}">
                         <span>酷熱指數</span>
                         <strong>${formatVal(heatIndex, '°C')}</strong>
                     </div>
-                    <div class="${getCompositeClass(compositeHeat)}">
-                        <span>綜合溫度熱指數</span>
-                        <strong>${formatVal(compositeHeat, '°C')}</strong>
-                    </div>
-                </div>
-                <div class="metrics-grid row-2" style="margin-top:12px;">
                     <div class="${getApparentClass(apparentTemp)}">
                         <span>體感溫度</span>
                         <strong>${formatVal(apparentTemp, '°C')}</strong>
                     </div>
+                </div>
+                <div class="metrics-grid row-2" style="margin-top:12px;">
                     <div class="metric">
                         <span>相對濕度</span>
                         <strong>${formatVal(humidity, '%')}</strong>
                     </div>
-                </div>
-                <div class="metrics-grid row-2" style="margin-top:12px;">
                     <div class="${getDewClass(dewPoint)}">
                         <span>露點溫度</span>
                         <strong>${formatVal(dewPoint, '°C')}</strong>
                     </div>
-                    <div></div>
                 </div>
                 <div class="metrics-grid row-3" style="margin-top:12px;">
                     <div class="metric">
@@ -702,13 +630,11 @@ async function fetchGridData() {
             const apparentTemp = calculateApparentTemp(T, RH, windSpeedKmH);
             const heatIndex = calculateHeatIndex(T, RH);
             const dewPoint = calculateDewPoint(T, RH);
-            //計算綜合溫度熱指數
-            const compositeHeat = calcCompositeHeat(T, RH, windSpeedKmH);
 
             allStationData.push({
                 code, name, nameDisplay, currentTemp, maxTemp, minTemp, humidity,
                 windSpeed, windGust, windDirDisplay, mslPressure, stationPressure,
-                rain1m, rain1h, rainToday, apparentTemp, heatIndex, dewPoint, compositeHeat
+                rain1m, rain1h, rainToday, apparentTemp, heatIndex, dewPoint
             });
         });
 
