@@ -530,7 +530,6 @@ async function fetchAirData() {
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) throw new Error(res.status);
         const json = await res.json();
-        // get publish time
         const pubTime = json.datetime || "未知時間";
         document.getElementById("pub-date").textContent = pubTime;
         document.getElementById("time-stamp").textContent = pubTime;
@@ -538,11 +537,14 @@ async function fetchAirData() {
         airDataList = [];
         singleCardBox.innerHTML = '<div class="empty-tip">請點擊地圖上圓圈查看監測站數據</div>';
 
-        // Filter only station objects (skip top-level datetime)
-        const stationKeys = Object.keys(json).filter(k=>k!=='datetime');
-        stationKeys.forEach(key=>{
+        const stationKeys = Object.keys(json).filter(k => k !== 'datetime');
+        console.log("All station raw keys:", stationKeys);
+
+        stationKeys.forEach(key => {
             const rec = json[key];
-            const sName = rec.siteName || "未知站點";
+            const sName = rec.siteName;
+            console.log("Raw siteName from JSON:", sName);
+
             airDataList.push({
                 name: sName,
                 pubTime: pubTime,
@@ -555,6 +557,7 @@ async function fetchAirData() {
                 co: rec.CO ?? '--'
             })
         })
+        console.log("Final airDataList", airDataList);
 
         updateMapMarkers();
         updateLegendPanel(currentTab);
@@ -564,7 +567,6 @@ async function fetchAirData() {
         document.getElementById("pub-date").textContent = "數據載入失敗";
     }
 }
-
 window.addEventListener('DOMContentLoaded',fetchAirData);
 setInterval(fetchAirData,300000);
 </script>
