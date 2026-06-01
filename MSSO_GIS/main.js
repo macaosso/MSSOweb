@@ -239,9 +239,10 @@ function renderDataTable(type) {
 
 function fetchWeatherData() {
     const cacheBuster = Date.now();
-    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
+    // Use working CORS proxy
+    const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`)}`;
     return fetch(url, { cache: "no-store" })
-        .then(res => { if (!res.ok) throw new Error("Weather fetch fail"); return res.text(); })
+        .then(res => { if (!res.ok) throw new Error("Weather fail"); return res.text(); })
         .then(xmlStr => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
@@ -294,9 +295,9 @@ function fetchWeatherData() {
 
 function fetchFloodData() {
     const cacheBuster = Date.now();
-    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_ftgms.xml?t=${cacheBuster}`;
+    const url = `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://xml.smg.gov.mo/c_ftgms.xml?t=${cacheBuster}`)}`;
     return fetch(url, { cache: "no-store" })
-        .then(res => { if (!res.ok) throw new Error("Flood fetch fail"); return res.text(); })
+        .then(res => { if (!res.ok) throw new Error("Flood fail"); return res.text(); })
         .then(xmlStr => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
@@ -317,8 +318,10 @@ function fetchFloodData() {
 }
 
 function fetchTideData() {
-    return fetch(TIDE_API, { headers: TIDE_HEADERS })
-        .then(res => { if (!res.ok) throw new Error("Tide API Error"); return res.text(); })
+    // Remove invalid APPCODE headers
+    const url = `https://api.allorigins.win/raw?url=${encodeURIComponent("https://dsama.apigateway.data.gov.mo/currentTideXmlApi")}`;
+    return fetch(url)
+        .then(res => { if (!res.ok) throw new Error("Tide fail"); return res.text(); })
         .then(xmlStr => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
