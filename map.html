@@ -368,6 +368,18 @@
             font-size: 0.9rem;
             z-index: 1000;
         }
+        .sort-buttons button {
+            padding: 4px 10px;
+            margin-left: 6px;
+            border: none;
+            border-radius: 4px;
+            background: #e8edf2;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .sort-buttons button:hover {
+            background: #d0d9e2;
+        }
         /* 隱藏區塊 */
         .hide {
             display: none !important;
@@ -440,9 +452,16 @@
     <!-- 表格視圖 -->
     <div id="table-view" class="hide">
         <div class="table-container">
-            <div id="table-title" style="font-size:1.1rem;font-weight:bold;margin-bottom:10px;">數據表格</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:10px;">
+                <div id="table-title" style="font-size:1.1rem;font-weight:bold;">數據表格</div>
+                <div class="sort-buttons">
+                    <button class="sort-btn" data-sort="default">預設</button>
+                    <button class="sort-btn" data-sort="desc">高至低</button>
+                    <button class="sort-btn" data-sort="asc">低至高</button>
+                </div>
+            </div>
             <table class="data-table" id="data-table">
-                <thead><tr><th>測站名稱</th><th>代碼</th><th>數值</th></tr></thead>
+                <thead><tr><th>測站名稱</th><th>站代碼</th><th>數值</th></tr></thead>
                 <tbody id="table-body"></tbody>
             </table>
         </div>
@@ -931,7 +950,8 @@ function updateMapMarkers() {
     });
 }
 // 渲染數據表格
-function renderDataTable(type) {
+let lastSort = "default";
+function renderDataTable(type, sortType = lastSort) {
     const cfg = fieldMap[type];
     const field = cfg.field;
     const label = cfg.label;
@@ -941,20 +961,45 @@ function renderDataTable(type) {
     tbody.innerHTML = "";
 
     let sourceList = type === "waterLevel" ? floodDataList : pointDataList;
-    sourceList.forEach(item => {
+    let codeMap = type === "waterLevel" ? null : weatherPoints;
+
+    // Filter valid data
+    let validList = sourceList.filter(item => {
+        const val = item[field];
+        return val !== '--' && val !== '';
+    });
+
+    // Sort logic
+    if (sortType === "desc") {
+        validList.sort((a, b) => parseFloat(b[field]) - parseFloat(a[field]));
+    } else if (sortType === "asc") {
+        validList.sort((a, b) => parseFloat(a[field]) - parseFloat(b[field]));
+    }
+    lastSort = sortType;
+
+    validList.forEach(item => {
         const name = item.name;
-        const code = weatherPoints[name]?.code || "";
+        // Get code: flood → item.code | weather → from weatherPoints
+        let code = "";
+        if (codeMap) {
+            code = codeMap[name]?.code || "";
+        } else {
+            code = item.code || "";
+        }
+
         let val = item[field];
-        // Skip row if no data
-        if (val === '--' || val === '') return;
-    
         let displayVal = val + (unit ? " " + unit : "");
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${displayVal}</td>`;
         tbody.appendChild(tr);
     });
 }
-
+document.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const sortType = btn.dataset.sort;
+        renderDataTable(currentTab, sortType);
+    });
+});
 // ========== 抓取氣象 XML 數據 ==========
 function fetchWeatherData() {
     const cacheBuster = Date.now();
@@ -1030,6 +1075,8 @@ function fetchFloodData() {
             floodDataList = [];
 
             stations.forEach(station => {
+                // Get native code from XML attribute
+                const code = station.getAttribute("code") || "";
                 const name = (station.querySelector("stationname")?.textContent || "未知監測點").trim();
                 let waterLevel = "--";
                 const valNode = station.querySelector("Waterlevel > Value");
@@ -1038,9 +1085,10 @@ function fetchFloodData() {
                 }
                 if (!waterLevel) waterLevel = "--";
 
-                floodDataList.push({ name, waterLevel });
+                // Save code together with data
+                floodDataList.push({ name, code, waterLevel });
             });
-        }) // ← Only ONE closing brace here for .then()
+        })
         .catch(err => {
             console.error("水位數據載入失敗：", err);
         });
