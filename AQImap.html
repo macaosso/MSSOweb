@@ -1,211 +1,756 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Macau Air Quality Monitor</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <title>澳門空氣質素實況地圖</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        * { box-sizing:border-box; margin:0; padding:0; }
-        body { font-family:'Segoe UI',sans-serif; background:#f5f7fa; padding:20px; color:#2c3e50; }
-        .container { max-width:1400px; margin:0 auto; }
-        header { 
-            background:linear-gradient(135deg,#2980b9,#2c3e50); 
-            color:white; padding:25px 30px; border-radius:12px; margin-bottom:25px;
-            display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
-        header h1 { font-size:1.6rem; font-weight:600; }
-        .meta-info { font-size:0.9rem; text-align:right; }
-        .main-wrap { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
-        @media (max-width:900px) { .main-wrap { grid-template-columns:1fr; } }
-        #map { width:100%; height:600px; border-radius:12px; position:relative; }
-        .zoom-controls { position:absolute; top:15px; left:15px; z-index:1000; display:flex; flex-direction:column; gap:8px; }
-        .zoom-btn { background:#fff; border:1px solid #ccc; padding:6px 10px; border-radius:6px; cursor:pointer; font-weight:bold; }
-        .map-legend { position:absolute; bottom:20px; left:20px; background:#fff; padding:12px 15px; border-radius:10px; box-shadow:0 2px 10px rgba(0,0,0,0.15); font-size:13px; z-index:1000; }
-        .legend-row { display:flex; align-items:center; margin:4px 0; }
-        .legend-dot { width:14px; height:14px; border-radius:50%; margin-right:8px; border:1px solid #ccc; }
-        .station-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:15px; }
-        .station-card { background:white; border-radius:12px; padding:15px; border-top:5px solid #fff; }
-        .station-name { font-size:1rem; font-weight:bold; margin-bottom:10px; border-bottom:1px solid #ecf0f1; padding-bottom:6px; }
-        .pollutant-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.85rem; margin-top:10px; }
-        .pollutant-item { background:#f8f9fa; padding:6px; border-radius:4px; text-align:center; }
-        .pollutant-label { color:#7f8c8d; font-size:0.7rem; }
-        .pollutant-value { font-weight:bold; }
-        .loading { grid-column:1/-1; text-align:center; padding:40px; font-size:1.2rem; color:#7f8c8d; }
-        .leaflet-div-icon { background:transparent !important; border:none !important; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f3f7;
+            color: #2c3e50;
+            padding: 20px;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        header {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        header h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+        }
+        .meta-info {
+            text-align: right;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        /* 頂部切換按鈕 */
+        .view-switch {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .view-switch button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            background: #e8edf2;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        .view-switch button.active {
+            background: #2a5298;
+            color: #fff;
+        }
+
+        /* 分類折疊按鈕區 */
+        .tab-wrapper {
+            background: #fff;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .tab-group {
+            margin-bottom: 10px;
+        }
+        .group-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0 0 8px 0;
+            padding: 4px 0;
+        }
+        .group-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding-left: 10px;
+        }
+
+        .tab-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            background: #e8edf2;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: #2a5298;
+            color: #fff;
+        }
+        .tab-btn:hover:not(.active) {
+            background: #d0d9e2;
+        }
+
+        /* 主布局 */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        .map-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 15px;
+            position: relative;
+        }
+        #macau-map {
+            width: 100%;
+            height: 650px;
+            border-radius: 8px;
+        }
+
+        /* 圖例 */
+        .map-legend {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.95);
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 1000;
+            min-width: 120px;
+        }
+        .map-legend h4 {
+            margin: 0 0 5px 0;
+            font-size: 0.8rem;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 3px;
+        }
+        .legend-items {
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 3px;
+        }
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        /* 時間戳 */
+        .time-stamp {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            z-index: 1000;
+        }
+
+        .time-stamp-indicator {
+            position: absolute;
+            top: 60px;
+            right: 25px;
+            background: rgba(42, 82, 152, 0.9);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            z-index: 1000;
+        }
+
+        /* 單個監測站卡片容器 */
+        .station-single {
+            height: 650px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 20px;
+        }
+        .empty-tip {
+            color: #999;
+            font-size: 1rem;
+        }
+
+        /* 空氣質素卡片樣式 */
+        .station-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 18px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            border-top: 4px solid #3498db;
+            width: 100%;
+            max-width: 420px;
+            font-size: 13px;
+        }
+        .station-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        .station-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #2c3e50;
+            border-bottom: 1px solid #ecf0f1;
+            padding-bottom: 8px;
+        }
+        .aqi-row {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            margin: 15px 0;
+        }
+        .current-aqi {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        .aqi-level {
+            font-size: 0.9rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #fff;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            font-size: 0.8rem;
+        }
+        .metric {
+            background: #f8f9fa;
+            padding: 8px 10px;
+            border-radius: 6px;
+        }
+        .col-half {
+            grid-column: span 3;
+        }
+        .col-full {
+            grid-column: span 6;
+        }
+        .metric span {
+            display: block;
+            color: #7f8c8d;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        .metric strong {
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        /* 空氣等級配色 */
+        .level-good { background: #2ecc71; }
+        .level-moderate { background: #f1c40f; }
+        .level-unhealthy-sensitive { background: #f39c12; }
+        .level-unhealthy { background: #e74c3c; }
+        .level-very-unhealthy { background: #9b59b6; }
+        .level-hazardous { background: #7b241c; }
+
+        /* 表格區域 */
+        .table-container {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.85rem;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        .data-table th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+        .data-table tr:hover {
+            background: #f8fafc;
+        }
+        .sort-buttons button {
+            padding: 4px 10px;
+            margin-left: 6px;
+            border: none;
+            border-radius: 4px;
+            background: #e8edf2;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .sort-buttons button:hover {
+            background: #d0d9e2;
+        }
+        .hide {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
 <div class="container">
     <header>
         <div>
-            <h1>Macau Air Quality Monitor</h1>
-            <small style="background:rgba(255,255,255,0.9); color:#3498db; padding:2px 8px; border-radius:4px;">
-                Auto Update Every 5 Minutes
-            </small>
+            <h1>澳門空氣質素實況地圖</h1>
+            <small style="color: #2ecc71;">● 點擊地圖圓圈查看數據 | 切換分類查看不同污染物指標</small>
         </div>
         <div class="meta-info">
-            <div>Update Time：<span id="pub-date">Loading...</span></div>
-            <div>Page Refresh：60s</div>
+            <div>資料更新時間：<span id="pub-date">載入中...</span></div>
+            <div>每5分鐘自動刷新</div>
         </div>
     </header>
 
-    <div class="main-wrap">
-        <div id="map">
-            <div class="zoom-controls">
-                <button class="zoom-btn" id="zoomMacau">1 Macau Peninsula</button>
-                <button class="zoom-btn" id="zoomTaipa">2 Taipa & Coloane</button>
-                <button class="zoom-btn" id="zoomAll">3 All Areas</button>
-            </div>
-            <div class="map-legend">
-                <h4>AQI Level</h4>
-                <div class="legend-row"><div class="legend-dot" style="background:#b8e994;"></div> Good 0-50</div>
-                <div class="legend-row"><div class="legend-dot" style="background:#ffeaa7;"></div> Moderate 51-100</div>
-                <div class="legend-row"><div class="legend-dot" style="background:#fdcb6e;"></div> Unhealthy for Sensitive 101-150</div>
-                <div class="legend-row"><div class="legend-dot" style="background:#e17055;"></div> Unhealthy >150</div>
+    <!-- 地圖/表格 切換按鈕 -->
+    <div class="view-switch">
+        <button id="btn-map" class="active">地圖</button>
+        <button id="btn-table">表格</button>
+    </div>
+
+    <!-- 污染物分類按鈕 -->
+    <div class="tab-wrapper" id="main-tab">
+        <div class="tab-group">
+            <h3 class="group-title">空氣污染物指標</h3>
+            <div class="group-buttons show">
+                <button class="tab-btn active" data-type="aqi">空氣質素指數 AQI</button>
+                <button class="tab-btn" data-type="pm10">可吸入懸浮粒子 PM10 (μg/m³)</button>
+                <button class="tab-btn" data-type="pm25">細懸浮粒子 PM2.5 (μg/m³)</button>
+                <button class="tab-btn" data-type="no2">二氧化氮 NO₂ (μg/m³)</button>
+                <button class="tab-btn" data-type="so2">二氧化硫 SO₂ (μg/m³)</button>
+                <button class="tab-btn" data-type="o3">臭氧 O₃ (μg/m³)</button>
+                <button class="tab-btn" data-type="co">一氧化碳 CO (mg/m³)</button>
             </div>
         </div>
+    </div>
 
-        <div id="stationCards" class="station-grid">
-            <div class="loading">Loading data...</div>
+    <!-- 地圖視圖 -->
+    <div class="main-layout" id="map-view">
+        <div class="map-card">
+            <div id="macau-map"></div>
+            <div id="time-stamp" class="time-stamp"></div>
+            <div id="current-indicator" class="time-stamp-indicator"></div>
+            <div id="map-legend" class="map-legend">
+                <h4>圖例</h4>
+                <div id="legend-content" class="legend-items"></div>
+            </div>
+        </div>
+        <div id="single-card-box" class="station-single">
+            <div class="empty-tip">請點擊地圖上圓圈查看監測站數據</div>
+        </div>
+    </div>
+
+    <!-- 表格視圖 -->
+    <div id="table-view" class="hide">
+        <div class="table-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:10px;">
+                <div id="table-title" style="font-size:1.1rem;font-weight:bold;">數據表格</div>
+                <div class="sort-buttons">
+                    <button class="sort-btn" data-sort="default">預設</button>
+                    <button class="sort-btn" data-sort="desc">高至低</button>
+                    <button class="sort-btn" data-sort="asc">低至高</button>
+                </div>
+            </div>
+            <table class="data-table" id="data-table">
+                <thead><tr><th>監測站名稱</th><th>站代碼</th><th>數值</th></tr></thead>
+                <tbody id="table-body"></tbody>
+            </table>
         </div>
     </div>
 </div>
 
 <script>
-const stationsList = [
-    { name:"Taishan", code:"EN", lat:22.2143048, lng:113.5430605 },
-    { name:"Holland Garden", code:"PO", lat:22.1957226, lng:113.5447928 },
-    { name:"Taipa Central", code:"TC", lat:22.1585991, lng:113.5555425 },
-    { name:"Taipa Grande", code:"TG", lat:22.1594111, lng:113.5684563 },
-    { name:"Seac Pai Van", code:"CD", lat:22.1250727, lng:113.5544267 },
-    { name:"Ká Ho", code:"KH", lat:22.1330617, lng:113.5835098 }
-];
-
-const map = L.map('map').setView([22.175, 113.55], 12);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution:'&copy; OpenStreetMap' }).addTo(map);
-
-const views = {
-    macau: { center:[22.20,113.54], zoom:14 },
-    taipa: { center:[22.15,113.555], zoom:14 },
-    all: { center:[22.175,113.55], zoom:12 }
+// ========== 監測站座標與代碼 ==========
+const airStations = {
+    "路環": { code: "LP", lat: 22.1180, lng: 113.5510 },
+    "氹仔": { code: "TA", lat: 22.1560, lng: 113.5490 },
+    "黑沙環": { code: "HP", lat: 22.2070, lng: 113.5600 },
+    "大炮台": { code: "FT", lat: 22.1970, lng: 113.5420 },
+    "澳門半島": { code: "MP", lat: 22.1920, lng: 113.5480 }
 };
-document.getElementById('zoomMacau').onclick = ()=>map.setView(views.macau.center, views.macau.zoom);
-document.getElementById('zoomTaipa').onclick = ()=>map.setView(views.taipa.center, views.taipa.zoom);
-document.getElementById('zoomAll').onclick = ()=>map.setView(views.all.center, views.all.zoom);
+
+// ========== 欄位對應配置 ==========
+const fieldMap = {
+    aqi: { field: "aqi", label: "空氣質素指數 AQI", unit: "" },
+    pm10: { field: "pm10", label: "PM10", unit: "μg/m³" },
+    pm25: { field: "pm25", label: "PM2.5", unit: "μg/m³" },
+    no2: { field: "no2", label: "二氧化氮 NO₂", unit: "μg/m³" },
+    so2: { field: "so2", label: "二氧化硫 SO₂", unit: "μg/m³" },
+    o3: { field: "o3", label: "臭氧 O₃", unit: "μg/m³" },
+    co: { field: "co", label: "一氧化碳 CO", unit: "mg/m³" }
+};
+
+// ========== 數值格式化 ==========
+function formatVal(val, unit) {
+    return val === '--' ? val : `${val} ${unit}`;
+}
+
+// ========== AQI 等級文字與樣式 ==========
+function getAqiLevel(aqi) {
+    let num = parseFloat(aqi);
+    if (isNaN(num)) return { text: "無數據", cls: "" };
+    if (num <= 50) return { text: "優良", cls: "level-good" };
+    if (num <= 100) return { text: "普通", cls: "level-moderate" };
+    if (num <= 150) return { text: "對敏感族群不健康", cls: "level-unhealthy-sensitive" };
+    if (num <= 200) return { text: "不健康", cls: "level-unhealthy" };
+    if (num <= 300) return { text: "非常不健康", cls: "level-very-unhealthy" };
+    return { text: "有害", cls: "level-hazardous" };
+}
+
+// ========== 顏色規則 ==========
+function getAqiColor(val) {
+    let n = parseFloat(val);
+    if (isNaN(n)) return "#95a5a6";
+    if (n <= 50) return "#2ecc71";
+    if (n <= 100) return "#f1c40f";
+    if (n <= 150) return "#f39c12";
+    if (n <= 200) return "#e74c3c";
+    if (n <= 300) return "#9b59b6";
+    return "#7b241c";
+}
+
+function getPm25Color(val) {
+    let n = parseFloat(val);
+    if (isNaN(n)) return "#95a5a6";
+    if (n <= 12) return "#2ecc71";
+    if (n <= 35) return "#f1c40f";
+    if (n <= 55) return "#f39c12";
+    if (n <= 150) return "#e74c3c";
+    return "#9b59b6";
+}
+
+function getPm10Color(val) {
+    let n = parseFloat(val);
+    if (isNaN(n)) return "#95a5a6";
+    if (n <= 54) return "#2ecc71";
+    if (n <= 154) return "#f1c40f";
+    if (n <= 254) return "#f39c12";
+    if (n <= 354) return "#e74c3c";
+    return "#9b59b6";
+}
+
+function getNo2Color(val) {
+    let n = parseFloat(val);
+    if (isNaN(n)) return "#95a5a6";
+    if (n <= 40) return "#2ecc71";
+    if (n <= 80) return "#f1c40f";
+    if (n <= 180) return "#f39c12";
+    return "#e74c3c";
+}
+
+function getSo2Color(val) {
+    let n = parseFloat(val);
+    if (isNaN(n)) return "#95a5a6";
+    if (n <= 20) return "#2ecc71";
+    if (n <= 80) return "#f1c40f";
+    if (n <= 250) return "#f39c12";
+    return "#e74c3c";
+}
+
+function getO3Color(val) {
+    let n = parseFloat(val);
+    if (isNaN(n)) return "#95a5a6";
+    if (n <= 54) return "#2ecc71";
+    if (n <= 70) return "#f1c40f";
+    if (n <= 85) return "#f39c12";
+    return "#e74c3c";
+}
+
+function getCoColor(val) {
+    let n = parseFloat(val);
+    if (isNaN(n)) return "#95a5a6";
+    if (n <= 4) return "#2ecc71";
+    if (n <= 10) return "#f1c40f";
+    if (n <= 15) return "#f39c12";
+    return "#e74c3c";
+}
+
+// ========== 更新圖例 ==========
+function updateLegendPanel(tabType) {
+    const legendContent = document.getElementById('legend-content');
+    let html = '';
+    switch(tabType) {
+        case "aqi":
+            html = `
+            <div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-50 優良</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>51-100 普通</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>101-150 敏感族群不宜</div>
+            <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>151-200 不健康</div>
+            <div class="legend-item"><div class="legend-color" style="background:#9b59b6"></div>201-300 非常不健康</div>
+            <div class="legend-item"><div class="legend-color" style="background:#7b241c"></div>>300 有害</div>`;
+            break;
+        case "pm25":
+            html = `
+            <div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-12 良好</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>13-35 普通</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>36-55 偏高</div>
+            <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>56-150 高</div>
+            <div class="legend-item"><div class="legend-color" style="background:#9b59b6"></div>>150 極高</div>`;
+            break;
+        case "pm10":
+            html = `
+            <div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-54 良好</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>55-154 普通</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>155-254 偏高</div>
+            <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>255-354 高</div>
+            <div class="legend-item"><div class="legend-color" style="background:#9b59b6"></div>>354 極高</div>`;
+            break;
+        case "no2":
+            html = `
+            <div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-40 正常</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>41-80 略高</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>81-180 偏高</div>
+            <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>>180 高</div>`;
+            break;
+        case "so2":
+            html = `
+            <div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-20 正常</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>21-80 略高</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>81-250 偏高</div>
+            <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>>250 高</div>`;
+            break;
+        case "o3":
+            html = `
+            <div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-54 正常</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>55-70 略高</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>71-85 偏高</div>
+            <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>>85 高</div>`;
+            break;
+        case "co":
+            html = `
+            <div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-4 正常</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>5-10 略高</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>11-15 偏高</div>
+            <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>>15 高</div>`;
+            break;
+        default:
+            html = `<div class="legend-item" style="color:#777;">無圖例</div>`;
+    }
+    legendContent.innerHTML = html;
+}
+
+// ========== 地圖初始化 ==========
+let map = L.map('macau-map').setView([22.17, 113.55], 12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
 
 let allMarkers = [];
+let currentTab = "aqi";
+let airDataList = [];
+const singleCardBox = document.getElementById("single-card-box");
+let lastSort = "default";
 
-const breakpoints = {
-    PM25:  [{C:0,I:0},{C:12,I:50},{C:35,I:100},{C:55,I:150},{C:150,I:200}],
-    PM10:  [{C:0,I:0},{C:54,I:50},{C:154,I:100},{C:254,I:150},{C:354,I:200}],
-    NO2:   [{C:0,I:0},{C:53,I:50},{C:100,I:100},{C:360,I:150},{C:649,I:200}],
-    SO2:   [{C:0,I:0},{C:35,I:50},{C:75,I:100},{C:185,I:150},{C:304,I:200}],
-    O3:    [{C:0,I:0},{C:54,I:50},{C:70,I:100},{C:85,I:150},{C:105,I:200}],
-    CO:    [{C:0,I:0},{C:4.4,I:50},{C:9.4,I:100},{C:12.4,I:150},{C:15.4,I:200}]
-};
-
-function calcSubIndex(val, type) {
-    const C = parseFloat(val);
-    if (isNaN(C)) return 0;
-    const b = breakpoints[type];
-    let i = 0;
-    while (i < b.length - 1 && C > b[i+1].C) i++;
-    const Cl = b[i].C, Ch = b[i+1].C, Il = b[i].I, Ih = b[i+1].I;
-    return Math.round(((Ih - Il) / (Ch - Cl)) * (C - Cl) + Il);
-}
-
-function getAQI(data) {
-    const pm25 = calcSubIndex(data.HE_PM2_5, "PM25");
-    const pm10 = calcSubIndex(data.HE_PM10, "PM10");
-    const no2  = calcSubIndex(data.HE_NO2, "NO2");
-    const so2  = calcSubIndex(data.HE_SO2, "SO2");
-    const o3   = calcSubIndex(data.HE_O3, "O3");
-    const co   = calcSubIndex(data.HE_CO, "CO");
-    return Math.max(pm25, pm10, no2, so2, o3, co);
-}
-
-function getColor(aqi) {
-    if (aqi <= 50) return "#b8e994";
-    if (aqi <= 100) return "#ffeaa7";
-    if (aqi <= 150) return "#fdcb6e";
-    return "#e17055";
-}
-
-function getTextCol(aqi) {
-    return aqi > 100 ? "#fff" : "#000";
-}
-
+// ========== 清空標記 ==========
 function clearMarkers() {
     allMarkers.forEach(m => map.removeLayer(m));
     allMarkers = [];
 }
 
-function render(data) {
+// ========== 渲染單站詳細卡片 ==========
+function renderSingleCard(data) {
+    const {name, code, publishTime, aqi, pm10, pm25, no2, so2, o3, co} = data;
+    const levelInfo = getAqiLevel(aqi);
+    const card = `
+    <div class="station-card">
+        <div class="station-name">${name} (${code})</div>
+        <div style="font-size:0.8rem;color:#666;margin:8px 0;">更新時間：${publishTime}</div>
+        <div class="aqi-row">
+            <div class="current-aqi">${formatVal(aqi, '')}</div>
+            <div class="aqi-level ${levelInfo.cls}">${levelInfo.text}</div>
+        </div>
+        <div class="metrics-grid">
+            <div class="metric col-half"><span>PM10</span><strong>${formatVal(pm10, 'μg/m³')}</strong></div>
+            <div class="metric col-half"><span>PM2.5</span><strong>${formatVal(pm25, 'μg/m³')}</strong></div>
+            <div class="metric col-half"><span>二氧化氮 NO₂</span><strong>${formatVal(no2, 'μg/m³')}</strong></div>
+            <div class="metric col-half"><span>二氧化硫 SO₂</span><strong>${formatVal(so2, 'μg/m³')}</strong></div>
+            <div class="metric col-half"><span>臭氧 O₃</span><strong>${formatVal(o3, 'μg/m³')}</strong></div>
+            <div class="metric col-half"><span>一氧化碳 CO</span><strong>${formatVal(co, 'mg/m³')}</strong></div>
+        </div>
+    </div>`;
+    singleCardBox.innerHTML = card;
+}
+
+// ========== 更新地圖標記 ==========
+function updateMapMarkers() {
     clearMarkers();
-    const cardContainer = document.getElementById("stationCards");
-    cardContainer.innerHTML = "";
+    document.getElementById('current-indicator').textContent = fieldMap[currentTab].label;
 
-    stationsList.forEach(s => {
-        const d = data[s.code] || {};
-        const aqi = getAQI(d);
-        const col = getColor(aqi);
-        const tcol = getTextCol(aqi);
+    airDataList.forEach(point => {
+        const name = point.name;
+        const pos = airStations[name];
+        if (!pos) return;
 
-        const popup = `<strong>${s.name}</strong><br>AQI: ${aqi}`;
+        let val = point[fieldMap[currentTab].field];
+        if (val === '--' || val === '') return;
 
-        const circle = L.circleMarker([s.lat, s.lng], {
-            radius:22, fillColor:col, color:"#fff", weight:2, fillOpacity:0.9
-        }).addTo(map);
+        let color = "#95a5a6";
+        switch(currentTab) {
+            case "aqi": color = getAqiColor(val); break;
+            case "pm25": color = getPm25Color(val); break;
+            case "pm10": color = getPm10Color(val); break;
+            case "no2": color = getNo2Color(val); break;
+            case "so2": color = getSo2Color(val); break;
+            case "o3": color = getO3Color(val); break;
+            case "co": color = getCoColor(val); break;
+        }
 
-        const clicker = L.marker([s.lat, s.lng], {
-            icon:L.divIcon({html:"", iconSize:[44,44]})
-        }).bindPopup(popup).addTo(map);
+        const iconHtml = `<div style="background:${color};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;">${val}</div>`;
+        const icon = L.divIcon({ html: iconHtml, className: "", iconSize: [50,50], iconAnchor: [25,25] });
+        const marker = L.marker([pos.lat, pos.lng], { icon }).addTo(map);
+        marker.bindPopup(`<strong>${name}</strong>`);
 
-        const txt = L.marker([s.lat, s.lng], {
-            icon:L.divIcon({
-                html:`<div style="width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:${tcol};font-weight:bold;">${aqi}</div>`,
-                iconSize:[44,44], iconAnchor:[22,22]
-            })
-        }).addTo(map);
-
-        allMarkers.push(circle, clicker, txt);
-
-        cardContainer.innerHTML += `
-        <div class="station-card" style="border-top-color:${col}">
-            <div class="station-name">${s.name} (${s.code})</div>
-            <div style="text-align:center; font-size:1.8rem; font-weight:bold; color:${tcol}">${aqi}</div>
-            <div class="pollutant-grid">
-                <div class="pollutant-item"><div class="pollutant-label">PM2.5</div><div class="pollutant-value">${d.HE_PM2_5||0}</div></div>
-                <div class="pollutant-item"><div class="pollutant-label">PM10</div><div class="pollutant-value">${d.HE_PM10||0}</div></div>
-                <div class="pollutant-item"><div class="pollutant-label">NO2</div><div class="pollutant-value">${d.HE_NO2||0}</div></div>
-                <div class="pollutant-item"><div class="pollutant-label">SO2</div><div class="pollutant-value">${d.HE_SO2||0}</div></div>
-                <div class="pollutant-item"><div class="pollutant-label">O3</div><div class="pollutant-value">${d.HE_O3||0}</div></div>
-                <div class="pollutant-item"><div class="pollutant-label">CO</div><div class="pollutant-value">${d.HE_CO||0}</div></div>
-            </div>
-        </div>`;
+        marker.on('click', () => {
+            renderSingleCard({...point, code: pos.code});
+        });
+        allMarkers.push(marker);
     });
 }
 
-async function loadLocalData() {
+// ========== 渲染數據表格 ==========
+function renderDataTable(type, sortType = lastSort) {
+    const cfg = fieldMap[type];
+    const field = cfg.field;
+    const label = cfg.label;
+    const unit = cfg.unit;
+    document.getElementById('table-title').textContent = `${label} 數據表格`;
+    const tbody = document.getElementById('table-body');
+    tbody.innerHTML = "";
+
+    let validList = airDataList.filter(item => item[field] !== '--' && item[field] !== '');
+
+    if (sortType === "desc") {
+        validList.sort((a,b) => parseFloat(b[field]) - parseFloat(a[field]));
+    } else if (sortType === "asc") {
+        validList.sort((a,b) => parseFloat(a[field]) - parseFloat(b[field]));
+    }
+    lastSort = sortType;
+
+    validList.forEach(item => {
+        const name = item.name;
+        const code = airStations[name]?.code || "";
+        const displayVal = item[field] + (unit ? " " + unit : "");
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${displayVal}</td>`;
+        tbody.appendChild(tr);
+    });
+}
+
+// ========== 按鈕事件綁定 ==========
+// 污染物分類切換
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentTab = btn.dataset.type;
+        updateMapMarkers();
+        updateLegendPanel(currentTab);
+        renderDataTable(currentTab);
+    });
+});
+
+// 地圖 / 表格視圖切換
+document.getElementById('btn-map').addEventListener('click', function(){
+    this.classList.add('active');
+    document.getElementById('btn-table').classList.remove('active');
+    document.getElementById('map-view').classList.remove('hide');
+    document.getElementById('table-view').classList.add('hide');
+});
+document.getElementById('btn-table').addEventListener('click', function(){
+    this.classList.add('active');
+    document.getElementById('btn-map').classList.remove('active');
+    document.getElementById('map-view').classList.add('hide');
+    document.getElementById('table-view').classList.remove('hide');
+    renderDataTable(currentTab);
+});
+
+// 表格排序
+document.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        renderDataTable(currentTab, btn.dataset.sort);
+    });
+});
+
+// ========== 抓取澳門空氣質素 JSON 數據 ==========
+async function fetchAirData() {
+    const cache = Date.now();
+    const url = `https://corsproxy.io/?https://www.smg.gov.mo/smg/airQuality/latestAirConcentration.json?_t=${cache}`;
     try {
-        const res = await fetch("data.json?t=" + Date.now());
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error("Fetch failed");
         const json = await res.json();
-        document.getElementById("pub-date").innerText = json.DDTT || json.datetime;
-        const result = {};
-        Object.values(json).forEach(item=>{
-            if(item.CODE) result[item.CODE] = item;
+        const records = json.records || [];
+        const pubTime = json.publishTime || "未知時間";
+
+        document.getElementById("pub-date").textContent = pubTime;
+        document.getElementById("time-stamp").textContent = pubTime;
+
+        airDataList = [];
+        singleCardBox.innerHTML = '<div class="empty-tip">請點擊地圖上圓圈查看監測站數據</div>';
+
+        records.forEach(rec => {
+            const siteName = rec.siteName || "未知站點";
+            airDataList.push({
+                name: siteName,
+                publishTime: pubTime,
+                aqi: rec.AQI ?? '--',
+                pm10: rec.PM10 ?? '--',
+                pm25: rec.PM2_5 ?? '--',
+                no2: rec.NO2 ?? '--',
+                so2: rec.SO2 ?? '--',
+                o3: rec.O3 ?? '--',
+                co: rec.CO ?? '--'
+            });
         });
-        render(result);
-    } catch(e) {
-        document.getElementById("stationCards").innerHTML = `<div class="loading">Data load error</div>`;
+
+        updateMapMarkers();
+        updateLegendPanel(currentTab);
+        renderDataTable(currentTab);
+    } catch (err) {
+        console.error("空氣質素數據載入錯誤：", err);
     }
 }
 
-// Page auto refresh every 60s
-loadLocalData();
-setInterval(loadLocalData, 60000);
+// ========== 頁面載入 & 自動刷新 ==========
+window.addEventListener('DOMContentLoaded', fetchAirData);
+// 每5分鐘自動刷新
+setInterval(fetchAirData, 300000);
 </script>
 </body>
 </html>
