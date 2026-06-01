@@ -56,5 +56,7 @@ const fieldMap = {
     windGust: { field: 'windGust', label: '陣風', unit: 'km/h' },
     pressSea: { field: 'pressSea', label: '海平面氣壓', unit: 'hPa' },
     pressStation: { field: 'pressStation', label: '站氣壓', unit: 'hPa' },
-    waterLevel: { field: 'waterLevel', label: '實時水位', unit: 'm' }
+    waterLevel: { field: 'waterLevel', label: '實時水位', unit: 'm' },
+    tide: { field: "tideHeight", label: "實時潮汐", unit: "cm" }
+  }
 };
