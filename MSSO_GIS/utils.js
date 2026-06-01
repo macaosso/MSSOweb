@@ -8,7 +8,7 @@ function calculateApparentTemp(T, RH, windSpeedKmH) {
 
 function calculateHeatIndex(T, RH) {
     if (isNaN(T) || isNaN(RH)) return '--';
-    let hi = -8.7846947556 + 1.61139411 * T + 2.3385488388 * RH
+    let hi = -8.7846947556 + 1.61139411 * T + 2.3385488388 * RH 
         - 0.14611605 * T * RH - 0.012308094 * Math.pow(T, 2)
         - 0.0164248278 * Math.pow(RH, 2)
         + 0.002211732 * Math.pow(T, 2) * RH
