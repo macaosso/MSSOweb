@@ -4,427 +4,239 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>澳門氣象及水位實況監測</title>
-    <!-- Leaflet 地圖庫 -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f3f7;
-            color: #2c3e50;
-            padding: 20px;
-            font-size: 14px;
-        }
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-        header {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: #fff;
-            padding: 20px 30px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        header h1 {
-            font-size: 1.6rem;
-            font-weight: 600;
-        }
-        .meta-info {
-            text-align: right;
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-        .view-switch {
-            margin-bottom: 15px;
-            display: flex;
-            gap: 10px;
-        }
-        .view-switch button {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            background: #e8edf2;
-            cursor: pointer;
-            font-size: 0.95rem;
-        }
-        .view-switch button.active {
-            background: #2a5298;
-            color: #fff;
-        }
-        .tab-wrapper {
-            background: #fff;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-        }
-        .tab-group {
-            margin-bottom: 10px;
-        }
-        .group-label {
-            width: 100%;
-            padding: 8px 12px;
-            background: #e8edf2;
-            font-size: 0.9rem;
-            font-weight: 600;
-            border-radius: 6px;
-            margin-bottom: 6px;
-        }
-        .group-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            padding-left: 10px;
-        }
-        .tab-btn {
-            padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
-            background: #e8edf2;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-        }
-        .tab-btn.active {
-            background: #2a5298;
-            color: #fff;
-        }
-        .tab-btn:hover:not(.active) {
-            background: #d0d9e4;
-        }
-        .main-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        @media (max-width: 1024px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-        .map-card {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            padding: 15px;
-            position: relative;
-        }
-        #macau-map {
-            width: 100%;
-            height: 650px;
-            border-radius: 8px;
-        }
-        .map-legend {
-            position: absolute;
-            bottom: 15px;
-            right: 15px;
-            background: rgba(255,255,255,0.95);
-            padding: 8px 10px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            z-index: 1000;
-            min-width: 120px;
-        }
-        .map-legend h4 {
-            margin: 0 0 5px 0;
-            font-size: 0.8rem;
-            text-align: center;
-            padding-bottom: 3px;
-            border-bottom: 1px solid #eee;
-        }
-        .legend-items {
-            max-height: 180px;
-            overflow-y: auto;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 3px;
-        }
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 5px;
-        }
-        .time-stamp {
-            position: absolute;
-            top: 25px;
-            right: 25px;
-            background: rgba(0,0,0,0.6);
-            color: #fff;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            z-index: 1000;
-        }
-        .station-single {
-            height: 650px;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-            padding-top: 20px;
-        }
-        .empty-tip {
-            color: #999;
-            font-size: 1rem;
-        }
-        .station-card {
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            padding: 18px;
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            flex-direction: column;
-            border-top: 4px solid #3498db;
-            width: 100%;
-            max-width: 420px;
-            font-size: 13px;
-        }
-        .station-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.12);
-        }
-        .station-name {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #2c3e50;
-            border-bottom: 1px solid #ecf0f1;
-            padding-bottom: 8px;
-            margin-bottom: 15px;
-        }
-        .temp-row {
-            display: flex;
-            align-items: baseline;
-            justify-content: space-between;
-            margin: 15px 0;
-        }
-        .current-temp {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #1a1a1a;
-        }
-        .temp-range {
-            font-size: 0.85rem;
-            text-align: right;
-        }
-        .high-temp {
-            color: #e74c3c;
-            font-weight: 600;
-        }
-        .low-temp {
-            color: #34495e;
-            font-weight: 600;
-        }
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 10px;
-            font-size: 0.8rem;
-        }
-        .metric {
-            background: #f8f9fa;
-            padding: 8px 10px;
-            border-radius: 6px;
-        }
-        .col-half {
-            grid-column: span 3;
-        }
-        .col-third {
-            grid-column: span 2;
-        }
-        .metric span {
-            display: block;
-            color: #7f8c8d;
-            font-size: 0.7rem;
-            margin-bottom: 2px;
-        }
-        .metric strong {
-            color: #2c3e50;
-            font-size: 0.9rem;
-        }
-        .heat-high { background: #ffe6e6; border:1px solid #f5a9a9; }
-        .apparent-high { background: #f3e5f5; border:1px solid #d2bade; }
-        .dew-high { background: #e8f4fd; border:1px solid #a0cfee; }
-        .rain1-yellow { background: #fff9c4; border:1px solid #ffe082; }
-        .rain1-red { background: #ffebee; border:1px solid #ef9a9a; }
-        .rain1-gray { background: #eceff1; border:1px solid #b0bec5; }
-        .rainDay-orange { background: #fff3e0; border:1px solid #ffcc80; }
-        .rainDay-red { background: #ffebee; border:1px solid #ef9a9a; }
-        .rainDay-gray { background: #eceff1; border:1px solid #b0bec5; }
-        .flood-normal { background: #e8f4fd; border:1px solid #bcdffb; }
-        .flood-light { background: #fff9c4; border:1px solid #ffe082; }
-        .flood-mid { background: #fff3e0; border:1px solid #ffcc80; }
-        .flood-heavy { background: #ffebee; border:1px solid #ef9a9a; }
-
-        /* 表格區域 */
-        .table-container {
-            background: #fff;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-        .table-title-wrap {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .table-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-        }
-        .table-sort-buttons {
-            display: flex;
-            gap: 8px;
-        }
-        .table-sort-buttons button {
-            padding: 6px 12px;
-            border: 1px solid #cbd5e0;
-            border-radius: 4px;
-            background: #f7fafc;
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
-        .table-sort-buttons button:hover {
-            background: #e8edf2;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #e2e8f0;
-            padding: 10px;
-            text-align: center;
-        }
-        th {
-            background-color: #f7fafc;
-            font-weight: 600;
-        }
-        tbody tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-
-        /* 顯示/隱藏切換 */
-        .hide {
-            display: none !important;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f3f7; color: #2c3e50; padding: 20px; }
+        .container { max-width: 1600px; margin: 0 auto; }
+        header { background: linear-gradient(135deg, #1e3c72, #2a5298); color: #fff; padding: 20px 30px; border-radius: 12px; margin-bottom: 20px; display: flex; justify-content: space-between; flex-wrap: wrap; }
+        .view-switch { margin-bottom: 15px; display: flex; gap: 10px; }
+        .view-switch button { padding: 8px 16px; border: none; border-radius: 6px; background: #e8edf2; cursor: pointer; }
+        .view-switch button.active { background: #2a5298; color: #fff; }
+        .tab-wrapper { background: #fff; border-radius: 8px; padding: 12px; margin-bottom: 20px; }
+        .tab-group { margin-bottom: 10px; }
+        .group-label { width: 100%; padding: 8px 12px; background: #e8edf2; font-size: 0.9rem; font-weight: 600; border-radius: 6px; margin-bottom: 6px; }
+        .group-buttons { display: flex; flex-wrap: wrap; gap: 8px; padding-left: 10px; }
+        .tab-btn { padding: 8px 12px; border: none; border-radius: 6px; background: #e8edf2; cursor: pointer; }
+        .tab-btn.active { background: #2a5298; color: #fff; }
+        .main-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        #macau-map { width: 100%; height: 650px; border-radius: 8px; }
+        .station-single { height: 650px; display: flex; align-items: flex-start; justify-content: center; padding-top: 20px; }
+        .empty-tip { color: #999; font-size: 1rem; }
+        .station-card { background: #fff; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); padding: 18px; max-width: 420px; }
+        .station-name { font-size: 1.1rem; font-weight: bold; border-bottom: 1px solid #ecf0f1; padding-bottom: 8px; margin-bottom: 15px; }
+        .temp-row { display: flex; justify-content: space-between; margin: 15px 0; }
+        .current-temp { font-size: 2rem; font-weight: 700; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; font-size: 0.8rem; }
+        .metric { background: #f8f9fa; padding: 8px 10px; border-radius: 6px; }
+        .col-half { grid-column: span 3; }
+        .table-container { background: #fff; border-radius: 12px; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: center; }
+        .hide { display: none !important; }
+        .map-legend { position: absolute; bottom: 15px; right: 15px; background: rgba(255,255,255,0.95); padding: 8px 10px; border-radius: 6px; z-index: 1000; }
+        .legend-item { display: flex; align-items: center; margin-bottom: 3px; }
+        .legend-color { width: 12px; height: 12px; border-radius: 50%; margin-right: 5px; }
+        .time-stamp { position: absolute; top: 25px; right: 25px; background: rgba(0,0,0,0.6); color: #fff; padding: 6px 12px; border-radius: 4px; z-index: 1000; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>澳門氣象及水位實況監測</h1>
-            <div class="meta-info">
-                <div>資料發布時間：<span id="pub-date">載入中...</span></div>
-            </div>
+            <div class="meta-info">資料發布時間：<span id="pub-date">載入中...</span></div>
         </header>
 
-        <!-- 視圖切換：地圖 / 表格 -->
         <div class="view-switch">
             <button id="btn-map" class="active">地圖</button>
             <button id="btn-table">表格</button>
         </div>
 
-        <!-- 分類標籤欄 -->
         <div class="tab-wrapper">
             <div class="tab-group">
                 <div class="group-label">氣象數據</div>
                 <div class="group-buttons">
                     <button class="tab-btn active" data-type="tempCurrent">實時氣溫</button>
-                    <button class="tab-btn" data-type="tempMax">最高氣溫</button>
-                    <button class="tab-btn" data-type="tempMin">最低氣溫</button>
-                    <button class="tab-btn" data-type="apparentTemp">體感溫度</button>
-                    <button class="tab-btn" data-type="heatIndex">酷熱指數</button>
-                    <button class="tab-btn" data-type="dewPoint">露點溫度</button>
                     <button class="tab-btn" data-type="humidity">相對濕度</button>
-                    <button class="tab-btn" data-type="windDir">風向</button>
-                    <button class="tab-btn" data-type="windSpeed">風速</button>
-                    <button class="tab-btn" data-type="windGust">陣風</button>
-                    <button class="tab-btn" data-type="pressSea">海平面氣壓</button>
-                    <button class="tab-btn" data-type="pressStation">站氣壓</button>
                 </div>
             </div>
             <div class="tab-group">
-                <div class="group-label">潮汐及實時水位</div>
+                <div class="group-label">水位</div>
                 <div class="group-buttons">
                     <button class="tab-btn" data-type="waterLevel">實時水位</button>
-                    <button class="tab-btn" data-type="tide">實時潮汐</button>
                 </div>
             </div>
             <div class="tab-group">
-              <div class="group-label">空氣品質</div>
-              <div class="group-buttons">
-                <button class="tab-btn" data-type="no2">NO2 二氧化氮</button>
-                <button class="tab-btn" data-type="pm25">PM2.5</button>
-                <button class="tab-btn" data-type="pm10">PM10</button>
-                <button class="tab-btn" data-type="so2">SO2 二氧化硫</button>
-                <button class="tab-btn" data-type="o3">O3 臭氧</button>
-                <button class="tab-btn" data-type="co">CO 一氧化碳</button>
-              </div>
+                <div class="group-label">空氣品質</div>
+                <div class="group-buttons">
+                    <button class="tab-btn" data-type="pm25">PM2.5</button>
+                </div>
             </div>
         </div>
 
-        <!-- 主內容區 -->
         <div class="main-layout" id="map-view">
-            <!-- 左側：地圖 -->
             <div class="map-card">
                 <div id="macau-map"></div>
                 <div class="time-stamp">更新時間：<span id="time-stamp">--</span></div>
-                <div class="map-legend">
-                    <h4>圖例</h4>
-                    <div id="legend-content" class="legend-items"></div>
-                </div>
+                <div class="map-legend"><div id="legend-content"></div></div>
             </div>
-
-            <!-- 右側：單站詳情卡片 -->
             <div id="single-card-box" class="station-single">
                 <div class="empty-tip">請點擊地圖上圓圈查看測站數據</div>
             </div>
         </div>
 
-        <!-- 表格視圖 -->
-        <div id="table-view" class="table-container hide" style="margin-top:20px;">
-            <div class="table-title-wrap">
-                <div class="table-title" id="table-title">數據表格</div>
-                <div class="table-sort-buttons">
-                    <button id="sort-default">預設排序</button>
-                    <button id="sort-desc">高至低</button>
-                    <button id="sort-asc">低至高</button>
-                </div>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>測站名稱</th>
-                        <th>代碼</th>
-                        <th>數值</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body"></tbody>
-            </table>
+        <div id="table-view" class="table-container hide">
+            <table><thead><tr><th>測站名稱</th><th>數值</th></tr></thead><tbody id="table-body"></tbody></table>
         </div>
     </div>
 
-    <!-- 外部JS 順序不能亂 -->
-    <script src="config.js"></script>
-    <script src="utils.js"></script>
-    <script src="main.js"></script>
+    <script>
+        // 1. Station Data (No external config.js)
+        const weatherStations = {
+            "大炮台": { lat: 22.197066, lng: 113.542261 },
+            "大潭山": { lat: 22.159102, lng: 113.568947 }
+        };
+        const waterStations = [{ name: "內港", lat: 22.198031, lng: 113.536426 }];
+        const airStations = [{ name: "大潭山", lat: 22.159411, lng: 113.568456 }];
+
+        // 2. Global Variables
+        let map, allMarkers = [], currentTab = "tempCurrent";
+        let pointDataList = [], floodDataList = [], airDataList = [];
+
+        // 3. Map Init
+        function initMap() {
+            map = L.map('macau-map').setView([22.17, 12], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        }
+
+        // 4. Update Markers
+        function updateMapMarkers() {
+            allMarkers.forEach(m => map.removeLayer(m));
+            allMarkers = [];
+            let sourceList, stationPool;
+
+            if (currentTab === "waterLevel") { sourceList = floodDataList; stationPool = waterStations; }
+            else if (currentTab === "pm25") { sourceList = airDataList; stationPool = airStations; }
+            else { sourceList = pointDataList; stationPool = Object.entries(weatherStations).map(([n,i])=>({name,...i})); }
+
+            sourceList.forEach(point => {
+                const info = stationPool.find(s => s.name === point.name);
+                if (!info) return;
+                let showVal = "", bgColor = "#3498db";
+                if (currentTab === "tempCurrent") { showVal = point.temp; bgColor = "#e74c3c"; }
+                if (currentTab === "humidity") { showVal = point.humidity; bgColor = "#3498db"; }
+                if (currentTab === "waterLevel") { showVal = point.waterLevel; bgColor = "#f39c12"; }
+                if (currentTab === "pm25") { showVal = point.PM2_5; bgColor = "#2ecc71"; }
+                if (showVal === '--') return;
+
+                const icon = L.divIcon({
+                    html: `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-weight:bold;">${showVal}</div>`,
+                    className: "", iconSize: [50,50], iconAnchor: [25,25]
+                });
+                const marker = L.marker([info.lat, info.lng], { icon }).addTo(map);
+                marker.on('click', () => renderSingleCard(point));
+                allMarkers.push(marker);
+            });
+        }
+
+        // 5. Render Card
+        function renderSingleCard(data) {
+            if (currentTab === "pm25") {
+                singleCardBox.innerHTML = `<div class="station-card"><div class="station-name">${data.name}</div><div class="metric"><span>PM2.5</span><strong>${data.PM2_5} μg/m³</strong></div></div>`;
+                return;
+            }
+            singleCardBox.innerHTML = `
+                <div class="station-card">
+                    <div class="station-name">${data.name}</div>
+                    <div class="current-temp">${data.temp || '--'}°C</div>
+                    <div class="metric"><span>濕度</span><strong>${data.humidity || '--'}%</strong></div>
+                </div>`;
+        }
+
+        // 6. Fetch Weather (Fixed CORS)
+        function fetchWeather() {
+            const proxy = "https://api.allorigins.win/raw?url=";
+            const url = proxy + encodeURIComponent("https://xml.smg.gov.mo/c_actualweather.xml");
+            return fetch(url).then(r => r.text()).then(xml => {
+                const d = new DOMParser().parseFromString(xml, "text/xml");
+                pointDataList = [];
+                d.querySelectorAll("WeatherReport station").forEach(s => {
+                    pointDataList.push({
+                        name: s.querySelector("stationname").textContent,
+                        temp: s.querySelector("Temperature dValue").textContent,
+                        humidity: s.querySelector("Humidity dValue").textContent
+                    });
+                });
+            });
+        }
+
+        // 7. Fetch Water Level
+        function fetchFlood() {
+            const proxy = "https://api.allorigins.win/raw?url=";
+            const url = proxy + encodeURIComponent("https://xml.smg.gov.mo/c_ftgms.xml");
+            return fetch(url).then(r => r.text()).then(xml => {
+                const d = new DOMParser().parseFromString(xml, "text/xml");
+                floodDataList = [];
+                d.querySelectorAll("station").forEach(s => {
+                    floodDataList.push({
+                        name: s.querySelector("stationname").textContent,
+                        waterLevel: s.querySelector("dValue").textContent || "--"
+                    });
+                });
+            });
+        }
+
+        // 8. Fetch Air
+        function fetchAir() {
+            return fetch("https://www.smg.gov.mo/smg/airQuality/latestAirConcentration.json")
+                .then(r => r.json()).then(json => {
+                    airDataList = [{ name: "大潭山", PM2_5: json.tghopolu.HE_PM2_5 }];
+                });
+        }
+
+        // 9. Load All
+        function loadAll() {
+            Promise.all([fetchWeather(), fetchFlood(), fetchAir])
+                .then(() => {
+                    updateMapMarkers();
+                    document.getElementById("pub-date").textContent = new Date().toLocaleString();
+                });
+        }
+
+        // 10. Bind Events
+        function bindEvents() {
+            // Tab Buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentTab = btn.dataset.type;
+                    updateMapMarkers();
+                });
+            });
+            // View Switch
+            document.getElementById('btn-map').addEventListener('click', () => {
+                document.getElementById('btn-map').classList.add('active');
+                document.getElementById('btn-table').classList.remove('active');
+                document.getElementById('map-view').classList.remove('hide');
+                document.getElementById('table-view').classList.add('hide');
+            });
+            document.getElementById('btn-table').addEventListener('click', () => {
+                document.getElementById('btn-table').classList.add('active');
+                document.getElementById('btn-map').classList.remove('active');
+                document.getElementById('map-view').classList.add('hide');
+                document.getElementById('table-view').classList.remove('hide');
+            });
+        }
+
+        // 11. Run
+        window.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            bindEvents();
+            loadAll();
+            setInterval(loadAll, 300000);
+        });
+    </script>
 </body>
 </html>
