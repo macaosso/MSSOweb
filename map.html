@@ -1026,27 +1026,26 @@ function fetchFloodData() {
         .then(xmlStr => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
-            const stations = xmlDoc.querySelectorAll("WLReport station") || xmlDoc.querySelectorAll("station");
+            const stations = xmlDoc.querySelectorAll("WLReport station");
             floodDataList = [];
 
             stations.forEach(station => {
                 const name = (station.querySelector("stationname")?.textContent || "未知監測點").trim();
                 let waterLevel = "--";
-                // ✅ Correct path: Waterlevel → Value
-                const valNode = station.querySelector("Waterlevel Value");
-                if (valNode) {
-                    waterLevel = val.textContent.trim();
+                const valNode = station.querySelector("Waterlevel > Value");
+                if (valNode && valNode.textContent) {
+                    waterLevel = valNode.textContent.trim();
                 }
-                if (!waterLevel || waterLevel === "") waterLevel = "--";
-            
+                if (!waterLevel) waterLevel = "--";
+
                 floodDataList.push({ name, waterLevel });
-                });
             });
-        })
-        .catch(err => console.error("水位數據載入失敗：", err));
+        }) // ← Only ONE closing brace here for .then()
+        .catch(err => {
+            console.error("水位數據載入失敗：", err);
         });
 }
-
+    
 // ========== 統一載入所有數據 + 更新界面 ==========
 function loadAllData() {
     Promise.all([fetchWeatherData(), fetchFloodData()])
