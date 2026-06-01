@@ -331,6 +331,15 @@
             background: #ffebee;
             border: 1px solid #ef9a9a;
         }
+        /* WBGT高溫警示樣式 */
+        .wbgt-warn {
+            background: #fff0e6;
+            border:1px solid #ffb980;
+        }
+        .wbgt-danger {
+            background: #ffe5e5;
+            border:1px solid #f88686;
+        }
 
         /* 表格區域 */
         .table-container {
@@ -415,6 +424,8 @@
                 <button class="tab-btn" data-type="tempMin">最低氣溫 (°C)</button>
                 <button class="tab-btn" data-type="apparentTemp">體感溫度 (°C)</button>
                 <button class="tab-btn" data-type="heatIndex">酷熱指數 (°C)</button>
+                <!-- 新增WBGT按鈕 -->
+                <button class="tab-btn" data-type="wbgt">綜合溫度熱指數WBGT(°C)</button>
                 <button class="tab-btn" data-type="dewPoint">露點溫度 (°C)</button>
                 <button class="tab-btn" data-type="humidity">相對濕度 (%)</button>
                 <button class="tab-btn" data-type="windDir">風向</button>
@@ -469,7 +480,11 @@
 </div>
 
 <script>
-// ========== 計算函數 ==========
+// ========== 常數定義(WBGT計算用) ==========
+const sigma = 5.670374419e-8; //史蒂芬波茲曼常數 W/(m²·K⁴)
+const eps = 0.95;             //地面輻射率
+
+// ========== 原有計算函數 ==========
 function calculateApparentTemp(T, RH, windSpeedKmH) {
     const V = windSpeedKmH / 3.6;
     const e = (RH / 100) * 6.105 * Math.exp((17.27 * T) / (237.7 + T));
@@ -495,6 +510,57 @@ function calculateDewPoint(T, RH) {
     return dew.toFixed(1);
 }
 
+// ========== 新增 WBGT 全套計算子函數 ==========
+// Tnw計算
+function calcTnw(Ta, RH) {
+    if(isNaN(Ta)||isNaN(RH)) return NaN;
+    let part1 = Math.atan(0.151977 * Math.sqrt(RH + 8.313659));
+    let part2 = Math.atan(Ta + RH);
+    let part3 = Math.atan(RH - 1.676331);
+    let part4 = 0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH);
+    let Tnw = Ta * part1 + part2 - part3 + part4 - 4.686035;
+    return Tnw;
+}
+// hc對流換熱係數
+function calcHc(Va) {
+    if(isNaN(Va)) return NaN;
+    let v_ms = Va / 3.6; // km/h → m/s
+    let hc = 6.3 * Math.pow(v_ms,0.6) / Math.pow(0.15,0.4);
+    return hc;
+}
+// 迭代求解Tg、Tmrt、hr，回傳Tg
+function solveTgTmrtHr(TaC, Va) {
+    let TaK = TaC + 273.15;
+    let hc = calcHc(Va);
+    if(isNaN(hc)) return {Tg:NaN,Tmrt:NaN,hr:NaN};
+    // 迭代初值
+    let Tg = TaC + 3;
+    let Tmrt = TaC + 5;
+    let hr;
+    // 迭代20次收斂
+    for(let iter=0;iter<20;iter++){
+        let TgK = Tg + 273.15;
+        let TmrtK = Tmrt + 273.15;
+        // hr公式
+        hr = eps * sigma * (TmrtK + TgK) * (Math.pow(TmrtK,2)+Math.pow(TgK,2));
+        // Tg反推
+        Tg = (TaK*(1 + hr/hc*( (TmrtK/TaK)-1 )) ) - 273.15;
+        // Tmrt反推
+        let inside = Math.pow(TgK,4) + hc/(eps*sigma)*(Tg - TaC);
+        Tmrt = Math.pow(inside,0.25) - 273.15;
+    }
+    return {Tg,Tmrt,hr};
+}
+// 最終WBGT =0.7*Tnw +0.2*Tg +0.1*Ta
+function calcWBGT(Ta,RH,windKmH){
+    if(isNaN(Ta)||isNaN(RH)||isNaN(windKmH)) return '--';
+    let Tnw = calcTnw(Ta,RH);
+    let {Tg} = solveTgTmrtHr(Ta,windKmH);
+    if(isNaN(Tnw)||isNaN(Tg)) return '--';
+    let wbgt = 0.7*Tnw + 0.2*Tg + 0.1*Ta;
+    return wbgt.toFixed(1);
+}
+
 // ========== 卡片樣式 Class ==========
 function getHeatIndexClass(val) {
     let num = parseFloat(val);
@@ -510,6 +576,14 @@ function getDewClass(val) {
     let num = parseFloat(val);
     if (!isNaN(num) && num >= 28) return 'metric col-half dew-high';
     return 'metric col-half';
+}
+// WBGT卡片樣式
+function getWBGTClass(val){
+    let n=parseFloat(val);
+    if(isNaN(n)) return "metric col-half";
+    if(n>=32) return "metric col-half wbgt-danger";
+    if(n>=28) return "metric col-half wbgt-warn";
+    return "metric col-half";
 }
 function getRain1hClass(val) {
     let num = parseFloat(val);
@@ -581,13 +655,14 @@ const floodPoints = {
     "聖方濟各堂": { lat: 22.117434, lng: 113.551004 }
 };
 
-// ========== 欄位對應 ==========
+// ========== 欄位對應【新增wbgt】 ==========
 const fieldMap = {
     tempCurrent: {field:'temp', label:'實時氣溫', unit:'℃'},
     tempMax: {field:'tempMax', label:'最高氣溫', unit:'℃'},
     tempMin: {field:'tempMin', label:'最低氣溫', unit:'℃'},
     apparentTemp: {field:'apparentTemp', label:'體感溫度', unit:'℃'},
     heatIndex: {field:'heatIndex', label:'酷熱指數', unit:'℃'},
+    wbgt:{field:'wbgt',label:'綜合溫度熱指數WBGT',unit:'℃'},
     dewPoint: {field:'dewPoint', label:'露點溫度', unit:'℃'},
     humidity: {field:'humidity', label:'相對濕度', unit:'%'},
     windDir: {field:'windDir', label:'風向', unit:''},
@@ -598,8 +673,7 @@ const fieldMap = {
     waterLevel: {field:'waterLevel', label:'實時水位', unit:'m'}
 };
 
-// ========== 地圖標記配色規則 ==========
-// Updated to match new legend colors
+// ========== 地圖標記配色規則【新增WBGT配色】 ==========
 function getTempColor(tempStr) {
     const temp = parseFloat(tempStr);
     if (isNaN(temp)) return "#3498db";
@@ -623,6 +697,17 @@ function getHeatIndexColor(hiStr) {
     if (hi >= 39.5) return "#ad5e19";     // 特別注意
     if (hi >= 35.5) return "#927608";     // 注意
     return "#927608";
+}
+// WBGT色標
+function getWBGTColor(wbgtStr){
+    let w=parseFloat(wbgtStr);
+    if(isNaN(w)) return "#3498db";
+    if(w>=32) return "#910000";    //極危險
+    if(w>=30) return "#d62828";    //危險
+    if(w>=28) return "#f77f00";    //警戒
+    if(w>=26) return "#fcbf49";    //留意
+    if(w>=22) return "#38b000";    //舒適
+    return "#0077b6";              //偏涼
 }
 
 function getHumidityColor(humStr) {
@@ -684,7 +769,7 @@ function getWaterLevelColor(wlStr) {
     return "#1b6009";                     // 0.00 m
 }
 
-// ========== 圖例更新 ==========
+// ========== 圖例更新【新增WBGT圖例】 ==========
 function updateLegendPanel(tabType) {
     const legendContent = document.getElementById('legend-content');
     let legendHTML = '';
@@ -702,7 +787,15 @@ function updateLegendPanel(tabType) {
             <div class="legend-item"><div class="legend-color" style="background:#192097"></div>非常寒冷</div>
             <div class="legend-item"><div class="legend-color" style="background:#530b80"></div>極為寒冷</div>`;
             break;
-
+        case "wbgt":
+            legendHTML = `
+            <div class="legend-item"><div class="legend-color" style="background:#910000"></div>≥32℃ 極度危險</div>
+            <div class="legend-item"><div class="legend-color" style="background:#d62828"></div>30~31.9℃ 危險</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f77f00"></div>28~29.9℃ 警戒</div>
+            <div class="legend-item"><div class="legend-color" style="background:#fcbf49"></div>26~27.9℃ 留意</div>
+            <div class="legend-item"><div class="legend-color" style="background:#38b000"></div>22~25.9℃ 舒適</div>
+            <div class="legend-item"><div class="legend-color" style="background:#0077b6"></div><22℃ 偏涼</div>`;
+            break;
         case "heatIndex":
             legendHTML = `
             <div class="legend-item"><div class="legend-color" style="background:#571288"></div>極度危險</div>
@@ -830,15 +923,16 @@ function clearMarkers() {
     allMarkers = [];
 }
 
-// 渲染單站詳細卡片（包含水位）
+// 渲染單站詳細卡片（包含水位、WBGT）
 function renderSingleCard(data) {
     const {name,code,temp,tempMax,tempMin,humidity,windDir,windSpeed,windGust,rain1m,rain1h,rainTotal,
-           pressSea,pressStation,apparentTemp,heatIndex,dewPoint,waterLevel} = data;
+           pressSea,pressStation,apparentTemp,heatIndex,dewPoint,waterLevel,wbgt} = data;
     const fullName = `${name} (${code})`;
 
     const hiClass = getHeatIndexClass(heatIndex);
     const apClass = getApparentClass(apparentTemp);
     const dewClass = getDewClass(dewPoint);
+    const wbgtClass = getWBGTClass(wbgt);
     const r1mClass = getRain1hClass(rain1m);
     const r1hClass = getRain1hClass(rain1h);
     const rTotalClass = getRainDayClass(rainTotal);
@@ -858,6 +952,7 @@ function renderSingleCard(data) {
             <div class="${hiClass}"><span>酷熱指數</span><strong>${formatVal(heatIndex, '°C')}</strong></div>
             <div class="${apClass}"><span>體感溫度</span><strong>${formatVal(apparentTemp, '°C')}</strong></div>
             <div class="${dewClass}"><span>露點溫度</span><strong>${formatVal(dewPoint, '°C')}</strong></div>
+            <div class="${wbgtClass}"><span>WBGT綜合熱指數</span><strong>${formatVal(wbgt, '°C')}</strong></div>
             <div class="metric col-half"><span>相對濕度</span><strong>${formatVal(humidity, '%')}</strong></div>
             <div class="metric col-half"><span>風向</span><strong>${windDir || '--'}</strong></div>
             <div class="metric col-half"><span>風速</span><strong>${formatVal(windSpeed, 'km/h')}</strong></div>
@@ -912,6 +1007,12 @@ function updateMapMarkers() {
                 bgColor = getHeatIndexColor(showVal);
                 const hiNum = parseFloat(showVal);
                 if (isNaN(hiNum) || hiNum < 32.5) skipMarker = true;
+                break;
+            case "wbgt":
+                showVal = point.wbgt;
+                bgColor = getWBGTColor(showVal);
+                const wbgtNum = parseFloat(showVal);
+                if(isNaN(wbgtNum)) skipMarker = true;
                 break;
             case "waterLevel":
                 showVal = point.waterLevel;
@@ -1048,12 +1149,14 @@ function fetchWeatherData() {
                 const apparentTemp = calculateApparentTemp(T, RH, windSpeedKmH);
                 const heatIndex = calculateHeatIndex(T, RH);
                 const dewPoint = calculateDewPoint(T, RH);
+                // 計算WBGT
+                const wbgt = calcWBGT(T,RH,windSpeedKmH);
 
                 pointDataList.push({
                     name, temp, tempMax, tempMin, humidity, windDir,
                     windSpeed, windGust, rain1m, rain1h, rainTotal,
                     pressSea, pressStation, apparentTemp, heatIndex, dewPoint,
-                    waterLevel: "--"
+                    waterLevel: "--", wbgt
                 });
             });
         });
