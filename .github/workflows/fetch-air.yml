@@ -1,0 +1,54 @@
+name: Fetch Air Quality Data
+run-name: Auto fetch latest air data
+
+# 每5分鐘自動執行 + 手動可觸發
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  get-air-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup NodeJS 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Download SMG official air json
+        run: |
+          node << 'EOF'
+          const https = require('https');
+          const fs = require('fs');
+          const targetUrl = "https://www.smg.gov.mo/smg/airQuality/latestAirConcentration.json";
+          const savePath = "./data.json";
+
+          https.get(targetUrl, (resp) => {
+            let body = "";
+            resp.on("data", chunk => body += chunk);
+            resp.on("end", () => {
+              fs.writeFileSync(savePath, body, "utf8");
+              console.log("Success saved data.json");
+            });
+          }).on("error", err => {
+            console.error("Request error:", err.message);
+          });
+          EOF
+
+      - name: Commit & Push updated data.json
+        run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "bot@github.com@users.noreply.github.com"
+          git add data.json
+          # 檔案有變動才commit，沒變就跳過
+          git diff --cached --quiet data.json || git commit -m "Auto update air quality data"
+          git push origin HEAD:main
