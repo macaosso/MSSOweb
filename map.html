@@ -866,6 +866,8 @@ function updateMapMarkers() {
                 break;
             case "waterLevel":
                 showVal = point.waterLevel;
+                // Skip empty/-- value
+                if (showVal === '--' || showVal === '') skipMarker = true;
                 bgColor = getWaterLevelColor(showVal);
                 break;
         }
@@ -993,7 +995,7 @@ function fetchFloodData() {
             stations.forEach(station => {
                 const name = station.querySelector("stationname")?.textContent || "未知監測點";
                 let waterLevel = "--";
-                const wlNode = station.querySelector("WaterLevel") || station.querySelector("Value") || station.querySelector("dValue");
+                const wlNode = station.querySelector("dValue");
                 if(wlNode){
                     waterLevel = wlNode.textContent.trim();
                 }
