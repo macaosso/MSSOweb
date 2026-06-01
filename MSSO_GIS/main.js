@@ -5,24 +5,20 @@ let currentTab = "tempCurrent";
 let pointDataList = [];
 let floodDataList = [];
 let tideDataList = [];
-let tableSortType = "default"; // default / desc / asc
+let tableSortType = "default";
 
-// 潮汐接口與請求頭
+// 潮汐接口與測站
 const TIDE_API = "https://corsproxy.io/?https://dsama.apigateway.data.gov.mo/currentTideXmlApi";
-const TIDE_HEADERS = {
-    "Authorization": "APPCODE 09d43a591fba407fb862412970667de4"
-};
-// 潮汐測站
+const TIDE_HEADERS = { "Authorization": "APPCODE 09d43a591fba407fb862412970667de4" };
 const tideStations = [
     { name: "媽閣", code: "SBR", lat: 22.186720, lng: 113.530000 },
     { name: "青洲塘", code: "SDV", lat: 22.208934, lng: 113.539580 }
 ];
 
 const singleCardBox = document.getElementById("single-card-box");
-const tableTitleWrap = document.querySelector(".table-title-wrap");
 const tableBody = document.getElementById("table-body");
 
-// Init Map
+// Init Map (只執行一次)
 function initMap() {
     map = L.map('macau-map').setView([22.17, 113.55], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -30,13 +26,11 @@ function initMap() {
     }).addTo(map);
 }
 
-// Clear all markers
 function clearMarkers() {
     allMarkers.forEach(marker => map.removeLayer(marker));
     allMarkers = [];
 }
 
-// Update map markers
 function updateMapMarkers() {
     clearMarkers();
     let sourceList, stationPool;
@@ -95,21 +89,18 @@ function updateMapMarkers() {
         const icon = L.divIcon({ html: iconHtml, className: "", iconSize: [50, 50], iconAnchor: [25, 25] });
         const marker = L.marker([info.lat, info.lng], { icon }).addTo(map);
         marker.bindPopup(`<strong>${name} (${info.code})</strong>`);
-
         marker.on('click', () => renderSingleCard({ ...point, code: info.code }));
         allMarkers.push(marker);
     });
 }
 
-// Render station detail card
 function renderSingleCard(data) {
     const { name, code, temp, tempMax, tempMin, humidity, windDir, windSpeed, windGust, rain1m, rain1h, rainTotal,
         pressSea, pressStation, apparentTemp, heatIndex, dewPoint, waterLevel, tideHeight, tideTime } = data;
     const fullName = `${name} (${code})`;
 
-    // 潮汐專用卡片
     if (currentTab === "tide") {
-        const card = `
+        singleCardBox.innerHTML = `
         <div class="station-card">
             <div class="station-name">${fullName}</div>
             <div style="text-align:center;margin:30px 0;">
@@ -117,7 +108,6 @@ function renderSingleCard(data) {
                 <div style="margin-top:8px;color:#666;">觀測時間：${tideTime}</div>
             </div>
         </div>`;
-        singleCardBox.innerHTML = card;
         return;
     }
 
@@ -134,7 +124,7 @@ function renderSingleCard(data) {
         wlHtml = `<div class="${wlClass}" style="grid-column: span 6;"><span>實時水位</span><strong>${formatVal(waterLevel, 'm')}</strong></div>`;
     }
 
-    const card = `
+    singleCardBox.innerHTML = `
     <div class="station-card">
         <div class="station-name">${fullName}</div>
         <div class="temp-row">
@@ -160,10 +150,8 @@ function renderSingleCard(data) {
             ${wlHtml}
         </div>
     </div>`;
-    singleCardBox.innerHTML = card;
 }
 
-// Update legend
 function updateLegendPanel(tabType) {
     const legendContent = document.getElementById('legend-content');
     let legendHTML = '';
@@ -179,6 +167,9 @@ function updateLegendPanel(tabType) {
             break;
         case "humidity":
             legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#553C9A"></div>非常潮濕</div><div class="legend-item"><div class="legend-color" style="background:#5DADEC"></div>潮濕</div><div class="legend-item"><div class="legend-color" style="background:#6EE7B7"></div>正常</div><div class="legend-item"><div class="legend-color" style="background:#E6B34B"></div>乾燥</div><div class="legend-item"><div class="legend-color" style="background:#7b1818"></div>非常乾燥</div>`;
+            break;
+        case "windDir":
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#9b59b6"></div>風向數據</div>`;
             break;
         case "windSpeed": case "windGust":
             legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#d64040"></div>颶風</div><div class="legend-item"><div class="legend-color" style="background:#f2a938"></div>暴風</div><div class="legend-item"><div class="legend-color" style="background:#f9e559"></div>烈風</div><div class="legend-item"><div class="legend-color" style="background:#60c070"></div>強風</div><div class="legend-item"><div class="legend-color" style="background:#64b5e7"></div>強風以下</div>`;
@@ -201,19 +192,13 @@ function updateLegendPanel(tabType) {
     legendContent.innerHTML = legendHTML;
 }
 
-// Render table + sort + remove empty rows
 function renderDataTable(type) {
-    // 潮汐表格
     if (type === "tide") {
         document.getElementById('table-title').textContent = `實時潮汐 數據表格`;
         tableBody.innerHTML = "";
         tideDataList.forEach(item => {
-            const name = item.name;
-            const code = item.code;
-            const val = item.tideHeight;
-            const displayVal = val + " cm";
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${displayVal}</td>`;
+            tr.innerHTML = `<td>${item.name}</td><td>${item.code}</td><td>${item.tideHeight} cm</td>`;
             tableBody.appendChild(tr);
         });
         return;
@@ -252,15 +237,11 @@ function renderDataTable(type) {
     });
 }
 
-// API: Fetch weather data
 function fetchWeatherData() {
     const cacheBuster = Date.now();
     const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
     return fetch(url, { cache: "no-store" })
-        .then(res => {
-            if (!res.ok) throw new Error("Weather fetch fail");
-            return res.text();
-        })
+        .then(res => { if (!res.ok) throw new Error("Weather fetch fail"); return res.text(); })
         .then(xmlStr => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
@@ -311,15 +292,11 @@ function fetchWeatherData() {
         });
 }
 
-// API: Fetch water level data
 function fetchFloodData() {
     const cacheBuster = Date.now();
     const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_ftgms.xml?t=${cacheBuster}`;
     return fetch(url, { cache: "no-store" })
-        .then(res => {
-            if (!res.ok) throw new Error("Flood fetch fail");
-            return res.text();
-        })
+        .then(res => { if (!res.ok) throw new Error("Flood fetch fail"); return res.text(); })
         .then(xmlStr => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
@@ -339,21 +316,14 @@ function fetchFloodData() {
         .catch(err => console.error("水位數據載入失敗：", err));
 }
 
-// API: Fetch tide data
 function fetchTideData() {
     return fetch(TIDE_API, { headers: TIDE_HEADERS })
-        .then(res => {
-            if (!res.ok) throw new Error("Tide API Error");
-            return res.text();
-        })
+        .then(res => { if (!res.ok) throw new Error("Tide API Error"); return res.text(); })
         .then(xmlStr => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
             const item = xmlDoc.querySelector("item");
-            if (!item) {
-                tideDataList = [];
-                return;
-            }
+            if (!item) { tideDataList = []; return; }
             const tideDate = item.querySelector("date").textContent;
             const tideTime = item.querySelector("time").textContent;
             const tideHeight = item.querySelector("recordTide").textContent;
@@ -366,7 +336,6 @@ function fetchTideData() {
                 tideTime: fullTime
             }));
 
-            // 同步時間戳
             document.getElementById("pub-date").textContent = fullTime;
             document.getElementById("time-stamp").textContent = fullTime;
         })
@@ -376,7 +345,6 @@ function fetchTideData() {
         });
 }
 
-// Load all data & refresh UI
 function loadAllData() {
     Promise.all([fetchWeatherData(), fetchFloodData(), fetchTideData()])
         .then(() => {
@@ -388,13 +356,8 @@ function loadAllData() {
         .catch(err => console.error("整體數據載入失敗：", err));
 }
 
-// Bind all events
 function bindEvents() {
-    document.querySelectorAll('.group-toggle').forEach(toggle => {
-        toggle.addEventListener('click', () => toggle.nextElementSibling.classList.toggle('show'));
-    });
-
-    // Tab switch
+    // 刪除不存在的 .group-toggle 綁定
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -408,7 +371,6 @@ function bindEvents() {
         });
     });
 
-    // View switch
     document.getElementById('btn-map').addEventListener('click', function () {
         this.classList.add('active');
         document.getElementById('btn-table').classList.remove('active');
@@ -423,7 +385,6 @@ function bindEvents() {
         renderDataTable(currentTab);
     });
 
-    // Table sort buttons
     document.getElementById('sort-default').addEventListener('click', () => {
         tableSortType = "default";
         renderDataTable(currentTab);
@@ -438,10 +399,9 @@ function bindEvents() {
     });
 }
 
-// Page entry
 window.addEventListener('DOMContentLoaded', () => {
     initMap();
     bindEvents();
     loadAllData();
-    setInterval(loadAllData, 300000); // 5分鐘全域自動刷新
+    setInterval(loadAllData, 300000);
 });
