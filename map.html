@@ -648,7 +648,7 @@ function updateLegendPanel(tabType) {
     const legendContent = document.getElementById('legend-content');
     let legendHTML = '';
     switch(tabType) {
-        case "tempCurrent":case "tempMax":case "apparentTemp":
+        case "tempCurrent":case "tempMax":case "tempMin":case "apparentTemp":
             legendHTML = `
             <div class="legend-item"><div class="legend-color" style="background:#330101"></div>極為酷熱</div>
             <div class="legend-item"><div class="legend-color" style="background:#8d1919"></div>非常酷熱</div>
