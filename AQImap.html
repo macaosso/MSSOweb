@@ -525,27 +525,40 @@ document.querySelectorAll('.sort-btn').forEach(b=>b.onclick=()=>renderDataTable(
 
 // 固定讀取你倉庫已存在的data.json
 async function fetchAirData() {
-    const url = `https://raw.githubusercontent.com/macaosso/MSSOweb/main/data.json?_t=${Date.now()}`;
-    try{
-        const res=await fetch(url,{cache:"no-store"});
-        if(!res.ok) throw new Error("404");
-        const json=await res.json();
-        const records=json.records||[],pubTime=json.publishTime||"未知時間";
-        document.getElementById("pub-date").textContent=pubTime;
-        document.getElementById("time-stamp").textContent=pubTime;
-        airDataList=[];singleCardBox.innerHTML='<div class="empty-tip">請點擊地圖上圓圈查看監測站數據</div>';
-        records.forEach(rec=>{
-            const sName=rec.siteName||"未知站點";
+    // Proxy to bypass browser CORS for github raw
+    const url = `https://cdn.jsdelivr.net/gh/macaosso/MSSOweb@main/data.json?_t=${Date.now()}`;
+    try {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error(res.status);
+        const json = await res.json();
+        const records = json.records || [];
+        const pubTime = json.publishTime || "未知時間";
+
+        document.getElementById("pub-date").textContent = pubTime;
+        document.getElementById("time-stamp").textContent = pubTime;
+        airDataList = [];
+        singleCardBox.innerHTML = '<div class="empty-tip">請點擊地圖上圓圈查看監測站數據</div>';
+
+        records.forEach(rec => {
+            const sName = rec.siteName || "未知站點";
             airDataList.push({
-                name:sName,pubTime:pubTime,
-                aqi:rec.AQI??'--',pm10:rec.PM10??'--',pm25:rec.PM2_5??'--',
-                no2:rec.NO2??'--',so2:rec.SO2??'--',o3:rec.O3??'--',co:rec.CO??'--'
+                name: sName,
+                pubTime: pubTime,
+                aqi: rec.AQI ?? '--',
+                pm10: rec.PM10 ?? '--',
+                pm25: rec.PM2_5 ?? '--',
+                no2: rec.NO2 ?? '--',
+                so2: rec.SO2 ?? '--',
+                o3: rec.O3 ?? '--',
+                co: rec.CO ?? '--'
             })
         })
-        updateMapMarkers();updateLegendPanel(currentTab);renderDataTable(currentTab);
-    }catch(err){
-        console.error(err);
-        document.getElementById("pub-date").textContent="數據載入失敗";
+        updateMapMarkers();
+        updateLegendPanel(currentTab);
+        renderDataTable(currentTab);
+    } catch (err) {
+        console.error('Load error:', err);
+        document.getElementById("pub-date").textContent = "數據載入失敗";
     }
 }
 
