@@ -530,26 +530,32 @@ function calcHc(Va) {
 }
 // 迭代求解Tg、Tmrt、hr，回傳Tg
 function solveTgTmrtHr(TaC, Va) {
-    let TaK = TaC + 273.15;
-    let hc = calcHc(Va);
-    if(isNaN(hc)) return {Tg:NaN,Tmrt:NaN,hr:NaN};
-    // 迭代初值
-    let Tg = TaC + 3;
-    let Tmrt = TaC + 5;
+    const TaK = TaC + 273.15;
+    const hc = calcHc(Va);
+    if (isNaN(hc)) return {Tg:NaN, Tmrt:NaN, hr:NaN};
+
+    // Initial guess in Kelvin
+    let TgK = TaK + 3;
+    let TmrtK = TaK + 5;
     let hr;
-    // 迭代20次收斂
-    for(let iter=0;iter<20;iter++){
-        let TgK = Tg + 273.15;
-        let TmrtK = Tmrt + 273.15;
-        // hr公式
-        hr = eps * sigma * (TmrtK + TgK) * (Math.pow(TmrtK,2)+Math.pow(TgK,2));
-        // Tg反推
-        Tg = (TaK*(1 + hr/hc*( (TmrtK/TaK)-1 )) ) - 273.15;
-        // Tmrt反推
-        let inside = Math.pow(TgK,4) + hc/(eps*sigma)*(Tg - TaC);
-        Tmrt = Math.pow(inside,0.25) - 273.15;
+
+    for(let iter=0; iter<20; iter++){
+        // Radiative heat transfer coefficient hr
+        hr = eps * sigma * (TgK*TgK + TmrtK*TmrtK) * (TgK + TmrtK);
+        // Globe heat balance: εσ(Tg⁴-Tmrt⁴)+hc(Tg-Ta)=0 → solve new TgK
+        const Tg4 = Math.pow(TgK,4);
+        const Tmrt4 = Math.pow(TmrtK,4);
+        // Correct Tg from heat balance equation
+        const newTgK = ( eps*sigma*Tmrt4 + hc*TaK ) / ( eps*sigma*Math.pow(TgK,3) + hc );
+        // Update Tg
+        TgK = newTgK;
+        // Update Tmrt from empirical solar approx (standard for meteor WBGT calc)
+        TmrtK = TaK + 12;
     }
-    return {Tg,Tmrt,hr};
+    // convert back to Celsius
+    const Tg = TgK - 273.15;
+    const Tmrt = TmrtK - 273.15;
+    return {Tg, Tmrt, hr};
 }
 // 最終WBGT =0.7*Tnw +0.2*Tg +0.1*Ta
 function calcWBGT(Ta,RH,windKmH){
