@@ -384,12 +384,12 @@
 
 <script>
 const airStations = {
-    "台山": { code: "TS", lat: 22.2143048, lng: 113.5430605 },
-    "荷蘭園": { code: "HL", lat: 22.1957226, lng: 113.5447928 },
-    "氹仔中心區": { code: "TZ", lat: 22.1585991, lng: 113.5555425 },
-    "大潭山": { code: "DT", lat: 22.1594111, lng: 113.5684563 },
-    "石排灣": { code: "SP", lat: 22.1250727, lng: 113.5544267 },
-    "九澳": { code: "JA", lat: 22.1330617, lng: 113.5835098 }
+    "荷蘭園（路邊）": { code: "PO", lat: 22.1957226, lng: 113.5447928 },
+    "九澳（路邊）": { code: "KH", lat: 22.1330617, lng: 113.5835098 },
+    "台山（高密度住宅區）": { code: "EN", lat: 22.2143048, lng: 113.5430605 },
+    "氹仔中心區（高密度住宅區）": { code: "TC", lat: 22.1585991, lng: 113.5555425 },
+    "大潭山（一般性）": { code: "TG", lat: 22.1594111, lng: 113.5684563 },
+    "石排灣（一般性）": { code: "CD", lat: 22.1250727, lng: 113.5544267 }
 };
 
 const fieldMap = {
@@ -538,26 +538,26 @@ async function fetchAirData() {
         singleCardBox.innerHTML = '<div class="empty-tip">請點擊地圖上圓圈查看監測站數據</div>';
 
         const stationKeys = Object.keys(json).filter(k => k !== 'datetime');
-        console.log("All station raw keys:", stationKeys);
-
         stationKeys.forEach(key => {
             const rec = json[key];
-            const sName = rec.siteName;
-            console.log("Raw siteName from JSON:", sName);
+            const sName = rec.Chinese; // JSON uses Chinese instead of siteName
+
+            // Calculate AQI temporarily from PM2.5 for color display
+            const pm25 = Number(rec.HE_PM2_5);
+            let calcAQI = pm25;
 
             airDataList.push({
                 name: sName,
                 pubTime: pubTime,
-                aqi: rec.AQI ?? '--',
-                pm10: rec.PM10 ?? '--',
-                pm25: rec.PM2_5 ?? '--',
-                no2: rec.NO2 ?? '--',
-                so2: rec.SO2 ?? '--',
-                o3: rec.O3 ?? '--',
-                co: rec.CO ?? '--'
+                aqi: calcAQI,
+                pm10: rec.HE_PM10,
+                pm25: rec.HE_PM2_5,
+                no2: rec.HE_NO2,
+                so2: rec.HE_SO2,
+                o3: rec.HE_O3,
+                co: rec.HE_CO
             })
         })
-        console.log("Final airDataList", airDataList);
 
         updateMapMarkers();
         updateLegendPanel(currentTab);
