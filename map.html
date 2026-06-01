@@ -1088,9 +1088,9 @@ function updateMapMarkers() {
                 const wbgtNum = parseFloat(showVal);
                 if(isNaN(wbgtNum)) skipMarker = true;
                 break;
-            case "rain1m": showVal = point.rain1m; bgColor = getRain1hColor(showVal); break;
+            case "rain1m": showVal = point.rain1m; bgColor = getRain1mColor(showVal); break;
             case "rain1h": showVal = point.rain1h; bgColor = getRain1hColor(showVal); break;
-            case "rainTotal": showVal = point.rainTotal; bgColor = getRainDayColor(showVal); break;
+            case "rainTotal": showVal = point.rainTotal; bgColor = getRainTotalColor(showVal); break;
             case "waterLevel":
                 showVal = point.waterLevel;
                 // Skip empty/-- value
