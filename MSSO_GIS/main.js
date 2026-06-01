@@ -211,75 +211,65 @@ function renderDataTable(type) {
     document.getElementById('table-title').textContent = `${label} 數據表格`;
     tableBody.innerHTML = "";
 
-    let sourceList, stationList;
-    if (type === "waterLevel") {
-        sourceList = floodDataList;
-        stationList = waterStations;
-    } else {
-        sourceList = pointDataList;
-        stationList = Object.entries(weatherStations).map(([name, info]) => ({ name, ...info }));
-    }
+    let sourceList = type === "waterLevel" ? floodDataList : pointDataList;
+    let stationPool = type === "waterLevel" ? waterStations : Object.entries(weatherStations).map(([name, info]) => ({ name, ...info }));
 
-    // 排序處理
-    let tempList = [...sourceList];
     if (tableSortType !== "default") {
-        tempList.sort((a, b) => {
-            let valA = parseFloat(a[field]) || 0;
-            let valB = parseFloat(b[field]) || 0;
+        sourceList = [...sourceList].sort((a, b) => {
+            const valA = parseFloat(a[field]) || 0;
+            const valB = parseFloat(b[field]) || 0;
             return tableSortType === "desc" ? valB - valA : valA - valB;
         });
     }
 
-    tempList.forEach(item => {
+    sourceList.forEach(item => {
         const val = item[field];
         if (val === '--' || val === '') return;
 
-        const station = stationList.find(s => s.name === item.name);
+        const name = item.name;
+        const station = stationPool.find(s => s.name === name);
         const code = station ? station.code : "";
-        const showVal = unit ? `${val} ${unit}` : val;
+        const displayVal = val + (unit ? " " + unit : "");
 
         const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${item.name}</td><td>${code}</td><td>${showVal}</td>`;
+        tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${displayVal}</td>`;
         tableBody.appendChild(tr);
     });
 }
 
 function fetchWeatherData() {
-    const cacheStamp = Date.now();
-    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheStamp}`;
+    const cacheBuster = Date.now();
+    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
     return fetch(url, { cache: "no-store" })
-        .then(res => {
-            if (!res.ok) throw new Error("氣象資料請求失敗");
-            return res.text();
-        })
+        .then(res => { if (!res.ok) throw new Error("Weather fetch fail"); return res.text(); })
         .then(xmlStr => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
-            const pubTime = xmlDoc.querySelector("SysPubTime")?.textContent || "未知時間";
+            const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent || "未知";
             document.getElementById("pub-date").textContent = pubTime;
             document.getElementById("time-stamp").textContent = pubTime;
 
-            const stationNodes = xmlDoc.querySelectorAll("WeatherReport > Station");
+            const stations = xmlDoc.querySelectorAll("WeatherReport station");
             pointDataList = [];
-            stationNodes.forEach(sta => {
-                const name = sta.querySelector("StationName")?.textContent?.trim() || "";
-                if (!name) return;
+            singleCardBox.innerHTML = '<div class="empty-tip">請點擊地圖上圓圈查看測站數據</div>';
 
-                const temp = extractNodeValue("Temperature", sta);
-                const tempMax = extractNodeValue("Temperature_Daily_Max", sta);
-                const tempMin = extractNodeValue("Temperature_Daily_Min", sta);
-                const humidity = extractNodeValue("Humidity", sta);
-                const windSpeed = extractNodeValue("WindSpeed", sta);
-                const windGust = extractNodeValue("WindGust", sta);
-                const pressSea = extractNodeValue("MeanSeaLevelPressure", sta);
-                const pressStation = extractNodeValue("StationPressure", sta);
-                const windDirNode = sta.querySelector("WindDirection");
-                const windDir = windDirNode ? (windDirNode.querySelector("dValue")?.textContent || "") : "";
+            stations.forEach(station => {
+                const name = station.querySelector("stationname")?.textContent || "";
+                const temp = extractNodeValue("Temperature", station);
+                const tempMax = extractNodeValue("Temperature_daily_max", station);
+                const tempMin = extractNodeValue("Temperature_daily_min", station);
+                const humidity = extractNodeValue("Humidity", station);
+                const windSpeed = extractNodeValue("WindSpeed", station);
+                const windGust = extractNodeValue("WindGust", station);
+                const pressSea = extractNodeValue("MeanSeaLevelPressure", station);
+                const pressStation = extractNodeValue("StationPressure", station);
+                const windDirNode = station.querySelector("WindDirection");
+                const windDir = windDirNode?.querySelector("dValue")?.textContent || "";
 
-                let rain1m = "--", rain1h = "--", rainTotal = "--";
-                sta.querySelectorAll("Rainfall").forEach(rf => {
-                    const type = rf.querySelector("Type")?.textContent;
-                    const val = rf.querySelector("dValue")?.textContent || "";
+                let rain1m = "", rain1h = "", rainTotal = "";
+                station.querySelectorAll("Rainfall").forEach(r => {
+                    const type = r.querySelector("Type")?.textContent;
+                    const val = r.querySelector("dValue")?.textContent || "";
                     if (type === "3") rain1m = val;
                     if (type === "4") rain1h = val;
                     if (type === "5") rainTotal = val;
@@ -287,15 +277,15 @@ function fetchWeatherData() {
 
                 const T = parseFloat(temp);
                 const RH = parseFloat(humidity);
-                const WS = parseFloat(windSpeed);
-                const apparentTemp = calculateApparentTemp(T, RH, WS);
+                const windSpeedKmH = parseFloat(windSpeed);
+                const apparentTemp = calculateApparentTemp(T, RH, windSpeedKmH);
                 const heatIndex = calculateHeatIndex(T, RH);
                 const dewPoint = calculateDewPoint(T, RH);
 
                 pointDataList.push({
                     name, temp, tempMax, tempMin, humidity, windDir,
-                    windSpeed, windGust, pressSea, pressStation,
-                    rain1m, rain1h, rainTotal, apparentTemp, heatIndex, dewPoint,
+                    windSpeed, windGust, rain1m, rain1h, rainTotal,
+                    pressSea, pressStation, apparentTemp, heatIndex, dewPoint,
                     waterLevel: "--"
                 });
             });
@@ -303,51 +293,56 @@ function fetchWeatherData() {
 }
 
 function fetchFloodData() {
-    const cacheStamp = Date.now();
-    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_flood.xml?t=${cacheStamp}`;
+    const cacheBuster = Date.now();
+    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_ftgms.xml?t=${cacheBuster}`;
     return fetch(url, { cache: "no-store" })
-        .then(res => {
-            if (!res.ok) throw new Error("水位資料請求失敗");
-            return res.text();
-        })
+        .then(res => { if (!res.ok) throw new Error("Flood fetch fail"); return res.text(); })
         .then(xmlStr => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
-            const stationNodes = xmlDoc.querySelectorAll("WLReport > Station");
+            const stations = xmlDoc.querySelectorAll("WLReport station") || xmlDoc.querySelectorAll("station");
             floodDataList = [];
-            stationNodes.forEach(sta => {
-                const name = sta.querySelector("StationName")?.textContent?.trim() || "";
-                if (!name) return;
-                const waterLevel = extractNodeValue("WaterLevel", sta);
+
+            stations.forEach(station => {
+                const name = station.querySelector("stationname")?.textContent || "未知監測點";
+                let waterLevel = "--";
+                const wlNode = station.querySelector("WaterLevel") || station.querySelector("Value") || station.querySelector("dValue");
+                if (wlNode) waterLevel = wlNode.textContent.trim();
+                if (!waterLevel || waterLevel === "") waterLevel = "--";
+
                 floodDataList.push({ name, waterLevel });
             });
-        });
+        })
+        .catch(err => console.error("水位數據載入失敗：", err));
 }
 
 function fetchTideData() {
-    const cacheStamp = Date.now();
-    const url = `${TIDE_API}?t=${cacheStamp}`;
-    return fetch(url, {
-        method: "GET",
-        headers: TIDE_HEADERS,
-        cache: "no-store"
-    })
-    .then(res => {
-        if (!res.ok) throw new Error("潮汐資料請求失敗");
-        return res.text();
-    })
-    .then(xmlStr => {
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
-        const itemNodes = xmlDoc.querySelectorAll("CurrentTide > Item");
-        tideDataList = [];
-        itemNodes.forEach(item => {
-            const name = item.querySelector("StationName")?.textContent?.trim() || "";
-            const tideHeight = item.querySelector("TideHeight")?.textContent?.trim() || "--";
-            const tideTime = item.querySelector("ObsTime")?.textContent?.trim() || "--";
-            tideDataList.push({ name, tideHeight, tideTime });
+    return fetch(TIDE_API, { headers: TIDE_HEADERS })
+        .then(res => { if (!res.ok) throw new Error("Tide API Error"); return res.text(); })
+        .then(xmlStr => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
+            const item = xmlDoc.querySelector("item");
+            if (!item) { tideDataList = []; return; }
+            const tideDate = item.querySelector("date").textContent;
+            const tideTime = item.querySelector("time").textContent;
+            const tideHeight = item.querySelector("recordTide").textContent;
+            const fullTime = `${tideDate} ${tideTime}`;
+
+            tideDataList = tideStations.map(sta => ({
+                name: sta.name,
+                code: sta.code,
+                tideHeight: tideHeight,
+                tideTime: fullTime
+            }));
+
+            document.getElementById("pub-date").textContent = fullTime;
+            document.getElementById("time-stamp").textContent = fullTime;
+        })
+        .catch(err => {
+            console.error("潮汐數據載入失敗：", err);
+            tideDataList = [];
         });
-    });
 }
 
 function loadAllData() {
@@ -358,13 +353,11 @@ function loadAllData() {
             renderDataTable(currentTab);
             singleCardBox.innerHTML = '<div class="empty-tip">請點擊地圖上圓圈查看測站數據</div>';
         })
-        .catch(err => {
-            console.error("資料載入異常：", err);
-        });
+        .catch(err => console.error("整體數據載入失敗：", err));
 }
 
 function bindEvents() {
-    // 分類標籤按鈕
+    // 刪除不存在的 .group-toggle 綁定
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -378,46 +371,37 @@ function bindEvents() {
         });
     });
 
-    // 視圖切換：地圖 / 表格
-    const btnMap = document.getElementById("btn-map");
-    const btnTable = document.getElementById("btn-table");
-    const mapView = document.getElementById("map-view");
-    const tableView = document.getElementById("table-view");
-
-    btnMap.addEventListener("click", () => {
-        btnMap.classList.add("active");
-        btnTable.classList.remove("active");
-        mapView.classList.remove("hide");
-        tableView.classList.add("hide");
+    document.getElementById('btn-map').addEventListener('click', function () {
+        this.classList.add('active');
+        document.getElementById('btn-table').classList.remove('active');
+        document.getElementById('map-view').classList.remove('hide');
+        document.getElementById('table-view').classList.add('hide');
+    });
+    document.getElementById('btn-table').addEventListener('click', function () {
+        this.classList.add('active');
+        document.getElementById('btn-map').classList.remove('active');
+        document.getElementById('map-view').classList.add('hide');
+        document.getElementById('table-view').classList.remove('hide');
+        renderDataTable(currentTab);
     });
 
-    btnTable.addEventListener("click", () => {
-        btnTable.classList.add("active");
-        btnMap.classList.remove("active");
-        mapView.classList.add("hide");
-        tableView.classList.remove("hide");
-    });
-
-    // 表格排序按鈕
-    document.getElementById("sort-default").addEventListener("click", () => {
+    document.getElementById('sort-default').addEventListener('click', () => {
         tableSortType = "default";
         renderDataTable(currentTab);
     });
-    document.getElementById("sort-desc").addEventListener("click", () => {
+    document.getElementById('sort-desc').addEventListener('click', () => {
         tableSortType = "desc";
         renderDataTable(currentTab);
     });
-    document.getElementById("sort-asc").addEventListener("click", () => {
+    document.getElementById('sort-asc').addEventListener('click', () => {
         tableSortType = "asc";
         renderDataTable(currentTab);
     });
 }
 
-// 頁面載入完成初始化
 window.addEventListener('DOMContentLoaded', () => {
     initMap();
     bindEvents();
     loadAllData();
-    // 5分鐘自動重新整理資料
     setInterval(loadAllData, 300000);
 });
