@@ -41,6 +41,23 @@ const waterStations = [
     { name: "石排灣", code: "SPW", lat: 22.131648, lng: 113.562820 },
     { name: "聖方濟各堂", code: "SFJ", lat: 22.117434, lng: 113.551004 }
 ];
+// -------- 空氣品質測站 --------
+const airStations = [
+  { name: "台山",   lat: 22.2143048, lng: 113.5430605, code: "EN" },
+  { name: "荷蘭園", lat: 22.1957226, lng: 113.5447928, code: "PO" },
+  { name: "氹仔中心區", lat: 22.1585991, lng: 113.5555425, code: "TC" },
+  { name: "大潭山", lat: 22.1594111, lng: 113.5684563, code: "TG" },
+  { name: "石排灣", lat: 22.1250727, lng: 113.5544267, code: "CD" },
+  { name: "九澳",   lat: 22.1330617, lng: 113.5835098, code: "KH" }
+];
+
+// -------- 空氣品質欄位 --------
+fieldMap.no2      = { field: "NO2",      label: "二氧化氮 NO2",   unit: "μg/m³" };
+fieldMap.pm25     = { field: "PM2_5",    label: "細懸浮 PM2.5",  unit: "μg/m³" };
+fieldMap.pm10     = { field: "PM10",     label: "懸浮微粒 PM10", unit: "μg/m³" };
+fieldMap.so2      = { field: "SO2",      label: "二氧化硫 SO2",   unit: "μg/m³" };
+fieldMap.o3       = { field: "O3",       label: "臭氧 O3",        unit: "μg/m³" };
+fieldMap.co       = { field: "CO",       label: "一氧化碳 CO",   unit: "mg/m³" };
 
 // Field mapping for table header
 const fieldMap = {
