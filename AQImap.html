@@ -485,12 +485,12 @@ function renderTable(){
     })
 }
 
-//預報
+//預報改用 corsproxy.io
 async function loadForecast(){
     const tbF=document.getElementById('forecast-body'),tbTip=document.getElementById('tip-body');
     tbF.innerHTML='<tr><td colspan="4">載入預報</td>';tbTip.innerHTML='';
     try{
-        const proxy='https://api.allorigins.win/raw?url=';
+        const proxy='https://corsproxy.io/?';
         const xml=await fetch(proxy+encodeURIComponent('https://xml.smg.gov.mo/c_foreiqa.xml'));
         const txt=await xml.text();
         const doc=new DOMParser().parseFromString(txt,'text/xml');
@@ -514,9 +514,9 @@ async function loadForecast(){
     }catch(e){tbF.innerHTML='<tr><td colspan="4">預報獲取失敗</td>';console.error(e);}
 }
 
-//實況SMG官方JSON
+//實況SMG官方JSON corsproxy.io
 async function loadReal(){
-    const proxy='https://api.allorigins.win/raw?url=';
+    const proxy='https://corsproxy.io/?';
     const url=proxy+encodeURIComponent('https://www.smg.gov.mo/opendata/AirQualityData.json?_='+Date.now());
     try{
         const res=await fetch(url,{cache:'no-store'});
