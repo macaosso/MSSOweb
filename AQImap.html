@@ -523,12 +523,12 @@ document.getElementById('btn-map').onclick=function(){this.classList.add('active
 document.getElementById('btn-table').onclick=function(){this.classList.add('active');document.getElementById('btn-map').classList.remove('active');document.getElementById('map-view').classList.add('hide');document.getElementById('table-view').classList.remove('hide');renderDataTable(currentTab);}
 document.querySelectorAll('.sort-btn').forEach(b=>b.onclick=()=>renderDataTable(currentTab,b.dataset.sort));
 
-// ====== 關鍵：雙備用跨域鏈接，優先allorigins，失敗切換github（等action跑完自動切）
+// 固定讀取你倉庫已存在的data.json
 async function fetchAirData() {
-    let url = `https://api.allorigins.win/raw?url=https://www.smg.gov.mo/smg/airQuality/latestAirConcentration.json&_t=${Date.now()}`;
+    const url = `https://raw.githubusercontent.com/macaosso/MSSOweb/main/data.json?_t=${Date.now()}`;
     try{
         const res=await fetch(url,{cache:"no-store"});
-        if(!res.ok)throw new Error();
+        if(!res.ok) throw new Error("404");
         const json=await res.json();
         const records=json.records||[],pubTime=json.publishTime||"未知時間";
         document.getElementById("pub-date").textContent=pubTime;
@@ -544,29 +544,8 @@ async function fetchAirData() {
         })
         updateMapMarkers();updateLegendPanel(currentTab);renderDataTable(currentTab);
     }catch(err){
-        console.log("備用源:",err);
-        // allorigins掛了自動切github
-        const url2=`https://raw.githubusercontent.com/macaosso/MSSOweb/main/data.json?_t=${Date.now()}`;
-        try{
-            const res2=await fetch(url2,{cache:"no-store"});
-            const json=await res2.json();
-            const records=json.records||[],pubTime=json.publishTime||"未知時間";
-            document.getElementById("pub-date").textContent=pubTime;
-            document.getElementById("time-stamp").textContent=pubTime;
-            airDataList=[];singleCardBox.innerHTML='<div class="empty-tip">請點擊地圖上圓圈查看監測站數據</div>';
-            records.forEach(rec=>{
-                const sName=rec.siteName||"未知站點";
-                airDataList.push({
-                    name:sName,pubTime:pubTime,
-                    aqi:rec.AQI??'--',pm10:rec.PM10??'--',pm25:rec.PM2_5??'--',
-                    no2:rec.NO2??'--',so2:rec.SO2??'--',o3:rec.O3??'--',co:rec.CO??'--'
-                })
-            })
-            updateMapMarkers();updateLegendPanel(currentTab);renderDataTable(currentTab);
-        }catch(e2){
-            console.error("全部源失敗",e2);
-            document.getElementById("pub-date").textContent="數據獲取失敗";
-        }
+        console.error(err);
+        document.getElementById("pub-date").textContent="數據載入失敗";
     }
 }
 
