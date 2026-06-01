@@ -75,29 +75,20 @@
         .tab-group {
             margin-bottom: 10px;
         }
-        .group-toggle {
-            width: 100%;
-            text-align: left;
-            padding: 8px 12px;
-            border: none;
-            border-radius: 6px;
-            background: #e8edf2;
-            cursor: pointer;
-            font-size: 0.9rem;
-            margin-bottom: 6px;
-        }
-        .group-toggle:hover {
-            background: #d0d9e2;
+        .group-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0 0 8px 0;
+            padding: 4px 0;
         }
         .group-buttons {
-            display: none;
+            display: flex;
             flex-wrap: wrap;
             gap: 8px;
             padding-left: 10px;
         }
-        .group-buttons.show {
-            display: flex;
-        }
+
         .tab-btn {
             padding: 8px 12px;
             border: none;
@@ -366,7 +357,17 @@
         .data-table tr:hover {
             background: #f8fafc;
         }
-
+        .time-stamp-indicator {
+            position: absolute;
+            top: 60px; /* 在時間戳下方，調整位置避免重疊 */
+            right: 25px;
+            background: rgba(42, 82, 152, 0.9); /* 和主題藍色一致 */
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            z-index: 1000;
+        }
         /* 隱藏區塊 */
         .hide {
             display: none !important;
@@ -395,46 +396,26 @@
     <!-- 分類折疊面板 -->
     <div class="tab-wrapper" id="main-tab">
         <div class="tab-group">
-            <button class="group-toggle">溫度 ▼</button>
-            <div class="group-buttons">
+            <h3 class="group-title">氣象數據</h3>
+            <div class="group-buttons show">
                 <button class="tab-btn active" data-type="tempCurrent">實時氣溫</button>
                 <button class="tab-btn" data-type="tempMax">最高氣溫</button>
                 <button class="tab-btn" data-type="tempMin">最低氣溫</button>
-            </div>
-        </div>
-        <div class="tab-group">
-            <button class="group-toggle">體感及酷熱指數 ▼</button>
-            <div class="group-buttons">
                 <button class="tab-btn" data-type="apparentTemp">體感溫度</button>
                 <button class="tab-btn" data-type="heatIndex">酷熱指數</button>
-            </div>
-        </div>
-        <div class="tab-group">
-            <button class="group-toggle">露點及相對濕度 ▼</button>
-            <div class="group-buttons">
                 <button class="tab-btn" data-type="dewPoint">露點溫度</button>
                 <button class="tab-btn" data-type="humidity">相對濕度</button>
-            </div>
-        </div>
-        <div class="tab-group">
-            <button class="group-toggle">風力 ▼</button>
-            <div class="group-buttons">
                 <button class="tab-btn" data-type="windDir">風向</button>
                 <button class="tab-btn" data-type="windSpeed">風速</button>
                 <button class="tab-btn" data-type="windGust">陣風</button>
-            </div>
-        </div>
-        <div class="tab-group">
-            <button class="group-toggle">氣壓 ▼</button>
-            <div class="group-buttons">
                 <button class="tab-btn" data-type="pressSea">海平面氣壓</button>
                 <button class="tab-btn" data-type="pressStation">站氣壓</button>
             </div>
         </div>
         <!-- 新增水位/積水分類 -->
         <div class="tab-group">
-            <button class="group-toggle">水位/積水 ▼</button>
-            <div class="group-buttons">
+            <h3 class="group-toggle">水位▼</h3>
+            <div class="group-buttons show">
                 <button class="tab-btn" data-type="waterLevel">實時水位</button>
             </div>
         </div>
@@ -445,6 +426,7 @@
         <div class="map-card">
             <div id="macau-map"></div>
             <div id="time-stamp" class="time-stamp"></div>
+            <div id="current-indicator" class="time-stamp-indicator"></div>
             <div id="map-legend" class="map-legend">
                 <h4>圖例</h4>
                 <div id="legend-content" class="legend-items"></div>
@@ -696,20 +678,17 @@ let pointDataList = [];
 let floodDataList = [];
 const singleCardBox = document.getElementById("single-card-box");
 
-// 折疊分組按鈕事件
-document.querySelectorAll('.group-toggle').forEach(toggle => {
-    toggle.addEventListener('click', () => {
-        const btnGroup = toggle.nextElementSibling;
-        btnGroup.classList.toggle('show');
-    });
-});
-
 // 分類按鈕切換
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         currentTab = btn.dataset.type;
+
+        // 新增：更新地圖上的指標顯示
+        const labelText = fieldMap[currentTab]?.label || currentTab;
+        document.getElementById('current-indicator').textContent = `當前指標：${labelText}`;
+
         updateMapMarkers();
         updateLegendPanel(currentTab);
         renderDataTable(currentTab);
