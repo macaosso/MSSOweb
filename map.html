@@ -945,7 +945,10 @@ function renderDataTable(type) {
         const name = item.name;
         const code = weatherPoints[name]?.code || "";
         let val = item[field];
-        let displayVal = val === '--' ? '--' : val + (unit ? " " + unit : "");
+        // Skip row if no data
+        if (val === '--' || val === '') return;
+    
+        let displayVal = val + (unit ? " " + unit : "");
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${displayVal}</td>`;
         tbody.appendChild(tr);
@@ -1027,14 +1030,15 @@ function fetchFloodData() {
             floodDataList = [];
 
             stations.forEach(station => {
-                const name = station.querySelector("stationname")?.textContent || "未知監測點";
+                // Add .trim() to fix name space mismatch
+                const name = (station.querySelector("stationname")?.textContent || "未知監測點").trim();
                 let waterLevel = "--";
                 const wlNode = station.querySelector("dValue");
                 if(wlNode){
                     waterLevel = wlNode.textContent.trim();
                 }
                 if (!waterLevel || waterLevel === "") waterLevel = "--";
-
+            
                 floodDataList.push({
                     name: name,
                     waterLevel: waterLevel
