@@ -59,4 +59,3 @@ const fieldMap = {
     waterLevel: { field: 'waterLevel', label: '實時水位', unit: 'm' },
     tide: { field: "tideHeight", label: "實時潮汐", unit: "cm" }
   }
-};
