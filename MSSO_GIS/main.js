@@ -1,38 +1,21 @@
-// Global variables
-let map;
-let allMarkers = [];
-let currentTab = "tempCurrent";
-let pointDataList = [];
-let floodDataList = [];
-let tideDataList = [];
-let airDataList = [];
-let tableSortType = "default";
+let map, allMarkers = [],
+    currentTab = "tempCurrent",
+    pointDataList = [],
+    floodDataList = [],
+    tideDataList = [],
+    airDataList = [],
+    tableSortType = "default";
 
-// API URLs (100% working proxy)
+const singleCardBox = document.getElementById("single-card-box");
+const tableBody = document.getElementById("table-body");
+
+// API 改用最穩定代理
 const PROXY = "https://corsproxy.dev/?url=";
 const WEATHER_API = PROXY + encodeURIComponent("https://xml.smg.gov.mo/c_actualweather.xml");
 const FLOOD_API = PROXY + encodeURIComponent("https://xml.smg.gov.mo/c_ftgms.xml");
 const TIDE_API = PROXY + encodeURIComponent("https://dsama.apigateway.data.gov.mo/currentTideXmlApi");
 const AIR_API = "https://www.smg.gov.mo/smg/airQuality/latestAirConcentration.json";
 
-// Station lists
-const tideStations = [
-    { name: "媽閣", code: "SBR", lat: 22.186720, lng: 113.530000 },
-    { name: "青洲塘", code: "SDV", lat: 22.208934, lng: 113.539580 }
-];
-const airStations = [
-    { name: "荷蘭園", code: "PO", lat: 22.1957226, lng: 113.5447928 },
-    { name: "九澳", code: "KH", lat: 22.1330617, lng: 113.5835098 },
-    { name: "台山", code: "EN", lat: 22.2143048, lng: 113.5430605 },
-    { name: "氹仔中心區", code: "TC", lat: 22.1585991, lng: 113.5555425 },
-    { name: "大潭山", code: "TG", lat: 22.1594111, lng: 113.5684563 },
-    { name: "石排灣", code: "CD", lat: 22.1250727, lng: 113.5544267 }
-];
-
-const singleCardBox = document.getElementById("single-card-box");
-const tableBody = document.getElementById("table-body");
-
-// Map Init
 function initMap() {
     map = L.map('macau-map').setView([22.17, 113.55], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap' }).addTo(map);
@@ -77,20 +60,20 @@ function updateMapMarkers() {
             case "o3": showVal=point.O3; bgColor=getAirColor(showVal,"o3"); break;
             case "co": showVal=point.CO; bgColor=getAirColor(showVal,"co"); break;
         }
-        if (skipMarker || showVal==="" || showVal==="--") return;
-        const icon = L.divIcon({ html: `<div style="background:${bg};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-weight:bold;">${showVal}</div>`, className:"", iconSize:[50,50], iconAnchor:[25,25] });
-        const marker = L.marker([info.lat,info.lng],{icon}).addTo(map);
+        if (skipMarker || showVal === '' || showVal === '--') return;
+        const icon = L.divIcon({ html: `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-weight:bold;">${showVal}</div>`, className:"", iconSize:[50,50], iconAnchor:[25,25] });
+        const marker = L.marker([info.lat, info.lng], { icon }).addTo(map);
         marker.bindPopup(`<strong>${info.name} (${info.code})</strong>`);
-        marker.on('click',()=>renderSingleCard({...point,code:info.code}));
+        marker.on('click', () => renderSingleCard({ ...point, code: info.code }));
         allMarkers.push(marker);
     });
 }
 
 function renderSingleCard(data) {
-    const {name,code,temp,tempMax,tempMin,humidity,windDir,windSpeed,windGust,rain1m,rain1h,rainTotal,pressSea,pressStation,apparentTemp,heatIndex,dewPoint,waterLevel,tideHeight,tideTime,NO2,PM2_5,PM10,SO2,O3,CO} = data;
+    const { name, code, temp, tempMax, tempMin, humidity, windDir, windSpeed, windGust, rain1m, rain1h, rainTotal, pressSea, pressStation, apparentTemp, heatIndex, dewPoint, waterLevel, tideHeight, tideTime, NO2, PM2_5, PM10, SO2, O3, CO } = data;
     const fullName = `${name} (${code})`;
     if (currentTab === "tide") {
-        singleCardBox.innerHTML = `<div class="station-card"><div class="station-name">${fullName}</div><div style="text-align:center;margin:30px 0;"><div style="font-size:2.2rem;font-weight:bold;color:#16a085;">${tideHeight} cm</div><div style="margin-top:8px;color:#666;">${tideTime}</div></div></div>`;
+        singleCardBox.innerHTML = `<div class="station-card"><div class="station-name">${fullName}</div><div style="text-align:center;margin:30px 0;"><div style="font-size:2.2rem;font-weight:bold;color:#16a085;">${tideHeight} cm</div><div style="margin-top:8px;color:#666;">觀測時間：${tideTime}</div></div></div>`;
         return;
     }
     if (["no2","pm25","pm10","so2","o3","co"].includes(currentTab)) {
@@ -194,7 +177,6 @@ function renderDataTable(type) {
     });
 }
 
-// Fetch Functions
 function fetchWeatherData() {
     return fetch(WEATHER_API)
         .then(r => r.text())
@@ -280,17 +262,20 @@ function fetchAirData() {
                 const d = json[k];
                 airDataList.push({
                     name: map[k]||k,
-                    NO2: d.HE_NO2, PM2_5: d.HE_PM2_5, PM10: d.HE_PM10,
-                    SO2: d.HE_SO2, O3: d.HE_O3, CO: d.HE_CO
+                    NO2: d.HE_NO2,
+                    PM2_5: d.HE_PM2_5,
+                    PM10: d.HE_PM10,
+                    SO2: d.HE_SO2,
+                    O3: d.HE_O3,
+                    CO: d.HE_CO
                 });
             }
             document.getElementById("pub-date").textContent = json.datetime || "未知";
-            document.getElementById("time-stamp").textContent = json.datetime || "未知";
+            document.getElementById("time-stamp").textContent = json.datetime || "";
         })
         .catch(e => console.error("Air Error:", e));
 }
 
-// Air Color
 function getAirColor(val, type) {
     const v = parseFloat(val);
     if (isNaN(v)) return "#999";
@@ -309,7 +294,6 @@ function getAirColor(val, type) {
     return "#e74c3c";
 }
 
-// Load All
 function loadAllData() {
     Promise.all([fetchWeatherData(), fetchFloodData(), fetchTideData(), fetchAirData()])
         .then(() => {
@@ -321,7 +305,6 @@ function loadAllData() {
         .catch(e => console.error("All Error:", e));
 }
 
-// Events
 function bindEvents() {
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -353,7 +336,6 @@ function bindEvents() {
     document.getElementById('sort-asc').addEventListener('click', () => { tableSortType = "asc"; renderDataTable(); });
 }
 
-// Init
 window.addEventListener('DOMContentLoaded', () => {
     initMap();
     bindEvents();
