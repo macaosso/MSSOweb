@@ -6,6 +6,7 @@ on:
     - cron: '*/5 * * * *'
   workflow_dispatch:
 
+# 明確給予倉庫寫入權限（關鍵！）
 permissions:
   contents: write
 
@@ -15,6 +16,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          # 關鍵：checkout 時就帶上 token，避免後續 push 權限問題
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node 20
         uses: actions/setup-node@v4
@@ -27,7 +31,6 @@ jobs:
           const https = require('https');
           const fs = require('fs');
 
-          // 你說這條可以更新，就用它
           const targetUrl = "https://www.smg.gov.mo/smg/airQuality/latestAirConcentration.json";
           const savePath = "./data.json";
 
@@ -50,7 +53,6 @@ jobs:
 
           getFollowRedirect(targetUrl)
             .then(raw => {
-              // 必須是合法 JSON 才存
               try {
                 JSON.parse(raw);
                 fs.writeFileSync(savePath, raw, "utf8");
@@ -65,15 +67,16 @@ jobs:
             });
           EOF
 
-      - name: Commit & Push
+      - name: Force commit & push (no skip)
         run: |
           git config user.name "GitHub Actions Bot"
-          git config user.email "bot@users.noreply.github.com"
+          git config user.email "actions@github.com"
+          
+          # 強制 add 並 commit，即使 diff 判斷異常也會提交
           git add data.json
-          # 有變才 commit，沒變跳過
-          if ! git diff --cached --quiet data.json; then
-            git commit -m "Auto update air quality data"
-            git push
-          else
-            echo "No change, skip commit"
-          fi
+          
+          # 不管有沒有變化，都提交（後續可以改回條件提交）
+          git commit -m "Auto update air quality data at $(date +'%Y-%m-%d %H:%M:%S')" || echo "No changes to commit"
+          
+          # 明確指定 push 到 main 分支
+          git push origin HEAD:main
