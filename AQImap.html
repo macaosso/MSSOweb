@@ -69,6 +69,13 @@
             padding: 12px;
             margin-bottom: 20px;
             box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            transition: all 0.25s ease;
+        }
+        .tab-wrapper.hide-tab{
+            height:0;
+            padding:0;
+            margin-bottom:0;
+            overflow:hidden;
         }
         .tab-group {
             margin-bottom: 10px;
@@ -301,7 +308,7 @@
             font-weight: 600;
         }
         .data-table tr:hover {
-            background: #f8fafc;
+            opacity:0.9;
         }
         .sort-buttons button {
             padding: 4px 10px;
@@ -393,9 +400,11 @@
             <table class="data-table" id="forecast-table">
                 <thead>
                     <tr>
+                        <th>監測區域</th>
                         <th>預報日期</th>
+                        <th>AQI區間</th>
                         <th>空氣質素等級</th>
-                        <th>預報描述</th>
+                        <th>提示描述</th>
                     </tr>
                 </thead>
                 <tbody id="forecast-body"></tbody>
@@ -476,21 +485,14 @@ const aqiBreak = {
 };
 const pollNameCN={pm10:"PM10",pm25:"PM2.5",no2:"NO₂",so2:"SO₂",o3:"O₃",co:"CO"};
 
-// Map forecast icon text → your six color & name
-const forecastGradeMap = {
-    "good": {color: "#2a9958", name:"良好"},
-    "moderate": {color: "#957d1d", name:"普通"},
-    "bad": {color: "#c36e25", name:"不良"},
-    "verybad": {color: "#b02525", name:"非常不良"},
-    "severe": {color: "#ae2693", name:"嚴重"},
-    "harmful": {color: "#280c0c", name:"有害"},
-    // Chinese alias from SMG xml
-    "良好": {color: "#2a9958", name:"良好"},
-    "普通": {color: "#957d1d", name:"普通"},
-    "不良": {color: "#c36e25", name:"不良"},
-    "非常不良": {color: "#b02525", name:"非常不良"},
-    "嚴重": {color: "#ae2693", name:"嚴重"},
-    "有害": {color: "#280c0c", name:"有害"}
+// Map IconName → your color & level name (match smg png name)
+const iconGradeMap = {
+    "c_good.png":{color:"#2a9958",name:"良好"},
+    "c_moderate.png":{color:"#957d1d",name:"普通"},
+    "c_bad.png":{color:"#c36e25",name:"不良"},
+    "c_verybad.png":{color:"#b02525",name:"非常不良"},
+    "c_severe.png":{color:"#ae2693",name:"嚴重"},
+    "c_harmful.png":{color:"#280c0c",name:"有害"}
 };
 
 //線性插值計算副指數
@@ -618,6 +620,7 @@ let currentTab = "aqi";
 let airDataList = [];
 const singleCardBox = document.getElementById("single-card-box");
 let lastSort = "default";
+const tabWrapperDom = document.getElementById("main-tab");
 
 function clearMarkers(){allMarkers.forEach(m=>map.removeLayer(m));allMarkers=[];}
 
@@ -686,30 +689,36 @@ function renderDataTable(type,sortType=lastSort){
     })
 }
 
-// Fetch & build forecast table from SMG xml
+// Fix CORS via public CORS proxy
 async function loadForecastData(){
     const tbody = document.getElementById("forecast-body");
-    tbody.innerHTML = "<tr><td colspan='3'>載入預報數據...</td></tr>";
+    tbody.innerHTML = "<tr><td colspan='5'>載入預報數據...</td></tr>";
     try{
-        const res = await fetch("https://xml.smg.gov.mo/c_foreiqa.xml");
+        const proxy = "https://corsproxy.io/?";
+        const xmlUrl = proxy + encodeURIComponent("https://xml.smg.gov.mo/c_foreiqa.xml");
+        const res = await fetch(xmlUrl);
         const xmlTxt = await res.text();
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlTxt,"text/xml");
-        const items = xmlDoc.querySelectorAll("FORECAST");
+        const reports = xmlDoc.querySelectorAll("AQIForecastReport");
         tbody.innerHTML = "";
-        items.forEach(it=>{
-            const fDate = it.querySelector("FDATE")?.textContent||"";
-            const fLevelRaw = it.querySelector("FLEVEL")?.textContent||"";
-            const fDesc = it.querySelector("FDESC")?.textContent||"";
-            const gradeObj = forecastGradeMap[fLevelRaw] || forecastGradeMap["良好"];
+
+        reports.forEach(rep=>{
+            const zoneName = rep.querySelector("Stationname")?.textContent||"";
+            const fDate = rep.querySelector("ValidFor")?.textContent||"";
+            const aqiRange = rep.querySelector("Value")?.textContent||"";
+            const descText = rep.querySelector("AQIForecastDescription")?.textContent||"";
+            const iconName = rep.querySelector("IconName")?.textContent||"";
+
+            const grade = iconGradeMap[iconName] || iconGradeMap["c_moderate.png"];
             const tr = document.createElement("tr");
-            tr.style.backgroundColor = gradeObj.color;
-            tr.style.color="#fff";
-            tr.innerHTML = `<td>${fDate}</td><td>${gradeObj.name}</td><td>${fDesc}</td>`;
+            tr.style.backgroundColor = grade.color;
+            tr.style.color="#ffffff";
+            tr.innerHTML = `<td>${zoneName}</td><td>${fDate}</td><td>${aqiRange}</td><td>${grade.name}</td><td>${descText}</td>`;
             tbody.appendChild(tr);
         })
     }catch(err){
-        tbody.innerHTML = "<tr><td colspan='3'>預報載入失敗，跨域限制</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='5'>預報載入失敗</td></tr>";
         console.error(err);
     }
 }
@@ -729,6 +738,7 @@ btnMap.onclick=()=>{
     viewMap.classList.remove("hide");
     viewTable.classList.add("hide");
     viewForecast.classList.add("hide");
+    tabWrapperDom.classList.remove("hide-tab"); // show pollutant button bar
 }
 btnTable.onclick=()=>{
     btnMap.classList.remove("active");
@@ -737,6 +747,7 @@ btnTable.onclick=()=>{
     viewMap.classList.add("hide");
     viewTable.classList.remove("hide");
     viewForecast.classList.add("hide");
+    tabWrapperDom.classList.remove("hide-tab"); // show pollutant button bar
     renderDataTable(currentTab);
 }
 btnForecast.onclick=()=>{
@@ -746,6 +757,7 @@ btnForecast.onclick=()=>{
     viewMap.classList.add("hide");
     viewTable.classList.add("hide");
     viewForecast.classList.remove("hide");
+    tabWrapperDom.classList.add("hide-tab"); // hide pollutant button bar
     loadForecastData();
 }
 
