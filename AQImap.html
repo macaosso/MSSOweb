@@ -400,7 +400,6 @@
     <div id="forecast-view" class="hide">
         <div class="table-container">
             <div style="font-size:1.1rem;font-weight:bold;margin-bottom:10px;">空氣質素預報（SMG）</div>
-            <!-- Top forecast table (removed 空氣質素等級 column) -->
             <table class="data-table" id="forecast-table">
                 <thead>
                     <tr>
@@ -413,7 +412,6 @@
                 <tbody id="forecast-body"></tbody>
             </table>
 
-            <!-- New second table for prevention tips below -->
             <div style="font-size:1.1rem;font-weight:bold;margin:25px 0 10px 0;">建議採取的預防措施</div>
             <table class="data-table tip-table" id="tip-table">
                 <thead>
@@ -429,7 +427,6 @@
 </div>
 
 <script>
-//========= 圖例配置（只需在此修改顏色、分級、文字）=========
 const legendMap = {
   aqi: [
     {c:"#2a9958",t:"良好"},
@@ -489,7 +486,6 @@ const legendMap = {
   ]
 };
 
-//====AQI分段標準====
 const aqiBreak = {
     pm10: [{c:0,i:0},{c:50,i:50},{c:100,i:100},{c:250,i:200},{c:350,i:300},{c:420,i:400},{c:500,i:500}],
     pm25: [{c:0,i:0},{c:25,i:50},{c:50,i:100},{c:115,i:200},{c:150,i:300},{c:250,i:400},{c:350,i:500}],
@@ -500,7 +496,6 @@ const aqiBreak = {
 };
 const pollNameCN={pm10:"PM10",pm25:"PM2.5",no2:"NO₂",so2:"SO₂",o3:"O₃",co:"CO"};
 
-// Map IconName → your color & level name (match smg png name)
 const iconGradeMap = {
     "c_good.png":{color:"#2a9958",name:"良好"},
     "c_moderate.png":{color:"#957d1d",name:"普通"},
@@ -510,7 +505,6 @@ const iconGradeMap = {
     "c_harmful.png":{color:"#280c0c",name:"有害"}
 };
 
-//線性插值計算副指數
 function calcSubIdx(val, bpList){
     const v=Number(val);
     if(isNaN(v)) return 0;
@@ -704,7 +698,6 @@ function renderDataTable(type,sortType=lastSort){
     })
 }
 
-// Fix CORS via public CORS proxy
 async function loadForecastData(){
     const tbody = document.getElementById("forecast-body");
     const tipBody = document.getElementById("tip-body");
@@ -731,12 +724,10 @@ async function loadForecastData(){
             const tr = document.createElement("tr");
             tr.style.backgroundColor = grade.color;
             tr.style.color="#ffffff";
-            // removed grade column
             tr.innerHTML = `<td>${zoneName}</td><td>${fDate}</td><td>${aqiRange}</td><td>${descText}</td>`;
             tbody.appendChild(tr);
         })
 
-        // fill prevention tip table from Complementary node
         const compNode = xmlDoc.querySelector("Complementary");
         if(compNode){
             const sensText = compNode.querySelector("SensitivePopulationGroups")?.textContent||"";
@@ -750,12 +741,11 @@ async function loadForecastData(){
         }
 
     }catch(err){
-        tbody.innerHTML = "<tr><td colspan='4'>預報載入失敗</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='4'>預報載入失敗，跨域限制</td></tr>";
         console.error(err);
     }
 }
 
-// View switch bind
 const btnMap = document.getElementById("btn-map");
 const btnTable = document.getElementById("btn-table");
 const btnForecast = document.getElementById("btn-forecast");
@@ -770,7 +760,7 @@ btnMap.onclick=()=>{
     viewMap.classList.remove("hide");
     viewTable.classList.add("hide");
     viewForecast.classList.add("hide");
-    tabWrapperDom.classList.remove("hide-tab"); // show pollutant button bar
+    tabWrapperDom.classList.remove("hide-tab");
 }
 btnTable.onclick=()=>{
     btnMap.classList.remove("active");
@@ -779,7 +769,7 @@ btnTable.onclick=()=>{
     viewMap.classList.add("hide");
     viewTable.classList.remove("hide");
     viewForecast.classList.add("hide");
-    tabWrapperDom.classList.remove("hide-tab"); // show pollutant button bar
+    tabWrapperDom.classList.remove("hide-tab");
     renderDataTable(currentTab);
 }
 btnForecast.onclick=()=>{
@@ -789,7 +779,7 @@ btnForecast.onclick=()=>{
     viewMap.classList.add("hide");
     viewTable.classList.add("hide");
     viewForecast.classList.remove("hide");
-    tabWrapperDom.classList.add("hide-tab"); // hide pollutant button bar
+    tabWrapperDom.classList.add("hide-tab");
     loadForecastData();
 }
 
@@ -802,10 +792,19 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 })
 document.querySelectorAll('.sort-btn').forEach(b=>b.onclick=()=>renderDataTable(currentTab,b.dataset.sort));
 
+// ========== 核心：可靠的刷新機制（不被瀏覽器暫停 + 禁用緩存 + 失敗重試） ==========
 async function fetchAirData() {
-    const url = `https://cdn.jsdelivr.net/gh/macaosso/MSSOweb@main/data.json?_t=${Date.now()}`;
+    // 1. 每次都帶隨機參數，徹底禁用緩存
+    const url = `https://cdn.jsdelivr.net/gh/macaosso/MSSOweb@main/data.json?_t=${Date.now()}_${Math.random()}`;
     try {
-        const res = await fetch(url, { cache: "no-store" });
+        const res = await fetch(url, {
+            cache: "no-store",
+            headers: {
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+                "Expires": "0"
+            }
+        });
         if (!res.ok) throw new Error(res.status);
         const json = await res.json();
         const pubTime = json.datetime || "未知時間";
@@ -861,15 +860,20 @@ async function fetchAirData() {
         updateMapMarkers();
         updateLegendPanel(currentTab);
         renderDataTable(currentTab);
+
     } catch (err) {
         console.error('Load error:', err);
         document.getElementById("pub-date").textContent = "數據載入失敗";
     }
+
+    // 2. 用 setTimeout 鏈式調用，不會被瀏覽器暫停
+    setTimeout(fetchAirData, 5 * 60 * 1000); // 5分鐘
 }
+
+// 首次執行
 window.addEventListener('DOMContentLoaded',()=>{
     fetchAirData();
 });
-setInterval(fetchAirData,300000);
 </script>
 </body>
 </html>
