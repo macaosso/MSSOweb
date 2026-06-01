@@ -431,6 +431,9 @@
                 <button class="tab-btn" data-type="windDir">風向</button>
                 <button class="tab-btn" data-type="windSpeed">風速 (km/h)</button>
                 <button class="tab-btn" data-type="windGust">陣風 (km/h)</button>
+                <button class="tab-btn" data-type="rain1m">一分鐘雨量(mm)</button>
+                <button class="tab-btn" data-type="rain1h">一小時雨量(mm)</button>
+                <button class="tab-btn" data-type="rainTotal">日累積雨量(mm)</button>
                 <button class="tab-btn" data-type="pressSea">海平面氣壓 (hPa)</button>
                 <button class="tab-btn" data-type="pressStation">站氣壓 (hPa)</button>
             </div>
@@ -674,6 +677,9 @@ const fieldMap = {
     windDir: {field:'windDir', label:'風向', unit:''},
     windSpeed: {field:'windSpeed', label:'風速', unit:'km/h'},
     windGust: {field:'windGust', label:'陣風', unit:'km/h'},
+    rain1m:{field:'rain1m',label:'一分鐘雨量',unit:'mm'},
+    rain1h:{field:'rain1h',label:'一小時雨量',unit:'mm'},
+    rainTotal:{field:'rainTotal',label:'日累積雨量',unit:'mm'},
     pressSea: {field:'pressSea', label:'海平面氣壓', unit:'hPa'},
     pressStation: {field:'pressStation', label:'站氣壓', unit:'hPa'},
     waterLevel: {field:'waterLevel', label:'實時水位', unit:'m'}
@@ -753,6 +759,43 @@ function getPressSeaColor(pressStr) {
     if (press < 990)    return "#791919"; // 980 - 989 hPa
     if (press < 1000)   return "#757012"; // 990 - 999 hPa
     return "#2b7c42";                     // ≥ 1000 hPa
+}
+
+// 一分鐘雨量配色
+function getRain1mColor(valStr) {
+    const v = parseFloat(valStr);
+    if (isNaN(v)) return "#3498db";
+    if (v >= 1.8) return "#6a0c7a";
+    if (v >= 1.4) return "#000000";
+    if (v >= 0.8) return "#921818";
+    if (v >= 0.4) return "#878e14";
+    if (v >= 0.2) return "#227192";
+    return "#636363";
+}
+
+// 一小時雨量配色
+function getRain1hColor(valStr) {
+    const v = parseFloat(valStr);
+    if (isNaN(v)) return "#3498db";
+    if (v >= 100.0) return "#6a0c7a";
+    if (v >= 80.0) return "#020000";
+    if (v >= 50.0) return "#921818";
+    if (v >= 20.0) return "#878e14";
+    if (v >= 10.0) return "#149f37";
+    if (v >= 0.1) return "#227192";
+    return "#636363";
+}
+
+// 日累積雨量配色
+function getRainTotalColor(valStr) {
+    const v = parseFloat(valStr);
+    if (isNaN(v)) return "#3498db";
+    if (v >= 350.0) return "#000000";
+    if (v >= 200.0) return "#921818";
+    if (v >= 100.0) return "#a04413";
+    if (v >= 50.0) return "#878e14";
+    if (v >= 0.1) return "#227192";
+    return "#636363";
 }
 
 function getPressStationColor(pressStr) {
@@ -836,6 +879,31 @@ function updateLegendPanel(tabType) {
             <div class="legend-item"><div class="legend-color" style="background:#154c83"></div>強風</div>
             <div class="legend-item"><div class="legend-color" style="background:#11750a"></div>強風以下</div>`;
             break;
+        case "rain1m":
+            legendHTML=`
+            <div class="legend-item"><div class="legend-color" style="background:#6a0c7a"></div>>= 1.8 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>1.4 - 1.6 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#921818"></div>0.8 - 1.0 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#878e14"></div>0.4 - 0.6 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#227192"></div>0.2 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#636363"></div>0 mm</div>`;break;
+        case"rain1h":
+            legendHTML=`
+            <div class="legend-item"><div class="legend-color" style="background:#6a0c7a"></div>>= 100.0 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#020000"></div>80.0 - 99.9 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#921818"></div>50.0 - 79.9 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#878e14"></div>20.0 - 49.9 mm</div>  
+            <div class="legend-item"><div class="legend-color" style="background:#149f37"></div>10.0 - 19.9 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#227192"></div>0.1 - 9.9 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#636363"></div>0 mm</div>`;break;
+        case "rainTotal":
+            legendHTML=`
+            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>>= 350.0 mm</div>            
+            <div class="legend-item"><div class="legend-color" style="background:#921818"></div>200.0 - 349.9 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#a04413"></div>100.0 - 199.9 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#878e14"></div>50.0 - 99.9 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#227192"></div>0.1 - 49.9 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#636363"></div>0 mm</div>`;break;
 
         case "pressSea":
             legendHTML = `
@@ -1020,6 +1088,9 @@ function updateMapMarkers() {
                 const wbgtNum = parseFloat(showVal);
                 if(isNaN(wbgtNum)) skipMarker = true;
                 break;
+            case "rain1m": showVal = point.rain1m; bgColor = getRain1hColor(showVal); break;
+            case "rain1h": showVal = point.rain1h; bgColor = getRain1hColor(showVal); break;
+            case "rainTotal": showVal = point.rainTotal; bgColor = getRainDayColor(showVal); break;
             case "waterLevel":
                 showVal = point.waterLevel;
                 // Skip empty/-- value
