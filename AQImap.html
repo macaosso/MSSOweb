@@ -264,14 +264,10 @@
         .col-half {
             grid-column: span 3;
         }
-        .col-full {
-            grid-column: span 6;
-        }
         .metric span {
             display: block;
             color: #7f8c8d;
             font-size: 0.7rem;
-            text-transform: uppercase;
             margin-bottom: 2px;
         }
         .metric strong {
@@ -306,21 +302,6 @@
         .data-table th {
             background: #f1f5f9;
             font-weight: 600;
-        }
-        .data-table tr:hover {
-            opacity:0.9;
-        }
-        .sort-buttons button {
-            padding: 4px 10px;
-            margin-left: 6px;
-            border: none;
-            border-radius: 4px;
-            background: #e8edf2;
-            cursor: pointer;
-            font-size: 0.85rem;
-        }
-        .sort-buttons button:hover {
-            background: #d0d9e2;
         }
         .hide {
             display: none !important;
@@ -383,11 +364,6 @@
         <div class="table-container">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:10px;">
                 <div id="table-title" style="font-size:1.1rem;font-weight:bold;">數據表格</div>
-                <div class="sort-buttons">
-                    <button class="sort-btn" data-sort="default">預設</button>
-                    <button class="sort-btn" data-sort="desc">高至低</button>
-                    <button class="sort-btn" data-sort="asc">低至高</button>
-                </div>
             </div>
             <table class="data-table" id="data-table">
                 <thead><tr><th>監測站名稱</th><th>站代碼</th><th>數值</th></tr></thead>
@@ -396,7 +372,6 @@
         </div>
     </div>
 
-    <!-- Forecast Table Panel -->
     <div id="forecast-view" class="hide">
         <div class="table-container">
             <div style="font-size:1.1rem;font-weight:bold;margin-bottom:10px;">空氣質素預報（SMG）</div>
@@ -411,7 +386,6 @@
                 </thead>
                 <tbody id="forecast-body"></tbody>
             </table>
-
             <div style="font-size:1.1rem;font-weight:bold;margin:25px 0 10px 0;">建議採取的預防措施</div>
             <table class="data-table tip-table" id="tip-table">
                 <thead>
@@ -428,64 +402,14 @@
 
 <script>
 const legendMap = {
-  aqi: [
-    {c:"#2a9958",t:"良好"},
-    {c:"#957d1d",t:"普通"},
-    {c:"#c36e25",t:"不良"},
-    {c:"#b02525",t:"非常不良"},
-    {c:"#ae2693",t:"嚴重"},
-    {c:"#280c0c",t:"有害"},
-  ],
-  pm25: [
-    {c:"#2a9958",t:"0 - 49"},
-    {c:"#957d1d",t:"50 - 114"},
-    {c:"#c36e25",t:"115 - 149"},
-    {c:"#b02525",t:"150 - 249"},
-    {c:"#ae2693",t:"250 - 349"},
-    {c:"#280c0c",t:">= 350"},
-  ],
-  pm10: [
-    {c:"#2a9958",t:"0 - 99"},
-    {c:"#957d1d",t:"100 - 249"},
-    {c:"#c36e25",t:"250 - 349"},
-    {c:"#b02525",t:"350 - 419"},
-    {c:"#ae2693",t:"420 - 499"},
-    {c:"#280c0c",t:">= 500"},
-  ],
-  no2: [
-    {c:"#2a9958",t:"0 - 199"},
-    {c:"#957d1d",t:"200 - 699"},
-    {c:"#c36e25",t:"700 - 1199"},
-    {c:"#b02525",t:"1200 - 1999"},
-    {c:"#ae2693",t:"2000 - 2499"},
-    {c:"#280c0c",t:">= 2500"},
-  ],
-  so2: [
-    {c:"#2a9958",t:"0 - 49"},
-    {c:"#957d1d",t:"50 - 149"},
-    {c:"#c36e25",t:"150 - 474"},
-    {c:"#b02525",t:"475 - 799"},
-    {c:"#ae2693",t:"800 - 1599"},
-    {c:"#280c0c",t:">= 1600"},
-  ],
-  o3: [
-    {c:"#2a9958",t:"0 - 159"},
-    {c:"#957d1d",t:"160 - 239"},
-    {c:"#c36e25",t:"240 - 339"},
-    {c:"#b02525",t:"400 - 599"},
-    {c:"#ae2693",t:"600 - 799"},
-    {c:"#280c0c",t:">= 800"},
-  ],
-  co: [
-    {c:"#2a9958",t:"0 - 9"},
-    {c:"#957d1d",t:"10 - 16"},
-    {c:"#c36e25",t:"17 - 33"},
-    {c:"#b02525",t:"34 - 45"},
-    {c:"#ae2693",t:"46 - 56"},
-    {c:"#280c0c",t:">= 57"},
-  ]
+  aqi: [{c:"#2a9958",t:"良好"},{c:"#957d1d",t:"普通"},{c:"#c36e25",t:"不良"},{c:"#b02525",t:"非常不良"},{c:"#ae2693",t:"嚴重"},{c:"#280c0c",t:"有害"}],
+  pm25: [{c:"#2a9958",t:"0 - 49"},{c:"#957d1d",t:"50 - 114"},{c:"#c36e25",t:"115 - 149"},{c:"#b02525",t:"150 - 249"},{c:"#ae2693",t:"250 - 349"},{c:"#280c0c",t:">= 350"}],
+  pm10: [{c:"#2a9958",t:"0 - 99"},{c:"#957d1d",t:"100 - 249"},{c:"#c36e25",t:"250 - 349"},{c:"#b02525",t:"350 - 419"},{c:"#ae2693",t:"420 - 499"},{c:"#280c0c",t:">= 500"}],
+  no2: [{c:"#2a9958",t:"0 - 199"},{c:"#957d1d",t:"200 - 699"},{c:"#c36e25",t:"700 - 1199"},{c:"#b02525",t:"1200 - 1999"},{c:"#ae2693",t:"2000 - 2499"},{c:"#280c0c",t:">= 2500"}],
+  so2: [{c:"#2a9958",t:"0 - 49"},{c:"#957d1d",t:"50 - 149"},{c:"#c36e25",t:"150 - 474"},{c:"#b02525",t:"475 - 799"},{c:"#ae2693",t:"800 - 1599"},{c:"#280c0c",t:">= 1600"}],
+  o3: [{c:"#2a9958",t:"0 - 159"},{c:"#957d1d",t:"160 - 239"},{c:"#c36e25",t:"240 - 339"},{c:"#b02525",t:"400 - 599"},{c:"#ae2693",t:"600 - 799"},{c:"#280c0c",t:">= 800"}],
+  co: [{c:"#2a9958",t:"0 - 9"},{c:"#957d1d",t:"10 - 16"},{c:"#c36e25",t:"17 - 33"},{c:"#b02525",t:"34 - 45"},{c:"#ae2693",t:"46 - 56"},{c:"#280c0c",t:">= 57"}]
 };
-
 const aqiBreak = {
     pm10: [{c:0,i:0},{c:50,i:50},{c:100,i:100},{c:250,i:200},{c:350,i:300},{c:420,i:400},{c:500,i:500}],
     pm25: [{c:0,i:0},{c:25,i:50},{c:50,i:100},{c:115,i:200},{c:150,i:300},{c:250,i:400},{c:350,i:500}],
@@ -495,112 +419,19 @@ const aqiBreak = {
     co:   [{c:0,i:0},{c:5,i:50},{c:10,i:100},{c:17,i:200},{c:34,i:300},{c:46,i:400},{c:57,i:500}]
 };
 const pollNameCN={pm10:"PM10",pm25:"PM2.5",no2:"NO₂",so2:"SO₂",o3:"O₃",co:"CO"};
-
-const iconGradeMap = {
-    "c_good.png":{color:"#2a9958",name:"良好"},
-    "c_moderate.png":{color:"#957d1d",name:"普通"},
-    "c_bad.png":{color:"#c36e25",name:"不良"},
-    "c_verybad.png":{color:"#b02525",name:"非常不良"},
-    "c_severe.png":{color:"#ae2693",name:"嚴重"},
-    "c_harmful.png":{color:"#280c0c",name:"有害"}
-};
+const iconGradeMap = {"c_good.png":{color:"#2a9958"},"c_moderate.png":{color:"#957d1d"},"c_bad.png":{color:"#c36e25"},"c_verybad.png":{color:"#b02525"},"c_severe.png":{color:"#ae2693"},"c_harmful.png":{color:"#280c0c"}};
 
 function calcSubIdx(val, bpList){
-    const v=Number(val);
-    if(isNaN(v)) return 0;
-    let low=bpList[0],high=bpList[bpList.length-1];
-    for(let p of bpList){
-        if(v<=p.c){ high=p; break; }
-        low=p;
-    }
-    const I=low.i + ((high.i-low.i)/(high.c-low.c))*(v-low.c);
-    return I;
+    const v=Number(val);if(isNaN(v))return 0;let low=bpList[0],high=bpList.at(-1);for(let p of bpList){if(v<=p.c){high=p;break;}low=p;}return low.i + ((high.i-low.i)/(high.c-low.c))*(v-low.c);
 }
-
-function updateLegendPanel(tabType) {
-  const box = document.getElementById('legend-content');
-  const arr = legendMap[tabType];
-  if(!arr){box.innerHTML=`<div class="legend-item" style="color:#777;">無圖例</div>`;return;}
-  box.innerHTML = arr.map(x=>`<div class="legend-item"><div class="legend-color" style="background:${x.c}"></div>${x.t}</div>`).join('');
-}
-
-function getAqiColor(val) {
-  const n = parseFloat(val);
-  if (isNaN(n)) return "#95a5a6";
-  const list = legendMap.aqi;
-  if(n<=50) return list[0].c;
-  if(n<=100)return list[1].c;
-  if(n<=150)return list[2].c;
-  if(n<=200)return list[3].c;
-  if(n<=300)return list[4].c;
-  return list[5].c;
-}
-function getPm25Color(val) {
-  const n = parseFloat(val);
-  if (isNaN(n)) return "#95a5a6";
-  const list = legendMap.pm25;
-  if(n<=49) return list[0].c;
-  if(n<=114)return list[1].c;
-  if(n<=149)return list[2].c;
-  if(n<=249)return list[3].c;
-  if(n<=349)return list[4].c;
-  return list[5].c;
-}
-function getPm10Color(val) {
-  const n = parseFloat(val);
-  if (isNaN(n)) return "#95a5a6";
-  const list = legendMap.pm10;
-  if(n<=99) return list[0].c;
-  if(n<=249)return list[1].c;
-  if(n<=349)return list[2].c;
-  if(n<=419)return list[3].c;
-  if(n<=499)return list[4].c;
-  return list[5].c;
-}
-function getNo2Color(val) {
-  const n = parseFloat(val);
-  if (isNaN(n)) return "#95a5a6";
-  const list = legendMap.no2;
-  if(n<=199) return list[0].c;
-  if(n<=699)return list[1].c;
-  if(n<=1199)return list[2].c;
-  if(n<=1999)return list[3].c;
-  if(n<=2499)return list[4].c;
-  return list[5].c;
-}
-function getSo2Color(val) {
-  const n = parseFloat(val);
-  if (isNaN(n)) return "#95a5a6";
-  const list = legendMap.so2;
-  if(n<=49) return list[0].c;
-  if(n<=149)return list[1].c;
-  if(n<=474)return list[2].c;
-  if(n<=799)return list[3].c;
-  if(n<=1599)return list[4].c;
-  return list[5].c;
-}
-function getO3Color(val) {
-  const n = parseFloat(val);
-  if (isNaN(n)) return "#95a5a6";
-  const list = legendMap.o3;
-  if(n<=159) return list[0].c;
-  if(n<=239)return list[1].c;
-  if(n<=339)return list[2].c;
-  if(n<=599)return list[3].c;
-  if(n<=799)return list[4].c;
-  return list[5].c;
-}
-function getCoColor(val) {
-  const n = parseFloat(val);
-  if (isNaN(n)) return "#95a5a6";
-  const list = legendMap.co;
-  if(n<=9) return list[0].c;
-  if(n<=16)return list[1].c;
-  if(n<=33)return list[2].c;
-  if(n<=45)return list[3].c;
-  if(n<=56)return list[4].c;
-  return list[5].c;
-}
+function updateLegendPanel(t){document.getElementById('legend-content').innerHTML=legendMap[t].map(x=>`<div class="legend-item"><div class="legend-color" style="background:${x.c}"></div>${x.t}</div>`).join('');}
+function getAqiColor(v){const arr=legendMap.aqi;const n=Number(v);if(n<=50)return arr[0].c;if(n<=100)return arr[1].c;if(n<=150)return arr[2].c;if(n<=200)return arr[3].c;if(n<=300)return arr[4].c;return arr[5].c;}
+function getPm25Color(v){const arr=legendMap.pm25;const n=Number(v);if(n<=49)return arr[0].c;if(n<=114)return arr[1].c;if(n<=149)return arr[2].c;if(n<=249)return arr[3].c;if(n<=349)return arr[4].c;return arr[5].c;}
+function getPm10Color(v){const arr=legendMap.pm10;const n=Number(v);if(n<=99)return arr[0].c;if(n<=249)return arr[1].c;if(n<=349)return arr[2].c;if(n<=419)return arr[3].c;if(n<=499)return arr[4].c;return arr[5].c;}
+function getNo2Color(v){const arr=legendMap.no2;const n=Number(v);if(n<=199)return arr[0].c;if(n<=699)return arr[1].c;if(n<=1199)return arr[2].c;if(n<=1999)return arr[3].c;if(n<=2499)return arr[4].c;return arr[5].c;}
+function getSo2Color(v){const arr=legendMap.so2;const n=Number(v);if(n<=49)return arr[0].c;if(n<=149)return arr[1].c;if(n<=474)return arr[2].c;if(n<=799)return arr[3].c;if(n<=1599)return arr[4].c;return arr[5].c;}
+function getO3Color(v){const arr=legendMap.o3;const n=Number(v);if(n<=159)return arr[0].c;if(n<=239)return arr[1].c;if(n<=339)return arr[2].c;if(n<=599)return arr[3].c;if(n<=799)return arr[4].c;return arr[5].c;}
+function getCoColor(v){const arr=legendMap.co;const n=Number(v);if(n<=9)return arr[0].c;if(n<=16)return arr[1].c;if(n<=33)return arr[2].c;if(n<=45)return arr[3].c;if(n<=56)return arr[4].c;return arr[5].c;}
 
 const airStations = {
     "荷蘭園（路邊）": { code: "PO", lat: 22.1957226, lng: 113.5447928 },
@@ -610,7 +441,6 @@ const airStations = {
     "大潭山（一般性）": { code: "TG", lat: 22.1594111, lng: 113.5684563 },
     "石排灣（一般性）": { code: "CD", lat: 22.1250727, lng: 113.5544267 }
 };
-
 const fieldMap = {
     aqi:{field:"aqi",label:"空氣質素AQI",unit:"",fn:getAqiColor},
     pm10:{field:"pm10",label:"PM10",unit:"μg/m³",fn:getPm10Color},
@@ -621,259 +451,128 @@ const fieldMap = {
     co:{field:"co",label:"CO",unit:"mg/m³",fn:getCoColor}
 };
 
-let map = L.map('macau-map').setView([22.17, 113.55], 12);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '&copy; OpenStreetMap contributors'}).addTo(map);
-
-let allMarkers = [];
-let currentTab = "aqi";
-let airDataList = [];
-const singleCardBox = document.getElementById("single-card-box");
-let lastSort = "default";
-const tabWrapperDom = document.getElementById("main-tab");
-
+let map = L.map('macau-map').setView([22.17,113.55],12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'©OSM'}).addTo(map);
+let allMarkers = [],currentTab="aqi",airDataList=[],lastSort="default";
+const singleCardBox=document.getElementById('single-card-box'),tabWrapperDom=document.getElementById('main-tab');
 function clearMarkers(){allMarkers.forEach(m=>map.removeLayer(m));allMarkers=[];}
+function fmt(v,u){if(isNaN(Number(v)))return'--';return Number(v).toFixed(1)+(u?' '+u:'');}
+function getAqiLevel(v){const n=Number(v);if(n<=50)return{cls:'level-good',text:'良好'};if(n<=100)return{cls:'level-moderate',text:'普通'};if(n<=150)return{cls:'level-unhealthy-sensitive',text:'不良'};if(n<=200)return{cls:'level-unhealthy',text:'非常不良'};if(n<=300)return{cls:'level-very-unhealthy',text:'嚴重'};return{cls:'level-hazardous',text:'有害'};}
 
-function formatVal(v,unit){
-    if(v===null||v===undefined||isNaN(Number(v))) return "--";
-    return Number(v).toFixed(1)+(unit?" "+unit:"");
+function renderSingleCard(d){
+    const lv=getAqiLevel(d.aqi);
+    const tip=d.aqi>100?`<div class="main-pollutant">首要污染物：${d.mainPoll}</div>`:'';
+    singleCardBox.innerHTML=`<div class="station-card"><div class="station-name">${d.name}(${d.code})</div><div style="font-size:0.8rem;color:#666;margin:8px 0">更新：${d.pubTime}</div>${tip}<div class="aqi-row"><div class="current-aqi">${fmt(d.aqi,'')}</div><div class="aqi-level ${lv.cls}">${lv.text}</div></div><div class="metrics-grid"><div class="metric col-half"><span>PM10</span><strong>${fmt(d.pm10,'μg/m³')}</strong></div><div class="metric col-half"><span>PM2.5</span><strong>${fmt(d.pm25,'μg/m³')}</strong></div><div class="metric col-half"><span>NO₂</span><strong>${fmt(d.no2,'μg/m³')}</strong></div><div class="metric col-half"><span>SO₂</span><strong>${fmt(d.so2,'μg/m³')}</strong></div><div class="metric col-half"><span>O₃</span><strong>${fmt(d.o3,'μg/m³')}</strong></div><div class="metric col-half"><span>CO</span><strong>${fmt(d.co,'mg/m³')}</strong></div></div></div>`;
 }
-function getAqiLevel(aqiVal){
-    const v=Number(aqiVal);
-    if(v<=50) return {cls:"level-good",text:"良好"};
-    if(v<=100)return {cls:"level-moderate",text:"普通"};
-    if(v<=150)return {cls:"level-unhealthy-sensitive",text:"不良"};
-    if(v<=200)return {cls:"level-unhealthy",text:"非常不良"};
-    if(v<=300)return {cls:"level-very-unhealthy",text:"嚴重"};
-    return {cls:"level-hazardous",text:"有害"};
+function updateMapMarkers(){
+    clearMarkers();document.getElementById('current-indicator').textContent=fieldMap[currentTab].label;
+    airDataList.forEach(p=>{
+        const pos=airStations[p.name];if(!pos)return;
+        const val=p[fieldMap[currentTab].field];
+        const color=fieldMap[currentTab].fn(val);
+        const icon=L.divIcon({html:`<div style="background:${color};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-weight:bold">${Number(val).toFixed(1)}</div>`,className:'',iconSize:[50,50],iconAnchor:[25,25]});
+        const m=L.marker([pos.lat,pos.lng],{icon}).addTo(map);
+        m.on('click',()=>renderSingleCard({...p,code:pos.code}));allMarkers.push(m);
+    })
 }
-
-function renderSingleCard(data) {
-    const {name, code, pubTime, aqi, pm10, pm25, no2, so2, o3, co, mainPoll} = data;
-    const levelInfo = getAqiLevel(aqi);
-    let pollTip = aqi>100 ? `<div class="main-pollutant">首要污染物：${mainPoll}</div>`:"";
-    const card = `<div class="station-card"><div class="station-name">${name} (${code})</div><div style="font-size:0.8rem;color:#666;margin:8px 0;">更新時間：${pubTime}</div>${pollTip}<div class="aqi-row"><div class="current-aqi">${formatVal(aqi, '')}</div><div class="aqi-level ${levelInfo.cls}">${levelInfo.text}</div></div><div class="metrics-grid"><div class="metric col-half"><span>PM10</span><strong>${formatVal(pm10, 'μg/m³')}</strong></div><div class="metric col-half"><span>PM2.5</span><strong>${formatVal(pm25, 'μg/m³')}</strong></div><div class="metric col-half"><span>二氧化氮 NO₂</span><strong>${formatVal(no2, 'μg/m³')}</strong></div><div class="metric col-half"><span>二氧化硫 SO₂</span><strong>${formatVal(so2, 'μg/m³')}</strong></div><div class="metric col-half"><span>臭氧 O₃</span><strong>${formatVal(o3, 'μg/m³')}</strong></div><div class="metric col-half"><span>一氧化碳 CO</span><strong>${formatVal(co, 'mg/m³')}</strong></div></div></div>`;
-    singleCardBox.innerHTML = card;
-}
-
-function updateMapMarkers() {
-    clearMarkers();
-    document.getElementById('current-indicator').textContent = fieldMap[currentTab].label;
-    airDataList.forEach(point=>{
-        const name = point.name;
-        const pos = airStations[name];
-        if(!pos) return;
-        let val = point[fieldMap[currentTab].field];
-        let color="#95a5a6";
-        switch(currentTab){
-            case"aqi":color=getAqiColor(val);break;
-            case"pm25":color=getPm25Color(val);break;
-            case"pm10":color=getPm10Color(val);break;
-            case"no2":color=getNo2Color(val);break;
-            case"so2":color=getSo2Color(val);break;
-            case"o3":color=getO3Color(val);break;
-            case"co":color=getCoColor(val);break;
-        }
-        const iconHtml=`<div style="background:${color};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;">${Number(val).toFixed(1)}</div>`;
-        const icon=L.divIcon({html:iconHtml,className:"",iconSize:[50,50],iconAnchor:[25,25]});
-        const marker=L.marker([pos.lat,pos.lng],{icon}).addTo(map);
-        marker.bindPopup(`<strong>${name}</strong>`);
-        marker.on('click',()=>renderSingleCard({...point,code:pos.code}));
-        allMarkers.push(marker);
+function renderTable(){
+    const cfg=fieldMap[currentTab];
+    document.getElementById('table-title').textContent=cfg.label+'數據';
+    const tb=document.getElementById('table-body');tb.innerHTML='';
+    airDataList.forEach(item=>{
+        const pos=airStations[item.name];
+        tb.innerHTML+=`<tr><td>${item.name}</td><td>${pos?.code||''}</td><td>${fmt(item[cfg.field],cfg.unit)}</td>`;
     })
 }
 
-function renderDataTable(type,sortType=lastSort){
-    const cfg=fieldMap[type];
-    const field=cfg.field,label=cfg.label,unit=cfg.unit;
-    document.getElementById('table-title').textContent=`${label} 數據表格`;
-    const tbody=document.getElementById('table-body');tbody.innerHTML="";
-    let validList=airDataList.filter(i=>!isNaN(Number(i[field])));
-    if(sortType==='desc')validList.sort((a,b)=>parseFloat(b[field])-parseFloat(a[field]));
-    else if(sortType==='asc')validList.sort((a,b)=>parseFloat(a[field])-parseFloat(b[field]));
-    lastSort=sortType;
-    validList.forEach(item=>{
-        const name=item.name,code=airStations[name]?.code||"";
-        const dVal=Number(item[field]).toFixed(1)+(unit?" "+unit:"");
-        const tr=document.createElement('tr');tr.innerHTML=`<td>${name}</td><td>${code}</td><td>${dVal}</td>`;tbody.appendChild(tr);
-    })
-}
-
-async function loadForecastData(){
-    const tbody = document.getElementById("forecast-body");
-    const tipBody = document.getElementById("tip-body");
-    tbody.innerHTML = "<tr><td colspan='4'>載入預報數據...</td></tr>";
-    tipBody.innerHTML = "";
+//預報
+async function loadForecast(){
+    const tbF=document.getElementById('forecast-body'),tbTip=document.getElementById('tip-body');
+    tbF.innerHTML='<tr><td colspan="4">載入預報</td>';tbTip.innerHTML='';
     try{
-        const proxy = "https://corsproxy.io/?";
-        const xmlUrl = proxy + encodeURIComponent("https://xml.smg.gov.mo/c_foreiqa.xml");
-        const res = await fetch(xmlUrl);
-        const xmlTxt = await res.text();
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlTxt,"text/xml");
-        const reports = xmlDoc.querySelectorAll("AQIForecastReport");
-        tbody.innerHTML = "";
-
-        reports.forEach(rep=>{
-            const zoneName = rep.querySelector("Stationname")?.textContent||"";
-            const fDate = rep.querySelector("ValidFor")?.textContent||"";
-            const aqiRange = rep.querySelector("Value")?.textContent||"";
-            const descText = rep.querySelector("AQIForecastDescription")?.textContent||"";
-            const iconName = rep.querySelector("IconName")?.textContent||"";
-
-            const grade = iconGradeMap[iconName] || iconGradeMap["c_moderate.png"];
-            const tr = document.createElement("tr");
-            tr.style.backgroundColor = grade.color;
-            tr.style.color="#ffffff";
-            tr.innerHTML = `<td>${zoneName}</td><td>${fDate}</td><td>${aqiRange}</td><td>${descText}</td>`;
-            tbody.appendChild(tr);
+        const proxy='https://api.allorigins.win/raw?url=';
+        const xml=await fetch(proxy+encodeURIComponent('https://xml.smg.gov.mo/c_foreiqa.xml'));
+        const txt=await xml.text();
+        const doc=new DOMParser().parseFromString(txt,'text/xml');
+        const list=doc.querySelectorAll('AQIForecastReport');
+        tbF.innerHTML='';
+        list.forEach(r=>{
+            const zone=r.querySelector('Stationname')?.textContent||'';
+            const dt=r.querySelector('ValidFor')?.textContent||'';
+            const val=r.querySelector('Value')?.textContent||'';
+            const desc=r.querySelector('AQIForecastDescription')?.textContent||'';
+            const ico=r.querySelector('IconName')?.textContent||'c_moderate.png';
+            const c=iconGradeMap[ico]?.color||'#957d1d';
+            tbF.innerHTML+=`<tr style="background:${c};color:#fff"><td>${zone}</td><td>${dt}</td><td>${val}</td><td>${desc}</td></tr>`;
         })
-
-        const compNode = xmlDoc.querySelector("Complementary");
-        if(compNode){
-            const sensText = compNode.querySelector("SensitivePopulationGroups")?.textContent||"";
-            const genText = compNode.querySelector("GeneralPublic")?.textContent||"";
-            let tr1 = document.createElement("tr");
-            tr1.innerHTML = `<td>敏感人群（患有呼吸系統疾病或心臟病人士、孕婦、兒童及長者）</td><td>${sensText}</td>`;
-            let tr2 = document.createElement("tr");
-            tr2.innerHTML = `<td>一般市民</td><td>${genText}</td>`;
-            tipBody.appendChild(tr1);
-            tipBody.appendChild(tr2);
+        const comp=doc.querySelector('Complementary');
+        if(comp){
+            const sen=comp.querySelector('SensitivePopulationGroups')?.textContent||'';
+            const gen=comp.querySelector('GeneralPublic')?.textContent||'';
+            tbTip.innerHTML=`<tr><td>敏感人群（患有呼吸系統疾病或心臟病人士、孕婦、兒童及長者）</td><td>${sen}</td></tr><tr><td>一般市民</td><td>${gen}</td></tr>`;
         }
+    }catch(e){tbF.innerHTML='<tr><td colspan="4">預報獲取失敗</td>';console.error(e);}
+}
 
-    }catch(err){
-        tbody.innerHTML = "<tr><td colspan='4'>預報載入失敗，跨域限制</td></tr>";
-        console.error(err);
+//實況SMG官方JSON
+async function loadReal(){
+    const proxy='https://api.allorigins.win/raw?url=';
+    const url=proxy+encodeURIComponent('https://www.smg.gov.mo/opendata/AirQualityData.json?_='+Date.now());
+    try{
+        const res=await fetch(url,{cache:'no-store'});
+        const js=await res.json();
+        const time=js.UpdateTime||'';
+        document.getElementById('pub-date').textContent=time;
+        document.getElementById('time-stamp').textContent=time;
+        airDataList=[];
+        js.Items.forEach(item=>{
+            const name=item.StationName;
+            const pm25=Number(item.PM25),pm10=Number(item.PM10),no2=Number(item.NO2),so2=Number(item.SO2),o3=Number(item.O3),co=Number(item.CO);
+            const obj={pm10:calcSubIdx(pm10,aqiBreak.pm10),pm25:calcSubIdx(pm25,aqiBreak.pm25),no2:calcSubIdx(no2,aqiBreak.no2),so2:calcSubIdx(so2,aqiBreak.so2),o3:calcSubIdx(o3,aqiBreak.o3),co:calcSubIdx(co,aqiBreak.co)};
+            let max=-1,main='';for(let k in obj){if(obj[k]>max){max=obj[k];main=pollNameCN[k];}}
+            airDataList.push({name,pubTime:time,aqi:Math.round(max),pm25,pm10,no2,so2,o3,co,mainPoll:main});
+        })
+        updateMapMarkers();updateLegendPanel(currentTab);renderTable();
+    }catch(e){
+        document.getElementById('pub-date').textContent='實況載入失敗';console.error(e);
     }
+    setTimeout(loadReal,5*60*1000);
 }
 
-const btnMap = document.getElementById("btn-map");
-const btnTable = document.getElementById("btn-table");
-const btnForecast = document.getElementById("btn-forecast");
-const viewMap = document.getElementById("map-view");
-const viewTable = document.getElementById("table-view");
-const viewForecast = document.getElementById("forecast-view");
-
-btnMap.onclick=()=>{
-    btnMap.classList.add("active");
-    btnTable.classList.remove("active");
-    btnForecast.classList.remove("active");
-    viewMap.classList.remove("hide");
-    viewTable.classList.add("hide");
-    viewForecast.classList.add("hide");
-    tabWrapperDom.classList.remove("hide-tab");
+//切換頁面
+document.getElementById('btn-map').onclick=()=>{
+    document.querySelectorAll('.view-switch button').forEach(b=>b.classList.remove('active'));
+    document.getElementById('btn-map').classList.add('active');
+    document.getElementById('map-view').classList.remove('hide');
+    document.getElementById('table-view').classList.add('hide');
+    document.getElementById('forecast-view').classList.add('hide');
+    tabWrapperDom.classList.remove('hide-tab');
 }
-btnTable.onclick=()=>{
-    btnMap.classList.remove("active");
-    btnTable.classList.add("active");
-    btnForecast.classList.remove("active");
-    viewMap.classList.add("hide");
-    viewTable.classList.remove("hide");
-    viewForecast.classList.add("hide");
-    tabWrapperDom.classList.remove("hide-tab");
-    renderDataTable(currentTab);
+document.getElementById('btn-table').onclick=()=>{
+    document.querySelectorAll('.view-switch button').forEach(b=>b.classList.remove('active'));
+    document.getElementById('btn-table').classList.add('active');
+    document.getElementById('map-view').classList.add('hide');
+    document.getElementById('table-view').classList.remove('hide');
+    document.getElementById('forecast-view').classList.add('hide');
+    tabWrapperDom.classList.remove('hide-tab');renderTable();
 }
-btnForecast.onclick=()=>{
-    btnMap.classList.remove("active");
-    btnTable.classList.remove("active");
-    btnForecast.classList.add("active");
-    viewMap.classList.add("hide");
-    viewTable.classList.add("hide");
-    viewForecast.classList.remove("hide");
-    tabWrapperDom.classList.add("hide-tab");
-    loadForecastData();
+document.getElementById('btn-forecast').onclick=()=>{
+    document.querySelectorAll('.view-switch button').forEach(b=>b.classList.remove('active'));
+    document.getElementById('btn-forecast').classList.add('active');
+    document.getElementById('map-view').classList.add('hide');
+    document.getElementById('table-view').classList.add('hide');
+    document.getElementById('forecast-view').classList.remove('hide');
+    tabWrapperDom.classList.add('hide-tab');loadForecast();
 }
-
 document.querySelectorAll('.tab-btn').forEach(btn=>{
     btn.onclick=()=>{
         document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
         btn.classList.add('active');currentTab=btn.dataset.type;
-        updateMapMarkers();updateLegendPanel(currentTab);renderDataTable(currentTab);
+        updateMapMarkers();updateLegendPanel(currentTab);renderTable();
     }
 })
-document.querySelectorAll('.sort-btn').forEach(b=>b.onclick=()=>renderDataTable(currentTab,b.dataset.sort));
 
-// ========== 核心：可靠的刷新機制（不被瀏覽器暫停 + 禁用緩存 + 失敗重試） ==========
-async function fetchAirData() {
-    // 1. 每次都帶隨機參數，徹底禁用緩存
-    const url = `https://cdn.jsdelivr.net/gh/macaosso/MSSOweb@main/data.json?_t=${Date.now()}_${Math.random()}`;
-    try {
-        const res = await fetch(url, {
-            cache: "no-store",
-            headers: {
-                "Cache-Control": "no-cache, no-store, must-revalidate",
-                "Pragma": "no-cache",
-                "Expires": "0"
-            }
-        });
-        if (!res.ok) throw new Error(res.status);
-        const json = await res.json();
-        const pubTime = json.datetime || "未知時間";
-        document.getElementById("pub-date").textContent = pubTime;
-        document.getElementById("time-stamp").textContent = pubTime;
-
-        airDataList = [];
-        singleCardBox.innerHTML = '<div class="empty-tip">請點擊地圖上圓圈查看監測站數據</div>';
-
-        const stationKeys = Object.keys(json).filter(k => k !== 'datetime');
-        stationKeys.forEach(key => {
-            const rec = json[key];
-            const sName = rec.Chinese;
-
-            const pm10=Number(rec.HE_PM10);
-            const pm25=Number(rec.HE_PM2_5);
-            const no2=Number(rec.HE_NO2);
-            const so2=Number(rec.HE_SO2);
-            const o3=Number(rec.HE_O3);
-            const co=Number(rec.HE_CO);
-
-            const idx={
-                pm10:calcSubIdx(pm10,aqiBreak.pm10),
-                pm25:calcSubIdx(pm25,aqiBreak.pm25),
-                no2:calcSubIdx(no2,aqiBreak.no2),
-                so2:calcSubIdx(so2,aqiBreak.so2),
-                o3:calcSubIdx(o3,aqiBreak.o3),
-                co:calcSubIdx(co,aqiBreak.co)
-            };
-            let maxIdx=-1,mainPollutant="";
-            for(let p in idx){
-                if(idx[p]>maxIdx){
-                    maxIdx=idx[p];
-                    mainPollutant=pollNameCN[p];
-                }
-            }
-            const finalAQI=Math.round(maxIdx);
-
-            airDataList.push({
-                name: sName,
-                pubTime: pubTime,
-                aqi: finalAQI,
-                pm10: pm10,
-                pm25: pm25,
-                no2: no2,
-                so2: so2,
-                o3: o3,
-                co: co,
-                mainPoll:mainPollutant
-            })
-        })
-
-        updateMapMarkers();
-        updateLegendPanel(currentTab);
-        renderDataTable(currentTab);
-
-    } catch (err) {
-        console.error('Load error:', err);
-        document.getElementById("pub-date").textContent = "數據載入失敗";
-    }
-
-    // 2. 用 setTimeout 鏈式調用，不會被瀏覽器暫停
-    setTimeout(fetchAirData, 5 * 60 * 1000); // 5分鐘
-}
-
-// 首次執行
-window.addEventListener('DOMContentLoaded',()=>{
-    fetchAirData();
-});
+window.onload=()=>{updateLegendPanel(currentTab);loadReal();}
 </script>
 </body>
 </html>
