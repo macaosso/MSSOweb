@@ -133,6 +133,45 @@ function getWaterLevelColor(wlStr) {
     return "#f1c40f";
 }
 
+// -------- 空氣品質顏色 --------
+function getAirColor(val, type) {
+  const v = parseFloat(val);
+  if (isNaN(v)) return "#999";
+  switch (type) {
+    case "pm25":
+      if (v <= 12) return "#2ecc71";
+      if (v <= 35) return "#f1c40f";
+      if (v <= 55) return "#e67e22";
+      return "#e74c3c";
+    case "pm10":
+      if (v <= 54) return "#2ecc71";
+      if (v <= 154) return "#f1c40f";
+      if (v <= 254) return "#e67e22";
+      return "#e74c3c";
+    case "no2":
+      if (v <= 53) return "#2ecc71";
+      if (v <= 100) return "#f1c40f";
+      if (v <= 360) return "#e67e22";
+      return "#e74c3c";
+    case "so2":
+      if (v <= 35) return "#2ecc71";
+      if (v <= 75) return "#f1c40f";
+      if (v <= 185) return "#e67e22";
+      return "#e74c3c";
+    case "o3":
+      if (v <= 54) return "#2ecc71";
+      if (v <= 70) return "#f1c40f";
+      if (v <= 85) return "#e67e22";
+      return "#e74c3c";
+    case "co":
+      if (v <= 4.4) return "#2ecc71";
+      if (v <= 9.4) return "#f1c40f";
+      if (v <= 12.4) return "#e67e22";
+      return "#e74c3c";
+    default: return "#999";
+  }
+}
+
 // 5. XML node extract
 const extractNodeValue = (selector, parent) => {
     const el = parent.querySelector(selector);
