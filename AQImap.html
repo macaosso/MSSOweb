@@ -45,7 +45,6 @@
             opacity: 0.9;
         }
 
-        /* 頂部切換按鈕 */
         .view-switch {
             margin-bottom: 15px;
             display: flex;
@@ -64,7 +63,6 @@
             color: #fff;
         }
 
-        /* 分類折疊按鈕區 */
         .tab-wrapper {
             background: #fff;
             border-radius: 8px;
@@ -106,7 +104,6 @@
             background: #d0d9e2;
         }
 
-        /* 主布局 */
         .main-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -130,7 +127,6 @@
             border-radius: 8px;
         }
 
-        /* 圖例 */
         .map-legend {
             position: absolute;
             bottom: 15px;
@@ -166,7 +162,6 @@
             margin-right: 5px;
         }
 
-        /* 時間戳 */
         .time-stamp {
             position: absolute;
             top: 25px;
@@ -191,7 +186,6 @@
             z-index: 1000;
         }
 
-        /* 單個監測站卡片容器 */
         .station-single {
             height: 650px;
             display: flex;
@@ -204,7 +198,6 @@
             font-size: 1rem;
         }
 
-        /* 空氣質素卡片樣式 */
         .station-card {
             background: white;
             border-radius: 12px;
@@ -275,7 +268,6 @@
             font-size: 0.9rem;
         }
 
-        /* 空氣等級配色 */
         .level-good { background: #2ecc71; }
         .level-moderate { background: #f1c40f; }
         .level-unhealthy-sensitive { background: #f39c12; }
@@ -283,7 +275,6 @@
         .level-very-unhealthy { background: #9b59b6; }
         .level-hazardous { background: #7b241c; }
 
-        /* 表格區域 */
         .table-container {
             background: #fff;
             border-radius: 12px;
@@ -338,13 +329,11 @@
         </div>
     </header>
 
-    <!-- 地圖/表格 切換按鈕 -->
     <div class="view-switch">
         <button id="btn-map" class="active">地圖</button>
         <button id="btn-table">表格</button>
     </div>
 
-    <!-- 污染物分類按鈕 -->
     <div class="tab-wrapper" id="main-tab">
         <div class="tab-group">
             <h3 class="group-title">空氣污染物指標</h3>
@@ -360,7 +349,6 @@
         </div>
     </div>
 
-    <!-- 地圖視圖 -->
     <div class="main-layout" id="map-view">
         <div class="map-card">
             <div id="macau-map"></div>
@@ -376,7 +364,6 @@
         </div>
     </div>
 
-    <!-- 表格視圖 -->
     <div id="table-view" class="hide">
         <div class="table-container">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:10px;">
@@ -396,7 +383,6 @@
 </div>
 
 <script>
-// ========== 監測站正確座標與代碼（你提供經緯） ==========
 const airStations = {
     "台山": { code: "TS", lat: 22.2143048, lng: 113.5430605 },
     "荷蘭園": { code: "HL", lat: 22.1957226, lng: 113.5447928 },
@@ -406,7 +392,6 @@ const airStations = {
     "九澳": { code: "JA", lat: 22.1330617, lng: 113.5835098 }
 };
 
-// ========== 欄位對應配置 ==========
 const fieldMap = {
     aqi: { field: "aqi", label: "空氣質素指數 AQI", unit: "" },
     pm10: { field: "pm10", label: "PM10", unit: "μg/m³" },
@@ -417,12 +402,10 @@ const fieldMap = {
     co: { field: "co", label: "一氧化碳 CO", unit: "mg/m³" }
 };
 
-// ========== 數值格式化 ==========
 function formatVal(val, unit) {
     return val === '--' ? val : `${val} ${unit}`;
 }
 
-// ========== AQI 等級文字與樣式 ==========
 function getAqiLevel(aqi) {
     let num = parseFloat(aqi);
     if (isNaN(num)) return { text: "無數據", cls: "" };
@@ -434,7 +417,6 @@ function getAqiLevel(aqi) {
     return { text: "有害", cls: "level-hazardous" };
 }
 
-// ========== 顏色規則 ==========
 function getAqiColor(val) {
     let n = parseFloat(val);
     if (isNaN(n)) return "#95a5a6";
@@ -445,132 +427,31 @@ function getAqiColor(val) {
     if (n <= 300) return "#9b59b6";
     return "#7b241c";
 }
+function getPm25Color(val){let n=parseFloat(val);if(isNaN(n))return"#95a5a6";if(n<=12)return"#2ecc71";if(n<=35)return"#f1c40f";if(n<=55)return"#f39c12";if(n<=150)return"#e74c3c";return"#9b59b6";}
+function getPm10Color(val){let n=parseFloat(val);if(isNaN(n))return"#95a5a6";if(n<=54)return"#2ecc71";if(n<=154)return"#f1c40f";if(n<=254)return"#f39c12";if(n<=354)return"#e74c3c";return"#9b59b6";}
+function getNo2Color(val){let n=parseFloat(val);if(isNaN(n))return"#95a5a6";if(n<=40)return"#2ecc71";if(n<=80)return"#f1c40f";if(n<=180)return"#f39c12";return"#e74c3c";}
+function getSo2Color(val){let n=parseFloat(val);if(isNaN(n))return"#95a5a6";if(n<=20)return"#2ecc71";if(n<=80)return"#f1c40f";if(n<=250)return"#f39c12";return"#e74c3c";}
+function getO3Color(val){let n=parseFloat(val);if(isNaN(n))return"#95a5a6";if(n<=54)return"#2ecc71";if(n<=70)return"#f1c40f";if(n<=85)return"#f39c12";return"#e74c3c";}
+function getCoColor(val){let n=parseFloat(val);if(isNaN(n))return"#95a5a6";if(n<=4)return"#2ecc71";if(n<=10)return"#f1c40f";if(n<=15)return"#f39c12";return"#e74c3c";}
 
-function getPm25Color(val) {
-    let n = parseFloat(val);
-    if (isNaN(n)) return "#95a5a6";
-    if (n <= 12) return "#2ecc71";
-    if (n <= 35) return "#f1c40f";
-    if (n <= 55) return "#f39c12";
-    if (n <= 150) return "#e74c3c";
-    return "#9b59b6";
-}
-
-function getPm10Color(val) {
-    let n = parseFloat(val);
-    if (isNaN(n)) return "#95a5a6";
-    if (n <= 54) return "#2ecc71";
-    if (n <= 154) return "#f1c40f";
-    if (n <= 254) return "#f39c12";
-    if (n <= 354) return "#e74c3c";
-    return "#9b59b6";
-}
-
-function getNo2Color(val) {
-    let n = parseFloat(val);
-    if (isNaN(n)) return "#95a5a6";
-    if (n <= 40) return "#2ecc71";
-    if (n <= 80) return "#f1c40f";
-    if (n <= 180) return "#f39c12";
-    return "#e74c3c";
-}
-
-function getSo2Color(val) {
-    let n = parseFloat(val);
-    if (isNaN(n)) return "#95a5a6";
-    if (n <= 20) return "#2ecc71";
-    if (n <= 80) return "#f1c40f";
-    if (n <= 250) return "#f39c12";
-    return "#e74c3c";
-}
-
-function getO3Color(val) {
-    let n = parseFloat(val);
-    if (isNaN(n)) return "#95a5a6";
-    if (n <= 54) return "#2ecc71";
-    if (n <= 70) return "#f1c40f";
-    if (n <= 85) return "#f39c12";
-    return "#e74c3c";
-}
-
-function getCoColor(val) {
-    let n = parseFloat(val);
-    if (isNaN(n)) return "#95a5a6";
-    if (n <= 4) return "#2ecc71";
-    if (n <= 10) return "#f1c40f";
-    if (n <= 15) return "#f39c12";
-    return "#e74c3c";
-}
-
-// ========== 更新圖例 ==========
 function updateLegendPanel(tabType) {
     const legendContent = document.getElementById('legend-content');
     let html = '';
     switch(tabType) {
-        case "aqi":
-            html = `
-            <div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-50 優良</div>
-            <div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>51-100 普通</div>
-            <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>101-150 敏感族群不宜</div>
-            <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>151-200 不健康</div>
-            <div class="legend-item"><div class="legend-color" style="background:#9b59b6"></div>201-300 非常不健康</div>
-            <div class="legend-item"><div class="legend-color" style="background:#7b241c"></div>>300 有害</div>`;
-            break;
-        case "pm25":
-            html = `
-            <div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-12 良好</div>
-            <div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>13-35 普通</div>
-            <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>36-55 偏高</div>
-            <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>56-150 高</div>
-            <div class="legend-item"><div class="legend-color" style="background:#9b59b6"></div>>150 極高</div>`;
-            break;
-        case "pm10":
-            html = `
-            <div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-54 良好</div>
-            <div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>55-154 普通</div>
-            <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>155-254 偏高</div>
-            <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>255-354 高</div>
-            <div class="legend-item"><div class="legend-color" style="background:#9b59b6"></div>>354 極高</div>`;
-            break;
-        case "no2":
-            html = `
-            <div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-40 正常</div>
-            <div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>41-80 略高</div>
-            <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>81-180 偏高</div>
-            <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>>180 高</div>`;
-            break;
-        case "so2":
-            html = `
-            <div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-20 正常</div>
-            <div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>21-80 略高</div>
-            <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>81-250 偏高</div>
-            <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>>250 高</div>`;
-            break;
-        case "o3":
-            html = `
-            <div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-54 正常</div>
-            <div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>55-70 略高</div>
-            <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>71-85 偏高</div>
-            <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>>85 高</div>`;
-            break;
-        case "co":
-            html = `
-            <div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-4 正常</div>
-            <div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>5-10 略高</div>
-            <div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>11-15 偏高</div>
-            <div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>>15 高</div>`;
-            break;
-        default:
-            html = `<div class="legend-item" style="color:#777;">無圖例</div>`;
+        case "aqi": html = `<div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-50 優良</div><div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>51-100 普通</div><div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>101-150 敏感族群不宜</div><div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>151-200 不健康</div><div class="legend-item"><div class="legend-color" style="background:#9b59b6"></div>201-300 非常不健康</div><div class="legend-item"><div class="legend-color" style="background:#7b241c"></div>>300 有害</div>`;break;
+        case "pm25":html=`<div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-12 良好</div><div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>13-35 普通</div><div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>36-55 偏高</div><div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>56-150 高</div><div class="legend-item"><div class="legend-color" style="background:#9b59b6"></div>>150 極高</div>`;break;
+        case "pm10":html=`<div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-54 良好</div><div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>55-154 普通</div><div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>155-254 偏高</div><div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>255-354 高</div><div class="legend-item"><div class="legend-color" style="background:#9b59b6"></div>>354 極高</div>`;break;
+        case "no2":html=`<div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-40 正常</div><div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>41-80 略高</div><div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>81-180 偏高</div><div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>>180 高</div>`;break;
+        case "so2":html=`<div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-20 正常</div><div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>21-80 略高</div><div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>81-250 偏高</div><div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>>250 高</div>`;break;
+        case "o3":html=`<div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-54 正常</div><div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>55-70 略高</div><div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>71-85 偏高</div><div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>>85 高</div>`;break;
+        case "co":html=`<div class="legend-item"><div class="legend-color" style="background:#2ecc71"></div>0-4 正常</div><div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>5-10 略高</div><div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>11-15 偏高</div><div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>>15 高</div>`;break;
+        default:html=`<div class="legend-item" style="color:#777;">無圖例</div>`;
     }
     legendContent.innerHTML = html;
 }
 
-// ========== 地圖初始化 ==========
 let map = L.map('macau-map').setView([22.17, 113.55], 12);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution: '&copy; OpenStreetMap contributors'}).addTo(map);
 
 let allMarkers = [];
 let currentTab = "aqi";
@@ -578,176 +459,119 @@ let airDataList = [];
 const singleCardBox = document.getElementById("single-card-box");
 let lastSort = "default";
 
-// ========== 清空標記 ==========
-function clearMarkers() {
-    allMarkers.forEach(m => map.removeLayer(m));
-    allMarkers = [];
-}
+function clearMarkers(){allMarkers.forEach(m=>map.removeLayer(m));allMarkers=[];}
 
-// ========== 渲染單站詳細卡片（修復publishTime變數） ==========
 function renderSingleCard(data) {
     const {name, code, pubTime, aqi, pm10, pm25, no2, so2, o3, co} = data;
     const levelInfo = getAqiLevel(aqi);
-    const card = `
-    <div class="station-card">
-        <div class="station-name">${name} (${code})</div>
-        <div style="font-size:0.8rem;color:#666;margin:8px 0;">更新時間：${pubTime}</div>
-        <div class="aqi-row">
-            <div class="current-aqi">${formatVal(aqi, '')}</div>
-            <div class="aqi-level ${levelInfo.cls}">${levelInfo.text}</div>
-        </div>
-        <div class="metrics-grid">
-            <div class="metric col-half"><span>PM10</span><strong>${formatVal(pm10, 'μg/m³')}</strong></div>
-            <div class="metric col-half"><span>PM2.5</span><strong>${formatVal(pm25, 'μg/m³')}</strong></div>
-            <div class="metric col-half"><span>二氧化氮 NO₂</span><strong>${formatVal(no2, 'μg/m³')}</strong></div>
-            <div class="metric col-half"><span>二氧化硫 SO₂</span><strong>${formatVal(so2, 'μg/m³')}</strong></div>
-            <div class="metric col-half"><span>臭氧 O₃</span><strong>${formatVal(o3, 'μg/m³')}</strong></div>
-            <div class="metric col-half"><span>一氧化碳 CO</span><strong>${formatVal(co, 'mg/m³')}</strong></div>
-        </div>
-    </div>`;
+    const card = `<div class="station-card"><div class="station-name">${name} (${code})</div><div style="font-size:0.8rem;color:#666;margin:8px 0;">更新時間：${pubTime}</div><div class="aqi-row"><div class="current-aqi">${formatVal(aqi, '')}</div><div class="aqi-level ${levelInfo.cls}">${levelInfo.text}</div></div><div class="metrics-grid"><div class="metric col-half"><span>PM10</span><strong>${formatVal(pm10, 'μg/m³')}</strong></div><div class="metric col-half"><span>PM2.5</span><strong>${formatVal(pm25, 'μg/m³')}</strong></div><div class="metric col-half"><span>二氧化氮 NO₂</span><strong>${formatVal(no2, 'μg/m³')}</strong></div><div class="metric col-half"><span>二氧化硫 SO₂</span><strong>${formatVal(so2, 'μg/m³')}</strong></div><div class="metric col-half"><span>臭氧 O₃</span><strong>${formatVal(o3, 'μg/m³')}</strong></div><div class="metric col-half"><span>一氧化碳 CO</span><strong>${formatVal(co, 'mg/m³')}</strong></div></div></div>`;
     singleCardBox.innerHTML = card;
 }
 
-// ========== 更新地圖標記 ==========
 function updateMapMarkers() {
     clearMarkers();
     document.getElementById('current-indicator').textContent = fieldMap[currentTab].label;
-
-    airDataList.forEach(point => {
+    airDataList.forEach(point=>{
         const name = point.name;
         const pos = airStations[name];
-        if (!pos) return;
-
+        if(!pos) return;
         let val = point[fieldMap[currentTab].field];
-        if (val === '--' || val === '') return;
-
-        let color = "#95a5a6";
-        switch(currentTab) {
-            case "aqi": color = getAqiColor(val); break;
-            case "pm25": color = getPm25Color(val); break;
-            case "pm10": color = getPm10Color(val); break;
-            case "no2": color = getNo2Color(val); break;
-            case "so2": color = getSo2Color(val); break;
-            case "o3": color = getO3Color(val); break;
-            case "co": color = getCoColor(val); break;
+        if(val === '--'||val==='') return;
+        let color="#95a5a6";
+        switch(currentTab){
+            case"aqi":color=getAqiColor(val);break;
+            case"pm25":color=getPm25Color(val);break;
+            case"pm10":color=getPm10Color(val);break;
+            case"no2":color=getNo2Color(val);break;
+            case"so2":color=getSo2Color(val);break;
+            case"o3":color=getO3Color(val);break;
+            case"co":color=getCoColor(val);break;
         }
-
-        const iconHtml = `<div style="background:${color};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;">${val}</div>`;
-        const icon = L.divIcon({ html: iconHtml, className: "", iconSize: [50,50], iconAnchor: [25,25] });
-        const marker = L.marker([pos.lat, pos.lng], { icon }).addTo(map);
+        const iconHtml=`<div style="background:${color};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;">${val}</div>`;
+        const icon=L.divIcon({html:iconHtml,className:"",iconSize:[50,50],iconAnchor:[25,25]});
+        const marker=L.marker([pos.lat,pos.lng],{icon}).addTo(map);
         marker.bindPopup(`<strong>${name}</strong>`);
-
-        marker.on('click', () => {
-            renderSingleCard({...point, code: pos.code});
-        });
+        marker.on('click',()=>renderSingleCard({...point,code:pos.code}));
         allMarkers.push(marker);
-    });
+    })
 }
 
-// ========== 渲染數據表格 ==========
-function renderDataTable(type, sortType = lastSort) {
-    const cfg = fieldMap[type];
-    const field = cfg.field;
-    const label = cfg.label;
-    const unit = cfg.unit;
-    document.getElementById('table-title').textContent = `${label} 數據表格`;
-    const tbody = document.getElementById('table-body');
-    tbody.innerHTML = "";
+function renderDataTable(type,sortType=lastSort){
+    const cfg=fieldMap[type];
+    const field=cfg.field,label=cfg.label,unit=cfg.unit;
+    document.getElementById('table-title').textContent=`${label} 數據表格`;
+    const tbody=document.getElementById('table-body');tbody.innerHTML="";
+    let validList=airDataList.filter(i=>i[field]!=='--'&&i[field]!=='');
+    if(sortType==='desc')validList.sort((a,b)=>parseFloat(b[field])-parseFloat(a[field]));
+    else if(sortType==='asc')validList.sort((a,b)=>parseFloat(a[field])-parseFloat(b[field]));
+    lastSort=sortType;
+    validList.forEach(item=>{
+        const name=item.name,code=airStations[name]?.code||"";
+        const dVal=item[field]+(unit?" "+unit:"");
+        const tr=document.createElement('tr');tr.innerHTML=`<td>${name}</td><td>${code}</td><td>${dVal}</td>`;tbody.appendChild(tr);
+    })
+}
 
-    let validList = airDataList.filter(item => item[field] !== '--' && item[field] !== '');
-
-    if (sortType === "desc") {
-        validList.sort((a,b) => parseFloat(b[field]) - parseFloat(a[field]));
-    } else if (sortType === "asc") {
-        validList.sort((a,b) => parseFloat(a[field]) - parseFloat(b[field]));
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.onclick=()=>{
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');currentTab=btn.dataset.type;
+        updateMapMarkers();updateLegendPanel(currentTab);renderDataTable(currentTab);
     }
-    lastSort = sortType;
+})
+document.getElementById('btn-map').onclick=function(){this.classList.add('active');document.getElementById('btn-table').classList.remove('active');document.getElementById('map-view').classList.remove('hide');document.getElementById('table-view').classList.add('hide');}
+document.getElementById('btn-table').onclick=function(){this.classList.add('active');document.getElementById('btn-map').classList.remove('active');document.getElementById('map-view').classList.add('hide');document.getElementById('table-view').classList.remove('hide');renderDataTable(currentTab);}
+document.querySelectorAll('.sort-btn').forEach(b=>b.onclick=()=>renderDataTable(currentTab,b.dataset.sort));
 
-    validList.forEach(item => {
-        const name = item.name;
-        const code = airStations[name]?.code || "";
-        const displayVal = item[field] + (unit ? " " + unit : "");
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${displayVal}</td>`;
-        tbody.appendChild(tr);
-    });
-}
-
-// ========== 按鈕事件綁定 ==========
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentTab = btn.dataset.type;
-        updateMapMarkers();
-        updateLegendPanel(currentTab);
-        renderDataTable(currentTab);
-    });
-});
-
-document.getElementById('btn-map').addEventListener('click', function(){
-    this.classList.add('active');
-    document.getElementById('btn-table').classList.remove('active');
-    document.getElementById('map-view').classList.remove('hide');
-    document.getElementById('table-view').classList.add('hide');
-});
-document.getElementById('btn-table').addEventListener('click', function(){
-    this.classList.add('active');
-    document.getElementById('btn-map').classList.remove('active');
-    document.getElementById('map-view').classList.add('hide');
-    document.getElementById('table-view').classList.remove('hide');
-    renderDataTable(currentTab);
-});
-
-document.querySelectorAll('.sort-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        renderDataTable(currentTab, btn.dataset.sort);
-    });
-});
-
-// ========== 抓取空氣JSON ==========
+// ====== 關鍵：雙備用跨域鏈接，優先allorigins，失敗切換github（等action跑完自動切）
 async function fetchAirData() {
-    // 備用跨域
-    const url = `https://api.allorigins.win/raw?url=https://www.smg.gov.mo/smg/airQuality/latestAirConcentration.json&_t=${Date.now()}`;
-    try {
-        const res = await fetch(url, { cache: "no-store" });
-        if (!res.ok) throw new Error("Fetch fail");
-        const json = await res.json();
-        const records = json.records || [];
-        const pubTime = json.publishTime || "未知時間";
-
-        document.getElementById("pub-date").textContent = pubTime;
-        document.getElementById("time-stamp").textContent = pubTime;
-
-        airDataList = [];
-        singleCardBox.innerHTML = '<div class="empty-tip">請點擊地圖上圓圈查看監測站數據</div>';
-
-        records.forEach(rec => {
-            const siteName = rec.siteName || "未知站點";
+    let url = `https://api.allorigins.win/raw?url=https://www.smg.gov.mo/smg/airQuality/latestAirConcentration.json&_t=${Date.now()}`;
+    try{
+        const res=await fetch(url,{cache:"no-store"});
+        if(!res.ok)throw new Error();
+        const json=await res.json();
+        const records=json.records||[],pubTime=json.publishTime||"未知時間";
+        document.getElementById("pub-date").textContent=pubTime;
+        document.getElementById("time-stamp").textContent=pubTime;
+        airDataList=[];singleCardBox.innerHTML='<div class="empty-tip">請點擊地圖上圓圈查看監測站數據</div>';
+        records.forEach(rec=>{
+            const sName=rec.siteName||"未知站點";
             airDataList.push({
-                name: siteName,
-                pubTime: pubTime,
-                aqi: rec.AQI ?? '--',
-                pm10: rec.PM10 ?? '--',
-                pm25: rec.PM2_5 ?? '--',
-                no2: rec.NO2 ?? '--',
-                so2: rec.SO2 ?? '--',
-                o3: rec.O3 ?? '--',
-                co: rec.CO ?? '--'
-            });
-        });
-
-        updateMapMarkers();
-        updateLegendPanel(currentTab);
-        renderDataTable(currentTab);
-    } catch (err) {
-        console.error("載入錯誤:", err);
+                name:sName,pubTime:pubTime,
+                aqi:rec.AQI??'--',pm10:rec.PM10??'--',pm25:rec.PM2_5??'--',
+                no2:rec.NO2??'--',so2:rec.SO2??'--',o3:rec.O3??'--',co:rec.CO??'--'
+            })
+        })
+        updateMapMarkers();updateLegendPanel(currentTab);renderDataTable(currentTab);
+    }catch(err){
+        console.log("備用源:",err);
+        // allorigins掛了自動切github
+        const url2=`https://raw.githubusercontent.com/macaosso/MSSOweb/main/data.json?_t=${Date.now()}`;
+        try{
+            const res2=await fetch(url2,{cache:"no-store"});
+            const json=await res2.json();
+            const records=json.records||[],pubTime=json.publishTime||"未知時間";
+            document.getElementById("pub-date").textContent=pubTime;
+            document.getElementById("time-stamp").textContent=pubTime;
+            airDataList=[];singleCardBox.innerHTML='<div class="empty-tip">請點擊地圖上圓圈查看監測站數據</div>';
+            records.forEach(rec=>{
+                const sName=rec.siteName||"未知站點";
+                airDataList.push({
+                    name:sName,pubTime:pubTime,
+                    aqi:rec.AQI??'--',pm10:rec.PM10??'--',pm25:rec.PM2_5??'--',
+                    no2:rec.NO2??'--',so2:rec.SO2??'--',o3:rec.O3??'--',co:rec.CO??'--'
+                })
+            })
+            updateMapMarkers();updateLegendPanel(currentTab);renderDataTable(currentTab);
+        }catch(e2){
+            console.error("全部源失敗",e2);
+            document.getElementById("pub-date").textContent="數據獲取失敗";
+        }
     }
 }
 
-// 頁面載入+5分鐘自動刷新
-window.addEventListener('DOMContentLoaded', fetchAirData);
-setInterval(fetchAirData, 300000);
+window.addEventListener('DOMContentLoaded',fetchAirData);
+setInterval(fetchAirData,300000);
 </script>
 </body>
 </html>
