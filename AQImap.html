@@ -525,21 +525,23 @@ document.querySelectorAll('.sort-btn').forEach(b=>b.onclick=()=>renderDataTable(
 
 // 固定讀取你倉庫已存在的data.json
 async function fetchAirData() {
-    // Proxy to bypass browser CORS for github raw
     const url = `https://cdn.jsdelivr.net/gh/macaosso/MSSOweb@main/data.json?_t=${Date.now()}`;
     try {
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) throw new Error(res.status);
         const json = await res.json();
-        const records = json.records || [];
-        const pubTime = json.publishTime || "未知時間";
-
+        // get publish time
+        const pubTime = json.datetime || "未知時間";
         document.getElementById("pub-date").textContent = pubTime;
         document.getElementById("time-stamp").textContent = pubTime;
+
         airDataList = [];
         singleCardBox.innerHTML = '<div class="empty-tip">請點擊地圖上圓圈查看監測站數據</div>';
 
-        records.forEach(rec => {
+        // Filter only station objects (skip top-level datetime)
+        const stationKeys = Object.keys(json).filter(k=>k!=='datetime');
+        stationKeys.forEach(key=>{
+            const rec = json[key];
             const sName = rec.siteName || "未知站點";
             airDataList.push({
                 name: sName,
@@ -553,6 +555,7 @@ async function fetchAirData() {
                 co: rec.CO ?? '--'
             })
         })
+
         updateMapMarkers();
         updateLegendPanel(currentTab);
         renderDataTable(currentTab);
