@@ -648,18 +648,18 @@ function updateLegendPanel(tabType) {
     const legendContent = document.getElementById('legend-content');
     let legendHTML = '';
     switch(tabType) {
-        case "tempCurrent":case "tempMax":case "tempMin":case "apparentTemp":
+        case "tempCurrent":case "tempMax":case "apparentTemp":
             legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#330101"></div>極為酷熱</div>
-            <div class="legend-item"><div class="legend-color" style="background:#8d1919"></div>非常酷熱</div>
-            <div class="legend-item"><div class="legend-color" style="background:#f12828"></div>酷熱</div>
+            <div class="legend-item"><div class="legend-color" style="background:#750505"></div>極為酷熱</div>
+            <div class="legend-item"><div class="legend-color" style="background:#bc0707"></div>非常酷熱</div>
+            <div class="legend-item"><div class="legend-color" style="background:#ff0000"></div>酷熱</div>
             <div class="legend-item"><div class="legend-color" style="background:#eb5321"></div>炎熱</div>
             <div class="legend-item"><div class="legend-color" style="background:#b37802"></div>溫暖</div>
             <div class="legend-item"><div class="legend-color" style="background:#919107"></div>和暖</div>
             <div class="legend-item"><div class="legend-color" style="background:#19aa75"></div>清涼</div>
             <div class="legend-item"><div class="legend-color" style="background:#0d667a"></div>寒冷</div>
-            <div class="legend-item"><div class="legend-color" style="background:#141970"></div>非常寒冷</div>
-            <div class="legend-item"><div class="legend-color" style="background:#300c46"></div>極為寒冷</div>`;
+            <div class="legend-item"><div class="legend-color" style="background:#192097"></div>非常寒冷</div>
+            <div class="legend-item"><div class="legend-color" style="background:#530b80"></div>極為寒冷</div>`;
             break;
 
         case "heatIndex":
