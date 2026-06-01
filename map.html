@@ -674,6 +674,8 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 
 let allMarkers = [];
 let currentTab = "tempCurrent";
+document.getElementById('current-indicator').textContent = 
+  `${fieldMap[currentTab]?.label || currentTab}`;
 let pointDataList = [];
 let floodDataList = [];
 const singleCardBox = document.getElementById("single-card-box");
@@ -687,7 +689,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
 
         // 新增：更新地圖上的指標顯示
         const labelText = fieldMap[currentTab]?.label || currentTab;
-        document.getElementById('current-indicator').textContent = `當前指標：${labelText}`;
+        document.getElementById('current-indicator').textContent = `${labelText}`;
 
         updateMapMarkers();
         updateLegendPanel(currentTab);
