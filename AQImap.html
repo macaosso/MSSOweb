@@ -325,6 +325,9 @@
         .hide {
             display: none !important;
         }
+        .tip-table{
+            margin-top:25px;
+        }
     </style>
 </head>
 <body>
@@ -397,17 +400,29 @@
     <div id="forecast-view" class="hide">
         <div class="table-container">
             <div style="font-size:1.1rem;font-weight:bold;margin-bottom:10px;">空氣質素預報（SMG）</div>
+            <!-- Top forecast table (removed 空氣質素等級 column) -->
             <table class="data-table" id="forecast-table">
                 <thead>
                     <tr>
                         <th>監測區域</th>
                         <th>預報日期</th>
                         <th>AQI區間</th>
-                        <th>空氣質素等級</th>
                         <th>提示描述</th>
                     </tr>
                 </thead>
                 <tbody id="forecast-body"></tbody>
+            </table>
+
+            <!-- New second table for prevention tips below -->
+            <div style="font-size:1.1rem;font-weight:bold;margin:25px 0 10px 0;">建議採取的預防措施</div>
+            <table class="data-table tip-table" id="tip-table">
+                <thead>
+                    <tr>
+                        <th>人群分類</th>
+                        <th>防護建議</th>
+                    </tr>
+                </thead>
+                <tbody id="tip-body"></tbody>
             </table>
         </div>
     </div>
@@ -692,7 +707,9 @@ function renderDataTable(type,sortType=lastSort){
 // Fix CORS via public CORS proxy
 async function loadForecastData(){
     const tbody = document.getElementById("forecast-body");
-    tbody.innerHTML = "<tr><td colspan='5'>載入預報數據...</td></tr>";
+    const tipBody = document.getElementById("tip-body");
+    tbody.innerHTML = "<tr><td colspan='4'>載入預報數據...</td></tr>";
+    tipBody.innerHTML = "";
     try{
         const proxy = "https://corsproxy.io/?";
         const xmlUrl = proxy + encodeURIComponent("https://xml.smg.gov.mo/c_foreiqa.xml");
@@ -714,11 +731,26 @@ async function loadForecastData(){
             const tr = document.createElement("tr");
             tr.style.backgroundColor = grade.color;
             tr.style.color="#ffffff";
-            tr.innerHTML = `<td>${zoneName}</td><td>${fDate}</td><td>${aqiRange}</td><td>${grade.name}</td><td>${descText}</td>`;
+            // removed grade column
+            tr.innerHTML = `<td>${zoneName}</td><td>${fDate}</td><td>${aqiRange}</td><td>${descText}</td>`;
             tbody.appendChild(tr);
         })
+
+        // fill prevention tip table from Complementary node
+        const compNode = xmlDoc.querySelector("Complementary");
+        if(compNode){
+            const sensText = compNode.querySelector("SensitivePopulationGroups")?.textContent||"";
+            const genText = compNode.querySelector("GeneralPublic")?.textContent||"";
+            let tr1 = document.createElement("tr");
+            tr1.innerHTML = `<td>敏感人群（患有呼吸系統疾病或心臟病人士、孕婦、兒童及長者）</td><td>${sensText}</td>`;
+            let tr2 = document.createElement("tr");
+            tr2.innerHTML = `<td>一般市民</td><td>${genText}</td>`;
+            tipBody.appendChild(tr1);
+            tipBody.appendChild(tr2);
+        }
+
     }catch(err){
-        tbody.innerHTML = "<tr><td colspan='5'>預報載入失敗</td></tr>";
+        tbody.innerHTML = "<tr><td colspan='4'>預報載入失敗</td></tr>";
         console.error(err);
     }
 }
