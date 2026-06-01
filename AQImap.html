@@ -707,12 +707,12 @@ document.querySelectorAll('.sort-btn').forEach(btn => {
 
 // ========== 抓取空氣JSON ==========
 async function fetchAirData() {
-    const url = `https://raw.githubusercontent.com/macaosso/MSSOweb/main/data.json?_t=${Date.now()}`;
+    // 備用跨域
+    const url = `https://api.allorigins.win/raw?url=https://www.smg.gov.mo/smg/airQuality/latestAirConcentration.json&_t=${Date.now()}`;
     try {
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) throw new Error("Fetch fail");
         const json = await res.json();
-        // 後面程式不變
         const records = json.records || [];
         const pubTime = json.publishTime || "未知時間";
 
