@@ -4,7 +4,19 @@ let allMarkers = [];
 let currentTab = "tempCurrent";
 let pointDataList = [];
 let floodDataList = [];
+let tideDataList = [];
 let tableSortType = "default"; // default / desc / asc
+
+// 潮汐接口與請求頭
+const TIDE_API = "https://corsproxy.io/?https://dsama.apigateway.data.gov.mo/currentTideXmlApi";
+const TIDE_HEADERS = {
+    "Authorization": "APPCODE 09d43a591fba407fb862412970667de4"
+};
+// 潮汐測站
+const tideStations = [
+    { name: "媽閣", code: "SBR", lat: 22.186720, lng: 113.530000 },
+    { name: "青洲塘", code: "SDV", lat: 22.208934, lng: 113.539580 }
+];
 
 const singleCardBox = document.getElementById("single-card-box");
 const tableTitleWrap = document.querySelector(".table-title-wrap");
@@ -32,6 +44,9 @@ function updateMapMarkers() {
     if (currentTab === "waterLevel") {
         sourceList = floodDataList;
         stationPool = waterStations;
+    } else if (currentTab === "tide") {
+        sourceList = tideDataList;
+        stationPool = tideStations;
     } else {
         sourceList = pointDataList;
         stationPool = Object.entries(weatherStations).map(([name, info]) => ({ name, ...info }));
@@ -68,6 +83,10 @@ function updateMapMarkers() {
                 showVal = point.waterLevel;
                 bgColor = getWaterLevelColor(showVal);
                 break;
+            case "tide":
+                showVal = point.tideHeight;
+                bgColor = "#16a085";
+                break;
         }
 
         if (skipMarker || showVal === '' || showVal === '--') return;
@@ -85,8 +104,22 @@ function updateMapMarkers() {
 // Render station detail card
 function renderSingleCard(data) {
     const { name, code, temp, tempMax, tempMin, humidity, windDir, windSpeed, windGust, rain1m, rain1h, rainTotal,
-        pressSea, pressStation, apparentTemp, heatIndex, dewPoint, waterLevel } = data;
+        pressSea, pressStation, apparentTemp, heatIndex, dewPoint, waterLevel, tideHeight, tideTime } = data;
     const fullName = `${name} (${code})`;
+
+    // 潮汐專用卡片
+    if (currentTab === "tide") {
+        const card = `
+        <div class="station-card">
+            <div class="station-name">${fullName}</div>
+            <div style="text-align:center;margin:30px 0;">
+                <div style="font-size:2.2rem;font-weight:bold;color:#16a085;">${tideHeight} cm</div>
+                <div style="margin-top:8px;color:#666;">觀測時間：${tideTime}</div>
+            </div>
+        </div>`;
+        singleCardBox.innerHTML = card;
+        return;
+    }
 
     const hiClass = getHeatIndexClass(heatIndex);
     const apClass = getApparentClass(apparentTemp);
@@ -96,7 +129,6 @@ function renderSingleCard(data) {
     const rTotalClass = getRainDayClass(rainTotal);
     const wlClass = getWaterLevelClass(waterLevel);
 
-    // Weather stations hide water level row
     let wlHtml = "";
     if (currentTab === "waterLevel") {
         wlHtml = `<div class="${wlClass}" style="grid-column: span 6;"><span>實時水位</span><strong>${formatVal(waterLevel, 'm')}</strong></div>`;
@@ -160,6 +192,9 @@ function updateLegendPanel(tabType) {
         case "waterLevel":
             legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#3498db"></div>無積水 (0m)</div><div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>輕微積水 0~0.2m</div><div class="legend-item"><div class="legend-color" style="background:#f39c12"></div>中度積水 0.2~0.5m</div><div class="legend-item"><div class="legend-color" style="background:#e74c3c"></div>嚴重積水 >0.5m</div>`;
             break;
+        case "tide":
+            legendHTML = `<div class="legend-item"><div class="legend-color" style="background:#16a085"></div>潮汐監測站</div>`;
+            break;
         default:
             legendHTML = `<div class="legend-item" style="color:#777;">無圖例</div>`;
     }
@@ -168,6 +203,22 @@ function updateLegendPanel(tabType) {
 
 // Render table + sort + remove empty rows
 function renderDataTable(type) {
+    // 潮汐表格
+    if (type === "tide") {
+        document.getElementById('table-title').textContent = `實時潮汐 數據表格`;
+        tableBody.innerHTML = "";
+        tideDataList.forEach(item => {
+            const name = item.name;
+            const code = item.code;
+            const val = item.tideHeight;
+            const displayVal = val + " cm";
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${displayVal}</td>`;
+            tableBody.appendChild(tr);
+        });
+        return;
+    }
+
     const cfg = fieldMap[type];
     const field = cfg.field;
     const label = cfg.label;
@@ -178,7 +229,6 @@ function renderDataTable(type) {
     let sourceList = type === "waterLevel" ? floodDataList : pointDataList;
     let stationPool = type === "waterLevel" ? waterStations : Object.entries(weatherStations).map(([name, info]) => ({ name, ...info }));
 
-    // Sort logic
     if (tableSortType !== "default") {
         sourceList = [...sourceList].sort((a, b) => {
             const valA = parseFloat(a[field]) || 0;
@@ -189,7 +239,6 @@ function renderDataTable(type) {
 
     sourceList.forEach(item => {
         const val = item[field];
-        // Remove row if no data
         if (val === '--' || val === '') return;
 
         const name = item.name;
@@ -290,20 +339,57 @@ function fetchFloodData() {
         .catch(err => console.error("水位數據載入失敗：", err));
 }
 
+// API: Fetch tide data
+function fetchTideData() {
+    return fetch(TIDE_API, { headers: TIDE_HEADERS })
+        .then(res => {
+            if (!res.ok) throw new Error("Tide API Error");
+            return res.text();
+        })
+        .then(xmlStr => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
+            const item = xmlDoc.querySelector("item");
+            if (!item) {
+                tideDataList = [];
+                return;
+            }
+            const tideDate = item.querySelector("date").textContent;
+            const tideTime = item.querySelector("time").textContent;
+            const tideHeight = item.querySelector("recordTide").textContent;
+            const fullTime = `${tideDate} ${tideTime}`;
+
+            tideDataList = tideStations.map(sta => ({
+                name: sta.name,
+                code: sta.code,
+                tideHeight: tideHeight,
+                tideTime: fullTime
+            }));
+
+            // 同步時間戳
+            document.getElementById("pub-date").textContent = fullTime;
+            document.getElementById("time-stamp").textContent = fullTime;
+        })
+        .catch(err => {
+            console.error("潮汐數據載入失敗：", err);
+            tideDataList = [];
+        });
+}
+
 // Load all data & refresh UI
 function loadAllData() {
-    Promise.all([fetchWeatherData(), fetchFloodData()])
+    Promise.all([fetchWeatherData(), fetchFloodData(), fetchTideData()])
         .then(() => {
             updateMapMarkers();
             updateLegendPanel(currentTab);
             renderDataTable(currentTab);
+            singleCardBox.innerHTML = '<div class="empty-tip">請點擊地圖上圓圈查看測站數據</div>';
         })
         .catch(err => console.error("整體數據載入失敗：", err));
 }
 
 // Bind all events
 function bindEvents() {
-    // Fold toggle
     document.querySelectorAll('.group-toggle').forEach(toggle => {
         toggle.addEventListener('click', () => toggle.nextElementSibling.classList.toggle('show'));
     });
@@ -318,6 +404,7 @@ function bindEvents() {
             updateMapMarkers();
             updateLegendPanel(currentTab);
             renderDataTable(currentTab);
+            singleCardBox.innerHTML = '<div class="empty-tip">請點擊地圖上圓圈查看測站數據</div>';
         });
     });
 
@@ -356,5 +443,5 @@ window.addEventListener('DOMContentLoaded', () => {
     initMap();
     bindEvents();
     loadAllData();
-    setInterval(loadAllData, 300000); // 5min auto refresh
+    setInterval(loadAllData, 300000); // 5分鐘全域自動刷新
 });
