@@ -520,7 +520,7 @@ function formatVal(val, unit) {
 }
 
 // ========== 測站座標 & 代碼 ==========
-const allPoints = {
+const weatherPoints = {
     "紀念孫中山市政公園": { code: "DP", lat: 22.215322, lng: 113.543490 },
     "黑沙環": { code: "EM", lat: 22.207129, lng: 113.559971 },
     "大炮台": { code: "FM", lat: 22.197066, lng: 113.542261 },
@@ -538,6 +538,28 @@ const allPoints = {
     "澳門大橋北": { code: "MN", lat: 22.186985, lng: 113.573231 },
     "澳門大橋南": { code: "MS", lat: 22.173484, lng: 113.573047 },
     "蓮花大橋": { code: "LH", lat: 22.139934, lng: 113.549094 }
+};
+
+const floodPoints = {
+    "青洲河邊馬路": { lat: 22.212097, lng: 113.535243 },
+    "花地瑪教會街": { lat: 22.211374, lng: 113.546674 },
+    "紅街市": { lat: 22.205155, lng: 113.544597 },
+    "光復街": { lat: 22.202498, lng: 113.544916 },
+    "永樂戲院": { lat: 22.202574, lng: 113.542885 },
+    "內港北": { lat: 22.199984, lng: 113.536861 },
+    "內港": { lat: 22.198031, lng: 113.536426 },
+    "康公廟": { lat: 22.197330, lng: 113.537858 },
+    "司打口": { lat: 22.193228, lng: 113.536822 },
+    "內港南": { lat: 22.190755, lng: 113.532853 },
+    "下環街": { lat: 22.189418, lng: 113.534413 },
+    "菜園路": { lat: 22.159073, lng: 113.558961 },
+    "沙維斯街": { lat: 22.157666, lng: 113.550649 },
+    "柯維納馬路": { lat: 22.157473, lng: 113.548550 },
+    "益隆": { lat: 22.156058, lng: 113.559474 },
+    "松樹尾": { lat: 22.154766, lng: 113.557309 },
+    "黑橋街": { lat: 22.154409, lng: 113.556284 },
+    "石排灣": { lat: 22.131648, lng: 113.562820 },
+    "聖方濟各堂": { lat: 22.117434, lng: 113.551004 }
 };
 
 // ========== 欄位對應 ==========
@@ -599,8 +621,8 @@ function getDewColor(dewStr) {
     if (isNaN(dewStr)) return "#3498db";
     if (dew >= 28)  return "#470f64";     // 危險
     if (dew >= 24)  return "#a82020";     // 悶熱
-    if (dew >= 20)  return "#347b28";     // 舒適
-    if (dew >= 16)  return "#8f6825";     // 乾爽
+    if (dew >= 18)  return "#347b28";     // 舒適
+    if (dew >= 12)  return "#8f6825";     // 乾爽
     return "#8a462b";                     // 乾燥
 }
 
@@ -835,11 +857,19 @@ function renderSingleCard(data) {
 // 更新地圖標記
 function updateMapMarkers() {
     clearMarkers();
-    let sourceList = currentTab === "waterLevel" ? floodDataList : pointDataList;
+    let sourceList, pointCoords;
+
+    if (currentTab === "waterLevel") {
+        sourceList = floodDataList;
+        pointCoords = floodPoints;
+    } else {
+        sourceList = pointDataList;
+        pointCoords = weatherPoints;
+    }
 
     sourceList.forEach(point => {
         const name = point.name;
-        const info = allPoints[name];
+        const info = pointCoords[name];
         if (!info) return;
 
         let showVal = "";
@@ -862,7 +892,7 @@ function updateMapMarkers() {
                 showVal = point.heatIndex;
                 bgColor = getHeatIndexColor(showVal);
                 const hiNum = parseFloat(showVal);
-                if (isNaN(hiNum) || hiNum < 35.5) skipMarker = true;
+                if (isNaN(hiNum) || hiNum < 32.5) skipMarker = true;
                 break;
             case "waterLevel":
                 showVal = point.waterLevel;
@@ -877,15 +907,29 @@ function updateMapMarkers() {
         const markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
         const icon = L.divIcon({html: markerIconHtml, className: "", iconSize: [50,50], iconAnchor: [25,25]});
         const marker = L.marker([info.lat, info.lng], { icon: icon }).addTo(map);
-        marker.bindPopup(`<strong>${name} (${info.code})</strong>`);
+        marker.bindPopup(`<strong>${name}</strong>`);
 
         marker.on('click', () => {
-            renderSingleCard({...point, code: info.code});
+            if (currentTab === "waterLevel") {
+                // 水位站專用卡片
+                singleCardBox.innerHTML = `
+                <div class="station-card">
+                    <div class="station-name">${name}</div>
+                    <div class="metrics-grid">
+                        <div class="metric" style="grid-column: span 6;">
+                            <span>實時水位</span>
+                            <strong>${formatVal(point.waterLevel, 'm')}</strong>
+                        </div>
+                    </div>
+                </div>`;
+            } else {
+                // 氣象站專用卡片
+                renderSingleCard({...point, code: weatherPoints[name]?.code || ""});
+            }
         });
         allMarkers.push(marker);
     });
 }
-
 // 渲染數據表格
 function renderDataTable(type) {
     const cfg = fieldMap[type];
@@ -899,22 +943,12 @@ function renderDataTable(type) {
     let sourceList = type === "waterLevel" ? floodDataList : pointDataList;
     sourceList.forEach(item => {
         const name = item.name;
-        const code = allPoints[name]?.code || "";
+        const code = weatherPoints[name]?.code || "";
         let val = item[field];
         let displayVal = val === '--' ? '--' : val + (unit ? " " + unit : "");
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${displayVal}</td>`;
         tbody.appendChild(tr);
-    });
-}
-
-// 合併水位數據到氣象測站
-function mergeFloodData(){
-    floodDataList.forEach(flood => {
-        const match = pointDataList.find(p => p.name === flood.name);
-        if(match){
-            match.waterLevel = flood.waterLevel;
-        }
     });
 }
 
@@ -1016,7 +1050,6 @@ function fetchFloodData() {
 function loadAllData() {
     Promise.all([fetchWeatherData(), fetchFloodData()])
         .then(() => {
-            mergeFloodData();
             updateMapMarkers();
             updateLegendPanel(currentTab);
             renderDataTable(currentTab);
