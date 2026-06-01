@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>澳門氣象站+水位實況地圖</title>
+    <title>澳門各氣象站數據</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -390,11 +390,11 @@
 <div class="container">
     <header>
         <div>
-            <h1>澳門氣象站實況地圖</h1>
+            <h1>澳門各氣象站數據</h1>
             <small style="color: #2ecc71;">● 點擊地圖圓圈查看數據 | 切換分類查看不同指標</small>
         </div>
         <div class="meta-info">
-            <div>資料更新時間：<span id="pub-date">載入中...</span></div>
+            <div>更新時間：<span id="pub-date">載入中...</span></div>
             <div>每5分鐘自動刷新</div>
         </div>
     </header>
@@ -689,7 +689,7 @@ function updateLegendPanel(tabType) {
     const legendContent = document.getElementById('legend-content');
     let legendHTML = '';
     switch(tabType) {
-        case "tempCurrent":case "tempMax":case "apparentTemp":
+        case "tempCurrent":case "tempMax":case "tempMin":case "apparentTemp":
             legendHTML = `
             <div class="legend-item"><div class="legend-color" style="background:#750505"></div>極為酷熱</div>
             <div class="legend-item"><div class="legend-color" style="background:#bc0707"></div>非常酷熱</div>
