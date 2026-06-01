@@ -19,7 +19,7 @@ const weatherStations = {
     "蓮花大橋": { code: "LH", lat: 22.139934, lng: 113.549094 }
 };
 
-// Water level stations (ONLY show water level data)
+// Water level stations
 const waterStations = [
     { name: "青洲河邊馬路", code: "QZ", lat: 22.212097, lng: 113.535243 },
     { name: "花地瑪教會街", code: "HDM", lat: 22.211374, lng: 113.546674 },
@@ -40,31 +40,30 @@ const waterStations = [
     { name: "黑橋街", code: "HQJ", lat: 22.154409, lng: 113.556284 },
     { name: "石排灣", code: "SPW", lat: 22.131648, lng: 113.562820 },
     { name: "聖方濟各堂", code: "SFJ", lat: 22.117434, lng: 113.551004 }
-];
-// -------- 空氣品質測站 --------
+};
+
+// Air stations
 const airStations = [
-  { name: "台山",   lat: 22.2143048, lng: 113.5430605, code: "EN" },
-  { name: "荷蘭園", lat: 22.1957226, lng: 113.5447928, code: "PO" },
-  { name: "氹仔中心區", lat: 22.1585991, lng: 113.5555425, code: "TC" },
-  { name: "大潭山", lat: 22.1594111, lng: 113.5684563, code: "TG" },
-  { name: "石排灣", lat: 22.1250727, lng: 113.5544267, code: "CD" },
-  { name: "九澳",   lat: 22.1330617, lng: 113.5835098, code: "KH" }
+    { name: "荷蘭園", code: "PO", lat: 22.1957226, lng: 113.5447928 },
+    { name: "九澳", code: "KH", lat: 22.1330617, lng: 113.5835098 },
+    { name: "台山", code: "EN", lat: 22.2143048, lng: 113.5430605 },
+    { name: "氹仔中心區", code: "TC", lat: 22.1585991, lng: 113.5555425 },
+    { name: "大潭山", code: "TG", lat: 22.1594111, lng: 113.5684563 },
+    { name: "石排灣", code: "CD", lat: 22.1250727, lng: 113.5544267 }
 ];
 
-// -------- 空氣品質欄位 --------
-fieldMap.no2      = { field: "NO2",      label: "二氧化氮 NO2",   unit: "μg/m³" };
-fieldMap.pm25     = { field: "PM2_5",    label: "細懸浮 PM2.5",  unit: "μg/m³" };
-fieldMap.pm10     = { field: "PM10",     label: "懸浮微粒 PM10", unit: "μg/m³" };
-fieldMap.so2      = { field: "SO2",      label: "二氧化硫 SO2",   unit: "μg/m³" };
-fieldMap.o3       = { field: "O3",       label: "臭氧 O3",        unit: "μg/m³" };
-fieldMap.co       = { field: "CO",       label: "一氧化碳 CO",   unit: "mg/m³" };
+// Tide stations
+const tideStations = [
+    { name: "媽閣", code: "SBR", lat: 22.186720, lng: 113.530000 },
+    { name: "青洲塘", code: "SDV", lat: 22.208934, lng: 113.539580 }
+];
 
-// Field mapping for table header
+// Field mapping (放在最後就不會報錯)
 const fieldMap = {
     tempCurrent: { field: 'temp', label: '實時氣溫', unit: '℃' },
     tempMax: { field: 'tempMax', label: '最高氣溫', unit: '℃' },
     tempMin: { field: 'tempMin', label: '最低氣溫', unit: '℃' },
-    apparentTemp: { field: 'apparentTemp', label: '體感溫度', unit: '℃' },
+    apparentTemp: { field: 'apparentTemp', label: '體溫', unit: '℃' },
     heatIndex: { field: 'heatIndex', label: '酷熱指數', unit: '℃' },
     dewPoint: { field: 'dewPoint', label: '露點溫度', unit: '℃' },
     humidity: { field: 'humidity', label: '相對濕度', unit: '%' },
@@ -74,5 +73,11 @@ const fieldMap = {
     pressSea: { field: 'pressSea', label: '海平面氣壓', unit: 'hPa' },
     pressStation: { field: 'pressStation', label: '站氣壓', unit: 'hPa' },
     waterLevel: { field: 'waterLevel', label: '實時水位', unit: 'm' },
-    tide: { field: "tideHeight", label: "實時潮汐", unit: "cm" }
+    tide: { field: 'tideHeight', label: '實時潮汐', unit: 'cm' },
+    no2: { field: 'NO2', label: 'NO2', unit: 'μg/m³' },
+    pm25: { field: 'PM2_5', label: 'PM2.5', unit: 'μg/m³' },
+    pm10: { field: 'PM10', label: 'PM10', unit: 'μg/m³' },
+    so2: { field: 'SO2', label: 'SO2', unit: 'μg/m³' },
+    o3: { field: 'O3', label: 'O3', unit: 'μg/m³' },
+    co: { field: 'CO', label: 'CO', unit: 'mg/m³' }
 };
