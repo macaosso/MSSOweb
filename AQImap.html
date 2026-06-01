@@ -396,13 +396,14 @@
 </div>
 
 <script>
-// ========== 監測站座標與代碼 ==========
+// ========== 監測站正確座標與代碼（你提供經緯） ==========
 const airStations = {
-    "路環": { code: "LP", lat: 22.1180, lng: 113.5510 },
-    "氹仔": { code: "TA", lat: 22.1560, lng: 113.5490 },
-    "黑沙環": { code: "HP", lat: 22.2070, lng: 113.5600 },
-    "大炮台": { code: "FT", lat: 22.1970, lng: 113.5420 },
-    "澳門半島": { code: "MP", lat: 22.1920, lng: 113.5480 }
+    "台山": { code: "TS", lat: 22.2143048, lng: 113.5430605 },
+    "荷蘭園": { code: "HL", lat: 22.1957226, lng: 113.5447928 },
+    "氹仔中心區": { code: "TZ", lat: 22.1585991, lng: 113.5555425 },
+    "大潭山": { code: "DT", lat: 22.1594111, lng: 113.5684563 },
+    "石排灣": { code: "SP", lat: 22.1250727, lng: 113.5544267 },
+    "九澳": { code: "JA", lat: 22.1330617, lng: 113.5835098 }
 };
 
 // ========== 欄位對應配置 ==========
@@ -583,14 +584,14 @@ function clearMarkers() {
     allMarkers = [];
 }
 
-// ========== 渲染單站詳細卡片 ==========
+// ========== 渲染單站詳細卡片（修復publishTime變數） ==========
 function renderSingleCard(data) {
-    const {name, code, publishTime, aqi, pm10, pm25, no2, so2, o3, co} = data;
+    const {name, code, pubTime, aqi, pm10, pm25, no2, so2, o3, co} = data;
     const levelInfo = getAqiLevel(aqi);
     const card = `
     <div class="station-card">
         <div class="station-name">${name} (${code})</div>
-        <div style="font-size:0.8rem;color:#666;margin:8px 0;">更新時間：${publishTime}</div>
+        <div style="font-size:0.8rem;color:#666;margin:8px 0;">更新時間：${pubTime}</div>
         <div class="aqi-row">
             <div class="current-aqi">${formatVal(aqi, '')}</div>
             <div class="aqi-level ${levelInfo.cls}">${levelInfo.text}</div>
@@ -673,7 +674,6 @@ function renderDataTable(type, sortType = lastSort) {
 }
 
 // ========== 按鈕事件綁定 ==========
-// 污染物分類切換
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -685,7 +685,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     });
 });
 
-// 地圖 / 表格視圖切換
 document.getElementById('btn-map').addEventListener('click', function(){
     this.classList.add('active');
     document.getElementById('btn-table').classList.remove('active');
@@ -700,20 +699,19 @@ document.getElementById('btn-table').addEventListener('click', function(){
     renderDataTable(currentTab);
 });
 
-// 表格排序
 document.querySelectorAll('.sort-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         renderDataTable(currentTab, btn.dataset.sort);
     });
 });
 
-// ========== 抓取澳門空氣質素 JSON 數據 ==========
+// ========== 抓取空氣JSON ==========
 async function fetchAirData() {
     const cache = Date.now();
     const url = `https://corsproxy.io/?https://www.smg.gov.mo/smg/airQuality/latestAirConcentration.json?_t=${cache}`;
     try {
         const res = await fetch(url, { cache: "no-store" });
-        if (!res.ok) throw new Error("Fetch failed");
+        if (!res.ok) throw new Error("Fetch fail");
         const json = await res.json();
         const records = json.records || [];
         const pubTime = json.publishTime || "未知時間";
@@ -728,7 +726,7 @@ async function fetchAirData() {
             const siteName = rec.siteName || "未知站點";
             airDataList.push({
                 name: siteName,
-                publishTime: pubTime,
+                pubTime: pubTime,
                 aqi: rec.AQI ?? '--',
                 pm10: rec.PM10 ?? '--',
                 pm25: rec.PM2_5 ?? '--',
@@ -743,13 +741,12 @@ async function fetchAirData() {
         updateLegendPanel(currentTab);
         renderDataTable(currentTab);
     } catch (err) {
-        console.error("空氣質素數據載入錯誤：", err);
+        console.error("載入錯誤:", err);
     }
 }
 
-// ========== 頁面載入 & 自動刷新 ==========
+// 頁面載入+5分鐘自動刷新
 window.addEventListener('DOMContentLoaded', fetchAirData);
-// 每5分鐘自動刷新
 setInterval(fetchAirData, 300000);
 </script>
 </body>
