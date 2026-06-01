@@ -803,7 +803,7 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 document.querySelectorAll('.sort-btn').forEach(b=>b.onclick=()=>renderDataTable(currentTab,b.dataset.sort));
 
 async function fetchAirData() {
-    const url = `https://cdn.jsdelivr.net/gh/macaosso/MSSOweb@main/data.json?_t=${Date.now()}`;
+    const url = `https://raw.githubusercontent.com/macaosso/MSSOweb/main/data.json?_t=${Date.now()}`;
     try {
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) throw new Error(res.status);
