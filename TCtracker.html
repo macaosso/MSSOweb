@@ -1109,6 +1109,8 @@ function loadAll(){
 // ===== 12H Wind History Save & Manage =====
 
 let sharedHistory = []; // global shared history array loaded from server
+let lastSaveTs = 0;
+const SAVE_INTERVAL = 5 * 60 * 1000;
 async function loadSharedHistory(){
     let cache = localStorage.getItem("windHistory");
     if(cache){
@@ -1126,17 +1128,23 @@ async function saveWindRecord(stationName, windSpeed){
   if(isNaN(parseFloat(windSpeed))) return;
   const now = Date.now();
   const minuteTs = Math.floor(now / 60000)*60000;
+  // 同分鐘同一測站不重複存入
   const exist = sharedHistory.some(d=>d.name===stationName && Math.floor(d.ts/60000)*60000===minuteTs);
   if(exist) return;
+
+  // 1. 先寫入內存
   sharedHistory.push({ts:now,name:stationName,speed:+windSpeed});
 
-  // 限制只保留近12小時數據：12*3600*1000
+  // 自動刪除12小時以外舊數據
   const twelveHour = 12 * 3600 * 1000;
   const cutTime = Date.now() - twelveHour;
   sharedHistory = sharedHistory.filter(item => item.ts >= cutTime);
 
-  // 改用LocalStorage存，刪除PHP POST
-  localStorage.setItem("windHistory", JSON.stringify(sharedHistory));
+  // 2. 距離上次存儲滿5分鐘才寫localStorage
+  if(now - lastSaveTs >= SAVE_INTERVAL){
+      localStorage.setItem("windHistory", JSON.stringify(sharedHistory));
+      lastSaveTs = now;
+  }
 }
 
 function getStationHistory(stationName){
