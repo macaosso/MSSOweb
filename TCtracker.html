@@ -262,14 +262,50 @@
             padding:6px 0;
         }
         .index-value-box{
-            padding:30px 12px;
-            text-align:center;
-            font-size:1.3rem;
-            font-weight:bold;
+            background:#283340; /* dark navy background same as your preview image */
+            padding:26px 22px;
             border-radius:8px;
             display:flex;
             flex-direction:column;
-            justify-content:center;
+            justify-content:flex-start;
+            color:#ffffff;
+            position:relative;
+        }
+        /* top row: title left + update time right */
+        .index-top-bar{
+            display:flex;
+            justify-content:space-between;
+            align-items:flex-end;
+            border-bottom:3px solid #fff;
+            padding-bottom:10px;
+            margin-bottom:20px;
+        }
+        .index-title{
+            font-size:3.4rem;
+            font-weight:900;
+            line-height:1;
+        }
+        .index-update-time{
+            font-size:2rem;
+            opacity:0.92;
+        }
+        /* big number core value */
+        .index-big-num{
+            font-size:9rem;
+            font-weight:900;
+            line-height:1;
+            display:inline-block;
+        }
+        /* right side grade yellow tag */
+        .index-grade-tag{
+            display:inline-block;
+            background:#f7cd39;
+            color:#222;
+            font-size:4.2rem;
+            font-weight:bold;
+            padding:16px 28px;
+            vertical-align:bottom;
+            margin-left:20px;
         }
         .station-two-col{
             display:grid;
@@ -428,7 +464,14 @@
         <!-- 頂部：左邊指數框，右邊平均值 -->
         <div class="index-top-row">
             <div id="index-value-box" class="index-value-box">
-                風力指數：<span id="windIndexNum">--</span>｜級別：<span id="windIndexGrade">--</span>
+                <div class="index-head">
+                    <div class="index-head-left">風力指數</div>
+                    <div class="index-head-right"><span id="pub-date">--</span></div>
+                </div>
+                <div class="index-num-wrap">
+                    <span class="big-num" id="windIndexNum">--</span>
+                    <span class="grade-badge" id="windIndexGrade">--</span>
+                </div>
             </div>
             <div class="avg-info-box">
                 <div class="avg-item">陸地實時平均十分鐘風速：<span id="landU">--</span> km/h</div>
