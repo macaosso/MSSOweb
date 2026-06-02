@@ -36,10 +36,15 @@ const pastPoints = [
   {lat:23.6, lon:127.4, time: "06-01 02H", wind: 130},
   {lat:24.4, lon:127.3, time: "06-01 08H", wind: 120},
   {lat:25.4, lon:127.4, time: "06-01 14H", wind: 110},
+  {lat:26.5, lon:127.7, time: "06-01 20H", wind: 110},
+  {lat:27.8, lon:128.3, time: "06-02 02H", wind: 105},
+  {lat:28.9, lon:128.9, time: "06-02 08H", wind: 105},
+  {lat:30.3, lon:130.5, time: "06-02 14H", wind: 90},
+  {lat:32.3, lon:133.0, time: "06-02 20H", wind: 90},
 ];
 
 const forecastPoints = [
-  {lat:25.4, lon:127.4, time: "06-01 14H", wind: 110,
+  {lat:32.3, lon:133.0, time: "06-02 20H", wind: 90,
    
     wind41: { ne: 230, se: 270, sw: 220, nw: 200 }, 
     wind88: { ne: 80, se: 120, sw: 80,  nw: 60 } 
@@ -55,5 +60,5 @@ const forecastPoints = [
 window.tcInfo = {
   name: "薔薇 (2606)", 
   wind: forecastPoints[0].wind,
-  pressure: 980
+  pressure: 985
 };
