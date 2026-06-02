@@ -709,7 +709,11 @@ let pointDataList = [], floodDataList = [];
 // global chart instance + selected station
 let windChart = null;
 let selectedStationName = "";
-
+let windChart = null;
+let selectedStationName = "";
+// new: multi select storage
+let multiStationList = [];
+let isShiftHold = false;
 // 視圖切換（新增風力指數隱藏選項卡+警告卡片）
 const tabWrap = document.getElementById('tabWrap');
 const alertBoxIds = ["alertTyphoon","alertSurge","wsRedBox","wsOrangeBox","wsYellowBox","wsBlueBox","gRedBox","gOrangeBox","gYellowBox","waterBox"];
@@ -759,26 +763,34 @@ function extractNodeValue(s,p){const e=p.querySelector(s);if(!e)return"";return(
 function clearMarkers(){allMarkers.forEach(m=>map.removeLayer(m));allMarkers=[];}
 
 // draw chart under map
-function renderBottomChart(stationName){
+function renderBottomChart(){
     const canvas = document.getElementById("bottomChartCanvas");
     const ctx = canvas.getContext('2d');
-    const hist = getStationHistory(stationName);
-    const labels = hist.map(d=>msToTime(d.ts));
-    const data = hist.map(d=>d.speed);
+    // color pool for different station line
+    const colorPool = ["#16537e","#e02020","#ff8822","#227722","#9922bb","#774422","#4299e1"];
 
     if(windChart) windChart.destroy();
+
+    // build multi datasets
+    const datasets = multiStationList.map((station,idx)=>{
+        const hist = getStationHistory(station);
+        return {
+            label:`${station} 過去12小時風速 km/h`,
+            data:hist.map(d=>d.speed),
+            borderColor:colorPool[idx % colorPool.length],
+            fill:false,
+            tension:0 // keep straight line
+        }
+    })
+    // use first station's time as x-axis label
+    const firstHist = getStationHistory(multiStationList[0]);
+    const labels = firstHist.map(d=>msToTime(d.ts));
 
     windChart = new Chart(ctx,{
         type:"line",
         data:{
             labels:labels,
-            datasets:[{
-                label:`${stationName} 過去12小時風速 km/h`,
-                data:data,
-                borderColor:"#16537e",
-                fill:false,
-                tension:0
-            }]
+            datasets:datasets
         },
         options:{responsive:true,maintainAspectRatio:false}
     })
@@ -819,11 +831,21 @@ function updateMapMarkers(){
         // simple popup text only, NO canvas inside popup
         m.bindPopup(`<b>${name}</b><br>數值:${v}`);
 
-        // click marker → refresh bottom chart under map
+        // click marker → refresh bottom chart under map (Shift multi select)
         m.on('click',()=>{
             if(currentTab === "windSpeed"){
-                selectedStationName = name;
-                renderBottomChart(name);
+                const clickName = name;
+                if(isShiftHold){
+                    // Shift pressed: add station, avoid duplicate
+                    if(!multiStationList.includes(clickName)){
+                        multiStationList.push(clickName);
+                    }
+                }else{
+                    // No Shift: clear list, single station
+                    multiStationList = [clickName];
+                }
+                selectedStationName = clickName;
+                renderBottomChart();
             }
         })
 
@@ -1109,6 +1131,13 @@ function msToTime(ms){
   const d = new Date(ms);
   return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
+// Detect Shift pressed
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Shift') isShiftHold = true;
+})
+document.addEventListener('keyup', e=>{
+  if(e.key === 'Shift') isShiftHold = false;
+})
     
 window.addEventListener('DOMContentLoaded',loadAll);
 // 5 minutes = 300000 ms auto fetch XML data
