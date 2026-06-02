@@ -1089,6 +1089,7 @@ function calcWindIndex(){
 }
 
 function loadAll(){
+  loadSharedHistory().then(()=>{ // wrap original code inside .then
     Promise.allSettled([fetchWeather(),fetchFlood(),fetchTyphoon(),fetchStormSurge()])
     .then((results)=>{
         results.forEach(item=>{
@@ -1099,34 +1100,33 @@ function loadAll(){
         renderDataTable(currentTab);
         updateAlertBox();
         calcWindIndex();
-
-        // auto refresh chart after new data fetched if station selected
         if(selectedStationName && currentTab==="windSpeed"){
             renderBottomChart(selectedStationName);
         }
     });
+  })
 }
-
 // ===== 12H Wind History Save & Manage =====
-const STORAGE_KEY = "windHistoryData";
-const HOUR12 = 12 * 3600 * 1000;
 
-function saveWindRecord(stationName, windSpeed){
+let sharedHistory = []; // global shared history array loaded from server
+
+async function saveWindRecord(stationName, windSpeed){
   if(isNaN(parseFloat(windSpeed))) return;
-  let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
   const now = Date.now();
-  history = history.filter(item => now - item.ts < HOUR12);
   const minuteTs = Math.floor(now / 60000)*60000;
-  // skip duplicate same station same minute
-  const exist = history.some(d=>d.name===stationName && Math.floor(d.ts/60000)*60000===minuteTs);
+  const exist = sharedHistory.some(d=>d.name===stationName && Math.floor(d.ts/60000)*60000===minuteTs);
   if(exist) return;
-  history.push({ts:now,name:stationName,speed:+windSpeed});
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+  sharedHistory.push({ts:now,name:stationName,speed:+windSpeed});
+
+  // POST full array to PHP server, save into wind-history.json
+  await fetch("./saveHistory.php",{
+    method:"POST",
+    body:JSON.stringify(sharedHistory)
+  })
 }
 
 function getStationHistory(stationName){
-  const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
-  return all.filter(d=>d.name === stationName).sort((a,b)=>a.ts-b.ts);
+  return sharedHistory.filter(d=>d.name === stationName).sort((a,b)=>a.ts-b.ts);
 }
 
 function msToTime(ms){
