@@ -416,8 +416,8 @@ function getWindColor(windStr) {
     if (wind >= 117.5) return "#e02020";
     if (wind >= 87.5)  return "#ff8822";
     if (wind >= 62.5)  return "#ffdd00";
-    if (wind >= 40.5)  return "#a0d8ef";
-    return "#11750a";
+    if (wind >= 40.5)  return "#4299e1";
+    return "#44803b";
 }
 //陣風標記配色
 function getGustColor(windStr) {
@@ -426,8 +426,8 @@ function getGustColor(windStr) {
     if (wind >= 117.5) return "#e02020";
     if (wind >= 87.5)  return "#ff8822";
     if (wind >= 62.5)  return "#ffdd00";
-    if (wind >= 40.5)  return "#a0d8ef";
-    return "#11750a";
+    if (wind >= 40.5)  return "#4299e1";
+    return "#44803b";
 }
 //氣壓配色
 function getPressSeaColor(p){
@@ -458,15 +458,15 @@ function updateLegendPanel(t){
 <div class="legend-item"><div class="legend-color" style="background:#e02020"></div>颶風</div>
 <div class="legend-item"><div class="legend-color" style="background:#ff8822"></div>暴風</div>
 <div class="legend-item"><div class="legend-color" style="background:#ffdd00"></div>烈風</div>
-<div class="legend-item"><div class="legend-color" style="background:#a0d8ef"></div>強風</div>
-<div class="legend-item"><div class="legend-color" style="background:#11750a"></div>強風以下</div>`;break;
+<div class="legend-item"><div class="legend-color" style="background:#4299e1"></div>強風</div>
+<div class="legend-item"><div class="legend-color" style="background:#44803b"></div>強風以下</div>`;break;
         case"windGust":
             h=`
 <div class="legend-item"><div class="legend-color" style="background:#e02020"></div>颶風</div>
 <div class="legend-item"><div class="legend-color" style="background:#ff8822"></div>暴風</div>
 <div class="legend-item"><div class="legend-color" style="background:#ffdd00"></div>烈風</div>
-<div class="legend-item"><div class="legend-color" style="background:#a0d8ef"></div>強風</div>
-<div class="legend-item"><div class="legend-color" style="background:#11750a"></div>強風以下</div>`;break;
+<div class="legend-item"><div class="legend-color" style="background:#4299e1"></div>強風</div>
+<div class="legend-item"><div class="legend-color" style="background:#44803b"></div>強風以下</div>`;break;
         case"pressSea":case"pressStation":
             h=`<div class="legend-item"><div class="legend-color" style="background:#571b7a"></div>低壓</div><div class="legend-item"><div class="legend-color" style="background:#791919"></div>中低壓</div>`;break;
         case"waterLevel":
