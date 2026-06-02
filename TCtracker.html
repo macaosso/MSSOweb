@@ -1115,17 +1115,12 @@ function saveWindRecord(stationName, windSpeed){
   if(isNaN(parseFloat(windSpeed))) return;
   let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
   const now = Date.now();
-  // keep only 12h data
   history = history.filter(item => now - item.ts < HOUR12);
-
-  // Round timestamp to whole minute → same minute = same ts mark
-  const tsMin = Math.floor(now / 60000) * 60000;
-  // Check: already have this station + this minute data? skip save
-  const existed = history.some(d => d.name === stationName && Math.floor(d.ts/60000)*60000 === tsMin);
-  if(existed) return;
-
-  // No duplicate → save new record
-  history.push({ts: now,name: stationName,speed: Number(windSpeed)});
+  const minuteTs = Math.floor(now / 60000)*60000;
+  // skip duplicate same station same minute
+  const exist = history.some(d=>d.name===stationName && Math.floor(d.ts/60000)*60000===minuteTs);
+  if(exist) return;
+  history.push({ts:now,name:stationName,speed:+windSpeed});
   localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
 }
 
