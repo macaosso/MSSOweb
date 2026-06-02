@@ -583,7 +583,7 @@ function fetchStormSurge(){
 function showStrongWindPopup(){
     const strong=pointDataList.filter(s=>{
         const ws=parseFloat(s.windSpeed);
-        return !isNaN(ws)&&ws>=41;
+        return !isNaN(ws)&&ws>=21;
     });
     if(strong.length===0)return;
     let html=`<div style='padding:8px;min-width:260px;'><h4>強風｜風速 ≥41 km/h</h4><ul style='padding-left:20px;margin:8px 0;'>`;
