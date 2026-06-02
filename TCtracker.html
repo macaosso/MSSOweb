@@ -67,6 +67,7 @@
         .alert-content {
             font-size:0.95rem;
             color:#333;
+            line-height:1.6;
         }
         .hide-box{display:none;}
 
@@ -455,20 +456,32 @@ function updateLegendPanel(t){
     switch(t){
         case"windSpeed":
             h=`
-<div class="legend-item"><div class="legend-color" style="background:#e02020"></div>颶風</div>
-<div class="legend-item"><div class="legend-color" style="background:#ff8822"></div>暴風</div>
-<div class="legend-item"><div class="legend-color" style="background:#ffdd00"></div>烈風</div>
-<div class="legend-item"><div class="legend-color" style="background:#4299e1"></div>強風</div>
-<div class="legend-item"><div class="legend-color" style="background:#44803b"></div>強風以下</div>`;break;
+<div class="legend-item"><div class="legend-color" style="background:#e02020"></div>颶風 ≥117.5km/h</div>
+<div class="legend-item"><div class="legend-color" style="background:#ff8822"></div>暴風 87.5~117.4km/h</div>
+<div class="legend-item"><div class="legend-color" style="background:#ffdd00"></div>烈風 62.5~87.4km/h</div>
+<div class="legend-item"><div class="legend-color" style="background:#4299e1"></div>強風 40.5~62.4km/h</div>
+<div class="legend-item"><div class="legend-color" style="background:#44803b"></div>強風以下 <40.5km/h</div>`;break;
         case"windGust":
             h=`
-<div class="legend-item"><div class="legend-color" style="background:#e02020"></div>颶風</div>
-<div class="legend-item"><div class="legend-color" style="background:#ff8822"></div>暴風</div>
-<div class="legend-item"><div class="legend-color" style="background:#ffdd00"></div>烈風</div>
-<div class="legend-item"><div class="legend-color" style="background:#4299e1"></div>強風</div>
-<div class="legend-item"><div class="legend-color" style="background:#44803b"></div>強風以下</div>`;break;
-        case"pressSea":case"pressStation":
-            h=`<div class="legend-item"><div class="legend-color" style="background:#571b7a"></div>低壓</div><div class="legend-item"><div class="legend-color" style="background:#791919"></div>中低壓</div>`;break;
+<div class="legend-item"><div class="legend-color" style="background:#e02020"></div>颶陣 ≥117.5km/h</div>
+<div class="legend-item"><div class="legend-color" style="background:#ff8822"></div>暴陣 87.5~117.4km/h</div>
+<div class="legend-item"><div class="legend-color" style="background:#ffdd00"></div>烈陣 62.5~87.4km/h</div>
+<div class="legend-item"><div class="legend-color" style="background:#4299e1"></div>強陣 40.5~62.4km/h</div>
+<div class="legend-item"><div class="legend-color" style="background:#44803b"></div>強風以下 <40.5km/h</div>`;break;
+        case"pressSea":
+            h = `
+            <div class="legend-item"><div class="legend-color" style="background:#571b7a"></div>&lt; 980 hPa</div>
+            <div class="legend-item"><div class="legend-color" style="background:#791919"></div>980 - 989 hPa</div>
+            <div class="legend-item"><div class="legend-color" style="background:#757012"></div>990 - 999 hPa</div>
+            <div class="legend-item"><div class="legend-color" style="background:#2b7c42"></div>≥ 1000 hPa</div>`;
+            break;
+        case "pressStation":
+            h = `
+            <div class="legend-item"><div class="legend-color" style="background:#571b7a"></div>&lt; 965 hPa</div>
+            <div class="legend-item"><div class="legend-color" style="background:#791919"></div>965 - 974 hPa</div>
+            <div class="legend-item"><div class="legend-color" style="background:#757012"></div>975 - 984 hPa</div>
+            <div class="legend-item"><div class="legend-color" style="background:#2b7c42"></div>≥ 985 hPa</div>`;
+            break;
         case"waterLevel":
             h=`
 <div class="legend-item"><div class="legend-color" style="background:#000"></div>>= 2.50 m </div>
@@ -553,7 +566,7 @@ function renderDataTable(t,sort=lastSort){
     let list= t==="waterLevel"?floodDataList:pointDataList;
     let valid=list.filter(x=>x[f]&&x[f]!=="--");
     if(sort==="desc")valid.sort((a,b)=>parseFloat(b[f])-parseFloat(a[f]));
-    if(sort==="asc")valid.sort((a,b)=>parseFloat(a[f])-parseFloat(a[f]));
+    if(sort==="asc")valid.sort((a,b)=>parseFloat(a[f])-parseFloat(b[f]));
     lastSort=sort;
     valid.forEach(x=>{
         const name=x.name;
@@ -620,7 +633,7 @@ function fetchStormSurge(){
     });
 }
 
-// 關鍵：分級去重，高優先覆蓋低級，一站只出現最高級別
+// 關鍵：分級去重，高優先覆蓋低級，一站只出現最高級別 + 由大到小排序 + 換行顯示
 function updateAlertBox(){
     // 全部卡片預設隱藏
     const allBoxId = ["wsRedBox","wsOrangeBox","wsYellowBox","wsBlueBox","gRedBox","gOrangeBox","gYellowBox","waterBox"];
@@ -636,22 +649,28 @@ function updateAlertBox(){
         else if(v>=62.5) wsYellow.push(it);
         else wsBlue.push(it);
     });
-    // 渲染風速卡片
+    // 由高到低排序
+    wsRed.sort((a,b)=>parseFloat(b.windSpeed)-parseFloat(a.windSpeed));
+    wsOrange.sort((a,b)=>parseFloat(b.windSpeed)-parseFloat(a.windSpeed));
+    wsYellow.sort((a,b)=>parseFloat(b.windSpeed)-parseFloat(a.windSpeed));
+    wsBlue.sort((a,b)=>parseFloat(b.windSpeed)-parseFloat(a.windSpeed));
+
+    // 換行<br>分隔
     if(wsRed.length>0){
         document.getElementById("wsRedBox").classList.remove("hide-box");
-        document.getElementById("wsRedCon").innerText = wsRed.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windSpeed}km/h`).join("、");
+        document.getElementById("wsRedCon").innerText = wsRed.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windSpeed}km/h`).join("\n");
     }
     if(wsOrange.length>0){
         document.getElementById("wsOrangeBox").classList.remove("hide-box");
-        document.getElementById("wsOrangeCon").innerText = wsOrange.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windSpeed}km/h`).join("、");
+        document.getElementById("wsOrangeCon").innerText = wsOrange.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windSpeed}km/h`).join("\n");
     }
     if(wsYellow.length>0){
         document.getElementById("wsYellowBox").classList.remove("hide-box");
-        document.getElementById("wsYellowCon").innerText = wsYellow.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windSpeed}km/h`).join("、");
+        document.getElementById("wsYellowCon").innerText = wsYellow.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windSpeed}km/h`).join("\n");
     }
     if(wsBlue.length>0){
         document.getElementById("wsBlueBox").classList.remove("hide-box");
-        document.getElementById("wsBlueCon").innerText = wsBlue.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windSpeed}km/h`).join("、");
+        document.getElementById("wsBlueCon").innerText = wsBlue.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windSpeed}km/h`).join("\n");
     }
 
     // =====陣風分組=====
@@ -663,24 +682,30 @@ function updateAlertBox(){
         else if(v>=87.5) gOrange.push(it);
         else gYellow.push(it);
     });
+    gRed.sort((a,b)=>parseFloat(b.windGust)-parseFloat(a.windGust));
+    gOrange.sort((a,b)=>parseFloat(b.windGust)-parseFloat(a.windGust));
+    gYellow.sort((a,b)=>parseFloat(b.windGust)-parseFloat(a.windGust));
+
     if(gRed.length>0){
         document.getElementById("gRedBox").classList.remove("hide-box");
-        document.getElementById("gRedCon").innerText = gRed.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windGust}km/h`).join("、");
+        document.getElementById("gRedCon").innerText = gRed.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windGust}km/h`).join("\n");
     }
     if(gOrange.length>0){
         document.getElementById("gOrangeBox").classList.remove("hide-box");
-        document.getElementById("gOrangeCon").innerText = gOrange.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windGust}km/h`).join("、");
+        document.getElementById("gOrangeCon").innerText = gOrange.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windGust}km/h`).join("\n");
     }
     if(gYellow.length>0){
         document.getElementById("gYellowBox").classList.remove("hide-box");
-        document.getElementById("gYellowCon").innerText = gYellow.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windGust}km/h`).join("、");
+        document.getElementById("gYellowCon").innerText = gYellow.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windGust}km/h`).join("\n");
     }
 
     // =====水位=====
     let wAll = floodDataList.filter(d=>!isNaN(parseFloat(d.waterLevel)) && parseFloat(d.waterLevel)>=0.1);
+    //水位數據由高到低排序
+    wAll.sort((a,b)=>parseFloat(b.waterLevel)-parseFloat(a.waterLevel));
     if(wAll.length>0){
         document.getElementById("waterBox").classList.remove("hide-box");
-        document.getElementById("waterCon").innerText = wAll.map(x=>`${x.name}(${x.code}) ${x.waterLevel}m`).join("、");
+        document.getElementById("waterCon").innerText = wAll.map(x=>`${x.name}(${x.code}) ${x.waterLevel}m`).join("\n");
     }
 }
 
