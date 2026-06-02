@@ -245,26 +245,31 @@
             padding:20px;
             box-shadow:0 4px 6px rgba(0,0,0,0.05);
         }
+        /* 頂部左右佈局：指數框在左，平均值在右 */
+        .index-top-row{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap:20px;
+            margin-bottom:20px;
+        }
         .avg-info-box{
             background:#f7f9fc;
             padding:15px;
             border-radius:8px;
-            margin-bottom:18px;
-            display:grid;
-            grid-template-columns:1fr 1fr;
-            gap:12px;
         }
         .avg-item{
             font-size:1rem;
-            padding:8px;
+            padding:6px 0;
         }
         .index-value-box{
-            padding:12px;
+            padding:30px 12px;
             text-align:center;
             font-size:1.3rem;
             font-weight:bold;
             border-radius:8px;
-            margin-bottom:20px;
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
         }
         .station-two-col{
             display:grid;
@@ -312,11 +317,11 @@
     </header>
 
     <!-- 原有固定兩個卡片 -->
-    <div class="alert-box red">
+    <div class="alert-box red" id="alertTyphoon">
         <h3>現時熱帶氣旋警告</h3>
         <div class="alert-content" id="typhoon-info">載入氣旋資訊中……</div>
     </div>
-    <div class="alert-box red">
+    <div class="alert-box red" id="alertSurge">
         <h3>現時風暴潮警告</h3>
         <div class="alert-content" id="stormsurge-info">載入風暴潮資訊中……</div>
     </div>
@@ -365,7 +370,7 @@
         <button id="btn-windindex">風力指數</button>
     </div>
 
-    <div class="tab-wrapper">
+    <div class="tab-wrapper" id="tabWrap">
         <div class="tab-group">
             <h3 class="group-title">風力數據</h3>
             <div class="group-buttons">
@@ -420,18 +425,20 @@
 
     <!-- =====風力指數頁面===== -->
     <div id="windindex-view" class="hide windindex-view">
-        <!-- 四大平均值 -->
-        <div class="avg-info-box">
-            <div class="avg-item">陸地實時平均十分鐘風速：<span id="landU">--</span> km/h</div>
-            <div class="avg-item">陸地實時平均陣風：<span id="landUg">--</span> km/h</div>
-            <div class="avg-item">跨海大橋實時平均十分鐘風速：<span id="bridgeV">--</span> km/h</div>
-            <div class="avg-item">跨海大橋實時平均陣風：<span id="bridgeVg">--</span> km/h</div>
+        <!-- 頂部：左邊指數框，右邊平均值 -->
+        <div class="index-top-row">
+            <div id="index-value-box" class="index-value-box">
+                當前綜合風力指數：<span id="windIndexNum">--</span>｜級別：<span id="windIndexGrade">--</span>
+            </div>
+            <div class="avg-info-box">
+                <div class="avg-item">陸地實時平均十分鐘風速：<span id="landU">--</span> km/h</div>
+                <div class="avg-item">陸地實時平均陣風：<span id="landUg">--</span> km/h</div>
+                <div class="avg-item">跨海大橋實時平均十分鐘風速：<span id="bridgeV">--</span> km/h</div>
+                <div class="avg-item">跨海大橋實時平均陣風：<span id="bridgeVg">--</span> km/h</div>
+            </div>
         </div>
-        <!-- 風力指數顯示 -->
-        <div id="index-value-box" class="index-value-box">
-            當前綜合風力指數：<span id="windIndexNum">--</span>｜級別：<span id="windIndexGrade">--</span>
-        </div>
-        <!-- 左右分欄：陸地 / 跨海大橋測站 -->
+
+        <!-- 左右分欄：陸地 / 跨海大橋測站（附風速+陣風） -->
         <div class="station-two-col">
             <div>
                 <div class="col-title">陸地測站列表</div>
@@ -637,13 +644,18 @@ let currentTab = "windSpeed";
 document.getElementById('current-indicator').textContent = fieldMap[currentTab].label;
 let pointDataList = [], floodDataList = [];
 
-// 視圖切換（新增風力指數）
+// 視圖切換（新增風力指數隱藏選項卡+警告卡片）
+const tabWrap = document.getElementById('tabWrap');
+const alertBoxIds = ["alertTyphoon","alertSurge","wsRedBox","wsOrangeBox","wsYellowBox","wsBlueBox","gRedBox","gOrangeBox","gYellowBox","waterBox"];
+
 document.getElementById('btn-map').onclick=()=>{
     document.querySelectorAll('.view-switch button').forEach(b=>b.classList.remove('active'));
     document.getElementById('btn-map').classList.add('active');
     document.getElementById('map-view').classList.remove('hide');
     document.getElementById('table-view').classList.add('hide');
     document.getElementById('windindex-view').classList.add('hide');
+    tabWrap.classList.remove('hide');
+    alertBoxIds.forEach(id=>document.getElementById(id).classList.remove('hide'));
 };
 document.getElementById('btn-table').onclick=()=>{
     document.querySelectorAll('.view-switch button').forEach(b=>b.classList.remove('active'));
@@ -651,6 +663,8 @@ document.getElementById('btn-table').onclick=()=>{
     document.getElementById('map-view').classList.add('hide');
     document.getElementById('table-view').classList.remove('hide');
     document.getElementById('windindex-view').classList.add('hide');
+    tabWrap.classList.remove('hide');
+    alertBoxIds.forEach(id=>document.getElementById(id).classList.remove('hide'));
 };
 document.getElementById('btn-windindex').onclick=()=>{
     document.querySelectorAll('.view-switch button').forEach(b=>b.classList.remove('active'));
@@ -658,6 +672,9 @@ document.getElementById('btn-windindex').onclick=()=>{
     document.getElementById('map-view').classList.add('hide');
     document.getElementById('table-view').classList.add('hide');
     document.getElementById('windindex-view').classList.remove('hide');
+    //風力指數頁：隱藏頂部選項卡與全部警告卡片
+    tabWrap.classList.add('hide');
+    alertBoxIds.forEach(id=>document.getElementById(id).classList.add('hide'));
 };
 
 document.querySelectorAll('.tab-btn').forEach(b=>{
@@ -858,7 +875,11 @@ function calcWindIndex(){
     const landNameArr = Object.keys(landStationDict);
     const bridgeNameArr = Object.keys(bridgeStationDict);
     let landWS=[],landGust=[],bridgeWS=[],bridgeGust=[];
+
+    // 構建站名-數據映射
+    const pointMap = {};
     pointDataList.forEach(d=>{
+        pointMap[d.name] = d;
         const ws=parseFloat(d.windSpeed);
         const g=parseFloat(d.windGust);
         if(!isNaN(ws)){
@@ -870,13 +891,14 @@ function calcWindIndex(){
             if(bridgeNameArr.includes(d.name)) bridgeGust.push(g);
         }
     });
+
     //求平均值
     const U = landWS.length>0 ? landWS.reduce((s,v)=>s+v,0)/landWS.length : 0;
     const Ug = landGust.length>0 ? landGust.reduce((s,v)=>s+v,0)/landGust.length : 0;
     const V = bridgeWS.length>0 ? bridgeWS.reduce((s,v)=>s+v,0)/bridgeWS.length :0;
     const Vg = bridgeGust.length>0 ? bridgeGust.reduce((s,v)=>s+v,0)/bridgeGust.length :0;
 
-    //填入頁面
+    //填入頁面平均值
     document.getElementById('landU').textContent = U.toFixed(2);
     document.getElementById('landUg').textContent = Ug.toFixed(2);
     document.getElementById('bridgeV').textContent = V.toFixed(2);
@@ -904,9 +926,38 @@ function calcWindIndex(){
     document.getElementById('windIndexGrade').textContent=gradeName;
     document.getElementById('index-value-box').style.background=gradeBg;
 
-    //填充左右測站列表
-    document.getElementById('landStationList').innerText = landNameArr.map(n=>`${n}(${landStationDict[n].code})`).join("\n");
-    document.getElementById('bridgeStationList').innerText = bridgeNameArr.map(n=>`${n}(${bridgeStationDict[n].code})`).join("\n");
+    //填充左右測站列表【帶風速+陣風數據】
+    let landHtml = [];
+    let bridgeHtml = [];
+    const pointMap = {};
+    pointDataList.forEach(d=>pointMap[d.name]=d);
+
+    //陸地測站：名稱(代碼)｜風速xx km/h｜陣風xx km/h
+    Object.keys(landStationDict).forEach(name=>{
+        const info = landStationDict[name];
+        const d = pointMap[name];
+        let spd = "--",gust="--";
+        if(d){
+            spd = d.windSpeed||"--";
+            gust = d.windGust||"--";
+        }
+        landHtml.push(`${name}(${info.code})｜風速:${spd}km/h｜陣風:${gust}km/h`);
+    });
+
+    //跨海大橋測站
+    Object.keys(bridgeStationDict).forEach(name=>{
+        const info = bridgeStationDict[name];
+        const d = pointMap[name];
+        let spd = "--",gust="--";
+        if(d){
+            spd = d.windSpeed||"--";
+            gust = d.windGust||"--";
+        }
+        bridgeHtml.push(`${name}(${info.code})｜風速:${spd}km/h｜陣風:${gust}km/h`);
+    });
+
+    document.getElementById('landStationList').innerText = landHtml.join("\n");
+    document.getElementById('bridgeStationList').innerText = bridgeHtml.join("\n");
 }
 
 function loadAll(){
