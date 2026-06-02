@@ -262,24 +262,25 @@
             padding:6px 0;
         }
         .index-value-box{
-            padding:32px 30px;
+            padding:30px 28px;
             border-radius:8px;
             display:flex;
             flex-direction:column;
-            gap:12px;
-            color:#fff;
+            gap:10px;
         }
         .index-box-top{
-            font-size:3rem;
+            font-size:2.2rem; /* smaller desktop font */
             font-weight:bold;
+            color:#2c3e50;
         }
         .index-box-num{
-            font-size:6rem;
+            font-size:4.8rem; /* shrink big number */
             font-weight:bold;
             line-height:1;
         }
         .index-box-grade{
-            font-size:3rem;
+            font-size:2.6rem; /* shrink grade text */
+            font-weight:bold;
         }
         /* top row: title left + update time right */
 
@@ -438,18 +439,21 @@
     <!-- =====風力指數頁面===== -->
     <div id="windindex-view" class="hide windindex-view">
         <!-- 頂部：左邊指數框，右邊平均值 -->
+        <div class="index-top-row">
+        <!-- Left Wind Index Box -->
         <div id="index-value-box" class="index-value-box">
             <div class="index-box-top">風力指數</div>
             <div class="index-box-num"><span id="windIndexNum">--</span></div>
             <div class="index-box-grade"><span id="windIndexGrade">--</span></div>
         </div>
-            <div class="avg-info-box">
-                <div class="avg-item">陸地平均風速：<span id="landU">--</span> km/h</div>
-                <div class="avg-item">陸地平均陣風：<span id="landUg">--</span> km/h</div>
-                <div class="avg-item">跨海大橋平均風速：<span id="bridgeV">--</span> km/h</div>
-                <div class="avg-item">跨海大橋平均陣風：<span id="bridgeVg">--</span> km/h</div>
-            </div>
+        <!-- Right Avg Data Box -->
+        <div class="avg-info-box">
+            <div class="avg-item">陸地平均風速：<span id="landU">--</span> km/h</div>
+            <div class="avg-item">陸地平均陣風：<span id="landUg">--</span> km/h</div>
+            <div class="avg-item">跨海大橋平均風速：<span id="bridgeV">--</span> km/h</div>
+            <div class="avg-item">跨海大橋平均陣風：<span id="bridgeVg">--</span> km/h</div>
         </div>
+    </div>
 
         <!-- 左右分欄：陸地 / 跨海大橋測站（附風速+陣風） -->
         <div class="station-two-col">
@@ -954,15 +958,39 @@ function calcWindIndex(){
     document.getElementById('windIndexNum').textContent = idxFixed;
 
     //級別+配色
-    let gradeName="",gradeBg="";
+        //級別+配色（背景+文字顏色對應樣板配色）
+    let gradeName="",gradeBg="",gradeTextColor="";
     const idxNum=Number(idxFixed);
-    if(idxNum<=13){gradeName="輕微";gradeBg="#e7f2d4";}
-    else if(idxNum<=24){gradeName="清勁";gradeBg="#e1ecf9";}
-    else if(idxNum<=44){gradeName="強勁";gradeBg="#fce8d8";}
-    else if(idxNum<=74){gradeName="強烈";gradeBg="#f9d8f2";}
-    else {gradeName="極強";gradeBg="#e6d9bc";}
+    if(idxNum<=13){
+        gradeName="輕微";
+        gradeBg="#e7f2d4";
+        gradeTextColor="#227722"; //綠色
+    }
+    else if(idxNum<=24){
+        gradeName="清勁";
+        gradeBg="#e1ecf9";
+        gradeTextColor="#2255bb"; //藍色
+    }
+    else if(idxNum<=44){
+        gradeName="強勁";
+        gradeBg="#fce8d8";
+        gradeTextColor="#dd2222"; //紅色
+    }
+    else if(idxNum<=74){
+        gradeName="強烈";
+        gradeBg="#f9d8f2";
+        gradeTextColor="#8822bb"; //紫色
+    }
+    else {
+        gradeName="極強";
+        gradeBg="#e6d9bc";
+        gradeTextColor="#774422"; //棕褐色
+    }
     document.getElementById('windIndexGrade').textContent=gradeName;
     document.getElementById('index-value-box').style.background=gradeBg;
+    // 關鍵新增：讓指數數字、級別文字變成對應顏色
+    document.querySelector('.index-box-num').style.color = gradeTextColor;
+    document.querySelector('.index-box-grade').style.color = gradeTextColor;
 
     //填充左右測站列表【帶風速+陣風數據】
     const landTbody = document.querySelector("#landStationList tbody");
