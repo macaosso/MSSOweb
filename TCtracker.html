@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>澳門熱帶氣旋追蹤｜實時風雨氣壓監測</title>
+    <title>澳門熱帶氣旋追蹤｜實時風力氣壓水位監測</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
@@ -45,7 +45,7 @@
             opacity: 0.9;
         }
 
-        /* 警告卡片統一樣式 */
+        /* 統一警告卡片樣式（和氣旋/風暴潮共用） */
         .alert-box {
             background: #fff;
             border-left:6px solid #d62828;
@@ -54,8 +54,13 @@
             margin-bottom:12px;
             box-shadow:0 2px 8px rgba(0,0,0,0.08);
         }
+        .alert-box.blue{border-left-color:#a0d8ef;}
+        .alert-box.yellow{border-left-color:#ffdd00;}
+        .alert-box.orange{border-left-color:#ff8822;}
+        .alert-box.red{border-left-color:#e02020;}
+        .alert-box.water{border-left-color:#4299e1;}
+
         .alert-box h3 {
-            color:#c1121f;
             margin-bottom:6px;
             font-size:1.05rem;
         }
@@ -63,8 +68,8 @@
             font-size:0.95rem;
             color:#333;
         }
+        .hide-box{display:none;}
 
-        /* 視圖切換 */
         .view-switch {
             margin-bottom: 15px;
             display: flex;
@@ -83,7 +88,6 @@
             color: #fff;
         }
 
-        /* 分類按鈕 */
         .tab-wrapper {
             background: #fff;
             border-radius: 8px;
@@ -124,7 +128,6 @@
             background: #d0d9e2;
         }
 
-        /* 地圖卡片 */
         .map-card {
             background: #fff;
             border-radius: 12px;
@@ -132,14 +135,12 @@
             padding: 15px;
             position: relative;
         }
-        /* 地圖高度拉長 */
         #macau-map {
             width: 100%;
             height: 800px;
             border-radius: 8px;
         }
 
-        /* 圖例 */
         .map-legend {
             position: absolute;
             bottom: 15px;
@@ -175,7 +176,6 @@
             margin-right: 5px;
         }
 
-        /* 時間戳 */
         .time-stamp {
             position: absolute;
             top: 25px;
@@ -199,7 +199,6 @@
             z-index: 1000;
         }
 
-        /* 表格 */
         .table-container {
             background: #fff;
             border-radius: 12px;
@@ -236,7 +235,6 @@
         .sort-buttons button:hover {
             background: #d0d9e2;
         }
-
         .hide { display: none !important; }
     </style>
 </head>
@@ -244,25 +242,61 @@
 <div class="container">
     <header>
         <div>
-            <h1>澳門熱帶氣旋追蹤網｜實時風雨氣壓監測</h1>
-            <small style="color: #90ee90;">● 地圖標記實時數值｜自動載入全測站資料</small>
+            <h1>澳門熱帶氣旋追蹤網｜實時風力氣壓水位監測</h1>
+            <small style="color: #90ee90;">● 地圖標記實時數值｜30秒自動刷新</small>
         </div>
         <div class="meta-info">
             <div>更新時間：<span id="pub-date">載入中...</span></div>
-            <div>每5分鐘自動刷新</div>
+            <div>每30秒自動刷新</div>
         </div>
     </header>
 
-    <!-- 熱帶氣旋警告 -->
-    <div class="alert-box">
+    <!-- 原有固定兩個卡片 -->
+    <div class="alert-box red">
         <h3>現時熱帶氣旋警告</h3>
         <div class="alert-content" id="typhoon-info">載入氣旋資訊中……</div>
     </div>
-
-    <!-- 風暴潮警告（新增） -->
-    <div class="alert-box">
+    <div class="alert-box red">
         <h3>現時風暴潮警告</h3>
         <div class="alert-content" id="stormsurge-info">載入風暴潮資訊中……</div>
+    </div>
+
+    <!-- 新增：風速分級資訊卡片（無數據自動隱藏） -->
+    <div class="alert-box red hide-box" id="wsRedBox">
+        <h3>風速 ≥117.5 km/h（紅色警戒）</h3>
+        <div class="alert-content" id="wsRedCon"></div>
+    </div>
+    <div class="alert-box orange hide-box" id="wsOrangeBox">
+        <h3>風速 ≥87.5 km/h（橙色警戒）</h3>
+        <div class="alert-content" id="wsOrangeCon"></div>
+    </div>
+    <div class="alert-box yellow hide-box" id="wsYellowBox">
+        <h3>風速 ≥62.5 km/h（黃色警戒）</h3>
+        <div class="alert-content" id="wsYellowCon"></div>
+    </div>
+    <div class="alert-box blue hide-box" id="wsBlueBox">
+        <h3>風速 ≥40.5 km/h（淺藍強風）</h3>
+        <div class="alert-content" id="wsBlueCon"></div>
+    </div>
+
+    <!-- 新增：陣風分級資訊卡片 -->
+    <div class="alert-box red hide-box" id="gRedBox">
+        <h3>陣風 ≥117.5 km/h（紅色警戒）</h3>
+        <div class="alert-content" id="gRedCon"></div>
+    </div>
+    <div class="alert-box orange hide-box" id="gOrangeBox">
+        <h3>陣風 ≥87.5 km/h（橙色警戒）</h3>
+        <div class="alert-content" id="gOrangeCon"></div>
+    </div>
+    <div class="alert-box yellow hide-box" id="gYellowBox">
+        <h3>陣風 ≥62.5 km/h（黃色警戒）</h3>
+        <div class="alert-content" id="gYellowCon"></div>
+    </div>
+
+    <!-- 新增：實時水位卡片 -->
+    <div class="alert-box water hide-box" id="waterBox">
+        <h3>實時水位 ≥0.1m 測站清單</h3>
+        <div class="alert-content" id="waterCon"></div>
     </div>
 
     <div class="view-switch">
@@ -277,14 +311,6 @@
                 <button class="tab-btn active" data-type="windDir">風向</button>
                 <button class="tab-btn" data-type="windSpeed">風速 (km/h)</button>
                 <button class="tab-btn" data-type="windGust">陣風 (km/h)</button>
-            </div>
-        </div>
-        <div class="tab-group">
-            <h3 class="group-title">雨量數據</h3>
-            <div class="group-buttons">
-                <button class="tab-btn" data-type="rain1m">一分鐘雨量(mm)</button>
-                <button class="tab-btn" data-type="rain1h">一小時雨量(mm)</button>
-                <button class="tab-btn" data-type="rainTotal">日累積雨量(mm)</button>
             </div>
         </div>
         <div class="tab-group">
@@ -333,7 +359,6 @@
 </div>
 
 <script>
-// 測站座標
 const weatherPoints = {
     "紀念孫中山市政公園": { code: "DP", lat: 22.215322, lng: 113.543490 },
     "黑沙環": { code: "EM", lat: 22.207129, lng: 113.559971 },
@@ -379,51 +404,81 @@ const fieldMap = {
     windDir: {field:'windDir', label:'風向', unit:''},
     windSpeed: {field:'windSpeed', label:'風速', unit:'km/h'},
     windGust: {field:'windGust', label:'陣風', unit:'km/h'},
-    rain1m:{field:'rain1m',label:'一分鐘雨量',unit:'mm'},
-    rain1h:{field:'rain1h',label:'一小時雨量',unit:'mm'},
-    rainTotal:{field:'rainTotal',label:'日累積雨量',unit:'mm'},
     pressSea: {field:'pressSea', label:'海平面氣壓', unit:'hPa'},
     pressStation: {field:'pressStation', label:'站氣壓', unit:'hPa'},
     waterLevel: {field:'waterLevel', label:'實時水位', unit:'m'}
 };
 
-// 配色
+//風速標記配色
 function getWindColor(windStr) {
     const wind = parseFloat(windStr);
     if (isNaN(wind)) return "#3498db";
-    if (wind >= 117.5) return "#6a0606";
-    if (wind >= 87.5)  return "#b1510d";
-    if (wind >= 62.5)  return "#7f710b";
-    if (wind >= 40.5)  return "#154c83";
+    if (wind >= 117.5) return "#e02020";
+    if (wind >= 87.5)  return "#ff8822";
+    if (wind >= 62.5)  return "#ffdd00";
+    if (wind >= 40.5)  return "#a0d8ef";
     return "#11750a";
 }
-function getRain1mColor(v){v=parseFloat(v);if(isNaN(v))return"#3498db";if(v>=1.8)return"#6a0c7a";if(v>=1.4)return"#000";if(v>=0.8)return"#921818";if(v>=0.4)return"#878e14";if(v>=0.2)return"#227192";return"#636363";}
-function getRain1hColor(v){v=parseFloat(v);if(isNaN(v))return"#3498db";if(v>=100)return"#6a0c7a";if(v>=80)return"#000";if(v>=50)return"#921818";if(v>=20)return"#878e14";if(v>=10)return"#149f37";if(v>=0.1)return"#227192";return"#636363";}
-function getRainTotalColor(v){v=parseFloat(v);if(isNaN(v))return"#3498db";if(v>=350)return"#000";if(v>=200)return"#921818";if(v>=100)return"#a04413";if(v>=50)return"#878e14";if(v>=0.1)return"#227192";return"#636363";}
-function getPressSeaColor(p){p=parseFloat(p);if(isNaN(p))return"#3498db";if(p<980)return"#571b7a";if(p<990)return"#791919";if(p<1000)return"#757012";return"#2b7c42";}
-function getPressStationColor(p){p=parseFloat(p);if(isNaN(p))return"#3498db";if(p<965)return"#571b7a";if(p<975)return"#791919";if(p<985)return"#757012";return"#2b7c42";}
-function getWaterLevelColor(w){w=parseFloat(w);if(isNaN(w))return"#3498db";if(w>=2.5)return"#000";if(w>=1.49)return"#71180b";if(w>=1)return"#9e551a";if(w>=0.5)return"#778015";if(w>=0.01)return"#1a6080";return"#1b6009";}
+//陣風標記配色
+function getGustColor(windStr) {
+    const wind = parseFloat(windStr);
+    if (isNaN(wind)) return "#3498db";
+    if (wind >= 117.5) return "#e02020";
+    if (wind >= 87.5)  return "#ff8822";
+    if (wind >= 62.5)  return "#ffdd00";
+    return "#11750a";
+}
+//氣壓配色
+function getPressSeaColor(p){
+    p=parseFloat(p);if(isNaN(p))return"#3498db";
+    if(p<980)return"#571b7a";if(p<990)return"#791919";if(p<1000)return"#757012";return"#2b7c42";
+}
+function getPressStationColor(p){
+    p=parseFloat(p);if(isNaN(p))return"#3498db";
+    if(p<965)return"#571b7a";if(p<975)return"#791919";if(p<985)return"#757012";return"#2b7c42";
+}
+//水位新配色
+function getWaterLevelColor(w){
+    w=parseFloat(w);
+    if(isNaN(w))return"#3498db";
+    if(w>=2.5) return "#000000";
+    if(w>=1.5) return "#e62c2c";
+    if(w>=1.0) return "#ff7722";
+    if(w>=0.5) return "#ffd000";
+    if(w>=0.1) return "#4299e1";
+    return "#3498db";
+}
 
-// 圖例
 function updateLegendPanel(t){
     const e=document.getElementById("legend-content");let h="";
     switch(t){
-        case"windSpeed":case"windGust":h=`
-<div class="legend-item"><div class="legend-color" style="background:#6a0606"></div>颶風</div>
-<div class="legend-item"><div class="legend-color" style="background:#b1510d"></div>暴風</div>
-<div class="legend-item"><div class="legend-color" style="background:#7f710b"></div>烈風</div>
-<div class="legend-item"><div class="legend-color" style="background:#154c83"></div>強風≥41</div>
+        case"windSpeed":
+            h=`
+<div class="legend-item"><div class="legend-color" style="background:#e02020"></div>≥117.5紅</div>
+<div class="legend-item"><div class="legend-color" style="background:#ff8822"></div>≥87.5橙</div>
+<div class="legend-item"><div class="legend-color" style="background:#ffdd00"></div>≥62.5黃</div>
+<div class="legend-item"><div class="legend-color" style="background:#a0d8ef"></div>≥40.5淺藍</div>
 <div class="legend-item"><div class="legend-color" style="background:#11750a"></div>一般</div>`;break;
-        case"rain1m":h=`<div class="legend-item"><div class="legend-color" style="background:#6a0c7a"></div>大雨</div><div class="legend-item"><div class="legend-color" style="background:#921818"></div>中雨</div>`;break;
-        case"rain1h":h=`<div class="legend-item"><div class="legend-color" style="background:#6a0c7a"></div>暴雨</div><div class="legend-item"><div class="legend-color" style="background:#921818"></div>大雨</div>`;break;
-        case"rainTotal":h=`<div class="legend-item"><div class="legend-color" style="background:#000"></div>特大暴雨</div><div class="legend-item"><div class="legend-color" style="background:#921818"></div>暴雨</div>`;break;
-        case"pressSea":case"pressStation":h=`<div class="legend-item"><div class="legend-color" style="background:#571b7a"></div>低壓</div><div class="legend-item"><div class="legend-color" style="background:#791919"></div>中低壓</div>`;break;
-        case"waterLevel":h=`<div class="legend-item"><div class="legend-color" style="background:#000"></div>高水位</div><div class="legend-item"><div class="legend-color" style="background:#71180b"></div>警戒</div>`;break;
+        case"windGust":
+            h=`
+<div class="legend-item"><div class="legend-color" style="background:#e02020"></div>≥117.5紅</div>
+<div class="legend-item"><div class="legend-color" style="background:#ff8822"></div>≥87.5橙</div>
+<div class="legend-item"><div class="legend-color" style="background:#ffdd00"></div>≥62.5黃</div>
+<div class="legend-item"><div class="legend-color" style="background:#11750a"></div>一般</div>`;break;
+        case"pressSea":case"pressStation":
+            h=`<div class="legend-item"><div class="legend-color" style="background:#571b7a"></div>低壓</div><div class="legend-item"><div class="legend-color" style="background:#791919"></div>中低壓</div>`;break;
+        case"waterLevel":
+            h=`
+<div class="legend-item"><div class="legend-color" style="background:#000"></div>≥2.5黑</div>
+<div class="legend-item"><div class="legend-color" style="background:#e62c2c"></div>1.5~2.49紅</div>
+<div class="legend-item"><div class="legend-color" style="background:#ff7722"></div>1.0~1.49橙</div>
+<div class="legend-item"><div class="legend-color" style="background:#ffd000"></div>0.5~0.99黃</div>
+<div class="legend-item"><div class="legend-color" style="background:#4299e1"></div>0.1~0.49藍</div>`;break;
         default:h=`<div class="legend-item">無色標</div>`;
-    }e.innerHTML=h;
+    }
+    e.innerHTML=h;
 }
 
-// 地圖初始化（拉近縮放）
 let map = L.map('macau-map').setView([22.17, 113.55], 13);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'&copy; OSM'}).addTo(map);
 
@@ -432,7 +487,6 @@ let currentTab = "windSpeed";
 document.getElementById('current-indicator').textContent = fieldMap[currentTab].label;
 let pointDataList = [], floodDataList = [];
 
-// 標籤切換
 document.querySelectorAll('.tab-btn').forEach(b=>{
     b.addEventListener('click',()=>{
         document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
@@ -445,7 +499,6 @@ document.querySelectorAll('.tab-btn').forEach(b=>{
     });
 });
 
-// 視圖切換
 document.getElementById('btn-map').onclick=()=>{
     document.getElementById('btn-map').classList.add('active');
     document.getElementById('btn-table').classList.remove('active');
@@ -463,7 +516,6 @@ document.getElementById('btn-table').onclick=()=>{
 function extractNodeValue(s,p){const e=p.querySelector(s);if(!e)return"";return(e.querySelector("dValue")||e.querySelector("Value"))?.textContent?.trim()||"";}
 function clearMarkers(){allMarkers.forEach(m=>map.removeLayer(m));allMarkers=[];}
 
-// 更新地圖標記
 function updateMapMarkers(){
     clearMarkers();
     let list, coords;
@@ -476,10 +528,7 @@ function updateMapMarkers(){
         switch(currentTab){
             case"windDir":v=item.windDir||"--";color="#9b59b6";break;
             case"windSpeed":v=item.windSpeed;color=getWindColor(v);break;
-            case"windGust":v=item.windGust;color=getWindColor(v);break;
-            case"rain1m":v=item.rain1m;color=getRain1mColor(v);break;
-            case"rain1h":v=item.rain1h;color=getRain1hColor(v);break;
-            case"rainTotal":v=item.rainTotal;color=getRainTotalColor(v);break;
+            case"windGust":v=item.windGust;color=getGustColor(v);break;
             case"pressSea":v=item.pressSea;color=getPressSeaColor(v);break;
             case"pressStation":v=item.pressStation;color=getPressStationColor(v);break;
             case"waterLevel":v=item.waterLevel;if(v=="--")skip=1;color=getWaterLevelColor(v);break;
@@ -492,7 +541,6 @@ function updateMapMarkers(){
     });
 }
 
-// 表格
 let lastSort="default";
 function renderDataTable(t,sort=lastSort){
     const cfg=fieldMap[t];
@@ -502,7 +550,7 @@ function renderDataTable(t,sort=lastSort){
     let list= t==="waterLevel"?floodDataList:pointDataList;
     let valid=list.filter(x=>x[f]&&x[f]!=="--");
     if(sort==="desc")valid.sort((a,b)=>parseFloat(b[f])-parseFloat(a[f]));
-    if(sort==="asc")valid.sort((a,b)=>parseFloat(a[f])-parseFloat(b[f]));
+    if(sort==="asc")valid.sort((a,b)=>parseFloat(a[f])-parseFloat(a[f]));
     lastSort=sort;
     valid.forEach(x=>{
         const name=x.name;
@@ -515,7 +563,6 @@ document.querySelectorAll('.sort-btn').forEach(b=>{
     b.addEventListener('click',()=>{renderDataTable(currentTab,b.dataset.sort);});
 });
 
-// ============== 1. 抓取氣象數據 ==============
 function fetchWeather(){
     const t=Date.now();
     return fetch(`https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${t}`)
@@ -529,20 +576,13 @@ function fetchWeather(){
             const wd=extractNodeValue("WindDirection",s)||"--";
             const ws=extractNodeValue("WindSpeed",s)||"--";
             const wg=extractNodeValue("WindGust",s)||"--";
-            let r1m="--",r1h="--",rt="--";
-            s.querySelectorAll("Rainfall").forEach(r=>{
-                const ty=r.querySelector("Type")?.textContent;
-                const v=extractNodeValue("Rainfall",r);
-                if(ty==="3")r1m=v;if(ty==="4")r1h=v;if(ty==="5")rt=v;
-            });
             const ps=extractNodeValue("MeanSeaLevelPressure",s)||"--";
             const pst=extractNodeValue("StationPressure",s)||"--";
-            pointDataList.push({name,windDir:wd,windSpeed:ws,windGust:wg,rain1m:r1m,rain1h:r1h,rainTotal:rt,pressSea:ps,pressStation:pst,waterLevel:"--"});
+            pointDataList.push({name,windDir:wd,windSpeed:ws,windGust:wg,pressSea:ps,pressStation:pst,waterLevel:"--"});
         });
     });
 }
 
-// ============== 2. 抓取水位 ==============
 function fetchFlood(){
     const t=Date.now();
     return fetch(`https://corsproxy.io/?https://xml.smg.gov.mo/c_ftgms.xml?t=${t}`)
@@ -558,7 +598,6 @@ function fetchFlood(){
     });
 }
 
-// ============== 3. 抓取熱帶氣旋 ==============
 function fetchTyphoon(){
     const t=Date.now();
     return fetch(`https://corsproxy.io/?https://xml.smg.gov.mo/c_typhoon.xml?t=${t}`)
@@ -568,7 +607,6 @@ function fetchTyphoon(){
     });
 }
 
-// ============== 4. 抓取風暴潮（新增） ==============
 function fetchStormSurge(){
     const t=Date.now();
     return fetch(`https://corsproxy.io/?https://xml.smg.gov.mo/c_stormsurge.xml?t=${t}`)
@@ -579,35 +617,83 @@ function fetchStormSurge(){
     });
 }
 
-// ============== 5. 強風彈窗（風速≥41 km/h） ==============
-function showStrongWindPopup(){
-    const strong=pointDataList.filter(s=>{
-        const ws=parseFloat(s.windSpeed);
-        return !isNaN(ws)&&ws>=21;
+// 關鍵：分級去重，高優先覆蓋低級，一站只出現最高級別
+function updateAlertBox(){
+    // 全部卡片預設隱藏
+    const allBoxId = ["wsRedBox","wsOrangeBox","wsYellowBox","wsBlueBox","gRedBox","gOrangeBox","gYellowBox","waterBox"];
+    allBoxId.forEach(id=>document.getElementById(id).classList.add("hide-box"));
+
+    // =====風速分組=====
+    let wsAll = pointDataList.filter(d=>!isNaN(parseFloat(d.windSpeed)) && parseFloat(d.windSpeed)>=10.5);
+    let wsRed=[],wsOrange=[],wsYellow=[],wsBlue=[];
+    wsAll.forEach(it=>{
+        let v=parseFloat(it.windSpeed);
+        if(v>=117.5) wsRed.push(it);
+        else if(v>=87.5) wsOrange.push(it);
+        else if(v>=62.5) wsYellow.push(it);
+        else wsBlue.push(it);
     });
-    if(strong.length===0)return;
-    let html=`<div style='padding:8px;min-width:260px;'><h4>強風｜風速 ≥41 km/h</h4><ul style='padding-left:20px;margin:8px 0;'>`;
-    strong.forEach(s=>{
-        const code=weatherPoints[s.name]?.code||"";
-        html+=`<li>${s.name} (${code})｜風速：${s.windSpeed} km/h</li>`;
+    // 渲染風速卡片
+    if(wsRed.length>0){
+        document.getElementById("wsRedBox").classList.remove("hide-box");
+        document.getElementById("wsRedCon").innerText = wsRed.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windSpeed}km/h`).join("、");
+    }
+    if(wsOrange.length>0){
+        document.getElementById("wsOrangeBox").classList.remove("hide-box");
+        document.getElementById("wsOrangeCon").innerText = wsOrange.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windSpeed}km/h`).join("、");
+    }
+    if(wsYellow.length>0){
+        document.getElementById("wsYellowBox").classList.remove("hide-box");
+        document.getElementById("wsYellowCon").innerText = wsYellow.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windSpeed}km/h`).join("、");
+    }
+    if(wsBlue.length>0){
+        document.getElementById("wsBlueBox").classList.remove("hide-box");
+        document.getElementById("wsBlueCon").innerText = wsBlue.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windSpeed}km/h`).join("、");
+    }
+
+    // =====陣風分組=====
+    let gAll = pointDataList.filter(d=>!isNaN(parseFloat(d.windGust)) && parseFloat(d.windGust)>=12.5);
+    let gRed=[],gOrange=[],gYellow=[];
+    gAll.forEach(it=>{
+        let v=parseFloat(it.windGust);
+        if(v>=117.5) gRed.push(it);
+        else if(v>=87.5) gOrange.push(it);
+        else gYellow.push(it);
     });
-    html+="</ul></div>";
-    L.popup().setLatLng([22.17,113.55]).setContent(html).openOn(map);
+    if(gRed.length>0){
+        document.getElementById("gRedBox").classList.remove("hide-box");
+        document.getElementById("gRedCon").innerText = gRed.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windGust}km/h`).join("、");
+    }
+    if(gOrange.length>0){
+        document.getElementById("gOrangeBox").classList.remove("hide-box");
+        document.getElementById("gOrangeCon").innerText = gOrange.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windGust}km/h`).join("、");
+    }
+    if(gYellow.length>0){
+        document.getElementById("gYellowBox").classList.remove("hide-box");
+        document.getElementById("gYellowCon").innerText = gYellow.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windGust}km/h`).join("、");
+    }
+
+    // =====水位=====
+    let wAll = floodDataList.filter(d=>!isNaN(parseFloat(d.waterLevel)) && parseFloat(d.waterLevel)>=0.1);
+    if(wAll.length>0){
+        document.getElementById("waterBox").classList.remove("hide-box");
+        document.getElementById("waterCon").innerText = wAll.map(x=>`${x.name}(${x.code}) ${x.waterLevel}m`).join("、");
+    }
 }
 
-// ============== 載入全部 ==============
 function loadAll(){
     Promise.all([fetchWeather(),fetchFlood(),fetchTyphoon(),fetchStormSurge()])
     .then(()=>{
         updateMapMarkers();
         updateLegendPanel(currentTab);
         renderDataTable(currentTab);
-        showStrongWindPopup();
+        updateAlertBox();
     });
 }
 
 window.addEventListener('DOMContentLoaded',loadAll);
-setInterval(loadAll,300000);
+//30秒刷新
+setInterval(loadAll,30000);
 </script>
 </body>
 </html>
