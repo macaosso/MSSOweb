@@ -627,7 +627,7 @@ function updateAlertBox(){
     allBoxId.forEach(id=>document.getElementById(id).classList.add("hide-box"));
 
     // =====風速分組=====
-    let wsAll = pointDataList.filter(d=>!isNaN(parseFloat(d.windSpeed)) && parseFloat(d.windSpeed)>=10.5);
+    let wsAll = pointDataList.filter(d=>!isNaN(parseFloat(d.windSpeed)) && parseFloat(d.windSpeed)>=40.5);
     let wsRed=[],wsOrange=[],wsYellow=[],wsBlue=[];
     wsAll.forEach(it=>{
         let v=parseFloat(it.windSpeed);
@@ -655,7 +655,7 @@ function updateAlertBox(){
     }
 
     // =====陣風分組=====
-    let gAll = pointDataList.filter(d=>!isNaN(parseFloat(d.windGust)) && parseFloat(d.windGust)>=12.5);
+    let gAll = pointDataList.filter(d=>!isNaN(parseFloat(d.windGust)) && parseFloat(d.windGust)>=62.5);
     let gRed=[],gOrange=[],gYellow=[];
     gAll.forEach(it=>{
         let v=parseFloat(it.windGust);
