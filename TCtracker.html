@@ -773,7 +773,7 @@ function renderBottomChart(){
     const datasets = multiStationList.map((station,idx)=>{
         const hist = getStationHistory(station);
         return {
-            label:`${station} 過去12小時風速 km/h`,
+            label:`${station} 風速 km/h`,
             data:hist.map(d=>d.speed),
             borderColor:colorPool[idx % colorPool.length],
             fill:false,
