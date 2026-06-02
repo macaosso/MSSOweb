@@ -7,9 +7,6 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <div class="table-container" style="margin-top:20px;">
-        <canvas id="bottomChartCanvas" height="360"></canvas>
-    </div>
     <style>
         * {
             box-sizing: border-box;
@@ -1117,5 +1114,8 @@ window.addEventListener('DOMContentLoaded',loadAll);
 // 5 minutes = 300000 ms auto fetch XML data
 setInterval(loadAll, 60000);
 </script>
+<div class="table-container" style="margin-top:20px;">
+    <canvas id="bottomChartCanvas" height="360"></canvas>
+</div>
 </body>
 </html>
