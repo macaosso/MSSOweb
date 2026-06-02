@@ -263,33 +263,33 @@
 
     <!-- 新增：風速分級資訊卡片（無數據自動隱藏） -->
     <div class="alert-box red hide-box" id="wsRedBox">
-        <h3>風速 ≥117.5 km/h（紅色警戒）</h3>
+        <h3>颶風</h3>
         <div class="alert-content" id="wsRedCon"></div>
     </div>
     <div class="alert-box orange hide-box" id="wsOrangeBox">
-        <h3>風速 ≥87.5 km/h（橙色警戒）</h3>
+        <h3>暴風</h3>
         <div class="alert-content" id="wsOrangeCon"></div>
     </div>
     <div class="alert-box yellow hide-box" id="wsYellowBox">
-        <h3>風速 ≥62.5 km/h（黃色警戒）</h3>
+        <h3>烈風</h3>
         <div class="alert-content" id="wsYellowCon"></div>
     </div>
     <div class="alert-box blue hide-box" id="wsBlueBox">
-        <h3>風速 ≥40.5 km/h（淺藍強風）</h3>
+        <h3>強風</h3>
         <div class="alert-content" id="wsBlueCon"></div>
     </div>
 
     <!-- 新增：陣風分級資訊卡片 -->
     <div class="alert-box red hide-box" id="gRedBox">
-        <h3>陣風 ≥117.5 km/h（紅色警戒）</h3>
+        <h3>颶陣</h3>
         <div class="alert-content" id="gRedCon"></div>
     </div>
     <div class="alert-box orange hide-box" id="gOrangeBox">
-        <h3>陣風 ≥87.5 km/h（橙色警戒）</h3>
+        <h3>暴陣</h3>
         <div class="alert-content" id="gOrangeCon"></div>
     </div>
     <div class="alert-box yellow hide-box" id="gYellowBox">
-        <h3>陣風 ≥62.5 km/h（黃色警戒）</h3>
+        <h3>烈陣</h3>
         <div class="alert-content" id="gYellowCon"></div>
     </div>
 
@@ -426,6 +426,7 @@ function getGustColor(windStr) {
     if (wind >= 117.5) return "#e02020";
     if (wind >= 87.5)  return "#ff8822";
     if (wind >= 62.5)  return "#ffdd00";
+    if (wind >= 40.5)  return "#a0d8ef";
     return "#11750a";
 }
 //氣壓配色
@@ -445,8 +446,8 @@ function getWaterLevelColor(w){
     if(w>=1.5) return "#e62c2c";
     if(w>=1.0) return "#ff7722";
     if(w>=0.5) return "#ffd000";
-    if(w>=0.1) return "#4299e1";
-    return "#3498db";
+    if(w>=0.01) return "#4299e1";
+    return "#44803b";
 }
 
 function updateLegendPanel(t){
@@ -454,26 +455,28 @@ function updateLegendPanel(t){
     switch(t){
         case"windSpeed":
             h=`
-<div class="legend-item"><div class="legend-color" style="background:#e02020"></div>≥117.5紅</div>
-<div class="legend-item"><div class="legend-color" style="background:#ff8822"></div>≥87.5橙</div>
-<div class="legend-item"><div class="legend-color" style="background:#ffdd00"></div>≥62.5黃</div>
-<div class="legend-item"><div class="legend-color" style="background:#a0d8ef"></div>≥40.5淺藍</div>
-<div class="legend-item"><div class="legend-color" style="background:#11750a"></div>一般</div>`;break;
+<div class="legend-item"><div class="legend-color" style="background:#e02020"></div>颶風</div>
+<div class="legend-item"><div class="legend-color" style="background:#ff8822"></div>暴風</div>
+<div class="legend-item"><div class="legend-color" style="background:#ffdd00"></div>烈風</div>
+<div class="legend-item"><div class="legend-color" style="background:#a0d8ef"></div>強風</div>
+<div class="legend-item"><div class="legend-color" style="background:#11750a"></div>強風以下</div>`;break;
         case"windGust":
             h=`
-<div class="legend-item"><div class="legend-color" style="background:#e02020"></div>≥117.5紅</div>
-<div class="legend-item"><div class="legend-color" style="background:#ff8822"></div>≥87.5橙</div>
-<div class="legend-item"><div class="legend-color" style="background:#ffdd00"></div>≥62.5黃</div>
-<div class="legend-item"><div class="legend-color" style="background:#11750a"></div>一般</div>`;break;
+<div class="legend-item"><div class="legend-color" style="background:#e02020"></div>颶風</div>
+<div class="legend-item"><div class="legend-color" style="background:#ff8822"></div>暴風</div>
+<div class="legend-item"><div class="legend-color" style="background:#ffdd00"></div>烈風</div>
+<div class="legend-item"><div class="legend-color" style="background:#a0d8ef"></div>強風</div>
+<div class="legend-item"><div class="legend-color" style="background:#11750a"></div>強風以下</div>`;break;
         case"pressSea":case"pressStation":
             h=`<div class="legend-item"><div class="legend-color" style="background:#571b7a"></div>低壓</div><div class="legend-item"><div class="legend-color" style="background:#791919"></div>中低壓</div>`;break;
         case"waterLevel":
             h=`
-<div class="legend-item"><div class="legend-color" style="background:#000"></div>≥2.5黑</div>
-<div class="legend-item"><div class="legend-color" style="background:#e62c2c"></div>1.5~2.49紅</div>
-<div class="legend-item"><div class="legend-color" style="background:#ff7722"></div>1.0~1.49橙</div>
-<div class="legend-item"><div class="legend-color" style="background:#ffd000"></div>0.5~0.99黃</div>
-<div class="legend-item"><div class="legend-color" style="background:#4299e1"></div>0.1~0.49藍</div>`;break;
+<div class="legend-item"><div class="legend-color" style="background:#000"></div>>= 2.50 m </div>
+<div class="legend-item"><div class="legend-color" style="background:#e62c2c"></div>1.50 - 2.49 m </div>
+<div class="legend-item"><div class="legend-color" style="background:#ff7722"></div>1.00 - 1.49 m </div>
+<div class="legend-item"><div class="legend-color" style="background:#ffd000"></div>0.50 - 0.99 m</div>
+<div class="legend-item"><div class="legend-color" style="background:#4299e1"></div>0.01 - 0.49 m </div>
+<div class="legend-item"><div class="legend-color" style="background:#44803b"></div>0.00 m</div>`;break;
         default:h=`<div class="legend-item">無色標</div>`;
     }
     e.innerHTML=h;
