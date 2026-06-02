@@ -1109,7 +1109,21 @@ function loadAll(){
 // ===== 12H Wind History Save & Manage =====
 
 let sharedHistory = []; // global shared history array loaded from server
-
+async function loadSharedHistory(){
+    try{
+        // 若後續有PHP讀檔再開啟下面fetch
+        /*
+        const res = await fetch("./wind-history.json");
+        sharedHistory = await res.json();
+        */
+        // 暫時空載、前端變數初始化
+        sharedHistory = [];
+        return Promise.resolve();
+    }catch(err){
+        sharedHistory = [];
+        return Promise.resolve();
+    }
+}
 async function saveWindRecord(stationName, windSpeed){
   if(isNaN(parseFloat(windSpeed))) return;
   const now = Date.now();
