@@ -6,6 +6,7 @@
     <title>澳門熱帶氣旋追蹤</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             box-sizing: border-box;
@@ -771,6 +772,12 @@ function updateMapMarkers(){
             case"waterLevel":v=item.waterLevel;if(v=="--")skip=1;color=getWaterLevelColor(v);break;
         }
         if(skip||v=="--")return;
+
+        // Save windSpeed to localStorage only currentTab=windSpeed
+        if(currentTab === 'windSpeed'){
+            saveWindRecord(name, parseFloat(v));
+        }
+
         // Fixed responsive marker size
         const icon=L.divIcon({
             html:`<div style="background:${color};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:15px;">${v}</div>`,
@@ -779,7 +786,44 @@ function updateMapMarkers(){
             iconAnchor:[25,25]
         });
         const m=L.marker([c.lat,c.lng],{icon}).addTo(map);
-        m.bindPopup(`<b>${name}</b>`);
+
+        // Build popup with chart canvas
+        const stationHist = getStationHistory(name);
+        let popupHtml = `<b>${name}</b><br>`;
+        const canvasId = `popChart_${name.replace(/\s/g,'')}`;
+        if(stationHist.length >=2 && currentTab==='windSpeed'){
+            popupHtml += `<canvas id="${canvasId}" width="400" height="220"></canvas>`;
+        }else if(currentTab==='windSpeed'){
+            popupHtml += "歷史數據不足";
+        }else{
+            popupHtml += `數值：${v}`;
+        }
+        m.bindPopup(popupHtml);
+
+        // Draw chart after popup open
+        m.on('popupopen',function(){
+            if(currentTab!=='windSpeed') return;
+            const ctxDom = document.getElementById(canvasId);
+            if(!ctxDom) return;
+            const histData = getStationHistory(name);
+            const labels = histData.map(d=>msToTime(d.ts));
+            const spdData = histData.map(d=>d.speed);
+            new Chart(ctxDom,{
+                type:"line",
+                data:{
+                    labels:labels,
+                    datasets:[{
+                        label:"風速 km/h",
+                        data:spdData,
+                        borderColor:"#16537e",
+                        fill:false,
+                        tension:0.2
+                    }]
+                },
+                options:{responsive:true,maintainAspectRatio:false}
+            })
+        })
+
         allMarkers.push(m);
     });
 }
@@ -983,8 +1027,7 @@ function calcWindIndex(){
     const idxFixed = windIdx.toFixed(1);
     document.getElementById('windIndexNum').textContent = idxFixed;
 
-    //級別+配色
-        //級別+配色（背景+文字顏色對應樣板配色）
+    //級別+配色（背景+文字顏色對應樣板配色）
     let gradeName="",gradeBg="",gradeTextColor="";
     const idxNum=Number(idxFixed);
     if(idxNum<=13){
@@ -1070,6 +1113,38 @@ function loadAll(){
     });
 }
 
+// ===== 12H Wind History Save & Manage =====
+const STORAGE_KEY = "windHistoryData";
+const HOUR12 = 12 * 3600 * 1000; //12hr ms
+
+// save single station wind record (timestamp, stationName, windSpeed)
+function saveWindRecord(stationName, windSpeed){
+  if(isNaN(parseFloat(windSpeed))) return;
+  let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  const now = Date.now();
+  // drop data over 12hr ago
+  history = history.filter(item => now - item.ts < HOUR12);
+  // add new entry
+  history.push({
+    ts: now,
+    name: stationName,
+    speed: Number(windSpeed)
+  });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+}
+
+// get one station's history array
+function getStationHistory(stationName){
+  const all = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  return all.filter(d=>d.name === stationName).sort((a,b)=>a.ts-b.ts);
+}
+
+// format timestamp to HH:MM for chart label
+function msToTime(ms){
+  const d = new Date(ms);
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+    
 window.addEventListener('DOMContentLoaded',loadAll);
 //30秒刷新
 setInterval(loadAll,30000);
