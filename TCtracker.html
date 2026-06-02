@@ -261,6 +261,13 @@
             font-size:1rem;
             padding:6px 0;
         }
+        .avg-item span {
+            display:block;     /* 數值自動換行到下一行 */
+            font-size:1.4rem;  /* 數字放大 */
+            font-weight:bold;  /* 加粗 */
+            color:#16537e;
+            margin-top:4px;
+        }
         .index-value-box{
             padding:30px 28px;
             border-radius:8px;
@@ -448,10 +455,22 @@
         </div>
         <!-- Right Avg Data Box -->
         <div class="avg-info-box">
-            <div class="avg-item">陸地平均風速：<span id="landU">--</span> km/h</div>
-            <div class="avg-item">陸地平均陣風：<span id="landUg">--</span> km/h</div>
-            <div class="avg-item">跨海大橋平均風速：<span id="bridgeV">--</span> km/h</div>
-            <div class="avg-item">跨海大橋平均陣風：<span id="bridgeVg">--</span> km/h</div>
+            <div class="avg-item">
+                陸地平均風速：<br>
+                <span id="landU">--</span> km/h
+            </div>
+            <div class="avg-item">
+                陸地平均陣風：<br>
+                <span id="landUg">--</span> km/h
+            </div>
+            <div class="avg-item">
+                跨海大橋平均風速：<br>
+                <span id="bridgeV">--</span> km/h
+            </div>
+            <div class="avg-item">
+                跨海大橋平均陣風：<br>
+                <span id="bridgeVg">--</span> km/h
+            </div>
         </div>
     </div>
 
