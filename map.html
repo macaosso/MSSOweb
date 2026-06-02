@@ -425,7 +425,7 @@
                 <button class="tab-btn" data-type="apparentTemp">體感溫度 (°C)</button>
                 <button class="tab-btn" data-type="heatIndex">酷熱指數 (°C)</button>
                 <!-- 新增WBGT按鈕 -->
-                <button class="tab-btn" data-type="wbgt">綜合溫度熱指數WBGT(°C)</button>
+                <button class="tab-btn" data-type="wbgt">綜合溫度熱指數(°C)</button>
                 <button class="tab-btn" data-type="dewPoint">露點溫度 (°C)</button>
                 <button class="tab-btn" data-type="humidity">相對濕度 (%)</button>
                 <button class="tab-btn" data-type="windDir">風向</button>
@@ -938,7 +938,7 @@ function updateLegendPanel(tabType) {
 }
 
 // ========== 地圖初始化 ==========
-let map = L.map('macau-map').setView([22.17, 113.55], 12);
+let map = L.map('macau-map').setView([22.17, 113.55], 13);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '&copy; OpenStreetMap contributors'
 }).addTo(map);
