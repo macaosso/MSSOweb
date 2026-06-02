@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澳門熱帶氣旋追蹤｜實時氣象監測</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f3f7;
+            color: #2c3e50;
+            padding: 20px;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        header {
+            background: linear-gradient(135deg, #0f3460, #16537e);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        header h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+        }
+        .meta-info {
+            text-align: right;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        /* 熱帶氣旋資訊卡片 */
+        .typhoon-alert-box {
+            background: #fff;
+            border-left:6px solid #d62828;
+            padding:14px 20px;
+            border-radius:8px;
+            margin-bottom:18px;
+            box-shadow:0 2px 8px rgba(0,0,0,0.08);
+        }
+        .typhoon-alert-box h3 {
+            color:#c1121f;
+            margin-bottom:6px;
+            font-size:1.05rem;
+        }
+        .typhoon-content {
+            font-size:0.95rem;
+            color:#333;
+        }
+        /* 頂部切換按鈕 */
+        .view-switch {
+            margin-bottom: 15px;
+            display: flex;
+            gap: 10px;
+        }
+        .view-switch button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            background: #e8edf2;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+        .view-switch button.active {
+            background: #16537e;
+            color: #fff;
+        }
+
+        /* 分類折疊按鈕區 */
+        .tab-wrapper {
+            background: #fff;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+        .tab-group {
+            margin-bottom: 10px;
+        }
+        .group-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2c3e50;
+            margin: 0 0 8px 0;
+            padding: 4px 0;
+        }
+        .group-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding-left: 10px;
+        }
+
+        .tab-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 6px;
+            background: #e8edf2;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: #16537e;
+            color: #fff;
+        }
+        .tab-btn:hover:not(.active) {
+            background: #d0d9e2;
+        }
+
+        /* 主布局：單欄地圖+下方數據卡片，移除獨立右側點擊卡片區 */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        .map-card {
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 15px;
+            position: relative;
+        }
+        #macau-map {
+            width: 100%;
+            height: 650px;
+            border-radius: 8px;
+        }
+
+        /* 圖例 */
+        .map-legend {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.95);
+            padding: 8px 10px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 1000;
+            min-width: 120px;
+        }
+        .map-legend h4 {
+            margin: 0 0 5px 0;
+            font-size: 0.8rem;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 3px;
+        }
+        .legend-items {
+            max-height: 180px;
+            overflow-y: auto;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 3px;
+        }
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+
+        /* 時間戳 */
+        .time-stamp {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            z-index: 1000;
+        }
+        .time-stamp-indicator {
+            position: absolute;
+            top: 60px;
+            right: 25px;
+            background: rgba(22, 83, 126, 0.9);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            z-index: 1000;
+        }
+
+        /* 全域測站數據卡片區域，地圖下方自動全部展示 */
+        .all-station-container{
+            display:grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px,1fr));
+            gap:16px;
+            margin-top:20px;
+        }
+        /* 氣象卡片樣式 */
+        .station-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            padding: 18px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+            border-top: 4px solid #16537e;
+            font-size: 13px;
+        }
+        .station-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+        }
+        .station-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #2c3e50;
+            border-bottom: 1px solid #ecf0f1;
+            padding-bottom: 8px;
+            margin-bottom:12px;
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            font-size: 0.8rem;
+        }
+        .metric {
+            background: #f8f9fa;
+            padding: 8px 10px;
+            border-radius: 6px;
+        }
+        .col-half {
+            grid-column: span 3;
+        }
+        .col-third {
+            grid-column: span 2;
+        }
+        .metric span {
+            display: block;
+            color: #7f8c8d;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+        }
+        .metric strong {
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+        /* 雨量配色 */
+        .rain1-yellow {
+            background: #fff9c4;
+            border: 1px solid #ffe082;
+        }
+        .rain1-red {
+            background: #ffebee;
+            border: 1px solid #ef9a9a;
+        }
+        .rain1-gray {
+            background: #eceff1;
+            border: 1px solid #b0bec5;
+        }
+        .rainDay-orange {
+            background: #fff3e0;
+            border: 1px solid #ffcc80;
+        }
+        .rainDay-red {
+            background: #ffebee;
+            border: 1px solid #ef9a9a;
+        }
+        .rainDay-gray {
+            background: #eceff1;
+            border: 1px solid #b0bec5;
+        }
+        /* 水位/積水樣式 */
+        .flood-normal {
+            background: #e8f4fd;
+            border: 1px solid #bcdffb;
+        }
+        .flood-light {
+            background: #fff9c4;
+            border: 1px solid #ffe082;
+        }
+        .flood-mid {
+            background: #fff3e0;
+            border: 1px solid #ffcc80;
+        }
+        .flood-heavy {
+            background: #ffebee;
+            border: 1px solid #ef9a9a;
+        }
+
+        /* 表格區域 */
+        .table-container {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            font-size: 0.85rem;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        .data-table th {
+            background: #f1f5f9;
+            font-weight: 600;
+        }
+        .data-table tr:hover {
+            background: #f8fafc;
+        }
+        .sort-buttons button {
+            padding: 4px 10px;
+            margin-left: 6px;
+            border: none;
+            border-radius: 4px;
+            background: #e8edf2;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .sort-buttons button:hover {
+            background: #d0d9e2;
+        }
+        /* 隱藏區塊 */
+        .hide {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div>
+            <h1>澳門熱帶氣旋追蹤網｜實時風雨氣壓監測</h1>
+            <small style="color: #90ee90;">● 地圖標記實時數值｜自動載入全測站資料</small>
+        </div>
+        <div class="meta-info">
+            <div>更新時間：<span id="pub-date">載入中...</span></div>
+            <div>每5分鐘自動刷新</div>
+        </div>
+    </header>
+
+    <!-- 熱帶氣旋警告資訊框 -->
+    <div class="typhoon-alert-box">
+        <h3>現時熱帶氣旋警告</h3>
+        <div class="typhoon-content" id="typhoon-info">載入氣旋資訊中……</div>
+    </div>
+
+    <!-- 地圖/表格 切換按鈕 -->
+    <div class="view-switch">
+        <button id="btn-map" class="active">地圖+全站數據</button>
+        <button id="btn-table">數據表格</button>
+    </div>
+
+    <!-- 分類按鈕：只保留 風力、雨量、氣壓、水位 -->
+    <div class="tab-wrapper" id="main-tab">
+        <div class="tab-group">
+            <h3 class="group-title">風力數據</h3>
+            <div class="group-buttons show">
+                <button class="tab-btn active" data-type="windDir">風向</button>
+                <button class="tab-btn" data-type="windSpeed">風速 (km/h)</button>
+                <button class="tab-btn" data-type="windGust">陣風 (km/h)</button>
+            </div>
+        </div>
+        <div class="tab-group">
+            <h3 class="group-title">雨量數據</h3>
+            <div class="group-buttons show">
+                <button class="tab-btn" data-type="rain1m">一分鐘雨量(mm)</button>
+                <button class="tab-btn" data-type="rain1h">一小時雨量(mm)</button>
+                <button class="tab-btn" data-type="rainTotal">日累積雨量(mm)</button>
+            </div>
+        </div>
+        <div class="tab-group">
+            <h3 class="group-title">氣壓數據</h3>
+            <div class="group-buttons show">
+                <button class="tab-btn" data-type="pressSea">海平面氣壓 (hPa)</button>
+                <button class="tab-btn" data-type="pressStation">站氣壓 (hPa)</button>
+            </div>
+        </div>
+        <div class="tab-group">
+            <h3 class="group-title">水位數據</h3>
+            <div class="group-buttons show">
+                <button class="tab-btn" data-type="waterLevel">實時水位 (m)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 地圖視圖：移除單獨點擊卡片，下方自動全部測站卡片 -->
+    <div class="main-layout" id="map-view">
+        <div class="map-card">
+            <div id="macau-map"></div>
+            <div id="time-stamp" class="time-stamp"></div>
+            <div id="current-indicator" class="time-stamp-indicator"></div>
+            <div id="map-legend" class="map-legend">
+                <h4>圖例</h4>
+                <div id="legend-content" class="legend-items"></div>
+            </div>
+        </div>
+        <!-- 所有測站數據卡片自動渲染 -->
+        <div class="all-station-container" id="all-card-box"></div>
+    </div>
+
+    <!-- 表格視圖 -->
+    <div id="table-view" class="hide">
+        <div class="table-container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:10px;">
+                <div id="table-title" style="font-size:1.1rem;font-weight:bold;">數據表格</div>
+                <div class="sort-buttons">
+                    <button class="sort-btn" data-sort="default">預設</button>
+                    <button class="sort-btn" data-sort="desc">高至低</button>
+                    <button class="sort-btn" data-sort="asc">低至高</button>
+                </div>
+            </div>
+            <table class="data-table" id="data-table">
+                <thead><tr><th>測站名稱</th><th>站代碼</th><th>數值</th></tr></thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// ========== 測站座標 & 代碼 ==========
+const weatherPoints = {
+    "紀念孫中山市政公園": { code: "DP", lat: 22.215322, lng: 113.543490 },
+    "黑沙環": { code: "EM", lat: 22.207129, lng: 113.559971 },
+    "大炮台": { code: "FM", lat: 22.197066, lng: 113.542261 },
+    "外港": { code: "PE", lat: 22.196556, lng: 113.558333 },
+    "媽閣": { code: "MM", lat: 22.185863, lng: 113.530675 },
+    "大潭山": { code: "TG", lat: 22.159102, lng: 113.568947 },
+    "東亞運大馬路": { code: "JA", lat: 22.155396, lng: 113.542412 },
+    "九澳": { code: "KV", lat: 22.134686, lng: 113.580143 },
+    "澳門大學": { code: "UM", lat: 22.131808, lng: 113.546970 },
+    "路環市區": { code: "DC", lat: 22.117091, lng: 113.551041 },
+    "西灣大橋": { code: "PV", lat: 22.173240, lng: 113.535416 },
+    "友誼大橋北": { code: "PN", lat: 22.191167, lng: 113.563219 },
+    "友誼大橋南": { code: "PS", lat: 22.180189, lng: 113.563299 },
+    "嘉樂庇總督大橋": { code: "PG", lat: 22.180057, lng: 113.545435 },
+    "澳門大橋北": { code: "MN", lat: 22.186985, lng: 113.573231 },
+    "澳門大橋南": { code: "MS", lat: 22.173484, lng: 113.573047 },
+    "蓮花大橋": { code: "LH", lat: 22.139934, lng: 113.549094 }
+};
+
+const floodPoints = {
+    "青洲河邊馬路": { lat: 22.212097, lng: 113.535243 },
+    "花地瑪教會街": { lat: 22.211374, lng: 113.546674 },
+    "紅街市": { lat: 22.205155, lng: 113.544597 },
+    "光復街": { lat: 22.202498, lng: 113.544916 },
+    "永樂戲院": { lat: 22.202574, lng: 113.542885 },
+    "內港北": { lat: 22.199984, lng: 113.536861 },
+    "內港": { lat: 22.198031, lng: 113.536426 },
+    "康公廟": { lat: 22.197330, lng: 113.537858 },
+    "司打口": { lat: 22.193228, lng: 113.536822 },
+    "內港南": { lat: 22.190755, lng: 113.532853 },
+    "下環街": { lat: 22.189418, lng: 113.534413 },
+    "菜園路": { lat: 22.159073, lng: 113.558961 },
+    "沙維斯街": { lat: 22.157666, lng: 113.550649 },
+    "柯維納馬路": { lat: 22.157473, lng: 113.548550 },
+    "益隆": { lat: 22.156058, lng: 113.559474 },
+    "松樹尾": { lat: 22.154766, lng: 113.557309 },
+    "黑橋街": { lat: 22.154409, lng: 113.556284 },
+    "石排灣": { lat: 22.131648, lng: 113.562820 },
+    "聖方濟各堂": { lat: 22.117434, lng: 113.551004 }
+};
+
+// ========== 欄位對應(僅保留需求欄位) ==========
+const fieldMap = {
+    windDir: {field:'windDir', label:'風向', unit:''},
+    windSpeed: {field:'windSpeed', label:'風速', unit:'km/h'},
+    windGust: {field:'windGust', label:'陣風', unit:'km/h'},
+    rain1m:{field:'rain1m',label:'一分鐘雨量',unit:'mm'},
+    rain1h:{field:'rain1h',label:'一小時雨量',unit:'mm'},
+    rainTotal:{field:'rainTotal',label:'日累積雨量',unit:'mm'},
+    pressSea: {field:'pressSea', label:'海平面氣壓', unit:'hPa'},
+    pressStation: {field:'pressStation', label:'站氣壓', unit:'hPa'},
+    waterLevel: {field:'waterLevel', label:'實時水位', unit:'m'}
+};
+
+// ========== 各指標配色 ==========
+function getWindColor(windStr) {
+    const wind = parseFloat(windStr);
+    if (isNaN(wind)) return "#3498db";
+    if (wind >= 117.5) return "#6a0606";
+    if (wind >= 87.5)  return "#b1510d";
+    if (wind >= 62.5)  return "#7f710b";
+    if (wind >= 40.5)  return "#154c83";
+    return "#11750a";
+}
+// 一分鐘雨量配色
+function getRain1mColor(valStr) {
+    const v = parseFloat(valStr);
+    if (isNaN(v)) return "#3498db";
+    if (v >= 1.8) return "#6a0c7a";
+    if (v >= 1.4) return "#000000";
+    if (v >= 0.8) return "#921818";
+    if (v >= 0.4) return "#878e14";
+    if (v >= 0.2) return "#227192";
+    return "#636363";
+}
+// 一小時雨量配色
+function getRain1hColor(valStr) {
+    const v = parseFloat(valStr);
+    if (isNaN(v)) return "#3498db";
+    if (v >= 100.0) return "#6a0c7a";
+    if (v >= 80.0) return "#020000";
+    if (v >= 50.0) return "#921818";
+    if (v >= 20.0) return "#878e14";
+    if (v >= 10.0) return "#149f37";
+    if (v >= 0.1) return "#227192";
+    return "#636363";
+}
+// 日累積雨量配色
+function getRainTotalColor(valStr) {
+    const v = parseFloat(valStr);
+    if (isNaN(v)) return "#3498db";
+    if (v >= 350.0) return "#000000";
+    if (v >= 200.0) return "#921818";
+    if (v >= 100.0) return "#a04413";
+    if (v >= 50.0) return "#878e14";
+    if (v >= 0.1) return "#227192";
+    return "#636363";
+}
+function getPressSeaColor(pressStr) {
+    const press = parseFloat(pressStr);
+    if (isNaN(pressStr)) return "#3498db";
+    if (press < 980)    return "#571b7a";
+    if (press < 990)    return "#791919";
+    if (press < 1000)   return "#757012";
+    return "#2b7c42";
+}
+function getPressStationColor(pressStr) {
+    const press = parseFloat(pressStr);
+    if (isNaN(press)) return "#3498db";
+    if (press < 965)    return "#571b7a";
+    if (press < 975)    return "#791919";
+    if (press < 985)    return "#757012";
+    return "#2b7c42";
+}
+function getWaterLevelColor(wlStr) {
+    const wl = parseFloat(wlStr);
+    if (isNaN(wl)) return "#3498db";
+    if (wl >= 2.50)     return "#000000";
+    if (wl >= 1.49)     return "#71180b";
+    if (wl >= 1.00)     return "#9e551a";
+    if (wl >= 0.50)     return "#778015";
+    if (wl >= 0.01)     return "#1a6080";
+    return "#1b6009";
+}
+
+// ========== 圖例更新 ==========
+function updateLegendPanel(tabType) {
+    const legendContent = document.getElementById('legend-content');
+    let legendHTML = '';
+    switch(tabType) {
+        case "windSpeed":case "windGust":
+            legendHTML = `
+            <div class="legend-item"><div class="legend-color" style="background:#6a0606"></div>颶風 ≥117.5km/h</div>
+            <div class="legend-item"><div class="legend-color" style="background:#b1510d"></div>暴風 87.5~117.4km/h</div>
+            <div class="legend-item"><div class="legend-color" style="background:#7f710b"></div>烈風 62.5~87.4km/h</div>
+            <div class="legend-item"><div class="legend-color" style="background:#154c83"></div>強風 40.5~62.4km/h</div>
+            <div class="legend-item"><div class="legend-color" style="background:#11750a"></div>一般 <40.5km/h</div>`;
+            break;
+        case "rain1m":
+            legendHTML=`
+            <div class="legend-item"><div class="legend-color" style="background:#6a0c7a"></div>>= 1.8 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>1.4 - 1.6 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#921818"></div>0.8 - 1.0 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#878e14"></div>0.4 - 0.6 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#227192"></div>0.2 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#636363"></div>0 mm</div>`;break;
+        case"rain1h":
+            legendHTML=`
+            <div class="legend-item"><div class="legend-color" style="background:#6a0c7a"></div>>= 100.0 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#020000"></div>80.0 - 99.9 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#921818"></div>50.0 - 79.9 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#878e14"></div>20.0 - 49.9 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#149f37"></div>10.0 - 19.9 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#227192"></div>0.1 - 9.9 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#636363"></div>0 mm</div>`;break;
+        case "rainTotal":
+            legendHTML=`
+            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>>= 350.0 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#921818"></div>200.0 - 349.9 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#a04413"></div>100.0 - 199.9 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#878e14"></div>50.0 - 99.9 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#227192"></div>0.1 - 49.9 mm</div>
+            <div class="legend-item"><div class="legend-color" style="background:#636363"></div>0 mm</div>`;break;
+        case "pressSea":
+            legendHTML = `
+            <div class="legend-item"><div class="legend-color" style="background:#571b7a"></div>&lt; 980 hPa</div>
+            <div class="legend-item"><div class="legend-color" style="background:#791919"></div>980 - 989 hPa</div>
+            <div class="legend-item"><div class="legend-color" style="background:#757012"></div>990 - 999 hPa</div>
+            <div class="legend-item"><div class="legend-color" style="background:#2b7c42"></div>≥ 1000 hPa</div>`;
+            break;
+        case "pressStation":
+            legendHTML = `
+            <div class="legend-item"><div class="legend-color" style="background:#571b7a"></div>&lt; 965 hPa</div>
+            <div class="legend-item"><div class="legend-color" style="background:#791919"></div>965 - 974 hPa</div>
+            <div class="legend-item"><div class="legend-color" style="background:#757012"></div>975 - 984 hPa</div>
+            <div class="legend-item"><div class="legend-color" style="background:#2b7c42"></div>≥ 985 hPa</div>`;
+            break;
+        case "waterLevel":
+            legendHTML = `
+            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>≥ 2.50 m</div>
+            <div class="legend-item"><div class="legend-color" style="background:#71180b"></div>1.49 - 2.49 m</div>
+            <div class="legend-item"><div class="legend-color" style="background:#9e551a"></div>1.00 - 1.49 m</div>
+            <div class="legend-item"><div class="legend-color" style="background:#778015"></div>0.50 - 0.99 m</div>
+            <div class="legend-item"><div class="legend-color" style="background:#1a6080"></div>0.01 - 0.49 m</div>
+            <div class="legend-item"><div class="legend-color" style="background:#1b6009"></div>0.00 m</div>`;
+            break;
+        case "windDir":
+        default:
+            legendHTML = `<div class="legend-item" style="color:#777;">風向無色標</div>`;
+    }
+    legendContent.innerHTML = legendHTML;
+}
+
+// ========== 地圖初始化 ==========
+let map = L.map('macau-map').setView([22.17, 113.55], 12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+let allMarkers = [];
+let currentTab = "windDir";
+document.getElementById('current-indicator').textContent = fieldMap[currentTab]?.label || currentTab;
+let pointDataList = [];
+let floodDataList = [];
+const allCardBox = document.getElementById("all-card-box");
+
+// 分類按鈕切換
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentTab = btn.dataset.type;
+        document.getElementById('current-indicator').textContent = `${fieldMap[currentTab]?.label}`;
+        updateMapMarkers();
+        updateLegendPanel(currentTab);
+        renderAllStationCard();
+        renderDataTable(currentTab);
+    });
+});
+
+// 視圖切換：地圖 / 表格
+document.getElementById('btn-map').addEventListener('click',function(){
+    this.classList.add('active');
+    document.getElementById('btn-table').classList.remove('active');
+    document.getElementById('map-view').classList.remove('hide');
+    document.getElementById('table-view').classList.add('hide');
+});
+document.getElementById('btn-table').addEventListener('click',function(){
+    this.classList.add('active');
+    document.getElementById('btn-map').classList.remove('active');
+    document.getElementById('map-view').classList.add('hide');
+    document.getElementById('table-view').classList.remove('hide');
+    renderDataTable(currentTab);
+});
+
+// 提取XML節點值
+const extractNodeValue = (selector, parent) => {
+    const el = parent.querySelector(selector);
+    if (!el) return '';
+    const val = el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || '';
+    return val.trim();
+};
+
+// 清空地圖標記
+function clearMarkers() {
+    allMarkers.forEach(marker => map.removeLayer(marker));
+    allMarkers = [];
+}
+
+// 單站卡片HTML生成
+function buildStationCard(data) {
+    const {name,code,windDir,windSpeed,windGust,rain1m,rain1h,rainTotal,pressSea,pressStation,waterLevel} = data;
+    const fullName = `${name} (${code})`;
+
+    const r1mClass = parseFloat(rain1m)>=0.1 ? 'metric col-third rain1-yellow':'metric col-third rain1-gray';
+    const r1hClass = parseFloat(rain1h)>=10 ? 'metric col-third rain1-red':'metric col-third rain1-gray';
+    const rTotalClass = parseFloat(rainTotal)>=50 ? 'metric col-third rainDay-orange':'metric col-third rainDay-gray';
+    let wlClass = 'metric col-third flood-normal';
+    const wlNum = parseFloat(waterLevel);
+    if(!isNaN(wlNum)){
+        if(wlNum>=0.5) wlClass='metric col-third flood-heavy';
+        else if(wlNum>=0.2) wlClass='metric col-third flood-mid';
+        else if(wlNum>0) wlClass='metric col-third flood-light';
+    }
+
+    const card = `
+    <div class="station-card">
+        <div class="station-name">${fullName}</div>
+        <div class="metrics-grid">
+            <div class="metric col-half"><span>風向</span><strong>${windDir||'--'}</strong></div>
+            <div class="metric col-half"><span>風速 km/h</span><strong>${windSpeed||'--'}</strong></div>
+            <div class="metric col-half"><span>陣風 km/h</span><strong>${windGust||'--'}</strong></div>
+            <div class="${r1mClass}"><span>一分鐘雨量 mm</span><strong>${rain1m||'--'}</strong></div>
+            <div class="${r1hClass}"><span>一小時雨量 mm</span><strong>${rain1h||'--'}</strong></div>
+            <div class="${rTotalClass}"><span>日累積雨量 mm</span><strong>${rainTotal||'--'}</strong></div>
+            <div class="metric col-half"><span>海平面氣壓 hPa</span><strong>${pressSea||'--'}</strong></div>
+            <div class="metric col-half"><span>站氣壓 hPa</span><strong>${pressStation||'--'}</strong></div>
+            <div class="${wlClass}" style="grid-column:span 6;"><span>實時水位 m</span><strong>${waterLevel||'--'}</strong></div>
+        </div>
+    </div>`;
+    return card;
+}
+// 全域渲染全部測站卡片
+function renderAllStationCard(){
+    allCardBox.innerHTML = '';
+    pointDataList.forEach(item=>{
+        const code = weatherPoints[item.name]?.code||'';
+        allCardBox.innerHTML += buildStationCard({...item,code});
+    })
+}
+
+// 更新地圖標記
+function updateMapMarkers() {
+    clearMarkers();
+    let sourceList, pointCoords;
+    if (currentTab === "waterLevel") {
+        sourceList = floodDataList;
+        pointCoords = floodPoints;
+    } else {
+        sourceList = pointDataList;
+        pointCoords = weatherPoints;
+    }
+
+    sourceList.forEach(point => {
+        const name = point.name;
+        const info = pointCoords[name];
+        if (!info) return;
+        let showVal = "--";
+        let bgColor = "#3498db";
+        let skipMarker = false;
+
+        switch (currentTab) {
+            case "windDir": showVal = point.windDir||'風'; bgColor="#9b59b6";break;
+            case "windSpeed": showVal=point.windSpeed;bgColor=getWindColor(showVal);break;
+            case "windGust": showVal=point.windGust;bgColor=getWindColor(showVal);break;
+            case "rain1m": showVal=point.rain1m;bgColor=getRain1mColor(showVal);break;
+            case "rain1h": showVal=point.rain1h;bgColor=getRain1hColor(showVal);break;
+            case "rainTotal": showVal=point.rainTotal;bgColor=getRainTotalColor(showVal);break;
+            case "pressSea": showVal=point.pressSea;bgColor=getPressSeaColor(showVal);break;
+            case "pressStation": showVal=point.pressStation;bgColor=getPressStationColor(showVal);break;
+            case "waterLevel":
+                showVal=point.waterLevel;
+                if(showVal==='--'||showVal==='') skipMarker=true;
+                bgColor=getWaterLevelColor(showVal);break;
+        }
+        if(skipMarker || showVal==='--') return;
+        const markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:bold;">${showVal}</div>`;
+        const icon = L.divIcon({html: markerIconHtml, className: "", iconSize: [50,50], iconAnchor: [25,25]});
+        const marker = L.marker([info.lat, info.lng], { icon: icon }).addTo(map);
+        marker.bindPopup(`<strong>${name}</strong>`);
+        allMarkers.push(marker);
+    });
+}
+
+// 渲染數據表格
+let lastSort = "default";
+function renderDataTable(type, sortType = lastSort) {
+    const cfg = fieldMap[type];
+    const field = cfg.field;
+    const label = cfg.label;
+    const unit = cfg.unit;
+    document.getElementById('table-title').textContent = `${label} 數據表格`;
+    const tbody = document.getElementById('table-body');
+    tbody.innerHTML = "";
+    let sourceList = type === "waterLevel" ? floodDataList : pointDataList;
+    let codeMap = type === "waterLevel" ? null : weatherPoints;
+    let validList = sourceList.filter(item => {
+        const val = item[field];
+        return val !== '--' && val !== '';
+    });
+    if (sortType === "desc") validList.sort((a, b) => parseFloat(b[field]) - parseFloat(a[field]));
+    else if (sortType === "asc") validList.sort((a, b) => parseFloat(a[field]) - parseFloat(b[field]));
+    lastSort = sortType;
+    validList.forEach(item => {
+        const name = item.name;
+        let code = "";
+        if (codeMap) code = codeMap[name]?.code || "";
+        else code = item.code || "";
+        let val = item[field];
+        let displayVal = val + (unit ? " " + unit : "");
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${displayVal}</td>`;
+        tbody.appendChild(tr);
+    });
+}
+document.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        renderDataTable(currentTab, btn.dataset.sort);
+    });
+});
+
+// ========== 抓取常規氣象 XML ==========
+function fetchWeatherData() {
+    const cacheBuster = Date.now();
+    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
+    return fetch(url, { cache: "no-store" })
+        .then(res => res.text())
+        .then(xmlStr => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
+            const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent || "未知";
+            document.getElementById("pub-date").textContent = pubTime;
+            document.getElementById("time-stamp").textContent = pubTime;
+            const stations = xmlDoc.querySelectorAll("WeatherReport station");
+            pointDataList = [];
+            stations.forEach(station => {
+                const name = station.querySelector("stationname")?.textContent || "";
+                const windDirNode = station.querySelector("WindDirection");
+                const windDir = windDirNode?.querySelector("dValue")?.textContent || "--";
+                const windSpeed = extractNodeValue("WindSpeed", station) || "--";
+                const windGust = extractNodeValue("WindGust", station) || "--";
+                let rain1m = "--", rain1h = "--", rainTotal = "--";
+                station.querySelectorAll("Rainfall").forEach(r => {
+                    const type = r.querySelector("Type")?.textContent;
+                    const val = r.querySelector("dValue")?.textContent || "";
+                    if (type === "3") rain1m = val||"--";
+                    if (type === "4") rain1h = val||"--";
+                    if (type === "5") rainTotal = val||"--";
+                });
+                const pressSea = extractNodeValue("MeanSeaLevelPressure", station)||"--";
+                const pressStation = extractNodeValue("StationPressure", station)||"--";
+                pointDataList.push({
+                    name,windDir,windSpeed,windGust,rain1m,rain1h,rainTotal,pressSea,pressStation,waterLevel:"--"
+                });
+            });
+        });
+}
+
+// ========== 抓取水位 XML ==========
+function fetchFloodData() {
+    const cacheBuster = Date.now();
+    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_ftgms.xml?t=${cacheBuster}`;
+    return fetch(url, { cache: "no-store" })
+        .then(res => res.text())
+        .then(xmlStr => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
+            const stations = xmlDoc.querySelectorAll("WLReport station");
+            floodDataList = [];
+            stations.forEach(station => {
+                const code = station.getAttribute("code") || "";
+                const name = (station.querySelector("stationname")?.textContent || "未知").trim();
+                let waterLevel = "--";
+                const valNode = station.querySelector("Waterlevel > Value");
+                if(valNode&&valNode.textContent.trim()) waterLevel=valNode.textContent.trim();
+                floodDataList.push({name,code,waterLevel});
+            });
+        }).catch(e=>console.log("水位載入失敗",e));
+}
+
+// ========== 抓取熱帶氣旋c_typhoon.xml ==========
+function fetchTyphoonData(){
+    const cacheBuster = Date.now();
+    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_typhoon.xml?t=${cacheBuster}`;
+    return fetch(url,{cache:"no-store"})
+    .then(res=>res.text())
+    .then(xml=>{
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(xml,"text/xml");
+        // 抓取整段警告文字，無數據則顯示固定文字
+        let alertText = doc.querySelector("WarningText")?.textContent?.trim()||"";
+        if(!alertText) alertText = "現時並沒有熱帶氣旋信號。";
+        document.getElementById("typhoon-info").innerText = alertText;
+    }).catch(err=>{
+        document.getElementById("typhoon-info").innerText = "現時並沒有熱帶氣旋信號。";
+    })
+}
+
+// ========== 統一載入 ==========
+function loadAllData() {
+    Promise.all([fetchWeatherData(), fetchFloodData(), fetchTyphoonData()])
+    .then(()=>{
+        updateMapMarkers();
+        updateLegendPanel(currentTab);
+        renderAllStationCard();
+        renderDataTable(currentTab);
+    }).catch(err=>console.log(err));
+}
+
+window.addEventListener('DOMContentLoaded', loadAllData);
+setInterval(loadAllData, 30000);
+</script>
+</body>
+</html>
