@@ -712,6 +712,8 @@ let selectedStationName = "";
 // new: multi select storage
 let multiStationList = [];
 let isShiftHold = false;
+
+
 // 視圖切換（新增風力指數隱藏選項卡+警告卡片）
 const tabWrap = document.getElementById('tabWrap');
 const alertBoxIds = ["alertTyphoon","alertSurge","wsRedBox","wsOrangeBox","wsYellowBox","wsBlueBox","gRedBox","gOrangeBox","gYellowBox","waterBox"];
@@ -878,8 +880,17 @@ function fetchWeather(){
     return fetch(`https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${t}`)
     .then(r=>r.text()).then(x=>{
         const doc=new DOMParser().parseFromString(x,"text/xml");
-        document.getElementById('pub-date').textContent=doc.querySelector("SysPubdate")?.textContent||"";
-        document.getElementById('time-stamp').textContent=doc.querySelector("SysPubdate")?.textContent||"";
+        const pubStr = doc.querySelector("SysPubdate")?.textContent||"";
+        document.getElementById('pub-date').textContent=pubStr;
+        document.getElementById('time-stamp').textContent=pubStr;
+
+        // Parse SMG pub datetime "YYYY-MM-DD HH:MM" to timestamp ms
+        if(pubStr){
+            xmlPubTimeMs = new Date(pubStr).getTime();
+        }else{
+            xmlPubTimeMs = Date.now();
+        }
+
         pointDataList=[];
         doc.querySelectorAll("WeatherReport station").forEach(s=>{
             const name=s.querySelector("stationname")?.textContent||"";
@@ -1089,7 +1100,7 @@ function calcWindIndex(){
 }
 
 function loadAll(){
-  loadSharedHistory().then(()=>{ // wrap original code inside .then
+  loadSharedHistory().then(()=>{
     Promise.allSettled([fetchWeather(),fetchFlood(),fetchTyphoon(),fetchStormSurge()])
     .then((results)=>{
         results.forEach(item=>{
@@ -1101,8 +1112,10 @@ function loadAll(){
         updateAlertBox();
         calcWindIndex();
         if(selectedStationName && currentTab==="windSpeed"){
-            renderBottomChart(selectedStationName);
+            renderBottomChart();
         }
+        // persist to localStorage after fresh XML parsed
+        localStorage.setItem("windHistory", JSON.stringify(sharedHistory));
     });
   })
 }
@@ -1110,6 +1123,7 @@ function loadAll(){
 
 let sharedHistory = []; // global shared history array loaded from server
 let lastSaveTs = 0;
+let xmlPubTimeMs = null;
 const SAVE_INTERVAL = 5 * 60 * 1000;
 async function loadSharedHistory(){
     let cache = localStorage.getItem("windHistory");
@@ -1122,29 +1136,29 @@ async function loadSharedHistory(){
     }else{
         sharedHistory = [];
     }
+    // trim old >12h data on page load
+    const cut = Date.now() - 12*3600*1000;
+    sharedHistory = sharedHistory.filter(d=>d.ts>=cut);
     return Promise.resolve();
 }
 async function saveWindRecord(stationName, windSpeed){
   if(isNaN(parseFloat(windSpeed))) return;
-  const now = Date.now();
-  const minuteTs = Math.floor(now / 60000)*60000;
-  // 同分鐘同一測站不重複存入
-  const exist = sharedHistory.some(d=>d.name===stationName && Math.floor(d.ts/60000)*60000===minuteTs);
+  if(!xmlPubTimeMs) return;
+
+  // Round official XML time to minute (match SMG publish minute)
+  const minuteTs = Math.floor(xmlPubTimeMs / 60000)*60000;
+  const exist = sharedHistory.some(d=>
+    d.name===stationName && Math.floor(d.ts/60000)*60000===minuteTs
+  );
   if(exist) return;
 
-  // 1. 先寫入內存
-  sharedHistory.push({ts:now,name:stationName,speed:+windSpeed});
+  // Save OFFICIAL XML TIME as ts, NOT local browser time
+  sharedHistory.push({ts: xmlPubTimeMs, name:stationName, speed:+windSpeed});
 
-  // 自動刪除12小時以外舊數據
+  // Trim history: keep only last 12h data
   const twelveHour = 12 * 3600 * 1000;
   const cutTime = Date.now() - twelveHour;
   sharedHistory = sharedHistory.filter(item => item.ts >= cutTime);
-
-  // 2. 距離上次存儲滿5分鐘才寫localStorage
-  if(now - lastSaveTs >= SAVE_INTERVAL){
-      localStorage.setItem("windHistory", JSON.stringify(sharedHistory));
-      lastSaveTs = now;
-  }
 }
 
 function getStationHistory(stationName){
