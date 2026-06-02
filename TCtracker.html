@@ -441,12 +441,30 @@
         <!-- 左右分欄：陸地 / 跨海大橋測站（附風速+陣風） -->
         <div class="station-two-col">
             <div>
-                <div class="col-title">陸地測站</div>
-                <div class="station-list" id="landStationList"></div>
+                <div class="col-title">陸地測站列表</div>
+                <table border="1" cellpadding="6" cellspacing="0" width="100%" id="landStationList">
+                    <thead>
+                        <tr style="background:#f1f5f9;">
+                            <th>站名(代碼)</th>
+                            <th>風速 km/h</th>
+                            <th>陣風 km/h</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
             <div>
-                <div class="col-title">跨海大橋測站</div>
-                <div class="station-list" id="bridgeStationList"></div>
+                <div class="col-title">跨海大橋測站列表</div>
+                <table border="1" cellpadding="6" cellspacing="0" width="100%" id="bridgeStationList">
+                    <thead>
+                        <tr style="background:#f1f5f9;">
+                            <th>站名(代碼)</th>
+                            <th>風速 km/h</th>
+                            <th>陣風 km/h</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
         </div>
         <!-- 分級說明表格 -->
@@ -712,10 +730,10 @@ function updateMapMarkers(){
         if(skip||v=="--")return;
         // Fixed responsive marker size
         const icon=L.divIcon({
-            html:`<div style="background:${color};color:#fff;border-radius:50%;min-width:36px;height:36px;padding:0 4px;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;">${v}</div>`,
+            html:`<div style="background:${color};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:15px;">${v}</div>`,
             className:"",
-            iconSize:[36,36],
-            iconAnchor:[18,18]
+            iconSize:[50,50],
+            iconAnchor:[25,25]
         });
         const m=L.marker([c.lat,c.lng],{icon}).addTo(map);
         m.bindPopup(`<b>${name}</b>`);
@@ -934,10 +952,12 @@ function calcWindIndex(){
     document.getElementById('index-value-box').style.background=gradeBg;
 
     //填充左右測站列表【帶風速+陣風數據】
-    let landHtml = [];
-    let bridgeHtml = [];
-
-    //陸地測站：名稱(代碼)｜風速xx km/h｜陣風xx km/h
+    const landTbody = document.querySelector("#landStationList tbody");
+    const bridgeTbody = document.querySelector("#bridgeStationList tbody");
+    landTbody.innerHTML = "";
+    bridgeTbody.innerHTML = "";
+    
+    //陸地測站
     Object.keys(landStationDict).forEach(name=>{
         const info = landStationDict[name];
         const d = pointMap[name];
@@ -946,10 +966,12 @@ function calcWindIndex(){
             spd = d.windSpeed||"--";
             gust = d.windGust||"--";
         }
-        landHtml.push(`${name}(${info.code})｜風速:${spd}km/h｜陣風:${gust}km/h`);
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${name}(${info.code})</td><td>${spd}</td><td>${gust}</td>`;
+        landTbody.appendChild(tr);
     });
-
-    //跨海大橋測站
+    
+    //大橋測站
     Object.keys(bridgeStationDict).forEach(name=>{
         const info = bridgeStationDict[name];
         const d = pointMap[name];
@@ -958,13 +980,10 @@ function calcWindIndex(){
             spd = d.windSpeed||"--";
             gust = d.windGust||"--";
         }
-        bridgeHtml.push(`${name}(${info.code})｜風速:${spd}km/h｜陣風:${gust}km/h`);
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${name}(${info.code})</td><td>${spd}</td><td>${gust}</td>`;
+        bridgeTbody.appendChild(tr);
     });
-
-    //改用 <br> 實現頁面換行
-    document.getElementById('landStationList').innerHTML = landHtml.join("<br>");
-    document.getElementById('bridgeStationList').innerHTML = bridgeHtml.join("<br>");
-}
 
 // allSettled：單一接口掛掉不阻礙整頁渲染
 function loadAll(){
