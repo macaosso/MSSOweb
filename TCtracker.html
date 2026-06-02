@@ -710,7 +710,13 @@ function updateMapMarkers(){
             case"waterLevel":v=item.waterLevel;if(v=="--")skip=1;color=getWaterLevelColor(v);break;
         }
         if(skip||v=="--")return;
-        const icon=L.divIcon({html:`<div style="background:${color};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-weight:bold;">${v}</div>`,className:"",iconSize:[50,50],iconAnchor:[25,25]});
+        // Fixed responsive marker size
+        const icon=L.divIcon({
+            html:`<div style="background:${color};color:#fff;border-radius:50%;min-width:36px;height:36px;padding:0 4px;display:inline-flex;align-items:center;justify-content:center;font-weight:bold;font-size:12px;">${v}</div>`,
+            className:"",
+            iconSize:[36,36],
+            iconAnchor:[18,18]
+        });
         const m=L.marker([c.lat,c.lng],{icon}).addTo(map);
         m.bindPopup(`<b>${name}</b>`);
         allMarkers.push(m);
@@ -797,7 +803,7 @@ function fetchStormSurge(){
 function updateAlertBox(){
     // 全部卡片預設隱藏
     const allBoxId = ["wsRedBox","wsOrangeBox","wsYellowBox","wsBlueBox","gRedBox","gOrangeBox","gYellowBox","waterBox"];
-    allBoxId.forEach(id=>document.getElementById(id).classList.add("hide-box"));
+    allBoxId.forEach(id=>document.getElementById(id).classList.add("hide"));
 
     // =====風速分組=====
     let wsAll = pointDataList.filter(d=>!isNaN(parseFloat(d.windSpeed)) && parseFloat(d.windSpeed)>=40.5);
@@ -817,19 +823,19 @@ function updateAlertBox(){
 
     // 換行\n分隔
     if(wsRed.length>0){
-        document.getElementById("wsRedBox").classList.remove("hide-box");
+        document.getElementById("wsRedBox").classList.remove("hide");
         document.getElementById("wsRedCon").innerText = wsRed.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windSpeed}km/h`).join("\n");
     }
     if(wsOrange.length>0){
-        document.getElementById("wsOrangeBox").classList.remove("hide-box");
+        document.getElementById("wsOrangeBox").classList.remove("hide");
         document.getElementById("wsOrangeCon").innerText = wsOrange.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windSpeed}km/h`).join("\n");
     }
     if(wsYellow.length>0){
-        document.getElementById("wsYellowBox").classList.remove("hide-box");
+        document.getElementById("wsYellowBox").classList.remove("hide");
         document.getElementById("wsYellowCon").innerText = wsYellow.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windSpeed}km/h`).join("\n");
     }
     if(wsBlue.length>0){
-        document.getElementById("wsBlueBox").classList.remove("hide-box");
+        document.getElementById("wsBlueBox").classList.remove("hide");
         document.getElementById("wsBlueCon").innerText = wsBlue.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windSpeed}km/h`).join("\n");
     }
 
@@ -847,15 +853,15 @@ function updateAlertBox(){
     gYellow.sort((a,b)=>parseFloat(b.windGust)-parseFloat(a.windGust));
 
     if(gRed.length>0){
-        document.getElementById("gRedBox").classList.remove("hide-box");
+        document.getElementById("gRedBox").classList.remove("hide");
         document.getElementById("gRedCon").innerText = gRed.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windGust}km/h`).join("\n");
     }
     if(gOrange.length>0){
-        document.getElementById("gOrangeBox").classList.remove("hide-box");
+        document.getElementById("gOrangeBox").classList.remove("hide");
         document.getElementById("gOrangeCon").innerText = gOrange.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windGust}km/h`).join("\n");
     }
     if(gYellow.length>0){
-        document.getElementById("gYellowBox").classList.remove("hide-box");
+        document.getElementById("gYellowBox").classList.remove("hide");
         document.getElementById("gYellowCon").innerText = gYellow.map(x=>`${x.name}(${weatherPoints[x.name].code}) ${x.windGust}km/h`).join("\n");
     }
 
@@ -864,12 +870,12 @@ function updateAlertBox(){
     //水位數據由高到低排序
     wAll.sort((a,b)=>parseFloat(b.waterLevel)-parseFloat(a.waterLevel));
     if(wAll.length>0){
-        document.getElementById("waterBox").classList.remove("hide-box");
+        document.getElementById("waterBox").classList.remove("hide");
         document.getElementById("waterCon").innerText = wAll.map(x=>`${x.name}(${x.code}) ${x.waterLevel}m`).join("\n");
     }
 }
 
-// =====風力指數核心計算函數=====
+// =====風力指數核心計算函數【fixed version】=====
 function calcWindIndex(){
     //1.篩陸地、橋樑數據
     const landNameArr = Object.keys(landStationDict);
@@ -904,9 +910,10 @@ function calcWindIndex(){
     document.getElementById('bridgeV').textContent = V.toFixed(2);
     document.getElementById('bridgeVg').textContent = Vg.toFixed(2);
 
-    //二次式計算權重 R = -0.00005*a² +0.0081a -0.0005
+    //二次式計算權重 R = -0.00005*a² +0.0081a -0.0005，R>=0防負值
     function getR(a){
-        return -0.00005*Math.pow(a,2)+0.0081*a-0.0005;
+        let r = -0.00005*Math.pow(a,2)+0.0081*a-0.0005;
+        return Math.max(r, 0);
     }
     const Ur = getR(U);
     const Vr = getR(V);
@@ -929,8 +936,6 @@ function calcWindIndex(){
     //填充左右測站列表【帶風速+陣風數據】
     let landHtml = [];
     let bridgeHtml = [];
-    const pointMap = {};
-    pointDataList.forEach(d=>pointMap[d.name]=d);
 
     //陸地測站：名稱(代碼)｜風速xx km/h｜陣風xx km/h
     Object.keys(landStationDict).forEach(name=>{
@@ -956,18 +961,25 @@ function calcWindIndex(){
         bridgeHtml.push(`${name}(${info.code})｜風速:${spd}km/h｜陣風:${gust}km/h`);
     });
 
-    document.getElementById('landStationList').innerText = landHtml.join("\n");
-    document.getElementById('bridgeStationList').innerText = bridgeHtml.join("\n");
+    //改用 <br> 實現頁面換行
+    document.getElementById('landStationList').innerHTML = landHtml.join("<br>");
+    document.getElementById('bridgeStationList').innerHTML = bridgeHtml.join("<br>");
 }
 
+// allSettled：單一接口掛掉不阻礙整頁渲染
 function loadAll(){
-    Promise.all([fetchWeather(),fetchFlood(),fetchTyphoon(),fetchStormSurge()])
-    .then(()=>{
+    Promise.allSettled([fetchWeather(),fetchFlood(),fetchTyphoon(),fetchStormSurge()])
+    .then((results)=>{
+        results.forEach(item=>{
+            if(item.status === 'rejected'){
+                console.error('API fetch fail:',item.reason);
+            }
+        })
         updateMapMarkers();
         updateLegendPanel(currentTab);
         renderDataTable(currentTab);
         updateAlertBox();
-        calcWindIndex();//每次載入自動重算風力指數
+        calcWindIndex();
     });
 }
 
