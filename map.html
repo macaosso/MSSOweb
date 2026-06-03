@@ -704,17 +704,18 @@ function getTempColor(tempStr) {
 function getHeatIndexColor(hiStr) {
     const hi = parseFloat(hiStr);
     if (isNaN(hi)) return "#78797a";
-    if (hi >= 54.5) return "#571288";     // 極度危險
-    if (hi >= 45.5) return "#ad3123";     // 危險
-    if (hi >= 39.5) return "#ff861c";     // 特別注意
-    if (hi >= 35.5) return "#d1aa0d";     // 注意
-    return "#927608";
+    if (hi >= 54.5) return "#000000";     // 極度危險
+    if (hi >= 49.5) return "#ff0000";     // 非常危險
+    if (hi >= 44.5) return "#e06c00";     // 危險
+    if (hi >= 39.5) return "#c9b200";     // 警戒
+    if (hi >= 35.5) return "#38b000";     // 注意
+    return "#0077b6";
 }
 // WBGT色標
 function getWBGTColor(wbgtStr){
     let w=parseFloat(wbgtStr);
     if(isNaN(w)) return "#78797a";
-    if(w>=33.5) return "#000000";    //極為危險
+    if(w>=33.5) return "#000000";    //極度危險
     if(w>=31.5) return "#ff0000";    //非常危險
     if(w>=29.5) return "#e06c00";    //危險
     if(w>=27.5) return "#c9b200";    //警戒
@@ -839,7 +840,7 @@ function updateLegendPanel(tabType) {
             break;
         case "wbgt":
             legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>≥33.5℃ 極為危險</div>
+            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>≥33.5℃ 極度危險</div>
             <div class="legend-item"><div class="legend-color" style="background:#ff0000"></div>31.5~33.4℃ 非常危險</div>
             <div class="legend-item"><div class="legend-color" style="background:#e06c00"></div>29.5~31.4℃ 危險</div>
             <div class="legend-item"><div class="legend-color" style="background:#c9b200"></div>27.5~29.4℃ 警戒</div>
@@ -847,13 +848,13 @@ function updateLegendPanel(tabType) {
             <div class="legend-item"><div class="legend-color" style="background:#0077b6"></div><24.4℃ 正常</div>`;
         break;
         case "heatIndex":
-            // match getHeatIndexColor: #571288 | #ad3123 | #ff861c | #d1aa0d | #927608
             legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#571288"></div>≥54.5℃ 極度危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#ad3123"></div>45.5~54.4℃ 危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#ff861c"></div>39.5~45.4℃ 特別注意</div>
-            <div class="legend-item"><div class="legend-color" style="background:#d1aa0d"></div>35.5~39.4℃ 注意</div>
-            <div class="legend-item"><div class="legend-color" style="background:#927608"></div><35.5℃ 正常</div>`;
+            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>≥54.5℃ 極度危險</div>
+            <div class="legend-item"><div class="legend-color" style="background:#ff0000"></div>49.5~54.4℃ 非常危險</div>
+            <div class="legend-item"><div class="legend-color" style="background:#e06c00"></div>44.5~49.4℃ 危險</div>
+            <div class="legend-item"><div class="legend-color" style="background:#c9b200"></div>39.5~44.4℃ 警戒</div>
+            <div class="legend-item"><div class="legend-color" style="background:#38b000"></div>35.5~39.4℃ 注意</div>
+            <div class="legend-item"><div class="legend-color" style="background:#0077b6"></div><35.5℃ 正常</div>`;
             break;
 
         case "dewPoint":
