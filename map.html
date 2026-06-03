@@ -566,7 +566,7 @@ function calcWBGT(Ta,RH,windKmH){
     let Tnw = calcTnw(Ta,RH);
     let {Tg} = solveTgTmrtHr(Ta,windKmH);
     if(isNaN(Tnw)||isNaN(Tg)) return '--';
-    let wbgt = 0.7*Tnw + 0.2*Tg + 0.1*Ta;
+    let wbgt = 0.8*Tnw + 0.05*Tg + 0.15*Ta;
     return wbgt.toFixed(1);
 }
 
