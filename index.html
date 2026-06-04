@@ -257,6 +257,8 @@ body {
 }
 .chart-container {
   padding:30px;
+  height:320px;
+  box-sizing: border-box;
 }
 .chart-btn {
   padding: 10px 20px;
@@ -367,7 +369,7 @@ body {
     <div class="chart-date-text" id="chartDate"></div>
   </div>
   <div class="chart-container">
-    <canvas id="tempChart" height="320"></canvas>
+    <canvas id="tempChart" ></canvas>
   </div>
 </div>
 
@@ -513,6 +515,7 @@ function render7dChart(ctx){
     },
     options:{
       responsive:true,
+      maintainAspectRatio:false,
       plugins:{title:{display:true,text:"七日高低溫預報"}},
       scales:{
         x:{display:true,title:{display:true,text:"日期"}},
