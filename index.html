@@ -63,7 +63,7 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 15px;
-  margin: 20px;
+  margin: 15px 35px;
 }
 .link-box {
   display: block;
@@ -93,7 +93,7 @@ body {
 
 /* ========== 5. 紅色警告卡片(熱帶氣旋/天氣警告) ========== */
 .warning-card {
-  margin: 35px;
+  margin: 15px 35px;
   border-radius: 15px;
   background: #fdeeee;
   border: 2px solid #d9534f;
@@ -152,7 +152,7 @@ body {
 
 /* ========== 6. 橙色提示框(特別天氣提示、預警提示) ========== */
 .box {
-  margin: 35px;
+  margin: 15px 35px;
   border-radius: 15px;
   background: #fdfbee;
   border: 2px solid #f39c12;
@@ -176,33 +176,39 @@ body {
 
 /* ========== 7. 天氣預報TAB切換模塊 ========== */
 .forecast-tab-wrap {
-  margin:35px;
+  margin:15px 35px;
   border-radius:12px;
   overflow:hidden;
   border:2px solid #4fa6a6;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  background:#e6f7f7;
 }
 .tab-header{
   display:flex;
+  gap:10px;
+  padding:15px;
 }
 .tab-btn{
   flex:1;
-  border:none;
-  padding:15px;
+  border: 2px solid #4fa6a6;
+  border-radius: 25px;
+  background: #ffffff;
+  color: #4fa6a6;
+  padding:10px;
   font-size:18px;
   font-weight:bold;
   cursor:pointer;
-  background:#4fa6a6;
-  color:#ffffff;
-  border-radius:12px 12px 0 0;
-  margin:0 3px;
-  position:relative;
-  top:2px;
+  margin:0;
+  position:unset;
+  top:unset;
+  transition: all 0.3s;
 }
 .tab-btn.active{
-  background:#e6f7f7;
-  color:#4fa6a6;
-  top:0;
+  background:#4fa6a6;
+  color:#ffffff;
+}
+.tab-btn:hover{
+  opacity:0.8;
 }
 .tab-content-box{
   background:#e6f7f7;
@@ -226,7 +232,7 @@ body {
 }
 /* ========== 8. plot 圖 ========== */
 .chart-wrap{
-  margin:35px;
+  margin: 15px 35px;
   border-radius:12px;
   overflow:hidden;
   border:2px solid #4fa6a6;
