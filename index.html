@@ -4,194 +4,177 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="icons/MSSO.png">
-
 <title>澳門民間氣象台-首頁</title>
-
 <style>
-body { margin: 0; font-family: Arial, sans-serif; }
+/* ========== 1. 全域基礎樣式 ========== */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
 
-.header { background: #1f3a4d; color: white; padding: 25px 20px; display:flex; align-items:center; }
-.title { font-size: 20px; font-weight: bold; margin-left:10px; }
-.logo { height:40px; }
+/* ========== 2. 頁頭Header ========== */
+.header {
+  background: #1f3a4d;
+  color: white;
+  padding: 25px 20px;
+  display: flex;
+  align-items: center;
+}
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-left: 10px;
+}
+.logo {
+  height: 40px;
+}
 
-    .quick-links {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      margin: 20px;
-    }
-    
-    .link-box {
-      display: block;
-      padding: 25px;
-      border-radius: 15px;
-      text-align: center;
-      font-size: 15px;
-      font-weight: bold;
-      text-decoration: none;
-      color: white;
-      box-shadow: 0 5px 12px rgba(0,0,0,0.2);
-      transition: all 0.3s ease;
-    }
-    
-    /* Weather box */
-    .link-box.weather {
-      background: linear-gradient(135deg, #4fa6a6, #2d6c94);
-    }
-    
-    /* Flood box */
-    .link-box.flood {
-      background: linear-gradient(135deg, #5dade2, #1b4f72);
-    }
-    
-    .link-box:hover {
-      transform: translateY(-3px);
-      opacity: 0.9;
-    }
-/* Map box */
+/* ========== 3. 頂部導航菜單 ========== */
+.menu-container {
+  position: relative;
+  z-index: 3000;
+  margin-left: auto;
+}
+.menu-toggle {
+  display: none;
+  font-size: 26px;
+  padding: 10px 15px;
+  cursor: pointer;
+  background: #2d6c94;
+  color: white;
+}
+.nav {
+  background: #2d6c94;
+  display: flex;
+}
+.nav a {
+  color: white;
+  padding: 25px 20px;
+  font-size: 18px;
+  text-decoration: none;
+  display: block;
+}
+.nav a:hover {
+  background: #1f4f6d;
+}
+
+/* ========== 4. 首頁快捷鏈接模塊 ========== */
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin: 20px;
+}
+.link-box {
+  display: block;
+  padding: 25px;
+  border-radius: 15px;
+  text-align: center;
+  font-size: 15px;
+  font-weight: bold;
+  text-decoration: none;
+  color: white;
+  box-shadow: 0 5px 12px rgba(0,0,0,0.2);
+  transition: all 0.3s ease;
+}
+.link-box.weather {
+  background: linear-gradient(135deg, #4fa6a6, #2d6c94);
+}
+.link-box.flood {
+  background: linear-gradient(135deg, #5dade2, #1b4f72);
+}
 .link-box.map {
   background: linear-gradient(135deg, #74b9ff, #0984e3);
 }
+.link-box:hover {
+  transform: translateY(-3px);
+  opacity: 0.9;
+}
 
-/* CARD */
+/* ========== 5. 紅色警告卡片(熱帶氣旋/天氣警告) ========== */
 .warning-card {
-margin: 20px;
-border-radius: 15px;
-background: #fdeeee;
-border: 2px solid #d9534f;
-box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-overflow: hidden;
+  margin: 20px;
+  border-radius: 15px;
+  background: #fdeeee;
+  border: 2px solid #d9534f;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  overflow: hidden;
 }
-
-/* HEADER */
 .warning-header {
-background: #d9534f;
-color: white;
-padding: 15px;
-font-size: 18px;
-font-weight: bold;
+  background: #d9534f;
+  color: white;
+  padding: 15px;
+  font-size: 18px;
+  font-weight: bold;
 }
-
-/* ITEM */
 .warning-item {
-display: flex;
-gap: 15px;
-padding: 20px;
+  display: flex;
+  gap: 15px;
+  padding: 20px;
 }
-
-/* ICON */
 .icon-box {
-width: 80px;
-height: 80px;
-background: #fff;
-border-radius: 10px;
-display: flex;
-align-items: center;
-justify-content: center;
+  width: 80px;
+  height: 80px;
+  background: #fff;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-
 .icon-box img {
-width: 100%;
-height: 100%;
-object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
-
-/* TEXT */
 .text-box {
-flex: 1;
-font-size: 15px;
-line-height: 1.6;
-color: #333;
+  flex: 1;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #333;
 }
-
-/* DIVIDER */
 .divider {
-height: 1px;
-background: #e6a5a5;
-margin: 0 20px;
-}
-
-/* BUTTON */
-.btn {
-display: inline-block;
-margin-top: 10px;
-background: #d9534f;
-color: white;
-padding: 8px 15px;
-border-radius: 20px;
-text-decoration: none;
-font-size: 14px;
-}
-
-.btn:hover {
-background: #c63d3a;
+  height: 1px;
+  background: #e6a5a5;
+  margin: 0 20px;
 }
 .tc-btn {
-background: rgba(255,255,255,0.2);
-color: white;
-padding: 6px 12px;
-border-radius: 20px;
-font-size: 14px;
-text-decoration: none;
-font-weight: bold;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  text-decoration: none;
+  font-weight: bold;
 }
-
 .tc-btn:hover {
-background: #f5d7d6;
+  background: #f5d7d6;
 }
 
-.menu-container {
-position: relative;
-z-index: 3000;
-margin-left: auto;
-}
-.forecast-time {font-weight: bold; }
-
-.nav { background: #2d6c94; display: flex; }
-.nav a {
-color: white;
-padding: 25px 20px;
-font-size: 18px;
-text-decoration: none;
-display: block;
-}
-.nav a:hover { background: #1f4f6d; }
-
+/* ========== 6. 橙色提示框(特別天氣提示、預警提示) ========== */
 .box {
-margin: 20px;
-border-radius: 15px;
-background: #fdfbee;
-border: 2px solid #f39c12;
-box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-overflow: hidden;
+  margin: 20px;
+  border-radius: 15px;
+  background: #fdfbee;
+  border: 2px solid #f39c12;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  overflow: hidden;
 }
-
-.header-orange { background: #f39c12; color: white; padding: 15px; font-size: 16px; font-weight: bold; }
-.header-red { background: #e1665c; color: white; padding: 15px; font-size: 16px; font-weight: bold; }
-
-.content-yellow { 
-  background: #fff4cc; 
+.header-orange {
+  background: #f39c12;
+  color: white;
+  padding: 15px;
+  font-size: 18px;
+  font-weight: bold;
+}
+.content-yellow {
+  background: #fff4cc;
   padding: 25px;
   font-size: 15px;
   line-height:1.6;
   color:#333;
 }
-.content-red { 
-  background: #f5d7d6; 
-  padding: 25px; 
-  font-size: 15px;
-}
 
-.forecast-container { margin: 20px; gap: 10px; }
-.forecast-box { margin: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.2); background: #d9e6e6; border-radius: 10px; overflow: hidden; }
-.forecast-title { background: #4fa6a6; color: white; padding: 15px; font-size: 16px; font-weight: bold;}
-.forecast-content { 
-  padding: 25px; 
-  font-size:15px;
-  line-height:1.6;
-  color:#333;
-}
-/* 天氣預報Tab樣式，原網站主色#4fa6a6 */
+/* ========== 7. 天氣預報TAB切換模塊 ========== */
 .forecast-tab-wrap {
   margin:20px;
   border-radius:12px;
@@ -205,8 +188,8 @@ overflow: hidden;
 .tab-btn{
   flex:1;
   border:none;
-  padding:18px 8px;
-  font-size:22px;
+  padding:15px;
+  font-size:18px;
   font-weight:bold;
   cursor:pointer;
   background:#4fa6a6;
@@ -216,7 +199,6 @@ overflow: hidden;
   position:relative;
   top:2px;
 }
-/* 選中Tab：淺底色、深綠文字，和截圖一致 */
 .tab-btn.active{
   background:#e6f7f7;
   color:#4fa6a6;
@@ -236,51 +218,37 @@ overflow: hidden;
   display:block;
 }
 .forecast-time {
-margin: 0 20px;
-text-align: right;
-font-size: 16px;
-color: #555;
+  margin: 0 20px;
+  text-align: right;
+  font-size: 16px;
+  color: #555;
+  font-weight: bold;
 }
-.menu-toggle {
-display: none;
-font-size: 26px;
-padding: 10px 15px;
-cursor: pointer;
-background: #2d6c94;
-color: white;
-}
+
+/* ========== 8. 手機端響應式樣式 ========== */
 @media (max-width: 768px) {
-
-.menu-toggle {
-display: block;
+  .menu-toggle {
+    display: block;
+  }
+  .nav {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    transition: all 0.3s ease;
+  }
+  .nav a {
+    width: 100%;
+    padding: 12px 15px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+  }
+  .nav.active {
+    display:flex;
+  }
 }
-
-.nav {
-display: none;
-flex-direction: column;
-width: 100%;
-background: #2d6c94;
-}
-.nav {
-transition: all 0.3s ease;
-}
-
-.nav a {
-width: 100%;
-padding: 12px 15px;
-border-top: 1px solid rgba(255,255,255,0.2);
-}
-.nav.active {
-display:flex;
-}
-
-}
-
 </style>
 </head>
 
 <body>
-
 <div class="header">
 <img src="icons/MSSO.png" class="logo">
 <div class="title">澳門民間氣象台 MSSO</div>
@@ -288,7 +256,6 @@ display:flex;
 
 <div class="menu-container">
 <div class="menu-toggle" onclick="toggleMenu()">☰</div>
-
 <div class="nav" id="navMenu">
 <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
 <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
@@ -301,17 +268,9 @@ display:flex;
 </div>
 
 <div class="quick-links">
-  <a href="https://macaosso.github.io/MSSOweb/AQImap.html" class="link-box weather">
-    空氣質量實況
-  </a>
-
-  <a href="https://macaosso.github.io/MSSOweb/TCtracker.html" class="link-box flood">
-    熱帶氣旋追蹤
-  </a>
-
-  <a href="map.html" class="link-box weather">
-    綜合氣象實況
-  </a>
+  <a href="https://macaosso.github.io/MSSOweb/AQImap.html" class="link-box weather">空氣質量實況</a>
+  <a href="https://macaosso.github.io/MSSOweb/TCtracker.html" class="link-box flood">熱帶氣旋追蹤</a>
+  <a href="map.html" class="link-box weather">綜合氣象實況</a>
 </div>
 
 <div class="warning-card" id="tcCard">
@@ -337,7 +296,6 @@ display:flex;
 <div id="alertContent" class="content-yellow"></div>
 </div>
 
-<!-- 替換原forecast-container-vertical整段 -->
 <div class="forecast-tab-wrap">
   <div class="tab-header">
     <button class="tab-btn active" data-index="0">天氣概況</button>
@@ -353,9 +311,7 @@ display:flex;
 
 <div id="forecastTime" class="forecast-time"></div>
 
-<!-- ONLY ONE JS FILE LOAD -->
 <script src="webdata.js"></script>
-
 <script>
 // Menu toggle function
 function toggleMenu() {
@@ -390,7 +346,6 @@ window.addEventListener('DOMContentLoaded', function(){
     let tomorrowText = parts[2] ?? "";
     let updateTimeStr = parts[3] ?? "";
 
-    // ===== 改寫：內容寫入Tab的tab0/tab1/tab2 =====
     document.getElementById("forecastTime").innerText = updateTimeStr;
     document.getElementById("tab0").innerHTML = overviewText.replaceAll("\n","<br>");
     document.getElementById("tab1").innerHTML = todayText.replaceAll("\n","<br>");
@@ -429,10 +384,8 @@ container.innerHTML = html;
 card.style.display = html.trim() ? "block" : "none";
 }
 
-// Use arrays from webdata.js directly
 renderWarnings(tcWarnings, "tcContent", "tcCard");
 renderWarnings(warnWarnings, "warnContent", "warnCard");
 </script>
-
 </body>
 </html>
