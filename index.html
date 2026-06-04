@@ -224,8 +224,24 @@ body {
   color: #555;
   font-weight: bold;
 }
-
-/* ========== 8. 手機端響應式樣式 ========== */
+/* ========== 8. plot 圖 ========== */
+.chart-btn-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:15px;
+}
+.btn-group{
+  display:flex;
+  gap:10px;
+}
+.chart-date-text{
+  font-size:16px;
+  font-weight:bold;
+  color:#4fa6a6;
+}
+/* ========== 9. 手機端響應式樣式 ========== */
 @media (max-width: 768px) {
   .menu-toggle {
     display: block;
@@ -311,6 +327,19 @@ body {
 
 <div id="forecastTime" class="forecast-time"></div>
 
+<div class="chart-wrap" style="margin:24px;">
+  <div class="chart-btn-bar">
+    <div class="btn-group">
+      <button class="chart-btn active" data-type="24h">24小時天氣預報</button>
+      <button class="chart-btn" data-type="7d">7日天氣預報</button>
+    </div>
+    <div class="chart-date-text" id="chartDate"></div>
+  </div>
+  <div class="chart-container">
+    <canvas id="tempChart"></canvas>
+  </div>
+</div>
+
 <script src="webdata.js"></script>
 <script>
 // Menu toggle function
@@ -386,6 +415,82 @@ card.style.display = html.trim() ? "block" : "none";
 
 renderWarnings(tcWarnings, "tcContent", "tcCard");
 renderWarnings(warnWarnings, "warnContent", "warnCard");
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let tempChart;
+const dateDom = document.getElementById("chartDate");
+
+function initChart(){
+  dateDom.innerText = chartRightDate;
+  const ctx = document.getElementById('tempChart').getContext('2d');
+  render24hChart(ctx);
+
+  document.querySelectorAll('.chart-btn').forEach(btn=>{
+    btn.onclick = function(){
+      document.querySelectorAll('.chart-btn').forEach(b=>b.classList.remove('active'));
+      this.classList.add('active');
+      if(tempChart) tempChart.destroy();
+      const type = this.dataset.type;
+      type === '24h' ? render24hChart(ctx) : render7dChart(ctx);
+    }
+  })
+}
+
+// 24h use X label from webdata.label24hX
+function render24hChart(ctx){
+  tempChart = new Chart(ctx,{
+    type:"line",
+    data:{
+      labels: label24hX,
+      datasets:[{
+        label:"氣溫(°C)",
+        data:temp24h,
+        borderColor:"#ff6b6b",
+        backgroundColor:"rgba(255,107,107,0.2)",
+        fill:true,
+        tension:0.4,
+        pointRadius:4
+      }]
+    },
+    options:{
+      responsive:true,
+      plugins:{title:{display:true,text:"24小時逐時氣溫預報"}},
+      scales:{
+        x:{display:true,title:{display:true,text:"時間"},ticks:{maxTicksLimit:12}},
+        y:{display:true,title:{display:true,text:"溫度℃"}}
+      }
+    }
+  })
+}
+
+//7day use X label from webdata.label7dX
+function render7dChart(ctx){
+  //直接讀取分開的最大、最小溫度
+  const maxArr = temp7dMax;
+  const minArr = temp7dMin;
+  tempChart = new Chart(ctx,{
+    type:"line",
+    data:{
+      labels: label7dX,
+      datasets:[
+        {label:"最高溫",data:maxArr,borderColor:"#ff5555",fill:false,tension:0.4},
+        {label:"最低溫",data:minArr,borderColor:"#38b8b0",fill:false,tension:0.4}
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{title:{display:true,text:"七日高低溫預報"}},
+      scales:{
+        x:{display:true,title:{display:true,text:"日期"}},
+        y:{display:true,title:{display:true,text:"溫度℃"}}
+      }
+    }
+  })
+}
+
+window.addEventListener('DOMContentLoaded',initChart);
 </script>
 </body>
 </html>
