@@ -390,24 +390,24 @@ window.addEventListener('DOMContentLoaded', function(){
     let tomorrowText = parts[2] ?? "";
     let updateTimeStr = parts[3] ?? "";
 
+    // ===== 改寫：內容寫入Tab的tab0/tab1/tab2 =====
     document.getElementById("forecastTime").innerText = updateTimeStr;
-    document.getElementById("futureText").innerHTML = overviewText.replaceAll("\n","<br>");
-    document.getElementById("todayText").innerHTML = todayText.replaceAll("\n","<br>");
-    document.getElementById("tomorrowText").innerHTML = tomorrowText.replaceAll("\n","<br>");
+    document.getElementById("tab0").innerHTML = overviewText.replaceAll("\n","<br>");
+    document.getElementById("tab1").innerHTML = todayText.replaceAll("\n","<br>");
+    document.getElementById("tab2").innerHTML = tomorrowText.replaceAll("\n","<br>");
 
+    // Tab切換點擊
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabItems = document.querySelectorAll('.tab-content');
     tabBtns.forEach(btn=>{
       btn.onclick = function(){
-        //清空全部active
         tabBtns.forEach(b=>b.classList.remove('active'));
         tabItems.forEach(c=>c.classList.remove('active'));
-        //當前選中
         this.classList.add('active');
         let idx = this.dataset.index;
         document.getElementById('tab'+idx).classList.add('active');
       }
-    
+    });
 });
 
 // Render TC & Warning Cards
