@@ -225,12 +225,20 @@ body {
   font-weight: bold;
 }
 /* ========== 8. plot 圖 ========== */
+.chart-wrap{
+  margin:35px;
+  border-radius:12px;
+  overflow:hidden;
+  border:2px solid #4fa6a6;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  background:#e6f7f7;
+}
 .chart-btn-bar{
   display:flex;
   justify-content:space-between;
   align-items:center;
   gap:12px;
-  margin-bottom:15px;
+  padding:15px;
 }
 .btn-group{
   display:flex;
@@ -241,6 +249,23 @@ body {
   font-weight:bold;
   color:#4fa6a6;
 }
+.chart-container {
+  padding:30px;
+}
+.chart-btn {
+  padding: 10px 20px;
+  border: 2px solid #4fa6a6;
+  border-radius: 25px;
+  background: white;
+  color: #4fa6a6;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.chart-btn.active {background: #4fa6a6;color: white;}
+.chart-btn:hover {opacity: 0.8;}
+  
 /* ========== 9. 手機端響應式樣式 ========== */
 @media (max-width: 768px) {
   .menu-toggle {
@@ -327,7 +352,7 @@ body {
 
 <div id="forecastTime" class="forecast-time"></div>
 
-<div class="chart-wrap" style="margin:24px;">
+<div class="chart-wrap">
   <div class="chart-btn-bar">
     <div class="btn-group">
       <button class="chart-btn active" data-type="24h">24小時天氣預報</button>
@@ -336,7 +361,7 @@ body {
     <div class="chart-date-text" id="chartDate"></div>
   </div>
   <div class="chart-container">
-    <canvas id="tempChart"></canvas>
+    <canvas id="tempChart" height="320"></canvas>
   </div>
 </div>
 
@@ -456,6 +481,7 @@ function render24hChart(ctx){
     },
     options:{
       responsive:true,
+      maintainAspectRatio:false,
       plugins:{title:{display:true,text:"24小時逐時氣溫預報"}},
       scales:{
         x:{display:true,title:{display:true,text:"時間"},ticks:{maxTicksLimit:12}},
