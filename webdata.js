@@ -1,12 +1,32 @@
+//Tropical Cyclone Warning
 const tcWarnings = [
   {
+    icon:"",
     text: "下午5時，位於南海東北部的熱帶低氣壓集結在本澳東南偏東約600公里，即在北緯19.5度，東經118.6度附近，其中心附近最高持續風速約為每小時45公里，向東北移動，時速20公里，移向台灣南部一帶。(2026-06-04 17:00 MST)"
   },
 ];
 
-//text:
-//icon:
+//Warning
+const warnTxtText = `
+貼上原本 warn.txt 全文內容
+`;
 
+//Special Warning Tips
+const swtText = `
+貼上原本 SWT.txt 全文內容
+`;
+
+//Alert Tips
+const alertipsText = `
+貼上原本 alertips.txt 全文內容
+`;
+
+//Weather Forecast
+const forecastRaw = `
+`;
+
+
+//Tropical Cyclone Track
 const forecastInfo = {
   updated: "06-04 17:00 MST"
 };
