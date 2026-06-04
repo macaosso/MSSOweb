@@ -158,11 +158,12 @@ display: block;
 .nav a:hover { background: #1f4f6d; }
 
 .box {
-display: none;
 margin: 20px;
-border-radius: 10px;
+border-radius: 15px;
+background: #fdfbee;
+border: 2px solid #b89d44;
+box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 overflow: hidden;
-box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
 
 .header-orange { background: #f39c12; color: white; padding: 15px; font-size: 16px; font-weight: bold; }
@@ -273,15 +274,14 @@ display:flex;
 <div id="warnContent"></div>
 </div>
 
-<div id="alertBox" class="box">
-<div class="header-orange">預警提示</div>
-<div id="alertContent" class="content-yellow"></div>
-</div>
-
-
 <div id="swtBox" class="box">
 <div class="header-orange">特別天氣提示</div>
 <div id="swtContent" class="content-yellow"></div>
+</div>
+
+<div id="alertBox" class="box">
+<div class="header-orange">預警提示</div>
+<div id="alertContent" class="content-yellow"></div>
 </div>
 
 <div class="forecast-container-vertical">
