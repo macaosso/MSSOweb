@@ -8,7 +8,7 @@ const tcWarnings = [
 //icon:
 
 const forecastInfo = {
-  updated: "06-01 17:00 MST"
+  updated: "06-04 14:00 MST"
 };
 
 const pastPoints = [
@@ -31,7 +31,7 @@ const forecastPoints = [
 ];
 
 window.tcInfo = {
-  name: "低壓區 (91W)", 
+  name: " 91W", 
   wind: forecastPoints[0].wind,
   pressure: 1006
 };
