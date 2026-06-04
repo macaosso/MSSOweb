@@ -194,11 +194,11 @@ color: white;
 @media (max-width: 768px) {
 
 .menu-toggle {
-display: block;   /* ✅ show button */
+display: block;
 }
 
 .nav {
-display: none;    /* ✅ hide menu initially */
+display: none;
 flex-direction: column;
 width: 100%;
 background: #2d6c94;
@@ -228,8 +228,6 @@ display:flex;
 <div class="title">澳門民間氣象台 MSSO</div>
 </div>
 
-<!-- 🟠 NEW alertips box  <a href="https://macaosso.github.io/MSSOweb/weather.html">天氣資訊</ a>  -->
-
 <div class="menu-container">
 <div class="menu-toggle" onclick="toggleMenu()">☰</div>
 
@@ -243,7 +241,6 @@ display:flex;
 <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
 </div>
 </div>
-</div>
 
 <div class="quick-links">
   <a href="https://macaosso.github.io/MSSOweb/AQImap.html" class="link-box weather">
@@ -254,7 +251,6 @@ display:flex;
     熱帶氣旋追蹤
   </a>
 
-  <!-- New map link box -->
   <a href="map.html" class="link-box weather">
     綜合氣象實況
   </a>
@@ -265,7 +261,6 @@ display:flex;
 熱帶氣旋
 <a href="https://macaosso.github.io/MSSOweb/tc_gis.html" class="tc-btn">查看路徑</a>
 </div>
-
 <div id="tcContent"></div>
 </div>
 
@@ -303,113 +298,75 @@ display:flex;
 
 <div id="forecastTime" class="forecast-time"></div>
 
+<!-- ONLY ONE JS FILE LOAD -->
+<script src="webdata.js"></script>
+
 <script>
-// ✅ MENU TOGGLE
+// Menu toggle function
 function toggleMenu() {
 const nav = document.getElementById("navMenu");
 const btn = document.querySelector(".menu-toggle");
-
 nav.classList.toggle("active");
 btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
 
-// ✅ LOAD TEXT BOXES
-function loadBox(file, boxId, contentId) {
-fetch(file)
-.then(res => res.text())
-.then(text => {
-const content = text.trim();
-if (content.length > 0) {
-document.getElementById(boxId).style.display = "block";
-document.getElementById(contentId).innerText = content;
-} else {
-document.getElementById(boxId).style.display = "none";
-}
-})
-.catch(() => console.log("Cannot load " + file));
-}
+// Fill all text content from webdata.js
+window.addEventListener('DOMContentLoaded', function(){
+    // Alertips box
+    const alertBox = document.getElementById('alertBox');
+    const alertContent = document.getElementById('alertContent');
+    if(alertipsText.trim()){
+        alertBox.style.display = 'block';
+        alertContent.innerText = alertipsText;
+    }else alertBox.style.display = 'none';
 
-// ✅ LOAD ALL BOXES
-loadBox("alertips.txt", "alertBox", "alertContent");
-loadBox("SWT.txt", "swtBox", "swtContent");
-loadBox("warn.txt", "warnBox", "warnContent");
+    // SWT box
+    const swtBox = document.getElementById('swtBox');
+    const swtContent = document.getElementById('swtContent');
+    if(swtText.trim()){
+        swtBox.style.display = 'block';
+        swtContent.innerText = swtText;
+    }else swtBox.style.display = 'none';
 
-// ✅ FORECAST
-fetch("weatherforecast.txt")
-.then(res => res.text())
-.then(text => {
-const parts = text.split(/\n\s*\n/);
+    // Warn text box
+    const warnBox = document.getElementById('warnBox');
+    const warnTxtContent = document.getElementById('warnContent');
+    if(warnTxtText.trim()){
+        warnBox.style.display = 'block';
+        warnTxtContent.innerText = warnTxtText;
+    }else warnBox.style.display = 'none';
 
-document.getElementById("forecastTime").innerText = parts[3] || ""; 
-
-document.getElementById("futureText").innerHTML = (parts[0] || "").replace(/\n/g, "<br>");
-document.getElementById("todayText").innerHTML = (parts[1] || "").replace(/\n/g, "<br>");
-document.getElementById("tomorrowText").innerHTML = (parts[2] || "").replace(/\n/g, "<br>");
-})
-.catch(() => console.log("Cannot load weatherforecast.txt"));
-</script>
-
-<!-- ✅ LOAD WARNING DATA -->
-
-<script src="tc_data.js"></script>
-<script src="warn.js"></script>
-
-
-<script>
-// ✅ RENDER WARNING CARD + AUTO HIDE
-
-function renderWarnings(data, containerId, cardId) {
-
-const container = document.getElementById(containerId);
-const card = document.getElementById(cardId);
-
-let html = "";
-
-data.forEach((item, index) => {
-
-if ((!item.icon || item.icon.trim()==="") &&
-(!item.text || item.text.trim()==="")) {
-return;
-}
-
-
-html += `
-         <div class="warning-item">
-   
-           ${item.icon ? `
-             <div class="icon-box">
-               <img src="${item.icon}" alt="Warning Icon">
-             </div>
-           ` : ""}
-   
-           ${item.text ? `
-             <div class="text-box">${item.text}</div>
-           ` : ""}
-   
-         </div>
-       `;
-
-if (index < data.length - 1) {
-html += `<div class="divider"></div>`;
-}
-
+    // Forecast split
+    const parts = forecastRaw.split(/\n\s*\n/);
+    document.getElementById("forecastTime").innerText = parts[3] || "";
+    document.getElementById("futureText").innerHTML = (parts[0] || "").replace(/\n/g, "<br>");
+    document.getElementById("todayText").innerHTML = (parts[1] || "").replace(/\n/g, "<br>");
+    document.getElementById("tomorrowText").innerHTML = (parts[2] || "").replace(/\n/g, "<br>");
 });
 
-// render
+// Render TC & Warning Cards
+function renderWarnings(data, containerId, cardId) {
+const container = document.getElementById(containerId);
+const card = document.getElementById(cardId);
+let html = "";
+data.forEach((item, index) => {
+if ((!item.icon || item.icon.trim()==="") && (!item.text || item.text.trim()==="")) return;
+html += `
+         <div class="warning-item">
+           ${item.icon ? `<div class="icon-box"><img src="${item.icon}" alt="Warning Icon"></div>` : ""}
+           ${item.text ? `<div class="text-box">${item.text}</div>` : ""}
+         </div>
+       `;
+if (index < data.length - 1) html += `<div class="divider"></div>`;
+});
 container.innerHTML = html;
-
-// auto hide card if empty
-if (html.trim()==="") {
-card.style.display = "none";
-}
+card.style.display = html.trim() ? "block" : "none";
 }
 
-// ✅ ✅ CALL
+// Use arrays from webdata.js directly
 renderWarnings(tcWarnings, "tcContent", "tcCard");
 renderWarnings(warnWarnings, "warnContent", "warnCard");
-
 </script>
-
 
 </body>
 </html>
