@@ -139,35 +139,31 @@
   <img src="tc_track.png" alt="Typhoon Track">
 </div>
 
+<script src="webdata.js"></script>
 <script>
-
 // ✅ MENU TOGGLE
 function toggleMenu() {
   const nav = document.getElementById("navMenu");
   const btn = document.querySelector(".menu-toggle");
-
   nav.classList.toggle("active");
   btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
 
-// ✅ Load box
-function loadBox(file, boxId, contentId) {
-  fetch(file)
-    .then(res => res.text())
-    .then(text => {
-      const content = text.trim();
-      if (content.length > 0) {
-        document.getElementById(boxId).style.display = "block";
-        document.getElementById(contentId).innerText = content;
-      } else {
-        document.getElementById(boxId).style.display = "none";
-      }
-    })
-    .catch(() => console.log("Cannot load " + file));
-}
+window.addEventListener('DOMContentLoaded', function(){
+  let tcAllText = "";
+  tcWarnings.forEach(item=>{
+    if(item.text.trim()) tcAllText += item.text + "\n\n";
+  })
 
-loadBox("tc.txt", "tcBox", "tcContent");
-
+  const tcBox = document.getElementById("tcBox");
+  const tcContent = document.getElementById("tcContent");
+  if(tcAllText.trim()){
+    tcBox.style.display = "block";
+    tcContent.innerText = tcAllText;
+  }else{
+    tcBox.style.display = "none";
+  }
+})
 </script>
 
 </body>
