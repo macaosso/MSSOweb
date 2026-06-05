@@ -9,8 +9,8 @@ const tcWarnings = [
 //Warning
 const warnWarnings = [
   {
-    icon: "warn_icon/h2.jpg",
-    text: "非常酷熱警報於本地時間06月04日12時30分發出。預料本澳今明兩日天氣非常酷熱。"
+    icon: "warn_icon/h1.jpg",
+    text: "酷熱警報於本地時間06月05日16時20分發出，取代非常酷熱警報。預料本澳明日部分地區天氣酷熱，最高氣溫約33度。"
   },
   {
     icon: "",
