@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>澳門分區實時氣溫 | MSSO</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans TC",Arial,sans-serif;}
+body{background:#738692; padding:16px;}
+.wrap{
+  position:relative;
+  max-width:1700px;
+  margin:0 auto;
+}
+/* Macau blank outline map (replace your Macau map PNG path) */
+.base-map{
+  width:100%;
+  display:block;
+}
+/* Top left title block same metwarn style */
+.top-title{
+  position:absolute;
+  top:24px;
+  left:24px;
+}
+.title1{
+  background:#f7bc28;
+  font-size:38px;
+  font-weight:bold;
+  padding:6px 18px;
+  display:block;
+  color:#222;
+}
+.title-time{
+  background:#f7bc28;
+  font-size:32px;
+  padding:4px 18px;
+  margin-top:5px;
+  color:#222;
+}
+/* Right side fixed legend panel */
+.legend{
+  position:absolute;
+  right:22px;
+  top:32%;
+  background:rgba(105,125,136,0.75);
+  padding:18px;
+  border-radius:10px;
+}
+.legend-item{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:9px;
+  font-size:15px;
+}
+.dot{
+  width:18px;height:18px;
+  border-radius:50%;
+}
+/* Canvas overlay for dynamic temp circle/text */
+#canvas-layer{
+  position:absolute;
+  left:0;top:0;
+  width:100%;height:100%;
+}
+/* Bottom right logo text */
+.logo-bottom{
+  position:absolute;
+  right:30px;
+  bottom:24px;
+  color:#fff;
+  font-size:22px;
+  font-weight:bold;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- Replace with your blank Macau administrative outline PNG -->
+  <img class="base-map" src="macau_base.png" alt="澳門地圖底圖">
+  <canvas id="canvas-layer"></canvas>
+
+  <!-- Top left title -->
+  <div class="top-title">
+    <span class="title1">分區氣溫</span>
+    <span class="title-time" id="updateTime">--/-- --:--</span>
+  </div>
+
+  <!-- Right legend -->
+  <div class="legend">
+    <div class="legend-item"><span class="dot" style="background:#781919"></span>極端酷熱(≥35.0℃)</div>
+    <div class="legend-item"><span class="dot" style="background:#e63c3c"></span>酷熱(33.0-34.9℃)</div>
+    <div class="legend-item"><span class="dot" style="background:#f28c82"></span>炎熱(28.0-32.9℃)</div>
+    <div class="legend-item"><span class="dot" style="background:#f7b826"></span>溫暖(22.1-27.9℃)</div>
+    <div class="legend-item"><span class="dot" style="background:#f9dd94"></span>和暖(17.1-22.0℃)</div>
+    <div class="legend-item"><span class="dot" style="background:#38dd99"></span>清涼(12.1-17.0℃)</div>
+    <div class="legend-item"><span class="dot" style="background:#49a9e9"></span>寒冷(7.1-12.0℃)</div>
+    <div class="legend-item"><span class="dot" style="background:#623996"></span>嚴寒(≤7.0℃)</div>
+  </div>
+
+  <div class="logo-bottom">MSSO</div>
+</div>
+
+<script>
+// 溫度對應顏色
+function getTempColor(temp){
+  let t = Number(temp);
+  if(t>=35) return "#781919";
+  if(t>=33) return "#e63c3c";
+  if(t>=28) return "#f28c82";
+  if(t>=22.1) return "#f7b826";
+  if(t>=17.1) return "#f9dd94";
+  if(t>=12.1) return "#38dd99";
+  if(t>=7.1) return "#49a9e9";
+  return "#623996";
+}
+
+// ========== 全部測站【名稱、簡寫、緯度、經度】 ==========
+const stationGeo = [
+  {name:"紀念孫中山市政公園",code:"DP",lat:22.215322,lon:113.543490},
+  {name:"黑沙環",code:"EM",lat:22.207129,lon:113.559971},
+  {name:"大炮台",code:"FM",lat:22.197066,lon:113.542261},
+  {name:"外港",code:"PE",lat:22.196556,lon:113.558333},
+  {name:"媽閣",code:"MM",lat:22.185863,lon:113.530675},
+  {name:"大潭山",code:"TG",lat:22.159102,lon:113.568947},
+  {name:"東亞運大馬路",code:"JA",lat:22.155396,lon:113.542412},
+  {name:"九澳",code:"KV",lat:22.134686,lon:113.580143},
+  {name:"澳門大學",code:"UM",lat:22.131808,lon:113.546970},
+  {name:"路環市區",code:"DC",lat:22.117091,lon:113.551041},
+  {name:"西灣大橋",code:"PV",lat:22.173240,lon:113.535416},
+  {name:"友誼大橋北",code:"PN",lat:22.191167,lon:113.563219},
+  {name:"友誼大橋南",code:"PS",lat:22.180189,lon:113.563299},
+  {name:"嘉樂庇總督大橋",code:"PG",lat:22.180057,lon:113.545435},
+  {name:"澳門大橋北",code:"MN",lat:22.186985,lon:113.573231},
+  {name:"澳門大橋南",code:"MS",lat:22.173484,lon:113.573047},
+  {name:"蓮花大橋",code:"PL",lat:22.139934,lon:113.549094}
+];
+
+// 地圖邊界（根據你這張底圖）
+const mapBounds = {
+  minLon:113.522, maxLon:113.588,
+  minLat:22.112, maxLat:22.222
+};
+
+// 經緯度 → Canvas像素轉換
+function geoToPx(lat,lon,canvasW,canvasH){
+  const x = ((lon - mapBounds.minLon)/(mapBounds.maxLon-mapBounds.minLon)) * canvasW;
+  const y = canvasH - ((lat - mapBounds.minLat)/(mapBounds.maxLat-mapBounds.minLat)) * canvasH;
+  return {x,y};
+}
+
+// Canvas初始化
+const canvas = document.getElementById("canvas-layer");
+const ctx = canvas.getContext("2d");
+let mapW,mapH;
+
+function resizeCanvas(){
+  const wrap = document.querySelector(".wrap");
+  mapW = wrap.offsetWidth;
+  mapH = wrap.offsetHeight;
+  canvas.width = mapW;
+  canvas.height = mapH;
+}
+window.addEventListener("resize",resizeCanvas);
+resizeCanvas();
+
+// 抓SMG XML數據 + 繪圖
+async function fetchSMGWeather(){
+  try{
+    const res = await fetch(`https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml`);
+    const xmlText = await res.text();
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlText,"text/xml");
+    const items = xmlDoc.querySelectorAll("Station");
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    // 更新左上角時間
+    const now = new Date();
+    document.getElementById("updateTime").innerText = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,"0")}`;
+
+    // 構建站名-溫度字典
+    let tempDict = {};
+    items.forEach(st=>{
+      const sName = st.querySelector("NameCH").textContent.trim();
+      const t = st.querySelector("Temp").textContent.trim();
+      tempDict[sName] = Number(t);
+    })
+
+    // 逐個測站繪圓圈+文字
+    stationGeo.forEach(sta=>{
+      const tVal = tempDict[sta.name];
+      if(tVal===undefined) return;
+      const pos = geoToPx(sta.lat,sta.lon,mapW,mapH);
+      const color = getTempColor(tVal);
+      const r = 32;
+
+      // 溫度圓圈
+      ctx.beginPath();
+      ctx.arc(pos.x,pos.y,r,0,Math.PI*2);
+      ctx.fillStyle = color;
+      ctx.fill();
+
+      // 圈內溫度數字
+      ctx.fillStyle="#000";
+      ctx.font="bold 17px Arial";
+      ctx.textAlign="center";
+      ctx.textBaseline="middle";
+      ctx.fillText(tVal.toFixed(1),pos.x,pos.y);
+
+      // 右側深色站名標籤
+      ctx.fillStyle="#0a3042";
+      ctx.fillRect(pos.x+r+4, pos.y-13, sta.name.length*16, 26);
+      ctx.fillStyle="#fff";
+      ctx.font="bold 15px Arial";
+      ctx.textAlign="left";
+      ctx.fillText(sta.name, pos.x+r+8, pos.y+4);
+    })
+
+  }catch(err){
+    console.error(err);
+  }
+}
+
+fetchSMGWeather();
+// 每5分鐘自動刷新
+setInterval(fetchSMGWeather,300000);
+</script>
+</body>
+</html>
