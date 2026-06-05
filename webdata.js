@@ -47,7 +47,6 @@ const label7dX = ["5","6","7","8","9","10","11"];
 const temp7dMax = [33,30,28,28,29,30,31];
 const temp7dMin = [27,25,25,25,25,26,26];
 
-
 //Tropical Cyclone Track
 const forecastInfo = {
   updated: "/"
@@ -58,7 +57,6 @@ const pastPoints = [
 
 const forecastPoints = [
   {lat:19.5, lon:118.6, time: "06-04 17H", wind: 45,
-  
     wind41: { ne: 0, se: 0, sw: 0, nw: 0 }, 
     wind88: { ne: 0, se: 0, sw: 0,  nw: 0 } 
   }
