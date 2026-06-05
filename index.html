@@ -483,7 +483,7 @@ function render24hChart(ctx){
         borderColor:"#ff6b6b",
         backgroundColor:"rgba(255,107,107,0.2)",
         fill:true,
-        tension:0.4,
+        tension:0,
         pointRadius:4
       }]
     },
@@ -509,8 +509,8 @@ function render7dChart(ctx){
     data:{
       labels: label7dX,
       datasets:[
-        {label:"最高溫",data:maxArr,borderColor:"#ff5555",fill:false,tension:0.4},
-        {label:"最低溫",data:minArr,borderColor:"#38b8b0",fill:false,tension:0.4}
+        {label:"最高氣溫",data:maxArr,borderColor:"#ff5555",fill:false,tension:0},
+        {label:"最低氣溫",data:minArr,borderColor:"#38b8b0",fill:false,tension:0}
       ]
     },
     options:{
