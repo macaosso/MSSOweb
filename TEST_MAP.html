@@ -3,107 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>澳門分區實時氣溫 | MSSO</title>
+<title>澳門實時氣溫地圖 MSSO</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:"Noto Sans TC",Arial,sans-serif;}
-body{background:#738692; padding:16px;}
-.wrap{
-  position:relative;
-  max-width:1700px;
-  margin:0 auto;
-}
-/* Macau blank outline map (replace your Macau map PNG path) */
-.base-map{
-  width:100%;
-  display:block;
-}
-/* Top left title block same metwarn style */
-.top-title{
-  position:absolute;
-  top:24px;
-  left:24px;
-}
-.title1{
-  background:#f7bc28;
-  font-size:38px;
-  font-weight:bold;
-  padding:6px 18px;
-  display:block;
-  color:#222;
-}
-.title-time{
-  background:#f7bc28;
-  font-size:32px;
-  padding:4px 18px;
-  margin-top:5px;
-  color:#222;
-}
-/* Right side fixed legend panel */
-.legend{
-  position:absolute;
-  right:22px;
-  top:32%;
-  background:rgba(105,125,136,0.75);
-  padding:18px;
-  border-radius:10px;
-}
-.legend-item{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-bottom:9px;
-  font-size:15px;
-}
-.dot{
-  width:18px;height:18px;
-  border-radius:50%;
-}
-/* Canvas overlay for dynamic temp circle/text */
-#canvas-layer{
-  position:absolute;
-  left:0;top:0;
-  width:100%;height:100%;
-}
-/* Bottom right logo text */
-.logo-bottom{
-  position:absolute;
-  right:30px;
-  bottom:24px;
-  color:#fff;
-  font-size:22px;
-  font-weight:bold;
-}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:#f3f6f8;font-family:Arial,Noto Sans TC;}
+.top-info{padding:12px 20px;background:#1f3a4d;color:#fff;font-size:17px;}
+.wrap{position:relative;width:95%;max-width:1200px;margin:15px auto;border:2px solid #4fa6a6;border-radius:10px;overflow:hidden;}
+#baseMap{width:100%;display:block;}
+#canvas-layer{position:absolute;top:0;left:0;width:100%;height:100%;}
 </style>
 </head>
 <body>
+<div class="top-info">
+實時氣溫 | 更新時間：<span id="updateTime">--</span>（每5分鐘自動刷新）
+</div>
 <div class="wrap">
-  <!-- Replace with your blank Macau administrative outline PNG -->
-  <img class="base-map" src="macau_base.png" alt="澳門地圖底圖">
+  <!-- put your macau base map -->
+  <img id="baseMap" src="macau_base.png" alt="澳門地圖">
   <canvas id="canvas-layer"></canvas>
-
-  <!-- Top left title -->
-  <div class="top-title">
-    <span class="title1">分區氣溫</span>
-    <span class="title-time" id="updateTime">--/-- --:--</span>
-  </div>
-
-  <!-- Right legend -->
-  <div class="legend">
-    <div class="legend-item"><span class="dot" style="background:#781919"></span>極端酷熱(≥35.0℃)</div>
-    <div class="legend-item"><span class="dot" style="background:#e63c3c"></span>酷熱(33.0-34.9℃)</div>
-    <div class="legend-item"><span class="dot" style="background:#f28c82"></span>炎熱(28.0-32.9℃)</div>
-    <div class="legend-item"><span class="dot" style="background:#f7b826"></span>溫暖(22.1-27.9℃)</div>
-    <div class="legend-item"><span class="dot" style="background:#f9dd94"></span>和暖(17.1-22.0℃)</div>
-    <div class="legend-item"><span class="dot" style="background:#38dd99"></span>清涼(12.1-17.0℃)</div>
-    <div class="legend-item"><span class="dot" style="background:#49a9e9"></span>寒冷(7.1-12.0℃)</div>
-    <div class="legend-item"><span class="dot" style="background:#623996"></span>嚴寒(≤7.0℃)</div>
-  </div>
-
-  <div class="logo-bottom">MSSO</div>
 </div>
 
 <script>
-// 溫度對應顏色
+// Temp color rule same metwarn.hk
 function getTempColor(temp){
   let t = Number(temp);
   if(t>=35) return "#781919";
@@ -116,7 +37,7 @@ function getTempColor(temp){
   return "#623996";
 }
 
-// ========== 全部測站【名稱、簡寫、緯度、經度】 ==========
+// All Macau stations (your coordinate list)
 const stationGeo = [
   {name:"紀念孫中山市政公園",code:"DP",lat:22.215322,lon:113.543490},
   {name:"黑沙環",code:"EM",lat:22.207129,lon:113.559971},
@@ -137,93 +58,98 @@ const stationGeo = [
   {name:"蓮花大橋",code:"PL",lat:22.139934,lon:113.549094}
 ];
 
-// 地圖邊界（根據你這張底圖）
+// Map lon/lat boundary for Macau
 const mapBounds = {
   minLon:113.522, maxLon:113.588,
   minLat:22.112, maxLat:22.222
 };
 
-// 經緯度 → Canvas像素轉換
+// Lat/Lon to canvas pixel
 function geoToPx(lat,lon,canvasW,canvasH){
   const x = ((lon - mapBounds.minLon)/(mapBounds.maxLon-mapBounds.minLon)) * canvasW;
   const y = canvasH - ((lat - mapBounds.minLat)/(mapBounds.maxLat-mapBounds.minLat)) * canvasH;
   return {x,y};
 }
 
-// Canvas初始化
 const canvas = document.getElementById("canvas-layer");
 const ctx = canvas.getContext("2d");
 let mapW,mapH;
+const baseImg = document.getElementById("baseMap");
 
+// Resize canvas match base map size
 function resizeCanvas(){
-  const wrap = document.querySelector(".wrap");
-  mapW = wrap.offsetWidth;
-  mapH = wrap.offsetHeight;
+  mapW = baseImg.offsetWidth;
+  mapH = baseImg.offsetHeight;
   canvas.width = mapW;
   canvas.height = mapH;
+  fetchSMGWeather(); // reload data after resize
 }
+window.addEventListener("load",resizeCanvas);
 window.addEventListener("resize",resizeCanvas);
-resizeCanvas();
 
-// 抓SMG XML數據 + 繪圖
+// Core fetch SMG XML | FIXED CORSPROXY URL (must add url=encodeURIComponent)
 async function fetchSMGWeather(){
   try{
-    const res = await fetch(`https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml`);
+    const targetXml = "https://xml.smg.gov.mo/c_actualweather.xml";
+    // Correct corsproxy format
+    const proxyLink = `https://corsproxy.io/?url=${encodeURIComponent(targetXml)}`;
+    const res = await fetch(proxyLink);
     const xmlText = await res.text();
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlText,"text/xml");
-    const items = xmlDoc.querySelectorAll("Station");
+    // SMG XML root: <StationList><Station> 
+    const stationNodes = xmlDoc.querySelectorAll("Station");
 
+    // Clear old drawing
     ctx.clearRect(0,0,canvas.width,canvas.height);
-    // 更新左上角時間
+    // Update time text
     const now = new Date();
-    document.getElementById("updateTime").innerText = `${now.getMonth()+1}/${now.getDate()} ${now.getHours()}:${String(now.getMinutes()).padStart(2,"0")}`;
+    document.getElementById("updateTime").innerText = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
 
-    // 構建站名-溫度字典
+    // Build name-temperature dictionary
     let tempDict = {};
-    items.forEach(st=>{
-      const sName = st.querySelector("NameCH").textContent.trim();
-      const t = st.querySelector("Temp").textContent.trim();
-      tempDict[sName] = Number(t);
+    stationNodes.forEach(item=>{
+      const cName = item.querySelector("NameCH").textContent.trim();
+      const tempVal = parseFloat(item.querySelector("Temp").textContent.trim());
+      tempDict[cName] = tempVal;
     })
 
-    // 逐個測站繪圓圈+文字
+    // Draw every station circle + text
     stationGeo.forEach(sta=>{
-      const tVal = tempDict[sta.name];
-      if(tVal===undefined) return;
+      const t = tempDict[sta.name];
+      if(isNaN(t)) return;
       const pos = geoToPx(sta.lat,sta.lon,mapW,mapH);
-      const color = getTempColor(tVal);
-      const r = 32;
+      const fillCol = getTempColor(t);
+      const circleR = 26;
 
-      // 溫度圓圈
+      // Draw temp circle
       ctx.beginPath();
-      ctx.arc(pos.x,pos.y,r,0,Math.PI*2);
-      ctx.fillStyle = color;
+      ctx.arc(pos.x,pos.y,circleR,0,Math.PI*2);
+      ctx.fillStyle = fillCol;
       ctx.fill();
 
-      // 圈內溫度數字
+      // Draw center temp number
       ctx.fillStyle="#000";
-      ctx.font="bold 17px Arial";
+      ctx.font="bold 16px Arial";
       ctx.textAlign="center";
       ctx.textBaseline="middle";
-      ctx.fillText(tVal.toFixed(1),pos.x,pos.y);
+      ctx.fillText(t.toFixed(1),pos.x,pos.y);
 
-      // 右側深色站名標籤
-      ctx.fillStyle="#0a3042";
-      ctx.fillRect(pos.x+r+4, pos.y-13, sta.name.length*16, 26);
+      // Station name black label on right
+      ctx.fillStyle="#0c3549";
+      ctx.fillRect(pos.x+circleR+3,pos.y-12,sta.name.length*15,24);
       ctx.fillStyle="#fff";
-      ctx.font="bold 15px Arial";
+      ctx.font="bold 14px Arial";
       ctx.textAlign="left";
-      ctx.fillText(sta.name, pos.x+r+8, pos.y+4);
+      ctx.fillText(sta.name,pos.x+circleR+7,pos.y+3);
     })
 
   }catch(err){
-    console.error(err);
+    console.error("Fetch Error:",err);
   }
 }
 
-fetchSMGWeather();
-// 每5分鐘自動刷新
+// Auto refresh every 5min =300000ms
 setInterval(fetchSMGWeather,300000);
 </script>
 </body>
