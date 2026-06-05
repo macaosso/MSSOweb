@@ -61,7 +61,7 @@ const forecastPoints = [
   
     wind41: { ne: 0, se: 0, sw: 0, nw: 0 }, 
     wind88: { ne: 0, se: 0, sw: 0,  nw: 0 } 
-  }，
+  }
 ];
 
 window.tcInfo = {
