@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="icons/MSSO.png">
-<title>酷熱指數｜體感溫度｜露點溫度計算 | 澳門民間氣象台 MSSO</title>
+<title>熱帶氣旋距離計算工具 | 澳門民間氣象台 MSSO</title>
 <style>
 /* ========== Global Base ========== */
 body {
@@ -58,10 +58,9 @@ body {
 /* ========== Page Wrap Layout ========== */
 .calc-wrap{
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   gap:35px;
   margin:18px 35px;
-  max-width:900px;
 }
 
 /* ========== Unified Card Style (Same forecast-tab box) ========== */
@@ -223,70 +222,189 @@ input:focus, select:focus{
 </div>
 </div>
 
-<!-- Main Content -->
+<!-- Main Two Column Content -->
 <div class="calc-wrap">
-  <!-- 1.體感溫度 AT 計算 -->
-  <div class="calc-card">
-    <div class="card-title">體感溫度 AT 計算｜公式：AT = 1.04T + 0.2e − 0.65V − 2.7</div>
-    <div class="form-row">
-      <div>
-        <label>氣溫 T (℃)</label>
-        <input id="at_T" type="number" step="0.1" placeholder="例：30.5">
+  <!-- Left Column: Three Calculation Modules -->
+  <div class="left-col">
+    <!-- 1.熱帶氣旋距離、方位計算 -->
+    <div class="calc-card">
+      <div class="card-title">熱帶氣旋距離、方位計算</div>
+      <div class="form-row">
+        <div>
+          <label>氣旋中心緯度(°N)</label>
+          <input id="tcLat" type="number" step="0.01" placeholder="例：22.20">
+        </div>
+        <div>
+          <label>氣旋中心經度(°E)</label>
+          <input id="tcLon" type="number" step="0.01" placeholder="例：113.55">
+        </div>
       </div>
-      <div>
-        <label>相對濕度 RH (%)</label>
-        <input id="at_RH" type="number" step="1" placeholder="0~100">
+      <div class="btn-row">
+        <button class="calc-btn" onclick="calcAllTC()">批量計算各地距離</button>
+        <button class="clear-btn" onclick="clearTC()">清空</button>
       </div>
+      <div id="resTCAll" class="result-box result-empty">符合距離門檻的城市結果將顯示於此</div>
     </div>
-    <div class="form-full">
-      <label>風速 V (km/h)</label>
-      <input id="at_V" type="number" step="0.1" placeholder="例：5.0">
+
+    <!-- 2.推移定位（已知起點+方位+距離算新座標） -->
+    <div class="calc-card" style="margin-top:35px;">
+      <div class="card-title">推移定位｜已知方位距離求新座標</div>
+      <div class="form-row">
+        <div>
+          <label>原點緯度(°N)</label>
+          <input id="origLat" type="number" step="0.01">
+        </div>
+        <div>
+          <label>原點經度(°E)</label>
+          <input id="origLon" type="number" step="0.01">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>行進方位(°，正北0°順時針)</label>
+          <input id="bear" type="number" step="0.1" placeholder="0~360">
+        </div>
+        <div>
+          <label>移動距離(km)</label>
+          <input id="distKm" type="number" step="0.1">
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="calc-btn" onclick="calcDestination()">開始計算</button>
+        <button class="clear-btn" onclick="clearDest()">清空</button>
+      </div>
+      <div id="resDest" class="result-box result-empty">新座標結果顯示處</div>
     </div>
-    <div class="btn-row">
-      <button class="calc-btn" onclick="calcAT()">計算體感溫度</button>
-      <button class="clear-btn" onclick="clearAT()">清空</button>
+
+    <!--3.掠過最短距離(氣旋路徑與觀測點最近距離) -->
+    <div class="calc-card" style="margin-top:35px;">
+      <div class="card-title">掠過最短距離｜氣旋路徑臨近計算</div>
+      <div class="form-row">
+        <div>
+          <label>觀測點緯度N</label>
+          <input id="siteLat" type="number" step="0.01">
+        </div>
+        <div>
+          <label>觀測點經度E</label>
+          <input id="siteLon" type="number" step="0.01">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>氣旋當前緯度N</label>
+          <input id="tcLat" type="number" step="0.01">
+        </div>
+        <div>
+          <label>氣旋當前經度E</label>
+          <input id="tcLon" type="number" step="0.01">
+        </div>
+      </div>
+      <div class="form-full">
+        <label>氣旋移動方位(°)</label>
+        <input id="tcBear" type="number" step="0.1">
+      </div>
+      <div class="btn-row">
+        <button class="calc-btn" onclick="calcClosest()">開始計算</button>
+        <button class="clear-btn" onclick="clearClose()">清空</button>
+      </div>
+      <div id="resClose" class="result-box result-empty">最短掠過距離結果</div>
     </div>
-    <div id="resAT" class="result-box result-empty">體感溫度計算結果</div>
   </div>
 
-  <!-- 2.酷熱指數 HI 計算 -->
-  <div class="calc-card">
-    <div class="card-title">酷熱指數 Heat Index HI 計算(美國NOAA標準公式)</div>
-    <div class="form-row">
-      <div>
-        <label>氣溫 T (℉)</label>
-        <input id="hi_T" type="number" step="0.1" placeholder="華氏溫度">
+  <!-- Right Column: Unit Convert Tool -->
+  <div class="right-col">
+    <div class="calc-card">
+      <div class="card-title">氣象常用單位換算</div>
+  
+      <!-- 距離換算 | km ↔ nm ↔ mile -->
+      <div style="margin-bottom:32px;">
+        <span class="unit-title">距離換算</span>
+        <div class="form-full">
+          <label>輸入數值</label>
+          <input id="disNum" type="number" step="0.01">
+        </div>
+        <div class="form-row">
+          <div>
+            <label>轉換來源</label>
+            <select id="disFrom">
+              <option>公里(km)</option>
+              <option>海里(nm)</option>
+              <option>英里(mile)</option>
+            </select>
+          </div>
+          <div>
+            <label>轉換目標</label>
+            <select id="disTo">
+              <option>海里(nm)</option>
+              <option>公里(km)</option>
+              <option>英里(mile)</option>
+            </select>
+          </div>
+        </div>
+        <button class="calc-btn" onclick="convertDis()" style="margin-top:8px;">執行換算</button>
+        <div id="resDisConv" class="result-box result-empty" style="margin-top:12px;">換算結果</div>
       </div>
+  
+      <!--風速換算 km/h ↔ kt ↔ m/s ↔ mph -->
+      <div style="margin-bottom:32px;">
+        <span class="unit-title">風速換算</span>
+        <div class="form-full">
+          <label>輸入數值</label>
+          <input id="spdNum" type="number" step="0.01">
+        </div>
+        <div class="form-row">
+          <div>
+            <label>來源單位</label>
+            <select id="spdFrom">
+              <option>km/h</option>
+              <option>knot(節)</option>
+              <option>m/s</option>
+              <option>mph(英里/小時)</option>
+            </select>
+          </div>
+          <div>
+            <label>目標單位</label>
+            <select id="spdTo">
+              <option>knot(節)</option>
+              <option>km/h</option>
+              <option>m/s</option>
+              <option>mph(英里/小時)</option>
+            </select>
+          </div>
+        </div>
+        <button class="calc-btn" onclick="convertSpd()" style="margin-top:8px;">執行換算</button>
+        <div id="resSpdConv" class="result-box result-empty" style="margin-top:12px;">換算結果</div>
+      </div>
+  
+      <!--溫度換算 ℃ ↔ ℉ ↔ K -->
       <div>
-        <label>相對濕度 RH (%)</label>
-        <input id="hi_RH" type="number" step="1" placeholder="0~100">
+        <span class="unit-title">氣溫換算</span>
+        <div class="form-full">
+          <label>輸入溫度</label>
+          <input id="tmpNum" type="number" step="0.1">
+        </div>
+        <div class="form-row">
+          <div>
+            <label>來源</label>
+            <select id="tmpFrom">
+              <option>攝氏(℃)</option>
+              <option>華氏(℉)</option>
+              <option>開爾文(K)</option>
+            </select>
+          </div>
+          <div>
+            <label>目標</label>
+            <select id="tmpTo">
+              <option>華氏(℉)</option>
+              <option>攝氏(℃)</option>
+              <option>開爾文(K)</option>
+            </select>
+          </div>
+        </div>
+        <button class="calc-btn" onclick="convertTmp()" style="margin-top:8px;">執行換算</button>
+        <div id="resTmpConv" class="result-box result-empty" style="margin-top:12px;">換算結果</div>
       </div>
     </div>
-    <div class="btn-row">
-      <button class="calc-btn" onclick="calcHI()">計算酷熱指數</button>
-      <button class="clear-btn" onclick="clearHI()">清空</button>
-    </div>
-    <div id="resHI" class="result-box result-empty">酷熱指數(℉/自動轉℃)結果</div>
-  </div>
-
-  <!--3.露點溫度 Td 計算 -->
-  <div class="calc-card">
-    <div class="card-title">露點溫度 Td 計算｜a=17.27,b=237.7 馬格努斯公式</div>
-    <div class="form-row">
-      <div>
-        <label>氣溫 T (℃)</label>
-        <input id="td_T" type="number" step="0.1">
-      </div>
-      <div>
-        <label>相對濕度 RH (%)</label>
-        <input id="td_RH" type="number" step="1" placeholder="0~100">
-      </div>
-    </div>
-    <div class="btn-row">
-      <button class="calc-btn" onclick="calcTd()">計算露點溫度</button>
-      <button class="clear-btn" onclick="clearTd()">清空</button>
-    </div>
-    <div id="resTd" class="result-box result-empty">露點溫度計算結果(℃)</div>
   </div>
 </div>
 
@@ -299,100 +417,201 @@ function toggleMenu(){
   btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
 
-// ====================== 1.體感溫度 AT 公式 ======================
-/*
-e = RH/100 * 6.105 * exp( (17.27*T)/(237.7+T) )
-AT = 1.04*T + 0.2*e - 0.65*V - 2.7
-*/
-function calcAT(){
-  const T = Number(document.getElementById("at_T").value);
-  const RH = Number(document.getElementById("at_RH").value);
-  const V = Number(document.getElementById("at_V").value);
-  const resDom = document.getElementById("resAT");
-  if(isNaN(T)||isNaN(RH)||isNaN(V)||RH<0||RH>100){
-    resDom.className = "result-box result-error";
-    resDom.innerText = "輸入數據異常：溫度、濕度(0~100)、風速請填寫有效數值";
-    return;
-  }
-  // 計算實際水汽壓e
-  const e = (RH/100) * 6.105 * Math.exp( (17.27*T)/(237.7+T) );
-  const AT = 1.04*T + 0.2*e - 0.65*V - 2.7;
-  resDom.className = "result-box";
-  resDom.innerText = `水汽壓 e = ${e.toFixed(3)} hPa\n體感溫度 AT = ${AT.toFixed(2)} ℃`;
-}
-function clearAT(){
-  ["at_T","at_RH","at_V"].forEach(id=>document.getElementById(id).value="");
-  const dom = document.getElementById("resAT");
-  dom.innerText = "體感溫度計算結果";
-  dom.className = "result-box result-empty";
+// ========== Global Math Constant ==========
+const R = 6371; // Earth radius km
+const rad = deg => deg * Math.PI / 180;
+const deg = rad => rad * 180 / Math.PI;
+
+// 固定9個目標城市名+經緯度【只宣告一次，移除重複】
+const cityList = [
+  {name:"澳門",lat:22.1595,lon:113.5685,limit:5000},
+  {name:"香港",lat:22.3000,lon:114.1700,limit:5000},
+  {name:"台北",lat:20.1000,lon:121.5500,limit:1000},
+  {name:"高雄",lat:22.615915,lon:120.286592,limit:1000},
+  {name:"馬尼拉",lat:14.566508,lon:120.982543,limit:1000},
+  {name:"鹿兒島",lat:31.534531,lon:130.546362,limit:1000},
+  {name:"釜山",lat:35.151813,lon:129.073447,limit:1000},
+  {name:"關島",lat:13.437972,lon:144.819028,limit:1000},
+  {name:"東京",lat:35.638430,lon:139.772712,limit:1000}
+];
+
+// 16方位對照表 每格22.5°
+function getWindDir(deg){
+  const dirArr = ["N","NNE","NE","ENE","E","ESE","SE","SSE",
+                  "S","SSW","SW","WSW","W","WNW","NW","NNW"];
+  let idx = Math.round(deg/22.5) % 16;
+  return dirArr[idx];
 }
 
-// ====================== 2.酷熱指數 HI 公式 ======================
-/*
-HI = -42.379 + 2.04901523*T +10.14333127*RH
--0.22475541*T*RH -0.00683783*T² -0.05481717*RH²
-+0.00122874*T²RH +0.00085282*TRH² -0.00000199*T²RH²
-T單位：℉，RH%
-℉轉℃：C=(F-32)/1.8
-*/
-function calcHI(){
-  const Tf = Number(document.getElementById("hi_T").value);
-  const RH = Number(document.getElementById("hi_RH").value);
-  const resDom = document.getElementById("resHI");
-  if(isNaN(Tf)||isNaN(RH)||RH<0||RH>100){
+//批量計算氣旋到全部城市
+function calcAllTC(){
+  const tLat = Number(document.getElementById("tcLat").value);
+  const tLon = Number(document.getElementById("tcLon").value);
+  const resDom = document.getElementById("resTCAll");
+  if(isNaN(tLat)||isNaN(tLon)){
     resDom.className = "result-box result-error";
-    resDom.innerText = "數據錯誤：RH需在0~100之間，溫度填寫華氏℉";
+    resDom.innerText = "錯誤：請輸入有效的氣旋經緯數值！";
     return;
   }
-  const T = Tf;
-  const RHv = RH;
-  let HI = -42.379
-          + 2.04901523*T
-          + 10.14333127*RHv
-          - 0.22475541*T*RHv
-          - 0.00683783*T*T
-          - 0.05481717*RHv*RHv
-          + 0.00122874*T*T*RHv
-          + 0.00085282*T*RHv*RHv
-          - 0.00000199*T*T*RHv*RHv;
-  // ℉轉攝氏℃
-  const HIc = (HI -32)/1.8;
-  resDom.className = "result-box";
-  resDom.innerText = `酷熱指數 HI = ${HI.toFixed(2)} ℉ ≈ ${HIc.toFixed(2)} ℃`;
+  let outText = "";
+
+  for(let city of cityList){
+    const clat=rad(city.lat);
+    const clon=rad(city.lon);
+    const tlat=rad(tLat);
+    const tlon=rad(tLon);
+    const dLat = clat - tlat;
+    const dLon = clon - tlon;
+    const a = Math.sin(dLat/2)**2 + Math.cos(tlat)*Math.cos(clat)*Math.sin(dLon/2)**2;
+    const dist = 2*R*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+
+    // 計算方位角(從氣旋指向城市 正北0°順時針)
+    let br = Math.atan2(Math.sin(dLon)*Math.cos(clat),Math.cos(tlat)*Math.sin(clat)-Math.sin(tlat)*Math.cos(clat)*Math.cos(dLon));
+    let bearDeg = (deg(br)+360)%360;
+    let dirText = getWindDir(bearDeg);
+
+    //距離判斷
+    if(dist < city.limit){
+      outText += `${city.name}：距離${dist.toFixed(2)}km，方位${dirText}\n`;
+    }
+  }
+
+  resDom.className="result-box";
+  if(outText===""){
+    resDom.innerText="所有城市距離超出設定門檻，無輸出數據";
+  }else{
+    resDom.innerText=outText;
+  }
 }
-function clearHI(){
-  ["hi_T","hi_RH"].forEach(id=>document.getElementById(id).value="");
-  const dom = document.getElementById("resHI");
-  dom.innerText = "酷熱指數(℉/自動轉℃)結果";
-  dom.className = "result-box result-empty";
+function clearTC(){
+  document.getElementById("tcLat").value="";
+  document.getElementById("tcLon").value="";
+  const resDom=document.getElementById("resTCAll");
+  resDom.innerText="符合距離門檻的城市結果將顯示於此";
+  resDom.className="result-box result-empty";
 }
 
-// ======================3.露點溫度Td 馬格努斯公式 ======================
-/*
-a=17.27 b=237.7
-γ = (a*T)/(b+T)+ln(RH/100)
-Td = (b*γ)/(a-γ)
-*/
-function calcTd(){
-  const T = Number(document.getElementById("td_T").value);
-  const RH = Number(document.getElementById("td_RH").value);
-  const resDom = document.getElementById("resTd");
-  if(isNaN(T)||isNaN(RH)||RH<=0||RH>100){
-    resDom.className = "result-box result-error";
-    resDom.innerText = "濕度錯誤：RH範圍0~100，不可為0或負數";
+//2.推移定位函數
+function calcDestination(){
+  const lat = Number(document.getElementById("origLat").value);
+  const lon = Number(document.getElementById("origLon").value);
+  const bear = rad(Number(document.getElementById("bear").value));
+  const d = Number(document.getElementById("distKm").value)/R;
+  const resDom = document.getElementById("resDest");
+  if(isNaN(lat)||isNaN(lon)||isNaN(bear)||isNaN(d)){
+    resDom.className="result-box result-error";
+    resDom.innerText="錯誤：請補全有效數據";
     return;
   }
-  const a=17.27,b=237.7;
-  const γ = (a*T)/(b+T)+Math.log(RH/100);
-  const Td = (b*γ)/(a-γ);
-  resDom.className = "result-box";
-  resDom.innerText = `露點溫度 Td = ${Td.toFixed(2)} ℃`;
+  const latRad = rad(lat);
+  const lonRad = rad(lon);
+  const newLat = Math.asin(Math.sin(latRad)*Math.cos(d)+Math.cos(latRad)*Math.sin(d)*Math.cos(bear));
+  const newLon = lonRad + Math.atan2(Math.sin(bear)*Math.sin(d)*Math.cos(latRad),Math.cos(d)-Math.sin(latRad)*Math.sin(newLat));
+  const finalLon = (deg(newLon)+540)%360-180;
+  resDom.className="result-box";
+  resDom.innerText=`新緯度N：${deg(newLat).toFixed(2)} °\n新經度E：${finalLon.toFixed(2)} °`;
 }
-function clearTd(){
-  ["td_T","td_RH"].forEach(id=>document.getElementById(id).value="");
-  const dom = document.getElementById("resTd");
-  dom.innerText = "露點溫度計算結果(℃)";
-  dom.className = "result-box result-empty";
+function clearDest(){
+  ["origLat","origLon","bear","distKm"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("resDest").innerText="新座標結果顯示處";
+  document.getElementById("resDest").className="result-box result-empty";
+}
+
+//3.掠過最短距離
+function calcClosest(){
+  const siteLa = rad(Number(document.getElementById("siteLat").value));
+  const siteLo = rad(Number(document.getElementById("siteLon").value));
+  const tcLa = rad(Number(document.getElementById("tcLat").value));
+  const tcLo = rad(Number(document.getElementById("tcLon").value));
+  const tcBe = rad(Number(document.getElementById("tcBear").value));
+  const resDom = document.getElementById("resClose");
+  if(isNaN(siteLa)||isNaN(siteLo)||isNaN(tcLa)||isNaN(tcLo)||isNaN(tcBe)){
+    resDom.className="result-box result-error";
+    resDom.innerText="請填寫完整有效數值";
+    return;
+  }
+  // Calc bearing from TC to site
+  let br = Math.atan2(Math.sin(siteLo-tcLo)*Math.cos(siteLa), Math.cos(tcLa)*Math.sin(siteLa)-Math.sin(tcLa)*Math.cos(siteLa)*Math.cos(siteLo-tcLo));
+  br = (br+2*Math.PI)%(2*Math.PI);
+  const ang = Math.abs(br-tcBe);
+  const distTCtoSite = R*Math.acos(Math.sin(tcLa)*Math.sin(siteLa)+Math.cos(tcLa)*Math.cos(siteLa)*Math.cos(siteLo-siteLo));
+  const closest = distTCtoSite*Math.sin(Math.min(ang,2*Math.PI-ang));
+  resDom.className="result-box";
+  resDom.innerText=`氣旋掠過觀測點最短距離：${closest.toFixed(2)} km`;
+}
+function clearClose(){
+  ["siteLat","siteLon","tcLat","tcLon","tcBear"].forEach(id=>document.getElementById(id).value="");
+  document.getElementById("resClose").innerText="最短掠過距離結果";
+  document.getElementById("resClose").className="result-box result-empty";
+}
+
+// ========== Unit Conversion Functions ==========
+// distance constants: 1nm=1.852km, 1mile=1.60934km
+function convertDis(){
+  let num = Number(document.getElementById("disNum").value);
+  const f = document.getElementById("disFrom").value;
+  const t = document.getElementById("disTo").value;
+  const resDom = document.getElementById("resDisConv");
+  if(isNaN(num)){resDom.className="result-box result-error";resDom.innerText="輸入有效數字";return;}
+  let km;
+  // convert input to base km first
+  if(f==="公里(km)") km=num;
+  else if(f==="海里(nm)") km=num*1.852;
+  else km=num*1.60934;
+
+  let out;
+  if(t==="公里(km)") out=km;
+  else if(t==="海里(nm)") out=km/1.852;
+  else out=km/1.60934;
+
+  resDom.className="result-box";
+  resDom.innerText=`${num} ${f} = ${out.toFixed(3)} ${t}`;
+}
+
+// speed: km/h, knot, m/s, mph
+// 1kt=1.852km/h, 1m/s=3.6km/h,1mph=1.60934km/h
+function convertSpd(){
+  let num = Number(document.getElementById("spdNum").value);
+  const f = document.getElementById("spdFrom").value;
+  const t = document.getElementById("spdTo").value;
+  const resDom = document.getElementById("resSpdConv");
+  if(isNaN(num)){resDom.className="result-box result-error";resDom.innerText="輸入有效數字";return;}
+  let kmh;
+  if(f==="km/h") kmh=num;
+  else if(f==="knot(節)") kmh=num*1.852;
+  else if(f==="m/s") kmh=num*3.6;
+  else kmh=num*1.60934;
+
+  let out;
+  if(t==="km/h") out=kmh;
+  else if(t==="knot(節)") out=kmh/1.852;
+  else if(t==="m/s") out=kmh/3.6;
+  else out=kmh/1.60934;
+
+  resDom.className="result-box";
+  resDom.innerText=`${num} ${f} = ${out.toFixed(2)} ${t}`;
+}
+
+// temp: ℃ ℉ K
+// C=F→(F-32)/1.8 , F=C×1.8+32 , K=C+273.15
+function convertTmp(){
+  let num = Number(document.getElementById("tmpNum").value);
+  const f = document.getElementById("tmpFrom").value;
+  const t = document.getElementById("tmpTo").value;
+  const resDom = document.getElementById("resTmpConv");
+  if(isNaN(num)){resDom.className="result-box result-error";resDom.innerText="輸入有效數字";return;}
+  let c;
+  if(f==="攝氏(℃)") c=num;
+  else if(f==="華氏(℉)") c=(num-32)/1.8;
+  else c=num-273.15;
+
+  let out;
+  if(t==="攝氏(℃)") out=c;
+  else if(t==="華氏(℉)") out=c*1.8+32;
+  else out=c+273.15;
+
+  resDom.className="result-box";
+  resDom.innerText=`${num} ${f} = ${out.toFixed(2)} ${t}`;
 }
 </script>
 </body>
