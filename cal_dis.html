@@ -151,6 +151,13 @@ input:focus, select:focus{
 .clear-btn:hover{
   background:#bbbbbb;
 }
+.unit-title{
+  font-size:18px;
+  font-weight:bold;
+  color:#222;
+  margin-bottom:14px;
+  display:block;
+}
 
 /* ========== Result Display Box (Highlight output) ========== */
 .result-box{
@@ -305,13 +312,14 @@ input:focus, select:focus{
   </div>
 
   <!-- Right Column: Unit Convert Tool -->
+<!-- Right Column: Unit Convert Tool -->
   <div class="right-col">
     <div class="calc-card">
       <div class="card-title">氣象常用單位換算</div>
-
-      <!-- 距離換算 km ↔ nm(海里) -->
+  
+      <!-- 距離換算 | km ↔ nm ↔ mile -->
       <div style="margin-bottom:32px;">
-        <label>距離換算｜公里 ↔ 海里(1nm=1.852km)</label>
+        <span class="unit-title">距離換算</span>
         <div class="form-full">
           <label>輸入數值</label>
           <input id="disNum" type="number" step="0.01">
@@ -322,6 +330,7 @@ input:focus, select:focus{
             <select id="disFrom">
               <option>公里(km)</option>
               <option>海里(nm)</option>
+              <option>英里(mile)</option>
             </select>
           </div>
           <div>
@@ -329,16 +338,17 @@ input:focus, select:focus{
             <select id="disTo">
               <option>海里(nm)</option>
               <option>公里(km)</option>
+              <option>英里(mile)</option>
             </select>
           </div>
         </div>
         <button class="calc-btn" onclick="convertDis()" style="margin-top:8px;">執行換算</button>
         <div id="resDisConv" class="result-box result-empty" style="margin-top:12px;">換算結果</div>
       </div>
-
-      <!--速度換算 km/h ↔ kt(節) -->
+  
+      <!--風速換算 km/h ↔ kt ↔ m/s ↔ mph -->
       <div style="margin-bottom:32px;">
-        <label>風速換算｜km/h ↔ 節(knot)</label>
+        <span class="unit-title">風速換算</span>
         <div class="form-full">
           <label>輸入數值</label>
           <input id="spdNum" type="number" step="0.01">
@@ -349,6 +359,8 @@ input:focus, select:focus{
             <select id="spdFrom">
               <option>km/h</option>
               <option>knot(節)</option>
+              <option>m/s</option>
+              <option>mph(英里/小時)</option>
             </select>
           </div>
           <div>
@@ -356,16 +368,18 @@ input:focus, select:focus{
             <select id="spdTo">
               <option>knot(節)</option>
               <option>km/h</option>
+              <option>m/s</option>
+              <option>mph(英里/小時)</option>
             </select>
           </div>
         </div>
         <button class="calc-btn" onclick="convertSpd()" style="margin-top:8px;">執行換算</button>
         <div id="resSpdConv" class="result-box result-empty" style="margin-top:12px;">換算結果</div>
       </div>
-
-      <!--溫度換算 ℃ ↔ ℉ -->
+  
+      <!--溫度換算 ℃ ↔ ℉ ↔ K -->
       <div>
-        <label>氣溫換算｜攝氏℃ ↔ 華氏℉</label>
+        <span class="unit-title">氣溫換算</span>
         <div class="form-full">
           <label>輸入溫度</label>
           <input id="tmpNum" type="number" step="0.1">
@@ -376,6 +390,7 @@ input:focus, select:focus{
             <select id="tmpFrom">
               <option>攝氏(℃)</option>
               <option>華氏(℉)</option>
+              <option>開爾文(K)</option>
             </select>
           </div>
           <div>
@@ -383,6 +398,7 @@ input:focus, select:focus{
             <select id="tmpTo">
               <option>華氏(℉)</option>
               <option>攝氏(℃)</option>
+              <option>開爾文(K)</option>
             </select>
           </div>
         </div>
@@ -548,44 +564,72 @@ function clearClose(){
 }
 
 // ========== Unit Conversion Functions ==========
-// distance km <-> nm  1nm=1.852km
+// distance constants: 1nm=1.852km, 1mile=1.60934km
 function convertDis(){
   let num = Number(document.getElementById("disNum").value);
   const f = document.getElementById("disFrom").value;
   const t = document.getElementById("disTo").value;
   const resDom = document.getElementById("resDisConv");
   if(isNaN(num)){resDom.className="result-box result-error";resDom.innerText="輸入有效數字";return;}
+  let km;
+  // convert input to base km first
+  if(f==="公里(km)") km=num;
+  else if(f==="海里(nm)") km=num*1.852;
+  else km=num*1.60934;
+
   let out;
-  if(f=="公里(km)"&&t=="海里(nm)") out = num/1.852;
-  else out = num*1.852;
+  if(t==="公里(km)") out=km;
+  else if(t==="海里(nm)") out=km/1.852;
+  else out=km/1.60934;
+
   resDom.className="result-box";
   resDom.innerText=`${num} ${f} = ${out.toFixed(3)} ${t}`;
 }
-// speed km/h ↔ knot 1kt=1.852km/h
+
+// speed: km/h, knot, m/s, mph
+// 1kt=1.852km/h, 1m/s=3.6km/h,1mph=1.60934km/h
 function convertSpd(){
   let num = Number(document.getElementById("spdNum").value);
   const f = document.getElementById("spdFrom").value;
   const t = document.getElementById("spdTo").value;
   const resDom = document.getElementById("resSpdConv");
   if(isNaN(num)){resDom.className="result-box result-error";resDom.innerText="輸入有效數字";return;}
+  let kmh;
+  if(f==="km/h") kmh=num;
+  else if(f==="knot(節)") kmh=num*1.852;
+  else if(f==="m/s") kmh=num*3.6;
+  else kmh=num*1.60934;
+
   let out;
-  if(f=="km/h"&&t=="knot(節)") out = num/1.852;
-  else out = num*1.852;
+  if(t==="km/h") out=kmh;
+  else if(t==="knot(節)") out=kmh/1.852;
+  else if(t==="m/s") out=kmh/3.6;
+  else out=kmh/1.60934;
+
   resDom.className="result-box";
   resDom.innerText=`${num} ${f} = ${out.toFixed(2)} ${t}`;
 }
-// temp ℃ ↔ ℉ F=C×1.8+32 | C=(F-32)/1.8
+
+// temp: ℃ ℉ K
+// C=F→(F-32)/1.8 , F=C×1.8+32 , K=C+273.15
 function convertTmp(){
   let num = Number(document.getElementById("tmpNum").value);
   const f = document.getElementById("tmpFrom").value;
   const t = document.getElementById("tmpTo").value;
   const resDom = document.getElementById("resTmpConv");
   if(isNaN(num)){resDom.className="result-box result-error";resDom.innerText="輸入有效數字";return;}
+  let c;
+  if(f==="攝氏(℃)") c=num;
+  else if(f==="華氏(℉)") c=(num-32)/1.8;
+  else c=num-273.15;
+
   let out;
-  if(f=="攝氏(℃)"&&t=="華氏(℉)") out = num*1.8+32;
-  else out = (num-32)/1.8;
+  if(t==="攝氏(℃)") out=c;
+  else if(t==="華氏(℉)") out=c*1.8+32;
+  else out=c+273.15;
+
   resDom.className="result-box";
-  resDom.innerText=`${num} ${f} = ${out.toFixed(1)} ${t}`;
+  resDom.innerText=`${num} ${f} = ${out.toFixed(2)} ${t}`;
 }
 </script>
 </body>
