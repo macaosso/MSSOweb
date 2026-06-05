@@ -226,7 +226,7 @@ input:focus, select:focus{
 <div class="calc-wrap">
   <!-- Left Column: Three Calculation Modules -->
   <div class="left-col">
-    <!-- 1.兩點距離、方位計算 Haversine -->
+    <!-- 1.熱帶氣旋距離、方位計算 -->
     <div class="calc-card">
       <div class="card-title">熱帶氣旋距離、方位計算</div>
       <div class="form-row">
@@ -312,7 +312,6 @@ input:focus, select:focus{
   </div>
 
   <!-- Right Column: Unit Convert Tool -->
-<!-- Right Column: Unit Convert Tool -->
   <div class="right-col">
     <div class="calc-card">
       <div class="card-title">氣象常用單位換算</div>
@@ -423,21 +422,7 @@ const R = 6371; // Earth radius km
 const rad = deg => deg * Math.PI / 180;
 const deg = rad => rad * 180 / Math.PI;
 
-// 1. Two point distance & initial bearing (Haversine Formula)
-// 固定9個目標城市名+經緯度
-const cityList = [
-  {name:"澳門",lat:22.1595,lon:113.5685,limit:5000},
-  {name:"香港",lat:22.3000,lon:114.1700,limit:5000},
-  {name:"台北",lat:20.1000,lon:121.5500,limit:1000},
-  {name:"高雄",lat:22.615915,lon:120.286592,limit:1000},
-  {name:"馬尼拉",lat:14.566508,lon:120.982543,limit:1000},
-  {name:"鹿兒島",lat:31.534531,lon:130.546362,limit:1000},
-  {name:"釜山",lat:35.151813,lon:129.073447,limit:1000},
-  {name:"關島",lat:13.437972,lon:144.819028,limit:1000},
-  {name:"東京",lat:35.638430,lon:139.772712,limit:1000}
-];
-
-// 固定9個目標城市名+經緯度
+// 固定9個目標城市名+經緯度【只宣告一次，移除重複】
 const cityList = [
   {name:"澳門",lat:22.1595,lon:113.5685,limit:5000},
   {name:"香港",lat:22.3000,lon:114.1700,limit:5000},
@@ -469,9 +454,6 @@ function calcAllTC(){
     return;
   }
   let outText = "";
-  const R = 6371;
-  const rad=deg=>deg*Math.PI/180;
-  const toDeg=rd=>rd*180/Math.PI;
 
   for(let city of cityList){
     const clat=rad(city.lat);
@@ -485,7 +467,7 @@ function calcAllTC(){
 
     // 計算方位角(從氣旋指向城市 正北0°順時針)
     let br = Math.atan2(Math.sin(dLon)*Math.cos(clat),Math.cos(tlat)*Math.sin(clat)-Math.sin(tlat)*Math.cos(clat)*Math.cos(dLon));
-    let bearDeg = (toDeg(br)+360)%360;
+    let bearDeg = (deg(br)+360)%360;
     let dirText = getWindDir(bearDeg);
 
     //距離判斷
@@ -509,7 +491,7 @@ function clearTC(){
   resDom.className="result-box result-empty";
 }
 
-//2. Destination point from start+bear+dist
+//2.推移定位函數
 function calcDestination(){
   const lat = Number(document.getElementById("origLat").value);
   const lon = Number(document.getElementById("origLon").value);
@@ -535,7 +517,7 @@ function clearDest(){
   document.getElementById("resDest").className="result-box result-empty";
 }
 
-//3. Closest approach distance from point to great-circle path
+//3.掠過最短距離
 function calcClosest(){
   const siteLa = rad(Number(document.getElementById("siteLat").value));
   const siteLo = rad(Number(document.getElementById("siteLon").value));
