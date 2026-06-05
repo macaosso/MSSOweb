@@ -1,36 +1,37 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MSSO 熱帶氣旋距離計算器</title>
 <link rel="icon" type="image/png" href="icons/MSSO.png">
-
+<title>熱帶氣旋距離計算工具 | 澳門民間氣象台 MSSO</title>
 <style>
-
+/* ========== Global Base ========== */
 body {
-  font-family: "Segoe UI", Arial, sans-serif;
-  background: linear-gradient(135deg, #4facfe, #00f2fe);
   margin: 0;
+  font-family: Arial, sans-serif;
 }
-
-/* HEADER */
+/* ========== Header & Nav Same as Index ========== */
 .header {
   background: #1f3a4d;
   color: white;
   padding: 25px 20px;
-  display:flex;
-  align-items:center;
+  display: flex;
+  align-items: center;
 }
-.title { font-size: 20px; font-weight: bold; margin-left:10px; }
-.logo { height:40px; }
-
-/* MENU */
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-left: 10px;
+}
+.logo {
+  height: 40px;
+}
 .menu-container {
   position: relative;
   z-index: 3000;
+  margin-left: auto;
 }
-
 .menu-toggle {
   display: none;
   font-size: 26px;
@@ -39,227 +40,320 @@ body {
   background: #2d6c94;
   color: white;
 }
-
-/* NAV */
 .nav {
   background: #2d6c94;
   display: flex;
 }
-
 .nav a {
   color: white;
-  padding: 12px 15px;
+  padding: 25px 20px;
   font-size: 18px;
   text-decoration: none;
   display: block;
 }
-
 .nav a:hover {
   background: #1f4f6d;
 }
-
-/* ✅ MOBILE FIX */
-@media (max-width: 768px) {
-
-  .menu-toggle {
-    display: block;
+/* ========== Two Column Wrap ========== */
+.calc-wrap{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap:35px;
+  margin:35px;
+}
+/* ========== Card Style same as your forecast-tab-wrap ========== */
+.calc-card{
+  border:2px solid #4fa6a6;
+  border-radius:12px;
+  background:#e6f7f7;
+  box-shadow:0 2px 8px rgba(0,0,0,0.2);
+  padding:25px;
+}
+.card-title{
+  font-size:19px;
+  font-weight:bold;
+  color:#222;
+  margin:0 0 20px 0;
+  padding-bottom:10px;
+  border-bottom:1px solid #c8e8e8;
+}
+/* ========== Input & Select ========== */
+.form-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+  margin-bottom:16px;
+}
+.form-full{
+  margin-bottom:16px;
+}
+label{
+  display:block;
+  font-size:15px;
+  margin-bottom:6px;
+  color:#333;
+}
+input, select{
+  width:100%;
+  box-sizing:border-box;
+  padding:10px 12px;
+  border:1px solid #b8d8d8;
+  border-radius:10px;
+  font-size:15px;
+  background:#fff;
+}
+/* ========== Main Button same site theme ========== */
+.calc-btn{
+  width:100%;
+  padding:13px;
+  border:none;
+  border-radius:25px;
+  background:#4fa6a6;
+  color:#fff;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.3s;
+  margin-top:8px;
+}
+.calc-btn:hover{
+  opacity:0.85;
+}
+/* ========== Mobile Responsive ========== */
+@media(max-width:768px){
+  .calc-wrap{
+    grid-template-columns:1fr;
+    margin:18px 35px;
   }
-
-  .nav {
-    display: none;
-    flex-direction: column;
-    width: 100%;
+  .menu-toggle{
+    display:block;
   }
-
-  .nav.active {
-    display: flex;   /* ✅ KEY FIX */
+  .nav{
+    display:none;
+    flex-direction:column;
+    width:100%;
   }
-
-  .nav a {
-    border-top: 1px solid rgba(255,255,255,0.2);
+  .nav.active{
+    display:flex;
+  }
+  .nav a{
+    width:100%;
+    padding:12px 15px;
+    border-top:1px solid rgba(255,255,255,0.2);
   }
 }
-
-/* CARD UI */
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: calc(100vh - 120px);
-}
-
-.card {
-  background: white;
-  padding: 25px;
-  border-radius: 16px;
-  width: 420px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-}
-
-h2 { text-align: center; }
-
-input {
-  width: 100%;
-  padding: 10px;
-  margin: 8px 0;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-}
-
-button {
-  width: 100%;
-  padding: 12px;
-  background: #4facfe;
-  border: none;
-  color: white;
-  font-size: 16px;
-  border-radius: 10px;
-  cursor: pointer;
-}
-
-button:hover {
-  background: #3a8ce0;
-}
-
-#result {
-  margin-top: 15px;
-  white-space: pre-line;
-  text-align: center;
-  font-weight: bold;
-}
-
-iframe {
-  width: 100%;
-  height: 300px;
-  border: none;
-  margin-top: 15px;
-  border-radius: 12px;
-}
-
 </style>
 </head>
-
 <body>
-
+<!-- Header Nav Copy from your index -->
 <div class="header">
-  <img src="icons/MSSO.png" class="logo">
-  <div class="title">澳門民間氣象台 MSSO</div>
+<img src="icons/MSSO.png" class="logo">
+<div class="title">澳門民間氣象台 MSSO</div>
 </div>
-
 <div class="menu-container">
-  <div class="menu-toggle" onclick="toggleMenu()">☰</div>
-
-  <div class="nav" id="navMenu">
-    <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
-    <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
-    <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋距離計算工具</a>
-    <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑地圖</a> 
-    <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
-    <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
-    <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
-  </div>
+<div class="menu-toggle" onclick="toggleMenu()">☰</div>
+<div class="nav" id="navMenu">
+<a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
+<a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
+<a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋距離計算工具</a>
+<a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑地圖</a>
+<a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
+<a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+<a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
+</div>
 </div>
 
-<div class="container">
-  <div class="card">
-    <h2>📍 熱帶氣旋距離計算器</h2>
+<!-- Main Two Column Content -->
+<div class="calc-wrap">
+  <!-- Left Column: 3 Calculation Modules -->
+  <div class="left-col">
+    <!-- 1.兩點距離方位計算 -->
+    <div class="calc-card">
+      <div class="card-title">兩點距離、方位計算</div>
+      <div class="form-row">
+        <div>
+          <label>緯度1</label>
+          <input type="number" step="0.01">
+        </div>
+        <div>
+          <label>經度1</label>
+          <input type="number" step="0.01">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>緯度2</label>
+          <input type="number" step="0.01">
+        </div>
+        <div>
+          <label>經度2</label>
+          <input type="number" step="0.01">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>N</label>
+          <input type="text" placeholder="方位結果">
+        </div>
+        <div>
+          <label>E</label>
+          <input type="text" placeholder="距離(km)">
+        </div>
+      </div>
+      <button class="calc-btn">計算</button>
+    </div>
 
-    <input type="number" id="lat" placeholder="緯度°N">
-    <input type="number" id="lon" placeholder="經度°E">
+    <!-- 2.推移定位 -->
+    <div class="calc-card" style="margin-top:35px;">
+      <div class="card-title">推移定位</div>
+      <div class="form-row">
+        <div>
+          <label>現時緯度</label>
+          <input type="number" step="0.01">
+        </div>
+        <div>
+          <label>現時經度</label>
+          <input type="number" step="0.01">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>路徑方位角度</label>
+          <input type="number" step="0.1">
+        </div>
+        <div>
+          <label>距離 km</label>
+          <input type="number" step="0.1">
+        </div>
+      </div>
+      <button class="calc-btn">計算</button>
+    </div>
 
-    <button onclick="calculate()">計算</button>
+    <!--3.掠過距離 -->
+    <div class="calc-card" style="margin-top:35px;">
+      <div class="card-title">計算掠過距離</div>
+      <div class="form-row">
+        <div>
+          <label>目的地緯度</label>
+          <input type="number" step="0.01">
+        </div>
+        <div>
+          <label>目的地經度</label>
+          <input type="number" step="0.01">
+        </div>
+      </div>
+      <div class="form-row">
+        <div>
+          <label>氣旋緯度 N</label>
+          <input type="number" step="0.01">
+        </div>
+        <div>
+          <label>氣旋經度 E</label>
+          <input type="number" step="0.01">
+        </div>
+      </div>
+      <div class="form-full">
+        <label>路徑方位角度</label>
+        <input type="number" step="0.1">
+      </div>
+      <button class="calc-btn">計算</button>
+    </div>
+  </div>
 
-    <div id="result"></div>
+  <!-- Right Column: Unit Convert -->
+  <div class="right-col">
+    <div class="calc-card">
+      <div class="card-title">單位換算</div>
 
-    <iframe id="map"></iframe>
+      <!-- 距離換算 -->
+      <div style="margin-bottom:32px;">
+        <label>距離換算</label>
+        <div class="form-full">
+          <label>數值</label>
+          <input type="number" step="0.01">
+        </div>
+        <div class="form-row">
+          <div>
+            <label>從</label>
+            <select>
+              <option>公里 (km)</option>
+              <option>海里 (nm)</option>
+            </select>
+          </div>
+          <div>
+            <label>到</label>
+            <select>
+              <option>海里 (nm)</option>
+              <option>公里 (km)</option>
+            </select>
+          </div>
+        </div>
+        <button class="calc-btn">換算</button>
+      </div>
+
+      <!--速度換算 -->
+      <div style="margin-bottom:32px;">
+        <label>速度換算</label>
+        <div class="form-full">
+          <label>數值</label>
+          <input type="number" step="0.01">
+        </div>
+        <div class="form-row">
+          <div>
+            <label>從</label>
+            <select>
+              <option>公里/小時 (km/h)</option>
+              <option>海里/小時 (knot)</option>
+            </select>
+          </div>
+          <div>
+            <label>到</label>
+            <select>
+              <option>海里/小時 (knot)</option>
+              <option>公里/小時 (km/h)</option>
+            </select>
+          </div>
+        </div>
+        <button class="calc-btn">換算</button>
+      </div>
+
+      <!--溫度換算 -->
+      <div>
+        <label>溫度換算</label>
+        <div class="form-full">
+          <label>數值</label>
+          <input type="number" step="0.1">
+        </div>
+        <div class="form-row">
+          <div>
+            <label>從</label>
+            <select>
+              <option>攝氏 (℃)</option>
+              <option>華氏 (℉)</option>
+            </select>
+          </div>
+          <div>
+            <label>到</label>
+            <select>
+              <option>華氏 (℉)</option>
+              <option>攝氏 (℃)</option>
+            </select>
+          </div>
+        </div>
+        <button class="calc-btn">換算</button>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-
-/* ✅ MENU TOGGLE */
-function toggleMenu() {
+// Mobile menu toggle same as your index page
+function toggleMenu(){
   const nav = document.getElementById("navMenu");
   const btn = document.querySelector(".menu-toggle");
-
   nav.classList.toggle("active");
   btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
-
-const macauLat = 22.1595;
-const macauLon = 113.5685;
-
-function toRad(d){ return d * Math.PI / 180; }
-function toDeg(r){ return r * 180 / Math.PI; }
-
-function haversine(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = toRad(lat2 - lat1);
-  const dLon = toRad(lon2 - lon1);
-
-  const a = Math.sin(dLat/2)**2 +
-            Math.cos(toRad(lat1)) *
-            Math.cos(toRad(lat2)) *
-            Math.sin(dLon/2)**2;
-
-  return 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-}
-
-function bearing(lat1, lon1, lat2, lon2) {
-  const dLon = toRad(lon2 - lon1);
-
-  const y = Math.sin(dLon) * Math.cos(toRad(lat2));
-  const x = Math.cos(toRad(lat1))*Math.sin(toRad(lat2)) -
-            Math.sin(toRad(lat1))*Math.cos(toRad(lat2))*Math.cos(dLon);
-
-  return (toDeg(Math.atan2(y, x)) + 360) % 360;
-}
-
-function compass(b) {
-  const dirs = ["N","NNE","NE","ENE","E","ESE","SE","SSE",
-                "S","SSW","SW","WSW","W","WNW","NW","NNW"];
-  return dirs[Math.round(b / 22.5) % 16];
-}
-
-function calculate() {
-  const lat = parseFloat(document.getElementById("lat").value);
-  const lon = parseFloat(document.getElementById("lon").value);
-
-  if (isNaN(lat) || isNaN(lon)) {
-    document.getElementById("result").innerText = "請輸入有效座標";
-    return;
-  }
-
-  const dist = haversine(macauLat, macauLon, lat, lon);
-  const b = bearing(macauLat, macauLon, lat, lon);
-
-  document.getElementById("result").innerText =
-    `距離澳門: ${compass(b)} ${dist.toFixed(0)} km `;
-
-  const minLat = Math.min(macauLat, lat);
-  const maxLat = Math.max(macauLat, lat);
-  const minLon = Math.min(macauLon, lon);
-  const maxLon = Math.max(macauLon, lon);
-
-  const padding = 2;
-
-  const bbox =
-    (minLon - padding) + "," +
-    (minLat - padding) + "," +
-    (maxLon + padding) + "," +
-    (maxLat + padding);
-
-  const mapUrl =
-    "https://www.openstreetmap.org/export/embed.html?bbox=" +
-    bbox +
-    "&layer=mapnik" +
-    "&marker=" + macauLat + "," + macauLon +
-    "&marker=" + lat + "," + lon;
-
-  document.getElementById("map").src = mapUrl;
-}
-
 </script>
-
 </body>
 </html>
