@@ -2,43 +2,38 @@
 <ActualWeatherBrief>
 <System>
 <SysAuthor>DINF</SysAuthor>
-<SysPubdate>2026-06-06 08:54</SysPubdate>
+<SysPubdate>2026-06-06 12:58</SysPubdate>
 <SysLanguage>0</SysLanguage>
 </System>
 <Custom>
-<ValidFor>2026-06-06 09:00</ValidFor>
+<ValidFor>2026-06-06 13:00</ValidFor>
 <Temperature>
 <MeasureUnit>°C</MeasureUnit>
 <Type>3</Type>
-<Value>30</Value>
+<Value>29</Value>
 </Temperature>
 <Humidity>
 <MeasureUnit>%</MeasureUnit>
 <Type>3</Type>
-<Value>80</Value>
+<Value>86</Value>
 </Humidity>
 <WindSpeed>
 <MeasureUnit>km/h</MeasureUnit>
 <Type>3</Type>
-<Value>10</Value>
-<WindSpeedDescription>二級</WindSpeedDescription>
+<Value>3</Value>
+<WindSpeedDescription>微風</WindSpeedDescription>
 </WindSpeed>
 <WindDirection>
 <MeasureUnit>°</MeasureUnit>
 <Type>3</Type>
-<Value>WSW</Value>
-<WindDescription>西南偏西</WindDescription>
+<Value>ESE</Value>
+<WindDescription>東南偏東</WindDescription>
 </WindDirection>
-<Temperature>
-<MeasureUnit>°C</MeasureUnit>
-<Type>9</Type>
-<Value>28</Value>
-</Temperature>
 <Icon>
-<IconName>ww-c18.gif</IconName>
-<IconURL>https://www.smg.gov.mo/icons/weatherIcon/ww-c18.gif</IconURL>
+<IconName>ww-c02.gif</IconName>
+<IconURL>https://www.smg.gov.mo/icons/weatherIcon/ww-c02.gif</IconURL>
 </Icon>
-<WeatherStatus>18</WeatherStatus>
+<WeatherStatus>02</WeatherStatus>
 <FeelsLikeLevel>8</FeelsLikeLevel>
 <FeelsLikeDescription>酷熱</FeelsLikeDescription>
 </Custom>
