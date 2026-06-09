@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="icons/MSSO.png">
+<title>澳門民間氣象台 - 警告記錄查詢</title>
+<style>
+/* ========== 全域基礎樣式 ========== */
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f5f8fa;
+}
+
+/* ========== 頁頭Header ========== */
+.header {
+  background: #1f3a4d;
+  color: white;
+  padding: 20px 25px;
+  display: flex;
+  align-items: center;
+}
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-left: 10px;
+}
+.logo {
+  height: 40px;
+}
+
+/* ========== 頂部導航菜單 ========== */
+.menu-container {
+  position: relative;
+  z-index: 3000;
+  margin-left: auto;
+}
+.menu-toggle {
+  display: none;
+  font-size: 26px;
+  padding: 10px 15px;
+  cursor: pointer;
+  background: #2d6c94;
+  color: white;
+}
+.nav {
+  background: #2d6c94;
+  display: flex;
+}
+.nav a {
+  color: white;
+  padding: 14px 18px;
+  font-size: 16px;
+  text-decoration: none;
+  display: block;
+}
+.nav a:hover {
+  background: #1f4f6d;
+}
+
+/* ========== 主要容器 ========== */
+.main-container {
+  max-width: 1200px;
+  margin: 25px auto;
+  padding: 0 25px;
+}
+
+/* ========== 篩選控制區 ========== */
+.filter-bar {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: center;
+}
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filter-group label {
+  font-weight: bold;
+  color: #333;
+}
+.filter-group select {
+  padding: 8px 12px;
+  border: 2px solid #4fa6a6;
+  border-radius: 8px;
+  font-size: 16px;
+}
+.reset-btn {
+  margin-left: auto;
+  padding: 8px 16px;
+  background: #d9534f;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.reset-btn:hover {
+  opacity: 0.9;
+}
+
+/* ========== 表格區域 ========== */
+.table-container {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th {
+  background: #4fa6a6;
+  color: white;
+  padding: 15px;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+}
+th:hover {
+  background: #3b8c8c;
+}
+th .sort-icon {
+  margin-left: 8px;
+  font-size: 12px;
+}
+td {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+tr:nth-child(even) {
+  background-color: #f8fdfd;
+}
+tr:hover {
+  background-color: #e6f7f7;
+}
+
+/* 警告類型顏色標示 */
+.warning-cold { background-color: #e3f2fd; color: #0d47a1; }
+.warning-rain { background-color: #e0f2f1; color: #00695c; }
+.warning-storm { background-color: #ffebee; color: #b71c1c; }
+.warning-hot { background-color: #fff8e1; color: #ff8f00; }
+.warning-veryhot { background-color: #ffe0b2; color: #e65100; }
+
+/* ========== 響應式樣式 ========== */
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: block;
+  }
+  .nav {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    position: absolute;
+    top: 100%;
+    right: 0;
+  }
+  .nav.active {
+    display: flex;
+  }
+  .nav a {
+    width: 100%;
+    padding: 12px 15px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+  }
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .reset-btn {
+    margin-left: 0;
+    margin-top: 10px;
+  }
+  th, td {
+    padding: 10px 8px;
+    font-size: 14px;
+  }
+  .table-container {
+    overflow-x: auto;
+  }
+  table {
+    min-width: 800px;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="header">
+  <img src="icons/MSSO.png" class="logo">
+  <div class="title">澳門民間氣象台 MSSO - 警告記錄查詢</div>
+</div>
+
+<div class="menu-container">
+  <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+  <div class="nav" id="navMenu">
+    <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
+    <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
+    <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋距離計算工具</a> 
+    <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑地圖</a>  
+    <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
+    <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+    <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
+  </div>
+</div>
+
+<div class="main-container">
+  <!-- 篩選區 -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label for="yearFilter">年份：</label>
+      <select id="yearFilter">
+        <option value="all">全部年份</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="monthFilter">月份：</label>
+      <select id="monthFilter">
+        <option value="all">全部月份</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="typeFilter">警告類型：</label>
+      <select id="typeFilter">
+        <option value="all">全部類型</option>
+      </select>
+    </div>
+    <button class="reset-btn" onclick="resetFilters()">重置篩選</button>
+  </div>
+
+  <!-- 表格區 -->
+  <div class="table-container">
+    <table id="warningTable">
+      <thead>
+        <tr>
+          <th data-sort="type">警報 <span class="sort-icon">↕</span></th>
+          <th data-sort="start">發出時間 <span class="sort-icon">↕</span></th>
+          <th data-sort="end">取消時間 <span class="sort-icon">↕</span></th>
+          <th data-sort="duration">生效時間(hh:mm) <span class="sort-icon">↕</span></th>
+        </tr>
+      </thead>
+      <tbody id="warningTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// 菜單切換
+function toggleMenu() {
+  const nav = document.getElementById("navMenu");
+  const btn = document.querySelector(".menu-toggle");
+  nav.classList.toggle("active");
+  btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
+}
+
+// 警告數據（可替換為你的webdata.js數據）
+const warningData = [
+  // 2025年數據
+  { type: "寒冷警報", start: "2025-01-09 13:20", end: "2025-01-13 17:20", duration: "100:00" },
+  { type: "寒冷警報", start: "2025-01-15 12:20", end: "2025-01-21 07:40", duration: "139:20" },
+  { type: "寒冷警報", start: "2025-01-25 16:40", end: "2025-01-29 14:40", duration: "94:00" },
+  { type: "寒冷警報", start: "2025-02-03 13:40", end: "2025-02-05 08:20", duration: "42:40" },
+  { type: "寒冷警報", start: "2025-02-06 01:20", end: "2025-02-11 13:20", duration: "132:00" },
+  { type: "寒冷警報", start: "2025-02-23 13:20", end: "2025-02-24 13:20", duration: "24:00" },
+  { type: "寒冷警報", start: "2025-02-25 03:00", end: "2025-02-25 08:20", duration: "05:20" },
+  { type: "寒冷警報", start: "2025-03-05 18:20", end: "2025-03-08 12:40", duration: "66:20" },
+  { type: "大雨警報", start: "2025-03-15 14:20", end: "2025-03-15 15:40", duration: "01:20" },
+  { type: "寒冷警報", start: "2025-03-19 02:20", end: "2025-03-19 07:40", duration: "05:20" },
+  { type: "寒冷警報", start: "2025-03-29 16:20", end: "2025-04-01 13:20", duration: "69:00" },
+  { type: "寒冷警報", start: "2025-04-02 03:20", end: "2025-04-02 08:20", duration: "05:00" },
+  { type: "酷熱警報", start: "2025-04-15 13:00", end: "2025-04-15 17:40", duration: "04:40" },
+  { type: "大雨警報", start: "2025-04-25 02:20", end: "2025-04-25 07:20", duration: "05:00" },
+  { type: "大雨警報", start: "2025-05-07 04:10", end: "2025-05-07 07:40", duration: "03:30" },
+  { type: "暴雨警報", start: "2025-05-07 07:40", end: "2025-05-07 10:20", duration: "02:40" },
+  { type: "大雨警報", start: "2025-05-07 10:20", end: "2025-05-07 11:20", duration: "01:00" },
+  { type: "酷熱警報", start: "2025-05-17 13:30", end: "2025-05-17 16:30", duration: "03:00" },
+  { type: "酷熱警報", start: "2025-05-19 12:00", end: "2025-05-19 15:30", duration: "03:30" },
+  { type: "酷熱警報", start: "2025-05-21 10:20", end: "2025-05-23 17:20", duration: "55:00" },
+  { type: "大雨警報", start: "2025-05-23 19:10", end: "2025-05-23 23:10", duration: "04:00" },
+  { type: "大雨警報", start: "2025-05-24 05:00", end: "2025-05-24 06:30", duration: "01:30" },
+  { type: "大雨警報", start: "2025-05-28 21:40", end: "2025-05-28 22:40", duration: "01:00" },
+  { type: "大雨警報", start: "2025-05-28 23:40", end: "2025-05-29 01:10", duration: "01:30" },
+  { type: "大雨警報", start: "2025-05-29 14:20", end: "2025-05-29 16:20", duration: "02:00" },
+  { type: "酷熱警報", start: "2025-06-02 12:20", end: "2025-06-02 17:40", duration: "05:20" },
+  { type: "大雨警報", start: "2025-06-04 16:10", end: "2025-06-04 19:20", duration: "03:10" },
+  { type: "酷熱警報", start: "2025-06-06 18:40", end: "2025-06-10 12:20", duration: "89:40" },
+  { type: "非常酷熱警報", start: "2025-06-10 12:20", end: "2025-06-10 19:20", duration: "07:00" },
+  { type: "酷熱警報", start: "2025-06-10 19:20", end: "2025-06-11 18:40", duration: "23:20" },
+  { type: "戒備警報", start: "2025-06-11 01:20", end: "2025-06-11 18:20", duration: "17:00" },
+  { type: "強風警報", start: "2025-06-11 18:20", end: "2025-06-12 18:20", duration: "24:00" },
+  { type: "戒備警報", start: "2025-06-12 18:20", end: "2025-06-14 02:20", duration: "32:00" },
+  { type: "大雨警報", start: "2025-06-12 20:20", end: "2025-06-12 21:00", duration: "00:40" },
+  { type: "強風警報", start: "2025-06-14 02:20", end: "2025-06-15 14:20", duration: "36:00" },
+  { type: "大雨警報", start: "2025-06-14 14:35", end: "2025-06-14 16:40", duration: "02:05" },
+  { type: "大雨警報", start: "2025-06-17 06:50", end: "2025-06-17 07:25", duration: "00:35" },
+  { type: "暴雨警報", start: "2025-06-17 07:25", end: "2025-06-17 09:25", duration: "02:00" },
+  { type: "酷熱警報", start: "2025-06-22 08:20", end: "2025-06-25 19:40", duration: "83:20" },
+  { type: "戒備警報", start: "2025-06-25 01:20", end: "2025-06-26 19:20", duration: "42:00" },
+  { type: "風暴潮觀察警報", start: "2025-06-25 12:20", end: "2025-06-26 12:20", duration: "24:00" },
+  { type: "酷熱警報", start: "2025-06-27 14:10", end: "2025-06-29 12:20", duration: "46:10" },
+  { type: "大雨警報", start: "2025-07-01 06:05", end: "2025-07-01 09:05", duration: "03:00" },
+  { type: "酷熱警報", start: "2025-07-02 14:10", end: "2025-07-04 17:20", duration: "51:10" },
+  { type: "戒備警報", start: "2025-07-04 13:40", end: "2025-07-06 13:20", duration: "47:40" },
+  { type: "非常酷熱警報", start: "2025-07-04 17:20", end: "2025-07-08 11:20", duration: "90:00" },
+  { type: "酷熱警報", start: "2025-07-08 11:20", end: "2025-07-09 14:50", duration: "27:30" },
+  { type: "大雨警報", start: "2025-07-08 15:55", end: "2025-07-08 17:05", duration: "01:10" },
+  { type: "非常酷熱警報", start: "2025-07-09 14:50", end: "2025-07-09 19:40", duration: "04:50" },
+  { type: "戒備警報", start: "2025-07-09 15:20", end: "2025-07-10 00:20", duration: "09:00" },
+  { type: "酷熱警報", start: "2025-07-09 19:40", end: "2025-07-10 03:30", duration: "07:50" },
+  { type: "大雨警報", start: "2025-07-09 23:20", end: "2025-07-10 00:50", duration: "01:30" },
+  { type: "大雨警報", start: "2025-07-10 15:10", end: "2025-07-10 15:40", duration: "00:30" },
+  { type: "暴雨警報", start: "2025-07-10 15:40", end: "2025-07-10 17:00", duration: "01:20" },
+  { type: "大雨警報", start: "2025-07-10 17:00", end: "2025-07-10 17:40", duration: "00:40" },
+  { type: "大雨警報", start: "2025-07-12 13:20", end: "2025-07-12 14:40", duration: "01:20" },
+  { type: "酷熱警報", start: "2025-07-14 07:05", end: "2025-07-16 11:50", duration: "52:45" },
+  { type: "非常酷熱警報", start: "2025-07-16 11:50", end: "2025-07-17 19:20", duration: "31:30" },
+  { type: "酷熱警報", start: "2025-07-17 19:20", end: "2025-07-19 19:20", duration: "48:00" },
+  { type: "大雨警報", start: "2025-07-18 12:00", end: "2025-07-18 12:20", duration: "00:20" },
+  { type: "暴雨警報", start: "2025-07-18 12:20", end: "2025-07-18 13:50", duration: "01:30" },
+  { type: "注意警報", start: "2025-07-18 12:20", end: "2025-07-19 04:20", duration: "16:00" },
+  { type: "大雨警報", start: "2025-07-18 13:50", end: "2025-07-18 15:00", duration: "01:10" },
+  { type: "戒備警報", start: "2025-07-19 04:20", end: "2025-07-19 16:20", duration: "12:00" },
+  { type: "風暴潮觀察警報", start: "2025-07-19 11:20", end: "2025-07-20 16:20", duration: "29:00" },
+  { type: "強風警報", start: "2025-07-19 16:20", end: "2025-07-20 03:20", duration: "11:00" },
+  { type: "西北烈風警報", start: "2025-07-20 03:20", end: "2025-07-20 09:40", duration: "06:20" },
+  { type: "暴風警報", start: "2025-07-20 09:40", end: "2025-07-20 13:40", duration: "04:00" },
+  { type: "大雨警報", start: "2025-07-20 12:00", end: "2025-07-20 16:30", duration: "04:30" },
+  { type: "颶風警報", start: "2025-07-20 13:40", end: "2025-07-20 16:40", duration: "03:00" },
+  { type: "強風警報", start: "2025-07-20 16:40", end: "2025-07-21 04:40", duration: "12:00" },
+  { type: "大雨警報", start: "2025-07-20 17:00", end: "2025-07-21 00:30", duration: "07:30" },
+  { type: "大雨警報", start: "2025-07-21 16:30", end: "2025-07-21 19:00", duration: "02:30" },
+  { type: "酷熱警報", start: "2025-07-22 16:20", end: "2025-07-25 02:20", duration: "58:00" },
+  { type: "非常酷熱警報", start: "2025-07-25 02:20", end: "2025-07-27 00:30", duration: "46:10" },
+  { type: "酷熱警報", start: "2025-07-27 00:30", end: "2025-07-28 17:30", duration: "41:00" },
+  { type: "大雨警報", start: "2025-07-29 12:45", end: "2025-07-29 14:45", duration: "02:00" },
+  { type: "酷熱警報", start: "2025-07-30 12:05", end: "2025-08-01 16:55", duration: "52:50" },
+  { type: "大雨警報", start: "2025-07-31 02:05", end: "2025-07-31 03:05", duration: "01:00" },
+  { type: "大雨警報", start: "2025-07-31 14:50", end: "2025-07-31 16:20", duration: "01:30" },
+  { type: "大雨警報", start: "2025-08-01 14:40", end: "2025-08-01 16:20", duration: "01:40" },
+  { type: "大雨警報", start: "2025-08-01 17:45", end: "2025-08-01 18:35", duration: "00:50" },
+  { type: "暴雨警報", start: "2025-08-02 08:50", end: "2025-08-02 09:50", duration: "01:00" },
+  { type: "大雨警報", start: "2025-08-02 09:50", end: "2025-08-02 10:20", duration: "00:30" },
+  { type: "大雨警報", start: "2025-08-02 13:35", end: "2025-08-02 16:35", duration: "03:00" },
+  { type: "大雨警報", start: "2025-08-05 05:05", end: "2025-08-05 05:20", duration: "00:15" },
+  { type: "暴雨警報", start: "2025-08-05 05:20", end: "2025-08-05 06:20", duration: "01:00" },
+  { type: "大雨警報", start: "2025-08-05 06:20", end: "2025-08-05 06:50", duration: "00:30" },
+  { type: "大雨警報", start: "2025-08-05 07:20", end: "2025-08-05 08:00", duration: "00:40" },
+  { type: "暴雨警報", start: "2025-08-05 08:00", end: "2025-08-05 09:50", duration: "01:50" },
+  { type: "大雨警報", start: "2025-08-05 09:50", end: "2025-08-05 14:10", duration: "04:20" },
+  { type: "大雨警報", start: "2025-08-05 21:40", end: "2025-08-06 00:20", duration: "02:40" },
+  { type: "大雨警報", start: "2025-08-06 01:40", end: "2025-08-06 05:10", duration: "03:30" },
+  { type: "大雨警報", start: "2025-08-06 11:00", end: "2025-08-06 12:00", duration: "01:00" },
+  { type: "酷熱警報", start: "2025-08-07 08:50", end: "2025-08-12 17:40", duration: "128:50" },
+  { type: "大雨警報", start: "2025-08-12 07:35", end: "2025-08-12 08:15", duration: "00:40" },
+  { type: "非常酷熱警報", start: "2025-08-12 17:40", end: "2025-08-13 14:40", duration: "21:00" },
+  { type: "戒備警報", start: "2025-08-13 13:20", end: "2025-08-14 13:20", duration: "24:00" },
+  { type: "酷熱警報", start: "2025-08-13 14:40", end: "2025-08-13 19:40", duration: "05:00" },
+  { type: "大雨警報", start: "2025-08-14 10:25", end: "2025-08-14 13:50", duration: "03:25" },
+  { type: "暴雨警報", start: "2025-08-14 13:50", end: "2025-08-14 14:10", duration: "00:20" },
+  { type: "大暴雨警報", start: "2025-08-14 14:10", end: "2025-08-14 18:10", duration: "04:00" },
+  { type: "暴雨警報", start: "2025-08-14 18:10", end: "2025-08-14 19:40", duration: "01:30" },
+  { type: "大雨警報", start: "2025-08-14 19:40", end: "2025-08-15 02:20", duration: "06:40" },
+  { type: "酷熱警報", start: "2025-08-16 13:20", end: "2025-08-17 18:20", duration: "29:00" },
+  { type: "注意警報", start: "2025-08-16 18:20", end: "2025-08-17 08:20", duration: "14:00" },
+  { type: "強風警報", start: "2025-08-17 08:20", end: "2025-08-18 00:20", duration: "16:00" },
+  { type: "大雨警報", start: "2025-08-17 23:15", end: "2025-08-17 23:45", duration: "00:30" },
+  { type: "戒備警報", start: "2025-08-18 00:20", end: "2025-08-18 12:20", duration: "12:00" },
+  { type: "大雨警報", start: "2025-08-18 05:25", end: "2025-08-18 06:25", duration: "01:00" },
+  { type: "酷熱警報", start: "2025-08-21 06:50", end: "2025-08-23 17:50", duration: "59:00" },
+  { type: "戒備警報", start: "2025-08-23 02:40", end: "2025-08-23 20:20", duration: "17:40" },
+  { type: "風暴潮觀察警報", start: "2025-08-23 18:20", end: "2025-08-24 12:20", duration: "18:00" },
+  { type: "強風警報", start: "2025-08-23 20:20", end: "2025-08-24 20:20", duration: "24:00" },
+  { type: "酷熱警報", start: "2025-08-26 09:10", end: "2025-08-27 16:10", duration: "31:00" },
+  { type: "戒備警報", start: "2025-08-28 17:20", end: "2025-08-29 07:20", duration: "14:00" },
+  { type: "強風警報", start: "2025-08-29 07:20", end: "2025-08-30 00:20", duration: "17:00" },
+  { type: "酷熱警報", start: "2025-08-29 09:40", end: "2025-08-29 16:40", duration: "07:00" },
+  { type: "大雨警報", start: "2025-08-30 11:05", end: "2025-08-30 13:45", duration: "02:40" },
+  { type: "酷熱警報", start: "2025-09-02 08:50", end: "2025-09-07 12:00", duration: "123:10" },
+  { type: "注意警報", start: "2025-09-05 17:20", end: "2025-09-06 10:20", duration: "17:00" },
+  { type: "戒備警報", start: "2025-09-06 10:20", end: "2025-09-07 10:20", duration: "24:00" },
+  { type: "風暴潮戒備警報", start: "2025-09-06 15:20", end: "2025-09-08 12:20", duration: "45:00" },
+  { type: "強風警報", start: "2025-09-07 10:20", end: "2025-09-07 21:20", duration: "11:00" },
+  { type: "大雨警報", start: "2025-09-07 13:00", end: "2025-09-07 15:00", duration: "02:00" },
+  { type: "東北烈風警報", start: "2025-09-07 21:20", end: "2025-09-08 04:20", duration: "07:00" },
+  { type: "大雨警報", start: "2025-09-08 03:00", end: "2025-09-08 12:30", duration: "09:30" },
+  { type: "東南烈風警報", start: "2025-09-08 04:20", end: "2025-09-08 12:20", duration: "08:00" },
+  { type: "強風警報", start: "2025-09-08 12:20", end: "2025-09-08 17:20", duration: "05:00" },
+  { type: "大雨警報", start: "2025-09-08 13:30", end: "2025-09-08 15:00", duration: "01:30" },
+  { type: "大雨警報", start: "2025-09-09 00:30", end: "2025-09-09 01:30", duration: "01:00" },
+  { type: "大雨警報", start: "2025-09-10 10:25", end: "2025-09-10 11:25", duration: "01:00" },
+  { type: "酷熱警報", start: "2025-09-11 09:00", end: "2025-09-19 17:20", duration: "200:20" },
+  { type: "注意警報", start: "2025-09-17 01:20", end: "2025-09-18 09:20", duration: "32:00" },
+  { type: "戒備警報", start: "2025-09-18 09:20", end: "2025-09-19 11:20", duration: "26:00" },
+  { type: "強風警報", start: "2025-09-19 11:20", end: "2025-09-20 08:20", duration: "21:00" },
+  { type: "注意警報", start: "2025-09-21 10:20", end: "2025-09-22 10:20", duration: "24:00" },
+  { type: "風暴潮戒備警報", start: "2025-09-21 14:20", end: "2025-09-23 14:20", duration: "48:00" },
+  { type: "酷熱警報", start: "2025-09-21 16:40", end: "2025-09-23 17:40", duration: "49:00" },
+  { type: "大雨警報", start: "2025-09-21 21:35", end: "2025-09-21 23:35", duration: "02:00" },
+  { type: "戒備警報", start: "2025-09-22 10:20", end: "2025-09-23 10:20", duration: "24:00" },
+  { type: "強風警報", start: "2025-09-23 10:20", end: "2025-09-23 21:20", duration: "11:00" },
+  { type: "風暴潮危險警報", start: "2025-09-23 14:20", end: "2025-09-24 14:20", duration: "24:00" },
+  { type: "西北烈風警報", start: "2025-09-23 21:20", end: "2025-09-24 02:40", duration: "05:20" },
+  { type: "暴風警報", start: "2025-09-24 02:40", end: "2025-09-24 09:50", duration: "07:10" },
+  { type: "大雨警報", start: "2025-09-24 04:45", end: "2025-09-24 13:15", duration: "08:30" },
+  { type: "颶風警報", start: "2025-09-24 09:50", end: "2025-09-24 14:20", duration: "04:30" },
+  { type: "暴風警報", start: "2025-09-24 14:20", end: "2025-09-24 16:20", duration: "02:00" },
+  { type: "風暴潮戒備警報", start: "2025-09-24 14:20", end: "2025-09-24 18:50", duration: "04:30" },
+  { type: "東南烈風警報", start: "2025-09-24 16:20", end: "2025-09-25 01:20", duration: "09:00" },
+  { type: "強風警報", start: "2025-09-25 01:20", end: "2025-09-25 17:20", duration: "16:00" },
+  { type: "大雨警報", start: "2025-09-25 09:40", end: "2025-09-25 11:00", duration: "01:20" },
+  { type: "酷熱警報", start: "2025-09-26 14:05", end: "2025-09-28 12:35", duration: "46:30" },
+  { type: "酷熱警報", start: "2025-09-30 11:20", end: "2025-10-04 17:20", duration: "102:00" },
+  { type: "注意警報", start: "2025-10-03 08:20", end: "2025-10-03 22:20", duration: "14:00" },
+  { type: "戒備警報", start: "2025-10-03 22:20", end: "2025-10-04 15:20", duration: "17:00" },
+  { type: "風暴潮觀察警報", start: "2025-10-04 00:20", end: "2025-10-05 05:20", duration: "29:00" },
+  { type: "強風警報", start: "2025-10-04 15:20", end: "2025-10-04 23:20", duration: "08:00" },
+  { type: "東南烈風警報", start: "2025-10-04 23:20", end: "2025-10-05 01:20", duration: "02:00" },
+  { type: "大雨警報", start: "2025-10-05 01:15", end: "2025-10-05 02:15", duration: "01:00" },
+  { type: "暴風警報", start: "2025-10-05 01:20", end: "2025-10-05 09:20", duration: "08:00" },
+  { type: "暴雨警報", start: "2025-10-05 02:15", end: "2025-10-05 02:55", duration: "00:40" },
+  { type: "風暴潮戒備警報", start: "2025-10-05 05:20", end: "2025-10-05 11:20", duration: "06:00" },
+  { type: "東南烈風警報", start: "2025-10-05 09:20", end: "2025-10-05 15:20", duration: "06:00" },
+  { type: "大雨警報", start: "2025-10-05 14:50", end: "2025-10-05 15:40", duration: "00:50" },
+  { type: "強風警報", start: "2025-10-05 15:20", end: "2025-10-05 22:20", duration: "07:00" },
+  { type: "酷熱警報", start: "2025-10-06 17:10", end: "2025-10-09 17:20", duration: "72:10" },
+  { type: "酷熱警報", start: "2025-10-15 14:00", end: "2025-10-16 13:00", duration: "23:00" },
+  { type: "酷熱警報", start: "2025-10-16 12:40", end: "2025-10-19 17:40", duration: "77:00" },
+  { type: "注意警報", start: "2025-10-19 10:20", end: "2025-10-19 22:20", duration: "12:00" },
+  { type: "戒備警報", start: "2025-10-19 22:20", end: "2025-10-20 16:20", duration: "18:00" },
+  { type: "風暴潮觀察警報", start: "2025-10-19 22:20", end: "2025-10-22 00:20", duration: "50:00" },
+  { type: "強風警報", start: "2025-10-20 16:20", end: "2025-10-21 18:20", duration: "26:00" },
+  { type: "戒備警報", start: "2025-10-21 18:20", end: "2025-10-22 00:20", duration: "06:00" },
+  { type: "戒備警報", start: "2025-11-10 14:20", end: "2025-11-12 04:20", duration: "38:00" },
+  { type: "風暴潮觀察警報", start: "2025-11-11 01:40", end: "2025-11-12 04:20", duration: "26:40" },
+  { type: "寒冷警報", start: "2025-11-18 13:20", end: "2025-11-20 09:20", duration: "44:00" },
+  { type: "寒冷警報", start: "2025-12-25 13:20", end: "2025-12-27 09:20", duration: "44:00" },
+  // 2026年數據
+  { type: "寒冷警報", start: "2026-01-01 13:20", end: "2026-01-04 01:20", duration: "60:00" },
+  { type: "寒冷警報", start: "2026-01-05 16:20", end: "2026-01-10 22:20", duration: "126:00" },
+  { type: "寒冷警報", start: "2026-01-20 13:20", end: "2026-01-24 10:20", duration: "93:00" },
+  { type: "寒冷警報", start: "2026-01-31 16:40", end: "2026-02-01 23:40", duration: "31:00" },
+  { type: "寒冷警報", start: "2026-02-07 13:40", end: "2026-02-09 08:40", duration: "43:00" },
+  { type: "大雨警報", start: "2026-03-02 19:00", end: "2026-03-02 20:00", duration: "01:00" },
+  { type: "大雨警報", start: "2026-03-02 21:00", end: "2026-03-02 22:00", duration: "01:00" },
+  { type: "大雨警報", start: "2026-03-03 22:00", end: "2026-03-03 23:00", duration: "01:00" },
+  { type: "大雨警報", start: "2026-03-03 23:15", end: "2026-03-04 00:15", duration: "01:00" },
+  { type: "大雨警報", start: "2026-03-04 02:20", end: "2026-03-04 03:20", duration: "01:00" },
+  { type: "大雨警報", start: "2026-03-30 09:40", end: "2026-03-30 10:40", duration: "01:00" },
+  { type: "大雨警報", start: "2026-04-04 10:40", end: "2026-04-04 12:20", duration: "01:40" },
+  { type: "大雨警報", start: "2026-04-17 16:35", end: "2026-04-17 16:40", duration: "00:05" },
+  { type: "暴雨警報", start: "2026-04-17 16:40", end: "2026-04-17 18:00", duration: "01:20" },
+  { type: "大雨警報", start: "2026-04-24 01:05", end: "2026-04-24 02:25", duration: "01:20" },
+  { type: "大雨警報", start: "2026-04-29 00:45", end: "2026-04-29 02:45", duration: "02:00" },
+  { type: "大雨警報", start: "2026-05-03 14:00", end: "2026-05-03 16:30", duration: "02:30" },
+  { type: "大雨警報", start: "2026-05-09 03:50", end: "2026-05-09 06:20", duration: "02:30" },
+  { type: "酷熱警報", start: "2026-05-13 12:25", end: "2026-05-13 16:25", duration: "04:00" },
+  { type: "大雨警報", start: "2026-05-17 20:00", end: "2026-05-17 21:00", duration: "01:00" },
+  { type: "大雨警報", start: "2026-05-19 07:20", end: "2026-05-19 08:20", duration: "01:00" },
+  { type: "大雨警報", start: "2026-05-21 05:20", end: "2026-05-21 08:20", duration: "03:00" },
+  { type: "大雨警報", start: "2026-05-21 23:35", end: "2026-05-22 01:15", duration: "01:40" },
+  { type: "酷熱警報", start: "2026-05-25 08:20", end: "2026-05-28 13:00", duration: "76:40" },
+  { type: "非常酷熱警報", start: "2026-05-28 13:00", end: "2026-05-29 19:20", duration: "30:20" },
+  { type: "酷熱警報", start: "2026-05-30 12:00", end: "2026-05-31 07:00", duration: "19:00" },
+  { type: "大雨警報", start: "2026-05-31 05:20", end: "2026-05-31 06:25", duration: "01:05" },
+  { type: "暴雨警報", start: "2026-05-31 06:25", end: "2026-05-31 07:25", duration: "01:00" },
+  { type: "大雨警報", start: "2026-05-31 07:25", end: "2026-05-31 08:00", duration: "00:35" },
+  { type: "酷熱警報", start: "2026-06-01 08:20", end: "2026-06-04 12:30", duration: "76:10" },
+  { type: "非常酷熱警報", start: "2026-06-04 12:30", end: "2026-06-05 16:20", duration: "27:50" },
+  { type: "酷熱警報", start: "2026-06-05 16:20", end: "2026-06-06 10:20", duration: "18:00" },
+  { type: "大雨警報", start: "2026-06-05 17:35", end: "2026-06-05 19:35", duration: "02:00" },
+  { type: "大雨警報", start: "2026-06-06 18:20", end: "2026-06-06 19:20", duration: "01:00" },
+  { type: "大雨警報", start: "2026-06-07 13:30", end: "2026-06-07 13:40", duration: "00:10" },
+  { type: "暴雨警報", start: "2026-06-07 13:40", end: "2026-06-07 14:20", duration: "00:40" },
+  { type: "大雨警報", start: "2026-06-07 14:20", end: "2026-06-07 14:40", duration: "00:20" },
+  { type: "大雨警報", start: "2026-06-08 10:35", end: "2026-06-08 11:45", duration: "01:10" },
+  { type: "大雨警報", start: "2026-06-08 15:00", end: "2026-06-08 16:30", duration: "01:30" },
+  { type: "大雨警報", start: "2026-06-08 18:50", end: "2026-06-08 20:20", duration: "01:30" }
+];
+
+// 獲取警告類型對應的CSS類
+function getWarningClass(type) {
+    // 寒冷系列
+    if (type.includes("極為寒冷")) return "warning-extremecold";
+    if (type.includes("非常寒冷")) return "warning-verycold";
+    if (type.includes("寒冷")) return "warning-cold";
+
+    // 酷熱系列
+    if (type.includes("極為酷熱")) return "warning-extremehot";
+    if (type.includes("非常酷熱")) return "warning-veryhot";
+    if (type.includes("酷熱")) return "warning-hot";
+
+    // 降雨系列
+    if (type.includes("大暴雨")) return "warning-heavystorm";
+    if (type.includes("暴雨")) return "warning-storm";
+    if (type.includes("大雨")) return "warning-rain";
+
+    // 風暴潮系列
+    if (type.includes("風暴潮危險")) return "warning-surge-danger";
+    if (type.includes("風暴潮戒備")) return "warning-surge-prep";
+    if (type.includes("風暴潮觀察")) return "warning-surge-observe";
+
+    // 注意 / 戒備
+    if (type.includes("注意警報")) return "warning-notice";
+    if (type.includes("戒備警報")) return "warning-prepare";
+
+    // 風力系列
+    if (type.includes("西南烈風")) return "warning-gale-sw";
+    if (type.includes("西北烈風")) return "warning-gale-nw";
+    if (type.includes("東南烈風")) return "warning-gale-se";
+    if (type.includes("東北烈風")) return "warning-gale-ne";
+    if (type.includes("颶風")) return "warning-hurricane";
+    if (type.includes("暴風")) return "warning-stormwind";
+    if (type.includes("強風")) return "warning-strongwind";
+
+    // 海嘯系列
+    if (type.includes("嚴重海嘯")) return "warning-sevtsunami";
+    if (type.includes("海嘯")) return "warning-tsunami";
+
+    return "";
+}
+
+// 初始化篩選選項
+function initFilters() {
+  const years = new Set();
+  const months = new Set();
+  const types = new Set();
+  
+  warningData.forEach(item => {
+    const [year, month] = item.start.split("-");
+    years.add(year);
+    months.add(month);
+    types.add(item.type);
+  });
+  
+  // 填充年份
+  const yearFilter = document.getElementById("yearFilter");
+  [...years].sort().forEach(y => {
+    yearFilter.innerHTML += `<option value="${y}">${y}</option>`;
+  });
+  
+  // 填充月份
+  const monthFilter = document.getElementById("monthFilter");
+  [...months].sort().forEach(m => {
+    monthFilter.innerHTML += `<option value="${m}">${m}月</option>`;
+  });
+  
+  // 填充類型
+  const typeFilter = document.getElementById("typeFilter");
+  [...types].sort().forEach(t => {
+    typeFilter.innerHTML += `<option value="${t}">${t}</option>`;
+  });
+}
+
+// 渲染表格
+function renderTable(data) {
+  const tbody = document.getElementById("warningTableBody");
+  tbody.innerHTML = "";
+  
+  data.forEach(item => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><span class="${getWarningClass(item.type)}" style="padding:4px 8px; border-radius:4px;">${item.type}</span></td>
+      <td>${item.start}</td>
+      <td>${item.end}</td>
+      <td>${item.duration}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// 篩選數據
+function filterData() {
+  const year = document.getElementById("yearFilter").value;
+  const month = document.getElementById("monthFilter").value;
+  const type = document.getElementById("typeFilter").value;
+  
+  let filtered = warningData.filter(item => {
+    const [y, m] = item.start.split("-");
+    const matchYear = year === "all" || y === year;
+    const matchMonth = month === "all" || m === month;
+    const matchType = type === "all" || item.type === type;
+    return matchYear && matchMonth && matchType;
+  });
+  
+  renderTable(filtered);
+}
+
+// 重置篩選
+function resetFilters() {
+  document.getElementById("yearFilter").value = "all";
+  document.getElementById("monthFilter").value = "all";
+  document.getElementById("typeFilter").value = "all";
+  renderTable(warningData);
+}
+
+// 表格排序
+let currentSort = { key: null, dir: 1 };
+function sortData(key) {
+  if (currentSort.key === key) {
+    currentSort.dir *= -1;
+  } else {
+    currentSort.key = key;
+    currentSort.dir = 1;
+  }
+  
+  const sorted = [...warningData].sort((a, b) => {
+    let valA, valB;
+    switch(key) {
+      case "type":
+        valA = a.type; valB = b.type;
+        break;
+      case "start":
+        valA = a.start; valB = b.start;
+        break;
+      case "end":
+        valA = a.end; valB = b.end;
+        break;
+      case "duration":
+        // 轉換為分鐘排序
+        const [ah, am] = a.duration.split(":").map(Number);
+        const [bh, bm] = b.duration.split(":").map(Number);
+        valA = ah * 60 + am;
+        valB = bh * 60 + bm;
+        break;
+    }
+    if (valA < valB) return -1 * currentSort.dir;
+    if (valA > valB) return 1 * currentSort.dir;
+    return 0;
+  });
+  
+  renderTable(sorted);
+  
+  // 更新排序箭頭
+  document.querySelectorAll(".sort-icon").forEach(icon => icon.textContent = "↕");
+  const activeHeader = document.querySelector(`th[data-sort="${key}"] .sort-icon`);
+  activeHeader.textContent = currentSort.dir === 1 ? "↑" : "↓";
+}
+
+// 初始化
+window.addEventListener('DOMContentLoaded', () => {
+  initFilters();
+  renderTable(warningData);
+  
+  // 綁定篩選事件
+  document.getElementById("yearFilter").addEventListener("change", filterData);
+  document.getElementById("monthFilter").addEventListener("change", filterData);
+  document.getElementById("typeFilter").addEventListener("change", filterData);
+  
+  // 綁定排序事件
+  document.querySelectorAll("th[data-sort]").forEach(th => {
+    th.addEventListener("click", () => sortData(th.dataset.sort));
+  });
+});
+</script>
+</body>
+</html>
