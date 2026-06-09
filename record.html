@@ -282,6 +282,7 @@ tr:hover {
 </div>
 
 <script>
+let filteredData = [...warningData]; // 初始化為全部數據
 // 菜單切換
 function toggleMenu() {
   const nav = document.getElementById("navMenu");
@@ -599,7 +600,8 @@ function filterData() {
   const month = document.getElementById("monthFilter").value;
   const type = document.getElementById("typeFilter").value;
   
-  let filtered = warningData.filter(item => {
+  // 更新全域的 filteredData
+  filteredData = warningData.filter(item => {
     const [y, m] = item.start.split("-");
     const matchYear = year === "all" || y === year;
     const matchMonth = month === "all" || m === month;
@@ -607,7 +609,7 @@ function filterData() {
     return matchYear && matchMonth && matchType;
   });
   
-  renderTable(filtered);
+  renderTable(filteredData);
 }
 
 // 重置篩選
@@ -615,7 +617,8 @@ function resetFilters() {
   document.getElementById("yearFilter").value = "all";
   document.getElementById("monthFilter").value = "all";
   document.getElementById("typeFilter").value = "all";
-  renderTable(warningData);
+  filteredData = [...warningData]; // 重置變數
+  renderTable(filteredData);
 }
 
 // 表格排序
@@ -628,7 +631,7 @@ function sortData(key) {
     currentSort.dir = 1;
   }
   
-  const sorted = [...warningData].sort((a, b) => {
+  const sorted = [...filteredData].sort((a, b) => {
     let valA, valB;
     switch(key) {
       case "type":
@@ -653,7 +656,8 @@ function sortData(key) {
     return 0;
   });
   
-  renderTable(sorted);
+  filteredData = sorted; 
+  renderTable(filteredData);
   
   // 更新排序箭頭
   document.querySelectorAll(".sort-icon").forEach(icon => icon.textContent = "↕");
