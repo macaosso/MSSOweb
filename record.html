@@ -149,11 +149,35 @@ tr:hover {
 }
 
 /* 警告類型顏色標示 */
-.warning-cold { background-color: #e3f2fd; color: #0d47a1; }
-.warning-rain { background-color: #e0f2f1; color: #00695c; }
-.warning-storm { background-color: #ffebee; color: #b71c1c; }
-.warning-hot { background-color: #fff8e1; color: #ff8f00; }
-.warning-veryhot { background-color: #ffe0b2; color: #e65100; }
+/* 寒冷系列 */
+.warning-cold-1 { background-color: #e3f2fd; color: #000; } /* 寒冷 */
+.warning-cold-2 { background-color: #d1d9e6; color: #000; } /* 非常寒冷 */
+.warning-cold-3 { background-color: #b0bac5; color: #fff; } /* 極為寒冷 */
+
+/* 酷熱系列 */
+.warning-hot-1 { background-color: #fff9c4; color: #000; } /* 酷熱 */
+.warning-hot-2 { background-color: #fce4d6; color: #000; } /* 非常酷熱 */
+.warning-hot-3 { background-color: #f4cccc; color: #000; } /* 極為酷熱 */
+
+/* 雨量系列 */
+.warning-rain-1 { background-color: #a2c4c9; color: #000; } /* 大雨 */
+.warning-rain-2 { background-color: #d96a6a; color: #fff; } /* 暴雨 */
+.warning-rain-3 { background-color: #674ea7; color: #fff; } /* 大暴雨 */
+
+/* 風暴潮系列 */
+.warning-surge-1 { background-color: #d9ead3; color: #000; } /* 觀察 */
+.warning-surge-2 { background-color: #e09999; color: #000; } /* 戒備 */
+.warning-surge-3 { background-color: #8e7cc3; color: #fff; } /* 危險 */
+
+/* 風力與其他系列 */
+.warning-notice { background-color: #b7b7b7; color: #000; } /* 注意 */
+.warning-caution { background-color: #76a54a; color: #fff; } /* 戒備 */
+.warning-wind { background-color: #6d9eeb; color: #000; } /* 強風 */
+.warning-gale { background-color: #f1c232; color: #000; } /* 烈風/風暴/颶風預警 */
+.warning-storm { background-color: #a61c00; color: #fff; } /* 暴風 */
+.warning-typhoon { background-color: #85200c; color: #fff; } /* 颶風 */
+.warning-tsunami { background-color: #1c4587; color: #fff; } /* 海嘯 */
+.warning-tsunami-s { background-color: #240a33; color: #fff; } /* 嚴重海嘯 */
 
 /* ========== 響應式樣式 ========== */
 @media (max-width: 768px) {
@@ -492,44 +516,32 @@ const warningData = [
 
 // 獲取警告類型對應的CSS類
 function getWarningClass(type) {
-    // 寒冷系列
-    if (type.includes("極為寒冷")) return "warning-extremecold";
-    if (type.includes("非常寒冷")) return "warning-verycold";
-    if (type.includes("寒冷")) return "warning-cold";
-
-    // 酷熱系列
-    if (type.includes("極為酷熱")) return "warning-extremehot";
-    if (type.includes("非常酷熱")) return "warning-veryhot";
-    if (type.includes("酷熱")) return "warning-hot";
-
-    // 降雨系列
-    if (type.includes("大暴雨")) return "warning-heavystorm";
-    if (type.includes("暴雨")) return "warning-storm";
-    if (type.includes("大雨")) return "warning-rain";
-
-    // 風暴潮系列
-    if (type.includes("風暴潮危險")) return "warning-surge-danger";
-    if (type.includes("風暴潮戒備")) return "warning-surge-prep";
-    if (type.includes("風暴潮觀察")) return "warning-surge-observe";
-
-    // 注意 / 戒備
-    if (type.includes("注意警報")) return "warning-notice";
-    if (type.includes("戒備警報")) return "warning-prepare";
-
-    // 風力系列
-    if (type.includes("西南烈風")) return "warning-gale-sw";
-    if (type.includes("西北烈風")) return "warning-gale-nw";
-    if (type.includes("東南烈風")) return "warning-gale-se";
-    if (type.includes("東北烈風")) return "warning-gale-ne";
-    if (type.includes("颶風")) return "warning-hurricane";
-    if (type.includes("暴風")) return "warning-stormwind";
-    if (type.includes("強風")) return "warning-strongwind";
-
-    // 海嘯系列
-    if (type.includes("嚴重海嘯")) return "warning-sevtsunami";
-    if (type.includes("海嘯")) return "warning-tsunami";
-
-    return "";
+  if (type === "寒冷警報") return "warning-cold-1";
+  if (type === "非常寒冷警報") return "warning-cold-2";
+  if (type === "極為寒冷警報") return "warning-cold-3";
+  
+  if (type === "酷熱警報") return "warning-hot-1";
+  if (type === "非常酷熱警報") return "warning-hot-2";
+  if (type === "極為酷熱警報") return "warning-hot-3";
+  
+  if (type === "大雨警報") return "warning-rain-1";
+  if (type === "暴雨警報") return "warning-rain-2";
+  if (type === "大暴雨警報") return "warning-rain-3";
+  
+  if (type === "風暴潮觀察警報") return "warning-surge-1";
+  if (type === "風暴潮戒備警報") return "warning-surge-2";
+  if (type === "風暴潮危險警報") return "warning-surge-3";
+  
+  if (type === "注意警報") return "warning-notice";
+  if (type === "戒備警報") return "warning-caution";
+  if (type === "強風警報") return "warning-wind";
+  if (type.includes("烈風警報")) return "warning-gale";
+  if (type === "暴風警報") return "warning-storm";
+  if (type === "颶風警報") return "warning-typhoon";
+  if (type === "海嘯警報") return "warning-tsunami";
+  if (type === "嚴重海嘯警報") return "warning-tsunami-s";
+  
+  return "";
 }
 
 // 初始化篩選選項
