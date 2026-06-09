@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="icons/MSSO.png">
+<title>澳門民間氣象台 - 警告記錄查詢</title>
+<style>
+/* ========== 全域基礎樣式 ========== */
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f5f8fa;
+}
+
+/* ========== 頁頭Header ========== */
+.header {
+  background: #1f3a4d;
+  color: white;
+  padding: 20px 25px;
+  display: flex;
+  align-items: center;
+}
+.title {
+  font-size: 20px;
+  font-weight: bold;
+  margin-left: 10px;
+}
+.logo {
+  height: 40px;
+}
+
+/* ========== 頂部導航菜單 ========== */
+.menu-container {
+  position: relative;
+  z-index: 3000;
+  margin-left: auto;
+}
+.menu-toggle {
+  display: none;
+  font-size: 26px;
+  padding: 10px 15px;
+  cursor: pointer;
+  background: #2d6c94;
+  color: white;
+}
+.nav {
+  background: #2d6c94;
+  display: flex;
+}
+.nav a {
+  color: white;
+  padding: 14px 18px;
+  font-size: 16px;
+  text-decoration: none;
+  display: block;
+}
+.nav a:hover {
+  background: #1f4f6d;
+}
+
+/* ========== 主要容器 ========== */
+.main-container {
+  max-width: 1200px;
+  margin: 25px auto;
+  padding: 0 25px;
+}
+
+/* ========== 篩選控制區 ========== */
+.filter-bar {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: center;
+}
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filter-group label {
+  font-weight: bold;
+  color: #333;
+}
+.filter-group select {
+  padding: 8px 12px;
+  border: 2px solid #4fa6a6;
+  border-radius: 8px;
+  font-size: 16px;
+}
+.reset-btn {
+  margin-left: auto;
+  padding: 8px 16px;
+  background: #d9534f;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+.reset-btn:hover {
+  opacity: 0.9;
+}
+
+/* ========== 表格區域 ========== */
+.table-container {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th {
+  background: #4fa6a6;
+  color: white;
+  padding: 15px;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  user-select: none;
+}
+th:hover {
+  background: #3b8c8c;
+}
+th .sort-icon {
+  margin-left: 8px;
+  font-size: 12px;
+}
+td {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+tr:nth-child(even) {
+  background-color: #f8fdfd;
+}
+tr:hover {
+  background-color: #e6f7f7;
+}
+
+/* 提示與特別報告顏色標示 */
+/* 低溫/高溫/空氣 */
+.hint-cold { background-color: #e3f2fd; color: #000; }
+.hint-hot { background-color: #fff9c4; color: #000; }
+.hint-air { background-color: #e0e0e0; color: #000; }
+
+/* 火災風險 */
+.hint-fire { background-color: #fce4d6; color: #000; }
+
+/* 大風提示 */
+.hint-wind-y { background-color: #ffe599; color: #000; }
+.hint-wind-o { background-color: #f6b26b; color: #000; }
+.hint-wind-r { background-color: #ea9999; color: #000; }
+
+/* 豪雨特別報告 */
+.report-rain-1 { background-color: #f6b26b; color: #000; } /* 豪雨 */
+.report-rain-2 { background-color: #cc0000; color: #fff; } /* 大豪雨 */
+.report-rain-3 { background-color: #444444; color: #fff; } /* 超大豪雨 */
+
+/* ========== 響應式樣式 ========== */
+@media (max-width: 768px) {
+  .menu-toggle {
+    display: block;
+  }
+  .nav {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    position: absolute;
+    top: 100%;
+    right: 0;
+  }
+  .nav.active {
+    display: flex;
+  }
+  .nav a {
+    width: 100%;
+    padding: 12px 15px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+  }
+  .filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .reset-btn {
+    margin-left: 0;
+    margin-top: 10px;
+  }
+  th, td {
+    padding: 10px 8px;
+    font-size: 14px;
+  }
+  .table-container {
+    overflow-x: auto;
+  }
+  table {
+    min-width: 800px;
+  }
+}
+</style>
+</head>
+
+<body>
+<div class="header">
+  <img src="icons/MSSO.png" class="logo">
+  <div class="title">澳門民間氣象台 MSSO - 警告記錄查詢</div>
+</div>
+
+<div class="menu-container">
+  <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+  <div class="nav" id="navMenu">
+    <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
+    <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
+    <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋距離計算工具</a> 
+    <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑地圖</a>  
+    <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
+    <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+    <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
+  </div>
+</div>
+
+<div class="main-container">
+  <!-- 篩選區 -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label for="yearFilter">年份：</label>
+      <select id="yearFilter">
+        <option value="all">全部年份</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="monthFilter">月份：</label>
+      <select id="monthFilter">
+        <option value="all">全部月份</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label for="typeFilter">警告類型：</label>
+      <select id="typeFilter">
+        <option value="all">全部類型</option>
+      </select>
+    </div>
+    <button class="reset-btn" onclick="resetFilters()">重置篩選</button>
+  </div>
+
+  <!-- 表格區 -->
+  <div class="table-container">
+    <table id="warningTable">
+      <thead>
+        <tr>
+          <th data-sort="type">警報 <span class="sort-icon">↕</span></th>
+          <th data-sort="start">發出時間 <span class="sort-icon">↕</span></th>
+          <th data-sort="end">取消時間 <span class="sort-icon">↕</span></th>
+          <th data-sort="duration">生效時間(hh:mm) <span class="sort-icon">↕</span></th>
+        </tr>
+      </thead>
+      <tbody id="warningTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// 菜單切換
+function toggleMenu() {
+  const nav = document.getElementById("navMenu");
+  const btn = document.querySelector(".menu-toggle");
+  nav.classList.toggle("active");
+  btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
+}
+
+// 警告數據（可替換為你的webdata.js數據）
+const warningData = [
+  // 2025年數據
+  { type: "火災危險提示", start: "2025-01-03 12:40", end: "2025-01-03 22:20", duration: "09:40" },
+  { type: "火災危險提示", start: "2025-01-10 18:20", end: "2025-01-12 22:20", duration: "52:00" },
+  { type: "火災危險提示", start: "2025-01-13 12:20", end: "2025-01-13 17:20", duration: "05:00" },
+  { type: "火災危險提示", start: "2025-01-15 12:20", end: "2025-01-17 20:20", duration: "56:00" },
+  { type: "火災危險提示", start: "2025-01-27 00:20", end: "2025-01-30 00:00", duration: "71:40" },
+  { type: "火災危險提示", start: "2025-02-08 03:40", end: "2025-02-08 23:50", duration: "20:10" },
+  { type: "火災危險提示", start: "2025-02-09 12:40", end: "2025-02-09 20:40", duration: "08:00" },
+  { type: "火災危險提示", start: "2025-03-19 12:20", end: "2025-03-19 21:20", duration: "09:00" },
+  { type: "火災危險提示", start: "2025-03-20 13:30", end: "2025-03-20 16:50", duration: "03:20" },
+  { type: "火災危險提示", start: "2025-04-04 00:20", end: "2025-04-04 21:20", duration: "21:00" },
+  { type: "空氣質量提示", start: "2025-04-13 00:00", end: "2025-04-16 01:00", duration: "73:00" },
+  { type: "火災危險提示", start: "2025-04-13 08:20", end: "2025-04-14 21:20", duration: "37:00" },
+  { type: "火災危險提示", start: "2025-04-15 11:20", end: "2025-04-15 21:40", duration: "10:20" },
+  { type: "豪雨特別報告", start: "2025-08-02 09:20", end: "2025-08-03 09:20", duration: "24:00" },
+  { type: "豪雨特別報告", start: "2025-08-04 00:20", end: "2025-08-06 12:20", duration: "60:00" },
+  { type: "豪雨特別報告", start: "2025-08-14 14:00", end: "2025-08-14 15:10", duration: "01:10" },
+  { type: "大豪雨特別報告", start: "2025-08-14 15:10", end: "2025-08-15 15:10", duration: "24:00" },
+  { type: "豪雨特別報告", start: "2025-09-08 05:20", end: "2025-09-09 05:20", duration: "24:00" },
+  { type: "豪雨特別報告", start: "2025-09-23 08:20", end: "2025-09-25 14:20", duration: "54:00" },
+  { type: "火災危險提示", start: "2025-11-21 11:40", end: "2025-11-22 17:40", duration: "30:00" },
+  { type: "火災危險提示", start: "2025-11-24 17:20", end: "2025-11-29 19:20", duration: "122:00" },
+  { type: "黃色大風提示", start: "2025-12-12 11:50", end: "2025-12-12 16:50", duration: "05:00" },
+  { type: "低温預警提示", start: "2025-12-12 17:20", end: "2025-12-14 12:20", duration: "43:00" },
+  { type: "黃色大風提示", start: "2025-12-13 16:40", end: "2025-12-14 12:20", duration: "19:40" },
+  { type: "火災危險提示", start: "2025-12-13 17:20", end: "2025-12-14 17:20", duration: "24:00" },
+  { type: "低温預警提示", start: "2025-12-15 01:20", end: "2025-12-15 12:20", duration: "11:00" },
+  { type: "黃色大風提示", start: "2025-12-21 19:20", end: "2025-12-22 04:20", duration: "09:00" },
+  { type: "低温預警提示", start: "2025-12-24 17:20", end: "2026-01-01 00:00", duration: "174:40" },
+  { type: "黃色大風提示", start: "2025-12-25 12:10", end: "2025-12-25 21:30", duration: "09:20" },
+  { type: "黃色大風提示", start: "2025-12-25 22:10", end: "2025-12-26 07:10", duration: "09:00" },
+  { type: "空氣質量提示", start: "2025-12-30 12:00", end: "2025-12-31 12:00", duration: "24:00" },
+  { type: "低温預警提示", start: "2026-01-01 00:00", end: "2026-01-11 09:20", duration: "249:20" },
+  { type: "黃色大風提示", start: "2026-01-01 18:20", end: "2026-01-02 16:20", duration: "22:00" },
+  { type: "火災危險提示", start: "2026-01-05 17:20", end: "2026-01-11 20:20", duration: "147:00" },
+  { type: "黃色大風提示", start: "2026-01-05 20:20", end: "2026-01-06 13:20", duration: "17:00" },
+  { type: "黃色大風提示", start: "2026-01-07 08:20", end: "2026-01-07 12:40", duration: "04:20" },
+  { type: "黃色大風提示", start: "2026-01-08 09:15", end: "2026-01-08 12:55", duration: "03:40" },
+  { type: "低温預警提示", start: "2026-01-12 01:20", end: "2026-01-13 09:20", duration: "32:00" },
+  { type: "火災危險提示", start: "2026-01-13 13:00", end: "2026-01-13 18:20", duration: "05:20" },
+  { type: "空氣質量提示", start: "2026-01-13 20:10", end: "2026-01-14 18:10", duration: "22:00" },
+  { type: "低温預警提示", start: "2026-01-14 03:40", end: "2026-01-14 09:20", duration: "05:40" },
+  { type: "火災危險提示", start: "2026-01-17 13:00", end: "2026-01-18 18:40", duration: "29:40" },
+  { type: "低温預警提示", start: "2026-01-19 22:20", end: "2026-01-24 12:20", duration: "110:00" },
+  { type: "黃色大風提示", start: "2026-01-19 23:40", end: "2026-01-20 13:10", duration: "13:30" },
+  { type: "空氣質量提示", start: "2026-01-27 20:00", end: "2026-01-28 11:00", duration: "15:00" },
+  { type: "低温預警提示", start: "2026-01-30 17:20", end: "2026-02-02 02:20", duration: "57:00" },
+  { type: "黃色大風提示", start: "2026-01-31 23:50", end: "2026-02-01 11:50", duration: "12:00" },
+  { type: "低温預警提示", start: "2026-02-02 20:30", end: "2026-02-03 08:30", duration: "12:00" },
+  { type: "低温預警提示", start: "2026-02-06 13:20", end: "2026-02-09 09:20", duration: "68:00" },
+  { type: "黃色大風提示", start: "2026-02-08 01:40", end: "2026-02-08 13:40", duration: "12:00" },
+  { type: "黃色大風提示", start: "2026-02-23 12:50", end: "2026-02-23 16:50", duration: "04:00" },
+  { type: "黃色大風提示", start: "2026-02-28 08:20", end: "2026-02-28 20:20", duration: "12:00" },
+  { type: "黃色大風提示", start: "2026-03-01 01:50", end: "2026-03-01 13:10", duration: "11:20" },
+  { type: "低温預警提示", start: "2026-03-02 13:20", end: "2026-03-04 09:20", duration: "44:00" },
+  { type: "黃色大風提示", start: "2026-03-02 19:00", end: "2026-03-02 20:00", duration: "01:00" },
+  { type: "黃色大風提示", start: "2026-03-07 16:20", end: "2026-03-08 09:20", duration: "17:00" },
+  { type: "低温預警提示", start: "2026-03-09 13:20", end: "2026-03-10 13:20", duration: "24:00" },
+  { type: "黃色大風提示", start: "2026-03-12 18:20", end: "2026-03-13 12:20", duration: "18:00" },
+  { type: "低温預警提示", start: "2026-03-13 00:20", end: "2026-03-13 11:20", duration: "11:00" },
+  { type: "黃色大風提示", start: "2026-03-13 15:50", end: "2026-03-14 08:50", duration: "17:00" },
+  { type: "黃色大風提示", start: "2026-03-30 09:00", end: "2026-03-30 09:50", duration: "00:50" },
+  { type: "橙色大風提示", start: "2026-03-30 09:50", end: "2026-03-30 10:50", duration: "01:00" },
+  { type: "黃色大風提示", start: "2026-04-02 10:00", end: "2026-04-03 01:40", duration: "15:40" },
+  { type: "黃色大風提示", start: "2026-04-03 13:20", end: "2026-04-03 18:40", duration: "05:20" },
+  { type: "黃色大風提示", start: "2026-04-06 12:20", end: "2026-04-07 03:20", duration: "15:00" },
+  { type: "黃色大風提示", start: "2026-04-08 05:00", end: "2026-04-08 20:00", duration: "15:00" },
+  { type: "黃色大風提示", start: "2026-04-17 15:25", end: "2026-04-17 15:55", duration: "00:30" },
+  { type: "黃色大風提示", start: "2026-04-17 16:35", end: "2026-04-17 18:05", duration: "01:30" },
+  { type: "黃色大風提示", start: "2026-04-29 00:30", end: "2026-04-29 01:15", duration: "00:45" },
+  { type: "橙色大風提示", start: "2026-04-29 01:15", end: "2026-04-29 02:05", duration: "00:50" },
+  { type: "黃色大風提示", start: "2026-04-29 02:05", end: "2026-04-29 02:45", duration: "00:40" },
+  { type: "黃色大風提示", start: "2026-04-29 11:10", end: "2026-04-29 12:20", duration: "01:10" },
+  { type: "黃色大風提示", start: "2026-05-03 13:30", end: "2026-05-03 16:30", duration: "03:00" },
+  { type: "黃色大風提示", start: "2026-05-15 11:30", end: "2026-05-15 12:20", duration: "00:50" },
+  { type: "黃色大風提示", start: "2026-05-15 18:05", end: "2026-05-15 18:35", duration: "00:30" },
+  { type: "黃色大風提示", start: "2026-05-16 04:30", end: "2026-05-17 13:00", duration: "32:30" },
+  { type: "黃色大風提示", start: "2026-05-17 17:15", end: "2026-05-18 11:55", duration: "18:40" },
+  { type: "黃色大風提示", start: "2026-05-18 14:05", end: "2026-05-18 18:15", duration: "04:10" },
+  { type: "黃色大風提示", start: "2026-05-22 00:30", end: "2026-05-22 01:00", duration: "00:30" },
+  { type: "高温預警提示", start: "2026-05-23 19:20", end: "2026-06-06 10:20", duration: "327:00" },
+  { type: "黃色大風提示", start: "2026-05-29 21:40", end: "2026-05-29 22:40", duration: "01:00" },
+  { type: "黃色大風提示", start: "2026-06-05 17:40", end: "2026-06-05 19:20", duration: "01:40" },
+  { type: "黃色大風提示", start: "2026-06-06 08:50", end: "2026-06-06 09:00", duration: "00:10" },
+  { type: "橙色大風提示", start: "2026-06-06 09:00", end: "2026-06-06 09:30", duration: "00:30" },
+  { type: "黃色大風提示", start: "2026-06-06 18:15", end: "2026-06-06 19:30", duration: "01:15" },
+  { type: "豪雨特別報告", start: "2026-06-07 13:40", end: "2026-06-09 05:20", duration: "39:40" },
+  { type: "黃色大風提示", start: "2026-06-08 18:10", end: "2026-06-08 19:30", duration: "01:20" },
+  { type: "橙色大風提示", start: "2026-06-08 19:30", end: "2026-06-08 20:00", duration: "00:30" }
+
+];
+
+let filteredData = [...warningData]; // 初始化為全部數據
+// 獲取警告類型對應的CSS類
+function getWarningClass(type) {
+  // 原有的警告類型邏輯保持不變...
+  
+  // 新增提示邏輯
+  if (type === "低温預警提示") return "hint-cold";
+  if (type === "高温預警提示") return "hint-hot";
+  if (type === "火災危險提示") return "hint-fire";
+  if (type === "空氣質量提示") return "hint-air";
+  if (type === "黃色大風提示") return "hint-wind-y";
+  if (type === "橙色大風提示") return "hint-wind-o";
+  if (type === "紅色大風提示") return "hint-wind-r";
+  
+  // 新增報告邏輯
+  if (type === "豪雨特別報告") return "report-rain-1";
+  if (type === "大豪雨特別報告") return "report-rain-2";
+  if (type === "超大豪雨特別報告") return "report-rain-3";
+
+  return "";
+}
+
+// 初始化篩選選項
+function initFilters() {
+  const years = new Set();
+  const months = new Set();
+  const types = new Set();
+  
+  warningData.forEach(item => {
+    const [year, month] = item.start.split("-");
+    years.add(year);
+    months.add(month);
+    types.add(item.type);
+  });
+  
+  // 填充年份
+  const yearFilter = document.getElementById("yearFilter");
+  [...years].sort().forEach(y => {
+    yearFilter.innerHTML += `<option value="${y}">${y}</option>`;
+  });
+  
+  // 填充月份
+  const monthFilter = document.getElementById("monthFilter");
+  [...months].sort().forEach(m => {
+    monthFilter.innerHTML += `<option value="${m}">${m}月</option>`;
+  });
+  
+  // 填充類型
+  const typeFilter = document.getElementById("typeFilter");
+  [...types].sort().forEach(t => {
+    typeFilter.innerHTML += `<option value="${t}">${t}</option>`;
+  });
+}
+
+// 渲染表格
+function renderTable(data) {
+  const tbody = document.getElementById("warningTableBody");
+  tbody.innerHTML = "";
+  
+  data.forEach(item => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><span class="${getWarningClass(item.type)}" style="padding:4px 8px; border-radius:4px;">${item.type}</span></td>
+      <td>${item.start}</td>
+      <td>${item.end}</td>
+      <td>${item.duration}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+// 篩選數據
+function filterData() {
+  const year = document.getElementById("yearFilter").value;
+  const month = document.getElementById("monthFilter").value;
+  const type = document.getElementById("typeFilter").value;
+  
+  // 更新全域的 filteredData
+  filteredData = warningData.filter(item => {
+    const [y, m] = item.start.split("-");
+    const matchYear = year === "all" || y === year;
+    const matchMonth = month === "all" || m === month;
+    const matchType = type === "all" || item.type === type;
+    return matchYear && matchMonth && matchType;
+  });
+  
+  renderTable(filteredData);
+}
+
+// 重置篩選
+function resetFilters() {
+  document.getElementById("yearFilter").value = "all";
+  document.getElementById("monthFilter").value = "all";
+  document.getElementById("typeFilter").value = "all";
+  filteredData = [...warningData]; // 重置變數
+  renderTable(filteredData);
+}
+
+// 表格排序
+let currentSort = { key: null, dir: 1 };
+function sortData(key) {
+  if (currentSort.key === key) {
+    currentSort.dir *= -1;
+  } else {
+    currentSort.key = key;
+    currentSort.dir = 1;
+  }
+  
+  const sorted = [...filteredData].sort((a, b) => {
+    let valA, valB;
+    switch(key) {
+      case "type":
+        valA = a.type; valB = b.type;
+        break;
+      case "start":
+        valA = a.start; valB = b.start;
+        break;
+      case "end":
+        valA = a.end; valB = b.end;
+        break;
+      case "duration":
+        // 轉換為分鐘排序
+        const [ah, am] = a.duration.split(":").map(Number);
+        const [bh, bm] = b.duration.split(":").map(Number);
+        valA = ah * 60 + am;
+        valB = bh * 60 + bm;
+        break;
+    }
+    if (valA < valB) return -1 * currentSort.dir;
+    if (valA > valB) return 1 * currentSort.dir;
+    return 0;
+  });
+  
+  filteredData = sorted; 
+  renderTable(filteredData);
+  
+  // 更新排序箭頭
+  document.querySelectorAll(".sort-icon").forEach(icon => icon.textContent = "↕");
+  const activeHeader = document.querySelector(`th[data-sort="${key}"] .sort-icon`);
+  activeHeader.textContent = currentSort.dir === 1 ? "↑" : "↓";
+}
+
+// 初始化
+window.addEventListener('DOMContentLoaded', () => {
+  initFilters();
+  renderTable(warningData);
+  
+  // 綁定篩選事件
+  document.getElementById("yearFilter").addEventListener("change", filterData);
+  document.getElementById("monthFilter").addEventListener("change", filterData);
+  document.getElementById("typeFilter").addEventListener("change", filterData);
+  
+  // 綁定排序事件
+  document.querySelectorAll("th[data-sort]").forEach(th => {
+    th.addEventListener("click", () => sortData(th.dataset.sort));
+  });
+});
+</script>
+</body>
+</html>
