@@ -118,6 +118,7 @@ body {
   display: flex;
   gap: 15px;
   padding: 20px;
+  align-items: flex-start;
 }
 .icon-box {
   width: 80px;
@@ -139,6 +140,7 @@ body {
   font-size: 15px;
   line-height: 1.6;
   color: #333;
+  text-align: left;
 }
 .divider {
   height: 1px;
@@ -280,17 +282,6 @@ body {
 
 /* ========== 桌面端佈局 (螢幕 ≥769px) ========== */
 @media (min-width: 769px) {
-  /* 多個警告項目改為垂直上下排列 */
-  .warning-item {
-    flex-direction: column;
-  }
-  .icon-box {
-    margin: 0 auto 10px;
-  }
-  .text-box {
-    text-align: center;
-  }
-
   /* 預報面板 + 圖表面板 左右並排 */
   .forecast-chart-row {
     display: grid;
@@ -534,7 +525,6 @@ function render24hChart(ctx){
 
 //7day use X label from webdata.label7dX
 function render7dChart(ctx){
-  //直接讀取分開的最大、最小溫度
   const maxArr = temp7dMax;
   const minArr = temp7dMin;
   tempChart = new Chart(ctx,{
