@@ -1,28 +1,28 @@
 //Tropical Cyclone Warning
 const tcWarnings = [
   {
-    icon:"",
-    text: ""
+    icon:"warn_icon/r1.jpg",
+    text: "受冷空氣影響，今明兩日鋒面雨帶被推至南海"
   },
 ];
 
 //Warning
 const warnWarnings = [
   {
-    icon: "",
-    text: ""
+    icon: "warn_icon/r1.jpg",
+    text: "受冷空氣影響，今明兩日鋒面雨帶被推至南海"
   },
   {
-    icon: "",
-    text: ""
+    icon: "warn_icon/r1.jpg",
+    text: "受冷空氣影響，今明兩日鋒面雨帶被推至南海"
   }
 ];
 
 //Special Warning Tips
-const swtText = ``;
+const swtText = `今明兩日鋒面雨帶被推至南海，本澳雨勢減弱。`;
 
 //Alert Tips
-const alertipsText = ` `;
+const alertipsText = `今明兩日鋒面雨帶被推至南海，本澳雨勢減弱。 `;
 
 //Weather Forecast
 const forecastRaw = `受冷空氣影響，今明兩日鋒面雨帶被推至南海，本澳雨勢減弱。週五至下週初期間冷空氣減弱，西南氣流重新主導，鋒面雨帶推至珠江口沿岸，同時高空不穩定，該區雨勢重新增強，雨勢頗大及有狂風雷暴。
