@@ -191,6 +191,8 @@ body {
   border:2px solid #4fa6a6;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   background:#e6f7f7;
+  /* 手機預設有 margin，桌面由 grid 控制 */
+  margin: 15px 35px;
 }
 .tab-header{
   display:flex;
@@ -244,6 +246,8 @@ body {
   border:2px solid #4fa6a6;
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   background:#e6f7f7;
+  /* 手機預設有 margin，桌面由 grid 控制 */
+  margin: 15px 35px;
 }
 .chart-btn-bar{
   display:flex;
@@ -282,13 +286,14 @@ body {
 
 /* ========== 桌面端佈局 (螢幕 ≥769px) ========== */
 @media (min-width: 769px) {
-  /* 預報面板 + 圖表面板 左右並排 */
+  /* 桌面才用 grid，左右並排 */
   .forecast-chart-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
     margin: 15px 35px;
   }
+  /* grid 子元素不要自己的 margin，由父 grid 控制 */
   .forecast-tab-wrap,
   .chart-wrap {
     margin: 0;
@@ -313,6 +318,12 @@ body {
   }
   .nav.active {
     display:flex;
+  }
+
+  /* 手機取消 grid，变回普通流，让子元素自己的 margin 生效 */
+  .forecast-chart-row {
+    display: block;
+    margin: 0;
   }
 }
 </style>
