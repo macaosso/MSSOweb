@@ -7,9 +7,13 @@
 <title>澳門民間氣象台-首頁</title>
 <style>
 /* ========== 1. 全域基礎樣式 ========== */
+html {
+  scroll-behavior: smooth;
+}
 body {
   margin: 0;
   font-family: Arial, sans-serif;
+  background-color: #f5f8fa;
 }
 
 /* ========== 2. 頁頭Header ========== */
@@ -106,6 +110,9 @@ body {
   padding: 15px;
   font-size: 18px;
   font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 .warning-item {
   display: flex;
@@ -120,6 +127,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 .icon-box img {
   width: 100%;
@@ -176,7 +184,6 @@ body {
 
 /* ========== 7. 天氣預報TAB切換模塊 ========== */
 .forecast-tab-wrap {
-  margin:15px 35px;
   border-radius:12px;
   overflow:hidden;
   border:2px solid #4fa6a6;
@@ -198,9 +205,6 @@ body {
   font-size:18px;
   font-weight:bold;
   cursor:pointer;
-  margin:0;
-  position:unset;
-  top:unset;
   transition: all 0.3s;
 }
 .tab-btn.active{
@@ -230,9 +234,9 @@ body {
   color: #555;
   font-weight: bold;
 }
+
 /* ========== 8. plot 圖 ========== */
 .chart-wrap{
-  margin: 15px 35px;
   border-radius:12px;
   overflow:hidden;
   border:2px solid #4fa6a6;
@@ -273,8 +277,34 @@ body {
 }
 .chart-btn.active {background: #4fa6a6;color: white;}
 .chart-btn:hover {opacity: 0.8;}
-  
-/* ========== 9. 手機端響應式樣式 ========== */
+
+/* ========== 桌面端佈局 (螢幕 ≥769px) ========== */
+@media (min-width: 769px) {
+  /* 多個警告項目改為垂直上下排列 */
+  .warning-item {
+    flex-direction: column;
+  }
+  .icon-box {
+    margin: 0 auto 10px;
+  }
+  .text-box {
+    text-align: center;
+  }
+
+  /* 預報面板 + 圖表面板 左右並排 */
+  .forecast-chart-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin: 15px 35px;
+  }
+  .forecast-tab-wrap,
+  .chart-wrap {
+    margin: 0;
+  }
+}
+
+/* ========== 手機端響應式樣式 (螢幕 ≤768px) ========== */
 @media (max-width: 768px) {
   .menu-toggle {
     display: block;
@@ -345,31 +375,34 @@ body {
 <div id="alertContent" class="content-yellow"></div>
 </div>
 
-<div class="forecast-tab-wrap">
-  <div class="tab-header">
-    <button class="tab-btn active" data-index="0">天氣概況</button>
-    <button class="tab-btn" data-index="1">今日天氣</button>
-    <button class="tab-btn" data-index="2">明日天氣</button>
-  </div>
-  <div class="tab-content-box">
-    <div class="tab-content active" id="tab0"></div>
-    <div class="tab-content" id="tab1"></div>
-    <div class="tab-content" id="tab2"></div>
-  </div>
-</div>
-
 <div id="forecastTime" class="forecast-time"></div>
 
-<div class="chart-wrap">
-  <div class="chart-btn-bar">
-    <div class="btn-group">
-      <button class="chart-btn active" data-type="24h">24小時天氣預報</button>
-      <button class="chart-btn" data-type="7d">7日天氣預報</button>
+<!-- 預報 & 圖表 並排容器 -->
+<div class="forecast-chart-row">
+  <div class="forecast-tab-wrap">
+    <div class="tab-header">
+      <button class="tab-btn active" data-index="0">天氣概況</button>
+      <button class="tab-btn" data-index="1">今日天氣</button>
+      <button class="tab-btn" data-index="2">明日天氣</button>
     </div>
-    <div class="chart-date-text" id="chartDate"></div>
+    <div class="tab-content-box">
+      <div class="tab-content active" id="tab0"></div>
+      <div class="tab-content" id="tab1"></div>
+      <div class="tab-content" id="tab2"></div>
+    </div>
   </div>
-  <div class="chart-container">
-    <canvas id="tempChart" ></canvas>
+
+  <div class="chart-wrap">
+    <div class="chart-btn-bar">
+      <div class="btn-group">
+        <button class="chart-btn active" data-type="24h">24小時天氣預報</button>
+        <button class="chart-btn" data-type="7d">7日天氣預報</button>
+      </div>
+      <div class="chart-date-text" id="chartDate"></div>
+    </div>
+    <div class="chart-container">
+      <canvas id="tempChart" ></canvas>
+    </div>
   </div>
 </div>
 
