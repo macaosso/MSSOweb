@@ -282,7 +282,6 @@ tr:hover {
 </div>
 
 <script>
-let filteredData = [...warningData]; // 初始化為全部數據
 // 菜單切換
 function toggleMenu() {
   const nav = document.getElementById("navMenu");
@@ -515,6 +514,7 @@ const warningData = [
   { type: "大雨警報", start: "2026-06-08 18:50", end: "2026-06-08 20:20", duration: "01:30" }
 ];
 
+let filteredData = [...warningData]; // 初始化為全部數據
 // 獲取警告類型對應的CSS類
 function getWarningClass(type) {
   if (type === "寒冷警報") return "warning-cold-1";
