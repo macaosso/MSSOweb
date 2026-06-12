@@ -13,9 +13,9 @@
             padding: 0;
         }
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f0f3f7;
-            color: #2c3e50;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
             padding: 20px;
             font-size: 14px;
         }
@@ -24,8 +24,8 @@
             margin: 0 auto;
         }
         header {
-            background: linear-gradient(135deg, #1e3c72, #2a5298);
-            color: white;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #f0f0f0;
             padding: 20px 30px;
             border-radius: 12px;
             margin-bottom: 20px;
@@ -33,54 +33,62 @@
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         }
         header h1 {
-            font-size: 1.6rem;
+            font-size: 1.8rem;
             font-weight: 600;
+            letter-spacing: 0.5px;
         }
         .meta-info {
             text-align: right;
             font-size: 0.9rem;
             opacity: 0.9;
         }
-
-        /* 頂部切換按鈕 */
+        
+        /* View Switch */
         .view-switch {
             margin-bottom: 15px;
             display: flex;
             gap: 10px;
         }
         .view-switch button {
-            padding: 8px 16px;
+            padding: 10px 18px;
             border: none;
-            border-radius: 6px;
-            background: #e8edf2;
+            border-radius: 8px;
+            background: #1e1e2f;
+            color: #c0c0c0;
             cursor: pointer;
             font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.25s ease;
         }
         .view-switch button.active {
-            background: #2a5298;
+            background: #3b82f6;
+            color: #fff;
+            box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3);
+        }
+        .view-switch button:hover:not(.active) {
+            background: #252542;
             color: #fff;
         }
-
-        /* 分類折疊按鈕區 */
+        
+        /* Tab Panel */
         .tab-wrapper {
-            background: #fff;
-            border-radius: 8px;
-            padding: 12px;
+            background: #1e1e2f;
+            border-radius: 10px;
+            padding: 15px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
         }
         .tab-group {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
         .group-title {
             font-size: 1rem;
             font-weight: 600;
-            color: #2c3e50;
-            margin: 0 0 8px 0;
-            padding: 4px 0;
+            color: #f0f0f0;
+            margin: 0 0 10px 0;
         }
         .group-buttons {
             display: flex;
@@ -88,25 +96,28 @@
             gap: 8px;
             padding-left: 10px;
         }
-
         .tab-btn {
-            padding: 8px 12px;
+            padding: 9px 14px;
             border: none;
-            border-radius: 6px;
-            background: #e8edf2;
+            border-radius: 7px;
+            background: #252542;
+            color: #c5c5c5;
             cursor: pointer;
             font-size: 0.9rem;
-            transition: all 0.2s;
+            font-weight: 500;
+            transition: all 0.25s ease;
         }
         .tab-btn.active {
-            background: #2a5298;
+            background: #3b82f6;
             color: #fff;
+            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
         }
         .tab-btn:hover:not(.active) {
-            background: #d0d9e2;
+            background: #2d2d50;
+            color: #fff;
         }
-
-        /* 主布局 */
+        
+        /* Main Layout */
         .main-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -118,9 +129,9 @@
             }
         }
         .map-card {
-            background: #fff;
+            background: #1e1e2f;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
             padding: 15px;
             position: relative;
         }
@@ -128,27 +139,31 @@
             width: 100%;
             height: 650px;
             border-radius: 8px;
+            background: #121212;
         }
-
-        /* 圖例 */
+        
+        /* Legend */
         .map-legend {
             position: absolute;
             bottom: 15px;
             right: 15px;
-            background: rgba(255,255,255,0.95);
-            padding: 8px 10px;
-            border-radius: 6px;
+            background: rgba(20, 20, 35, 0.95);
+            color: #e0e0e0;
+            padding: 10px 12px;
+            border-radius: 8px;
             font-size: 0.75rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 3px 12px rgba(0,0,0,0.35);
             z-index: 1000;
-            min-width: 120px;
+            min-width: 130px;
+            border: 1px solid #2d2d50;
         }
         .map-legend h4 {
-            margin: 0 0 5px 0;
+            margin: 0 0 6px 0;
             font-size: 0.8rem;
             text-align: center;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 3px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 4px;
+            color: #fff;
         }
         .legend-items {
             max-height: 200px;
@@ -157,29 +172,36 @@
         .legend-item {
             display: flex;
             align-items: center;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
         .legend-color {
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            margin-right: 5px;
+            margin-right: 6px;
         }
-
-        /* 時間戳 */
-        .time-stamp {
+        
+        /* Timestamp */
+        .time-stamp, .time-stamp-indicator {
             position: absolute;
-            top: 25px;
-            right: 25px;
-            background: rgba(0,0,0,0.6);
-            color: white;
-            padding: 6px 12px;
-            border-radius: 4px;
+            background: rgba(20, 20, 35, 0.9);
+            color: #f0f0f0;
+            padding: 8px 14px;
+            border-radius: 6px;
             font-size: 0.9rem;
             z-index: 1000;
+            border: 1px solid #2d2d50;
         }
-
-        /* 單個氣象卡片容器 */
+        .time-stamp {
+            top: 25px;
+            right: 25px;
+        }
+        .time-stamp-indicator {
+            top: 65px;
+            right: 25px;
+        }
+        
+        /* Station Card */
         .station-single {
             height: 650px;
             display: flex;
@@ -188,34 +210,33 @@
             padding-top: 20px;
         }
         .empty-tip {
-            color: #999;
+            color: #888;
             font-size: 1rem;
         }
-
-        /* 氣象卡片樣式 */
         .station-card {
-            background: white;
+            background: #1e1e2f;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            padding: 18px;
-            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+            padding: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
             display: flex;
             flex-direction: column;
-            border-top: 4px solid #3498db;
+            border-top: 5px solid #3b82f6;
             width: 100%;
-            max-width: 420px;
+            max-width: 440px;
             font-size: 13px;
         }
         .station-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
         }
         .station-name {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: bold;
-            color: #2c3e50;
-            border-bottom: 1px solid #ecf0f1;
-            padding-bottom: 8px;
+            color: #ffffff;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
         }
         .temp-row {
             display: flex;
@@ -224,16 +245,19 @@
             margin: 15px 0;
         }
         .current-temp {
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: 700;
-            color: #1a1a1a;
+            color: #ffffff;
         }
         .temp-range {
             font-size: 0.85rem;
             text-align: right;
+            color: #c0c0c0;
         }
-        .high-temp { color: #e74c3c; font-weight: 600; }
-        .low-temp { color: #34495e; font-weight: 600; }
+        .high-temp { color: #ef4444; font-weight: 600; }
+        .low-temp { color: #60a5fa; font-weight: 600; }
+        
+        /* Metric Grid */
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
@@ -241,158 +265,87 @@
             font-size: 0.8rem;
         }
         .metric {
-            background: #f8f9fa;
-            padding: 8px 10px;
-            border-radius: 6px;
+            background: #252542;
+            color: #e0e0e0;
+            padding: 10px;
+            border-radius: 7px;
+            border: 1px solid #2d2d50;
         }
-        .col-half {
-            grid-column: span 3;
-        }
-        .col-third {
-            grid-column: span 2;
-        }
+        .col-half { grid-column: span 3; }
+        .col-third { grid-column: span 2; }
         .metric span {
             display: block;
-            color: #7f8c8d;
+            color: #a0a0a0;
             font-size: 0.7rem;
             text-transform: uppercase;
-            margin-bottom: 2px;
+            margin-bottom: 4px;
         }
         .metric strong {
-            color: #2c3e50;
-            font-size: 0.9rem;
+            color: #ffffff;
+            font-size: 0.95rem;
         }
-        .rain-active {
-            background: #e8f4fd;
-            border: 1px solid #bcdffb;
-        }
-        .rain-active strong {
-            color: #2980b9;
-        }
-        .heat-high {
-            background: #ffe6e6;
-            border: 1px solid #f5a9a9;
-        }
-        .heat-high strong {
-            color: #c0392b;
-        }
-        .apparent-high {
-            background: #f3e5f5;
-            border: 1px solid #d2bade;
-        }
-        .apparent-high strong {
-            color: #8e44ad;
-        }
-        .dew-high {
-            background: #e8f4fd;
-            border: 1px solid #a0cfee;
-        }
-        .dew-high strong {
-            color: #2980b9;
-        }
-        .rain1-yellow {
-            background: #fff9c4;
-            border: 1px solid #ffe082;
-        }
-        .rain1-red {
-            background: #ffebee;
-            border: 1px solid #ef9a9a;
-        }
-        .rain1-gray {
-            background: #eceff1;
-            border: 1px solid #b0bec5;
-        }
-        .rainDay-orange {
-            background: #fff3e0;
-            border: 1px solid #ffcc80;
-        }
-        .rainDay-red {
-            background: #ffebee;
-            border: 1px solid #ef9a9a;
-        }
-        .rainDay-gray {
-            background: #eceff1;
-            border: 1px solid #b0bec5;
-        }
-        /* 水位/積水樣式 */
-        .flood-normal {
-            background: #e8f4fd;
-            border: 1px solid #bcdffb;
-        }
-        .flood-light {
-            background: #fff9c4;
-            border: 1px solid #ffe082;
-        }
-        .flood-mid {
-            background: #fff3e0;
-            border: 1px solid #ffcc80;
-        }
-        .flood-heavy {
-            background: #ffebee;
-            border: 1px solid #ef9a9a;
-        }
-        /* WBGT高溫警示樣式 */
-        .wbgt-warn {
-            background: #fff0e6;
-            border:1px solid #ffb980;
-        }
-        .wbgt-danger {
-            background: #ffe5e5;
-            border:1px solid #f88686;
-        }
-
-        /* 表格區域 */
+        
+        /* Status Colors (Dark Theme Optimized) */
+        .rain-active { background: #1e3a8a; border-color: #3b82f6; }
+        .heat-high { background: #7f1d1d; border-color: #ef4444; }
+        .apparent-high { background: #4a044e; border-color: #d946ef; }
+        .dew-high { background: #0c4a6e; border-color: #06b6d4; }
+        .rain1-yellow { background: #4d3800; border-color: #eab308; }
+        .rain1-red { background: #5c0a10; border-color: #ef4444; }
+        .rain1-gray { background: #27272a; border-color: #52525b; }
+        .rainDay-orange { background: #5c360e; border-color: #f97316; }
+        .rainDay-red { background: #5c0a10; border-color: #ef4444; }
+        .rainDay-gray { background: #27272a; border-color: #52525b; }
+        .flood-normal { background: #0c4a6e; border-color: #06b6d4; }
+        .flood-light { background: #4d3800; border-color: #eab308; }
+        .flood-mid { background: #5c360e; border-color: #f97316; }
+        .flood-heavy { background: #5c0a10; border-color: #ef4444; }
+        .wbgt-warn { background: #5c360e; border-color: #f97316; }
+        .wbgt-danger { background: #5c0a10; border-color: #ef4444; }
+        
+        /* Table */
         .table-container {
-            background: #fff;
+            background: #1e1e2f;
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
         }
         .data-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 15px;
             font-size: 0.85rem;
+            color: #e0e0e0;
         }
         .data-table th, .data-table td {
-            border: 1px solid #ddd;
-            padding: 10px;
+            border: 1px solid #333;
+            padding: 11px;
             text-align: center;
         }
         .data-table th {
-            background: #f1f5f9;
+            background: #252542;
             font-weight: 600;
+            color: #fff;
         }
         .data-table tr:hover {
-            background: #f8fafc;
-        }
-        .time-stamp-indicator {
-            position: absolute;
-            top: 60px; /* 在時間戳下方，調整位置避免重疊 */
-            right: 25px;
-            background: rgba(42, 82, 152, 0.9); /* 和主題藍色一致 */
-            color: white;
-            padding: 6px 12px;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            z-index: 1000;
+            background: #2d2d50;
         }
         .sort-buttons button {
-            padding: 4px 10px;
+            padding: 6px 12px;
             margin-left: 6px;
             border: none;
-            border-radius: 4px;
-            background: #e8edf2;
+            border-radius: 5px;
+            background: #252542;
+            color: #c5c5c5;
             cursor: pointer;
             font-size: 0.85rem;
+            transition: all 0.2s;
         }
         .sort-buttons button:hover {
-            background: #d0d9e2;
+            background: #3b82f6;
+            color: #fff;
         }
-        /* 隱藏區塊 */
-        .hide {
-            display: none !important;
-        }
+        .hide { display: none !important; }
     </style>
 </head>
 <body>
@@ -951,8 +904,11 @@ function updateLegendPanel(tabType) {
 }
 // ========== 地圖初始化 ==========
 let map = L.map('macau-map').setView([22.17, 113.55], 13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; OpenStreetMap contributors'
+// DARK MAP THEME
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 19
 }).addTo(map);
 
 let allMarkers = [];
