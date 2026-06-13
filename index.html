@@ -679,7 +679,23 @@ body {
     color: #fff;
 }
 .hide { display: none !important; }
-
+/* 約束地圖最大寬度，桌面不會撐太滿 */
+#macau-map {
+    max-width: 1100px;
+    margin: 0 auto;
+    height: 620px;
+}
+@media (max-width:1024px) {
+    #macau-map {
+        height: 550px;
+        max-width: 100%;
+    }
+}
+@media (max-width:768px) {
+    #macau-map {
+        height: 480px;
+    }
+}
 /* ========== 手機端響應式樣式 (螢幕 ≤768px) ========== */
 @media (max-width: 768px) {
   .menu-toggle {
@@ -1462,12 +1478,40 @@ function updateLegendPanel(tabType) {
 }
 
 // 地圖初始化
-let map = L.map('macau-map').setView([22.17, 113.55], 13);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 19
-}).addTo(map);
+let map;
+// 延遲初始化，確保tab面板DOM完全渲染，解決偶發載入空白
+function initMacauMap() {
+    const mapDom = document.getElementById('macau-map');
+    if (!mapDom || map) return;
+    map = L.map('macau-map', {
+        zoomControl: true
+    }).setView([22.17, 113.55], 13);
+
+    // 淺色底圖：Carto Positron 淺灰白底
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19,
+        // 瓦片載入失敗自動重試
+        errorTileUrl: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiDAAAAUVBMVEWFhYWDg4N3d3dtbW17e3t1dXWBgYGHh4d5eXlzc3OLi4ubm5uVlZWPj4+NjY19fX2JiYl/f39ra2uRkZGZmZlpaWmXl5dvb29xcXGTk5NnZ2c4zIwLAAAF5SURBVEjHvZXbEoMgDEXTiRQpV9//2k0pZbE2lqYdF11vQ//1YpQz0jLzQ1I1w1mB2JQO8YQnP0y61i8iYJgO8R3WwFv0lqE2kYc4i+QVqE4qYFdXqgG6n5L1rA0Qk1lU2jYZLrQvd9RPZaA4V34/atx92ZqIcxE8gp678911VZyKFxqRIlQ0XI2iuYqSMQnUsQc8Xxph91zry7Ytcu7X5ZQtPf9rN7tjuFrp/Yp6V7t3ysLUwv++bXrWXZ56u1t7/+vb+M1n/X4OJcX/w37aYqPuu+evYc/uZ0N+ySYPXd5q8LbDbdufbHu9/aX7V/29YeuPl+1Zz3+1VlZ0qkc0D2hY8p14GuL+uj1e5avctN+MZb+w3Xdv88olXn4ubn26v2L2qbwbErVSa13cRXCs8wa1EcVvq6MUTHp9Uigw99Oznp+CxSrvs4dXp7u2Z+aqX2kApn0l7t8cYbfOZ/uCPR/q4bpjJui72H7w5hC29whm5uToqOIA4xo8lhYxdRzVAGpFxO10tXlxsLZ9VSwHnw5m51Xwm+l5dzEuX3V3tMnxrOzVebVPq11ha3ZmIX9veVVIu8V1N5uVaf2/nxj9qeHjxkYix0VxhQ/79vx8Utpu3H+pXqkcA/r8uOy5mRxe4R7zZpD7L+q5Gaa1eGlpqh9nndnFxUk5CpA2n1ax/Ev1V0YBlIsAxhkx1zXyX7TS4nUcBhdzFeZ7xqdt+9eUuza9XZ3Nxu5qTTMn1LzTgwx8Etx1GJLkmzpVmp8+9vlv2dPOxYCCqmMOuVQIhxwu6xx77SbWrCEI8YptqUkXRsI7sJkEdzxjx1jXuYqo/uXfV2144OIFj86Y+bXX1LllyFSVVFj9bu1I9uyExb9O6I//V9kTpIIjjA5kD3IuMXAPzPXJdifXq8lThj6IzIvLl1DOfi8oAgc3Oc8u8lKSw+jgfa8w6/w/8z7lwOIIc+bPEz29vLnJlULUvDNzTzc9O3Cp9z97f31xacQ9v4qflVcXg0vd8cRcoY9eJeDDnjw4l1s6M6TrVvnXv+/S35txaipizdIa14LCUyC4xpjp+LU+1xvG2Vyvidz9n0zUz1c5qexl58bfbBqXB2sYOr+x1Xjz2OCjkvO/ZDbvvXZP/Z0ZSjdd65KnL3uOd7bVUrOHV/SzXwYAAAAABJRU5ErkJggg=="
+    }).addTo(map);
+}
+
+// 頁面載入+切換tab都重新檢查初始化
+window.addEventListener('DOMContentLoaded', ()=>{
+    setTimeout(initMacauMap, 300);
+});
+// 切換到實時天氣tab時重新渲染地圖，解決隱藏容器地圖尺寸錯亂
+document.querySelectorAll('.three-tab-item').forEach(item=>{
+    item.addEventListener('click',()=>{
+        if(item.dataset.tab === 'realtime'){
+            setTimeout(()=>{
+                if(map) map.invalidateSize();
+                else initMacauMap();
+            },200);
+        }
+    })
+})
 
 let allMarkers = [];
 let currentTab = "tempCurrent";
