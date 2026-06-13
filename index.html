@@ -780,20 +780,54 @@ body {
     </select>
 
     <!-- 整點天氣面板（載入SMG實時簡報XML數據） -->
+<!-- 整點天氣面板 -->
     <div class="tab-panel active" id="panel-hourly">
-      <h3>澳門整點實時天氣數據</h3>
-      <table class="hourly-weather-table" id="hourlyWeatherTable">
-        <thead>
-          <tr>
-            <th>觀測時間</th>
-            <th>氣溫(℃)</th>
-            <th>相對濕度(%)</th>
-            <th>風向風速</th>
-            <th>海平面氣壓(hPa)</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+        <div class="hourly-weather-wrap" style="padding: 20px;">
+            <!-- 数据加载提示 -->
+            <div id="load-tip" style="text-align: center; font-size: 16px; color: #666; padding: 40px 0;">
+                正在載入澳門整點實時天氣數據...
+            </div>
+    
+            <!-- 天气主容器（默认隐藏） -->
+            <div id="weather-main" style="display: none;">
+                <!-- 数据发布时间 -->
+                <div class="publish-time" style="margin-bottom: 20px; color: #444; font-size: 15px;">
+                    數據發布時間：<span id="pub-time"></span>
+                </div>
+    
+                <!-- 天气图标 + 核心气温 -->
+                <div style="display: flex; align-items: center; gap: 30px; flex-wrap: wrap; margin-bottom: 25px;">
+                    <div>
+                        <img id="weather-icon" alt="天氣圖標" style="width: 80px; height: 80px;">
+                    </div>
+                    <div>
+                        <div id="temp-value" style="font-size: 48px; font-weight: bold; color: #222;"></div>
+                        <div id="feels-desc" style="font-size: 18px; color: #ff6700; margin-top: 8px;"></div>
+                    </div>
+                </div>
+    
+                <!-- 气象指标网格 -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
+                    <div class="weather-item" style="background: #f7fbfc; padding: 16px; border-radius: 10px; border: 1px solid #e0e9ee;">
+                        <div style="color: #666; font-size: 14px;">相對濕度</div>
+                        <div id="hum-value" style="font-size: 20px; font-weight: 600; margin-top: 8px;"></div>
+                    </div>
+                    <div class="weather-item" style="background: #f7fbfc; padding: 16px; border-radius: 10px; border: 1px solid #e0e9ee;">
+                        <div style="color: #666; font-size: 14px;">風速</div>
+                        <div id="wind-speed" style="font-size: 20px; font-weight: 600; margin-top: 8px;"></div>
+                    </div>
+                    <div class="weather-item" style="background: #f7fbfc; padding: 16px; border-radius: 10px; border: 1px solid #e0e9ee;">
+                        <div style="color: #666; font-size: 14px;">風向</div>
+                        <div id="wind-dir" style="font-size: 20px; font-weight: 600; margin-top: 8px;"></div>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- 加载失败提示 -->
+            <div id="error-tip" style="display: none; text-align: center; color: #d9534f; padding: 40px 0;">
+                數據載入失敗，請稍後重試
+            </div>
+        </div>
     </div>
 
     <!-- 實時天氣面板 -->
@@ -1641,44 +1675,90 @@ window.addEventListener('DOMContentLoaded', loadAllData);
 setInterval(loadAllData, 300000);
             
 // ========== 抓取 SMG 澳門實時簡報XML：https://xml.smg.gov.mo/c_actual_brief.xml ==========
-async function fetchHourlyWeatherData() {
-  try {
-    const res = await fetch('https://xml.smg.gov.mo/c_actual_brief.xml');
-    const xmlText = await res.text();
-    // 解析XML文檔
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-    const obsList = xmlDoc.querySelectorAll('actual_brief > data');
-    const tbody = document.querySelector('#hourlyWeatherTable tbody');
-    tbody.innerHTML = '';
+/**
+ * 澳門整點實時天氣 - 跨域請求 XML (corsproxy 代理)
+ * 目標接口：https://xml.smg.gov.mo/c_actual_brief.xml
+ * 代理地址：https://corsproxy.io/?url=原始地址
+ */
+// 全局DOM元素
+const loadTip = document.getElementById('load-tip');
+const errorTip = document.getElementById('error-tip');
+const weatherMain = document.getElementById('weather-main');
+const pubTime = document.getElementById('pub-time');
+const weatherIcon = document.getElementById('weather-icon');
+const tempValue = document.getElementById('temp-value');
+const feelsDesc = document.getElementById('feels-desc');
+const humValue = document.getElementById('hum-value');
+const windSpeed = document.getElementById('wind-speed');
+const windDir = document.getElementById('wind-dir');
 
-    obsList.forEach(obs => {
-      const time = obs.querySelector('time')?.textContent || '--';
-      const temp = obs.querySelector('temperature')?.textContent || '--';
-      const humidity = obs.querySelector('humidity')?.textContent || '--';
-      const wind = obs.querySelector('wind')?.textContent || '--';
-      const pressure = obs.querySelector('pressure')?.textContent || '--';
+// 原始XML地址
+const originXmlUrl = "https://xml.smg.gov.mo/c_actual_brief.xml";
+// corsproxy 代理地址（标准格式）
+const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(originXmlUrl)}`;
 
-      const tr = document.createElement('tr');
-      tr.innerHTML = `
-        <td>${time}</td>
-        <td>${temp}</td>
-        <td>${humidity}</td>
-        <td>${wind}</td>
-        <td>${pressure}</td>
-      `;
-      tbody.appendChild(tr);
-    })
-  } catch (err) {
-    console.error('XML數據加載失敗：', err);
-    document.querySelector('#hourlyWeatherTable tbody').innerHTML = `
-      <tr><td colspan="5">暫無法獲取澳門整點天氣數據，請稍後重試</td></tr>
-    `;
-  }
+// 加载整点天气数据
+async function loadHourlyWeather() {
+    try {
+        // 重置页面状态
+        loadTip.style.display = 'block';
+        errorTip.style.display = 'none';
+        weatherMain.style.display = 'none';
+
+        // 发起跨域请求
+        const response = await fetch(proxy, {
+            method: 'GET',
+            cache: 'no-cache' // 禁用缓存，获取最新数据
+        });
+
+        if (!response.ok) throw new Error('接口請求失敗');
+
+        // 获取XML文本并解析
+        const xmlText = await response.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+        // 解析XML节点（对应接口字段）
+        const sysPubdate = xmlDoc.querySelector("SysPubdate")?.textContent || "未知時間";
+        const temp = xmlDoc.querySelector("Temperature > Value")?.textContent || "--";
+        const hum = xmlDoc.querySelector("Humidity > Value")?.textContent || "--";
+        const windSpd = xmlDoc.querySelector("WindSpeed > Value")?.textContent || "--";
+        const windSpdDesc = xmlDoc.querySelector("WindSpeedDescription")?.textContent || "";
+        const windDirText = xmlDoc.querySelector("WindDirection > WindDescription")?.textContent || "--";
+        const iconUrl = xmlDoc.querySelector("IconURL")?.textContent || "";
+        const feelDesc = xmlDoc.querySelector("FeelsLikeDescription")?.textContent || "--";
+
+        // 渲染页面数据
+        pubTime.textContent = sysPubdate;
+        tempValue.textContent = `${temp} °C`;
+        feelsDesc.textContent = feelDesc;
+        humValue.textContent = `${hum} %`;
+        windSpeed.textContent = `${windSpd} km/h (${windSpdDesc})`;
+        windDir.textContent = windDirText;
+
+        // 加载天气图标
+        if (iconUrl) {
+            weatherIcon.src = iconUrl;
+            weatherIcon.onerror = () => weatherIcon.style.display = 'none'; // 图标加载失败隐藏
+        }
+
+        // 切换页面状态：展示天气面板
+        loadTip.style.display = 'none';
+        weatherMain.style.display = 'block';
+
+    } catch (err) {
+        console.error("整點天氣數據解析異常：", err);
+        loadTip.style.display = 'none';
+        errorTip.style.display = 'block';
+    }
 }
 
-// 頁面載入後自動請求XML數據
-window.addEventListener('DOMContentLoaded', fetchHourlyWeatherData);
+// 頁面載入完成後首次執行
+window.addEventListener('DOMContentLoaded', loadHourlyWeather);
+
+// 每5分鐘(300000ms)自動刷新數據
+setInterval(loadHourly, 300000);
+  
 //7day use X label from webdata.label7dX
 function render7dChart(ctx){
   const maxArr = temp7dMax;
