@@ -797,84 +797,40 @@ body {
     </div>
 
     <!-- 實時天氣面板 -->
-    <!-- 實時天氣面板（嵌入澳門氣象站地圖模塊） -->
+   <!-- 實時天氣面板（重構後） -->
     <div class="tab-panel" id="panel-realtime">
         <div class="realtime-map-container">
-            <header style="background: linear-gradient(135deg, #1a1a2e, #16213e);color:#f0f0f0;padding:20px 30px;border-radius:12px;margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;box-shadow:0 6px 20px rgba(0,0,0,0.3);">
-                <div>
-                    <h2 style="font-size:1.8rem;font-weight:600;letter-spacing:0.5px;margin:0;">澳門各氣象站實時數據</h2>
-                    <small style="color:#2ecc71;">● 點擊地圖圓圈查看數據 | 切換分類查看不同指標</small>
-                </div>
-                <div class="meta-info" style="text-align:right;font-size:0.9rem;opacity:0.9;">
-                    <div>更新時間：<span id="pub-date">載入中...</span></div>
-                    <div>每5分鐘自動刷新</div>
-                </div>
-            </header>
-    
-            <div class="view-switch">
-                <button id="btn-map" class="active">地圖</button>
-                <button id="btn-table">表格</button>
+            <!-- 整合為單個下拉選擇框 -->
+            <div class="single-select-box" style="margin-bottom:18px;">
+                <select id="indicatorSelect" style="padding:10px 14px;border-radius:8px;border:2px solid #3b82f6;background:#1e1e2f;color:#fff;font-size:1rem;min-width:320px;">
+                    <option value="tempCurrent">實時氣溫 (°C)</option>
+                    <option value="tempMax">最高氣溫 (°C)</option>
+                    <option value="tempMin">最低氣溫 (°C)</option>
+                    <option value="apparentTemp">體感溫度 (°C)</option>
+                    <option value="heatIndex">酷熱指數 (°C)</option>
+                    <option value="wbgt">綜合溫度熱指數(°C)</option>
+                    <option value="dewPoint">露點溫度 (°C)</option>
+                    <option value="humidity">相對濕度 (%)</option>
+                    <option value="windDir">風向</option>
+                    <option value="windSpeed">風速 (km/h)</option>
+                    <option value="windGust">陣風 (km/h)</option>
+                    <option value="rain1m">一分鐘雨量(mm)</option>
+                    <option value="rain1h">一小時雨量(mm)</option>
+                    <option value="rainTotal">日累積雨量(mm)</option>
+                    <option value="pressSea">海平面氣壓 (hPa)</option>
+                    <option value="pressStation">站氣壓 (hPa)</option>
+                    <option value="waterLevel">實時水位 (m)</option>
+                </select>
             </div>
     
-            <div class="tab-wrapper" id="main-tab">
-                <div class="tab-group">
-                    <h3 class="group-title">氣象數據</h3>
-                    <div class="group-buttons show">
-                        <button class="tab-btn active" data-type="tempCurrent">實時氣溫 (°C)</button>
-                        <button class="tab-btn" data-type="tempMax">最高氣溫 (°C)</button>
-                        <button class="tab-btn" data-type="tempMin">最低氣溫 (°C)</button>
-                        <button class="tab-btn" data-type="apparentTemp">體感溫度 (°C)</button>
-                        <button class="tab-btn" data-type="heatIndex">酷熱指數 (°C)</button>
-                        <button class="tab-btn" data-type="wbgt">綜合溫度熱指數(°C)</button>
-                        <button class="tab-btn" data-type="dewPoint">露點溫度 (°C)</button>
-                        <button class="tab-btn" data-type="humidity">相對濕度 (%)</button>
-                        <button class="tab-btn" data-type="windDir">風向</button>
-                        <button class="tab-btn" data-type="windSpeed">風速 (km/h)</button>
-                        <button class="tab-btn" data-type="windGust">陣風 (km/h)</button>
-                        <button class="tab-btn" data-type="rain1m">一分鐘雨量(mm)</button>
-                        <button class="tab-btn" data-type="rain1h">一小時雨量(mm)</button>
-                        <button class="tab-btn" data-type="rainTotal">日累積雨量(mm)</button>
-                        <button class="tab-btn" data-type="pressSea">海平面氣壓 (hPa)</button>
-                        <button class="tab-btn" data-type="pressStation">站氣壓 (hPa)</button>
-                    </div>
-                </div>
-                <div class="tab-group">
-                    <h3 class="group-title">水位</h3>
-                    <div class="group-buttons show">
-                        <button class="tab-btn" data-type="waterLevel">實時水位 (m)</button>
-                    </div>
-                </div>
-            </div>
-    
-            <div class="main-layout" id="map-view">
-                <div class="map-card">
-                    <div id="macau-map"></div>
-                    <div id="time-stamp" class="time-stamp"></div>
-                    <div id="current-indicator" class="time-stamp-indicator"></div>
-                    <div id="map-legend" class="map-legend">
-                        <h4>圖例</h4>
-                        <div id="legend-content" class="legend-items"></div>
-                    </div>
-                </div>
-                <div id="single-card-box" class="station-single">
-                    <div class="empty-tip">請點擊地圖上圓圈查看氣象站實時數據</div>
-                </div>
-            </div>
-    
-            <div id="table-view" class="hide">
-                <div class="table-container">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:10px;">
-                        <div id="table-title" style="font-size:1.1rem;font-weight:bold;">數據表格</div>
-                        <div class="sort-buttons">
-                            <button class="sort-btn" data-sort="default">預設</button>
-                            <button class="sort-btn" data-sort="desc">高至低</button>
-                            <button class="sort-btn" data-sort="asc">低至高</button>
-                        </div>
-                    </div>
-                    <table class="data-table" id="data-table">
-                        <thead><tr><th>測站名稱</th><th>站代碼</th><th>數值</th></tr></thead>
-                        <tbody id="table-body"></tbody>
-                    </table>
+            <!-- 僅保留地圖視圖，刪除表格 -->
+            <div class="map-card">
+                <div id="macau-map"></div>
+                <div id="time-stamp" class="time-stamp"></div>
+                <div id="current-indicator" class="time-stamp-indicator"></div>
+                <div id="map-legend" class="map-legend">
+                    <h4>圖例</h4>
+                    <div id="legend-content" class="legend-items"></div>
                 </div>
             </div>
         </div>
@@ -1442,30 +1398,23 @@ function updateLegendPanel(tabType) {
             <div class="legend-item"><div class="legend-color" style="background:#921818"></div>200.0 - 349.9 mm</div>
             <div class="legend-item"><div class="legend-color" style="background:#e86119"></div>100.0 - 199.9 mm</div>
             <div class="legend-item"><div class="legend-color" style="background:#878e14"></div>50.0 - 99.9 mm</div>
-                        <div class="legend-item"><div class="legend-color" style="background:#878e14"></div>50.0 - 99.9 mm</div>
             <div class="legend-item"><div class="legend-color" style="background:#227192"></div>0.1 - 49.9 mm</div>
             <div class="legend-item"><div class="legend-color" style="background:#636363"></div>0 mm</div>`;break;
-
         case "pressSea":
-            // getPressSeaColor: #571b7a | #b42121 | #757012 | #2b7c42
             legendHTML = `
             <div class="legend-item"><div class="legend-color" style="background:#571b7a"></div>&lt; 980 hPa</div>
             <div class="legend-item"><div class="legend-color" style="background:#b42121"></div>980 - 989 hPa</div>
             <div class="legend-item"><div class="legend-color" style="background:#757012"></div>990 - 999 hPa</div>
             <div class="legend-item"><div class="legend-color" style="background:#2b7c42"></div>≥ 1000 hPa</div>`;
             break;
-
         case "pressStation":
-            // getPressStationColor: #571b7a | #b42121 | #757012 | #2b7c42
             legendHTML = `
             <div class="legend-item"><div class="legend-color" style="background:#571b7a"></div>&lt; 965 hPa</div>
             <div class="legend-item"><div class="legend-color" style="background:#b42121"></div>965 - 974 hPa</div>
             <div class="legend-item"><div class="legend-color" style="background:#757012"></div>975 - 984 hPa</div>
             <div class="legend-item"><div class="legend-color" style="background:#2b7c42"></div>≥ 985 hPa</div>`;
             break;
-
         case "waterLevel":
-            // getWaterLevelColor: #000000 | #c61e05 | #ff7200 | #c4ab08 | #1a6080 | #1b6009
             legendHTML = `
             <div class="legend-item"><div class="legend-color" style="background:#000000"></div>≥ 2.50 m</div>
             <div class="legend-item"><div class="legend-color" style="background:#c61e05"></div>1.49 - 2.49 m</div>
@@ -1474,15 +1423,14 @@ function updateLegendPanel(tabType) {
             <div class="legend-item"><div class="legend-color" style="background:#1a6080"></div>0.01 - 0.49 m</div>
             <div class="legend-item"><div class="legend-color" style="background:#1b6009"></div>0.00 m</div>`;
             break;
-
         default:
             legendHTML = `<div class="legend-item" style="color:#777;">無圖例</div>`;
     }
     legendContent.innerHTML = legendHTML;
 }
-// ========== 地圖初始化 ==========
+
+// 地圖初始化
 let map = L.map('macau-map').setView([22.17, 113.55], 13);
-// DARK MAP THEME
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
     subdomains: 'abcd',
@@ -1491,42 +1439,17 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
 
 let allMarkers = [];
 let currentTab = "tempCurrent";
-document.getElementById('current-indicator').textContent = 
-  `${fieldMap[currentTab]?.label || currentTab}`;
+document.getElementById('current-indicator').textContent = `${fieldMap[currentTab]?.label || currentTab}`;
 let pointDataList = [];
 let floodDataList = [];
-const singleCardBox = document.getElementById("single-card-box");
 
-// 分類按鈕切換
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentTab = btn.dataset.type;
-
-        // 新增：更新地圖上的指標顯示
-        const labelText = fieldMap[currentTab]?.label || currentTab;
-        document.getElementById('current-indicator').textContent = `${labelText}`;
-
-        updateMapMarkers();
-        updateLegendPanel(currentTab);
-        renderDataTable(currentTab);
-    });
-});
-
-// 視圖切換：地圖 / 表格
-document.getElementById('btn-map').addEventListener('click',function(){
-    this.classList.add('active');
-    document.getElementById('btn-table').classList.remove('active');
-    document.getElementById('map-view').classList.remove('hide');
-    document.getElementById('table-view').classList.add('hide');
-});
-document.getElementById('btn-table').addEventListener('click',function(){
-    this.classList.add('active');
-    document.getElementById('btn-map').classList.remove('active');
-    document.getElementById('map-view').classList.add('hide');
-    document.getElementById('table-view').classList.remove('hide');
-    renderDataTable(currentTab);
+// 下拉選擇框切換監聽（替換原按鈕點擊）
+document.getElementById('indicatorSelect').addEventListener('change', function(){
+    currentTab = this.value;
+    const labelText = fieldMap[currentTab]?.label || currentTab;
+    document.getElementById('current-indicator').textContent = labelText;
+    updateMapMarkers();
+    updateLegendPanel(currentTab);
 });
 
 // 提取XML節點值
@@ -1543,52 +1466,7 @@ function clearMarkers() {
     allMarkers = [];
 }
 
-// 渲染單站詳細卡片（包含水位、WBGT）
-function renderSingleCard(data) {
-    const {name,code,temp,tempMax,tempMin,humidity,windDir,windSpeed,windGust,rain1m,rain1h,rainTotal,
-           pressSea,pressStation,apparentTemp,heatIndex,dewPoint,waterLevel,wbgt} = data;
-    const fullName = `${name} (${code})`;
-
-    const hiClass = getHeatIndexClass(heatIndex);
-    const apClass = getApparentClass(apparentTemp);
-    const dewClass = getDewClass(dewPoint);
-    const wbgtClass = getWBGTClass(wbgt);
-    const r1mClass = getRain1hClass(rain1m);
-    const r1hClass = getRain1hClass(rain1h);
-    const rTotalClass = getRainDayClass(rainTotal);
-    const wlClass = getWaterLevelClass(waterLevel);
-
-    const card = `
-    <div class="station-card">
-        <div class="station-name">${fullName}</div>
-        <div class="temp-row">
-            <div class="current-temp">${formatVal(temp, '°C')}</div>
-            <div class="temp-range">
-                <div>最高: <span class="high-temp">${formatVal(tempMax, '°C')}</span></div>
-                <div>最低: <span class="low-temp">${formatVal(tempMin, '°C')}</span></div>
-            </div>
-        </div>
-        <div class="metrics-grid">
-            <div class="${hiClass}"><span>酷熱指數</span><strong>${formatVal(heatIndex, '°C')}</strong></div>
-            <div class="${apClass}"><span>體感溫度</span><strong>${formatVal(apparentTemp, '°C')}</strong></div>
-            <div class="${dewClass}"><span>露點溫度</span><strong>${formatVal(dewPoint, '°C')}</strong></div>
-            <div class="${wbgtClass}"><span>WBGT綜合熱指數</span><strong>${formatVal(wbgt, '°C')}</strong></div>
-            <div class="metric col-half"><span>相對濕度</span><strong>${formatVal(humidity, '%')}</strong></div>
-            <div class="metric col-half"><span>風向</span><strong>${windDir || '--'}</strong></div>
-            <div class="metric col-half"><span>風速</span><strong>${formatVal(windSpeed, 'km/h')}</strong></div>
-            <div class="metric col-half"><span>陣風</span><strong>${formatVal(windGust, 'km/h')}</strong></div>
-            <div class="metric col-half"><span>平均海平面氣壓</span><strong>${formatVal(pressSea, 'hPa')}</strong></div>
-            <div class="metric col-half"><span>站氣壓</span><strong>${formatVal(pressStation, 'hPa')}</strong></div>
-            <div class="${r1mClass}"><span>一分鐘雨量</span><strong>${formatVal(rain1m, 'mm')}</strong></div>
-            <div class="${r1hClass}"><span>一小時雨量</span><strong>${formatVal(rain1h, 'mm')}</strong></div>
-            <div class="${rTotalClass}"><span>日總雨量</span><strong>${formatVal(rainTotal, 'mm')}</strong></div>
-            <div class="${wlClass}" style="grid-column: span 6;"><span>實時水位</span><strong>${formatVal(waterLevel, 'm')}</strong></div>
-        </div>
-    </div>`;
-    singleCardBox.innerHTML = card;
-}
-
-// 更新地圖標記
+// 更新地圖標記（已刪除單站卡片渲染調用）
 function updateMapMarkers() {
     clearMarkers();
     let sourceList, pointCoords;
@@ -1639,7 +1517,6 @@ function updateMapMarkers() {
             case "rainTotal": showVal = point.rainTotal; bgColor = getRainTotalColor(showVal); break;
             case "waterLevel":
                 showVal = point.waterLevel;
-                // Skip empty/-- value
                 if (showVal === '--' || showVal === '') skipMarker = true;
                 bgColor = getWaterLevelColor(showVal);
                 break;
@@ -1651,80 +1528,13 @@ function updateMapMarkers() {
         const icon = L.divIcon({html: markerIconHtml, className: "", iconSize: [50,50], iconAnchor: [25,25]});
         const marker = L.marker([info.lat, info.lng], { icon: icon }).addTo(map);
         marker.bindPopup(`<strong>${name}</strong>`);
-
-        marker.on('click', () => {
-            if (currentTab === "waterLevel") {
-                // 水位站專用卡片
-                singleCardBox.innerHTML = `
-                <div class="station-card">
-                    <div class="station-name">${name}</div>
-                    <div class="metrics-grid">
-                        <div class="metric" style="grid-column: span 6;">
-                            <span>實時水位</span>
-                            <strong>${formatVal(point.waterLevel, 'm')}</strong>
-                        </div>
-                    </div>
-                </div>`;
-            } else {
-                // 氣象站專用卡片
-                renderSingleCard({...point, code: weatherPoints[name]?.code || ""});
-            }
-        });
+        // 點擊僅彈出彈窗，不再渲染右側詳細卡片
+        marker.on('click', ()=>marker.openPopup());
         allMarkers.push(marker);
     });
 }
-// 渲染數據表格
-let lastSort = "default";
-function renderDataTable(type, sortType = lastSort) {
-    const cfg = fieldMap[type];
-    const field = cfg.field;
-    const label = cfg.label;
-    const unit = cfg.unit;
-    document.getElementById('table-title').textContent = `${label} 數據表格`;
-    const tbody = document.getElementById('table-body');
-    tbody.innerHTML = "";
 
-    let sourceList = type === "waterLevel" ? floodDataList : pointDataList;
-    let codeMap = type === "waterLevel" ? null : weatherPoints;
-
-    // Filter valid data
-    let validList = sourceList.filter(item => {
-        const val = item[field];
-        return val !== '--' && val !== '';
-    });
-
-    // Sort logic
-    if (sortType === "desc") {
-        validList.sort((a, b) => parseFloat(b[field]) - parseFloat(a[field]));
-    } else if (sortType === "asc") {
-        validList.sort((a, b) => parseFloat(a[field]) - parseFloat(b[field]));
-    }
-    lastSort = sortType;
-
-    validList.forEach(item => {
-        const name = item.name;
-        // Get code: flood → item.code | weather → from weatherPoints
-        let code = "";
-        if (codeMap) {
-            code = codeMap[name]?.code || "";
-        } else {
-            code = item.code || "";
-        }
-
-        let val = item[field];
-        let displayVal = val + (unit ? " " + unit : "");
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${displayVal}</td>`;
-        tbody.appendChild(tr);
-    });
-}
-document.querySelectorAll('.sort-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        const sortType = btn.dataset.sort;
-        renderDataTable(currentTab, sortType);
-    });
-});
-// ========== 抓取氣象 XML 數據 ==========
+// 抓取氣象 XML 數據
 function fetchWeatherData() {
     const cacheBuster = Date.now();
     const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
@@ -1737,12 +1547,10 @@ function fetchWeatherData() {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
             const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent || "未知";
-            document.getElementById("pub-date").textContent = pubTime;
             document.getElementById("time-stamp").textContent = pubTime;
 
             const stations = xmlDoc.querySelectorAll("WeatherReport station");
             pointDataList = [];
-            singleCardBox.innerHTML = '<div class="empty-tip">請點擊地圖上圓圈查看測站數據</div>';
 
             stations.forEach(station => {
                 const name = station.querySelector("stationname")?.textContent || "";
@@ -1772,7 +1580,6 @@ function fetchWeatherData() {
                 const apparentTemp = calculateApparentTemp(T, RH, windSpeedKmH);
                 const heatIndex = calculateHeatIndex(T, RH);
                 const dewPoint = calculateDewPoint(T, RH);
-                // 計算WBGT
                 const wbgt = calcWBGT(T,RH,windSpeedKmH);
 
                 pointDataList.push({
@@ -1785,7 +1592,7 @@ function fetchWeatherData() {
         });
 }
 
-// ========== 抓取水位/積水 XML 數據 (已補全) ==========
+// 抓取水位/積水 XML 數據
 function fetchFloodData() {
     const cacheBuster = Date.now();
     const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_ftgms.xml?t=${cacheBuster}`;
@@ -1801,7 +1608,6 @@ function fetchFloodData() {
             floodDataList = [];
 
             stations.forEach(station => {
-                // Get native code from XML attribute
                 const code = station.getAttribute("code") || "";
                 const name = (station.querySelector("stationname")?.textContent || "未知監測點").trim();
                 let waterLevel = "--";
@@ -1810,8 +1616,6 @@ function fetchFloodData() {
                     waterLevel = valNode.textContent.trim();
                 }
                 if (!waterLevel) waterLevel = "--";
-
-                // Save code together with data
                 floodDataList.push({ name, code, waterLevel });
             });
         })
@@ -1820,20 +1624,19 @@ function fetchFloodData() {
         });
 }
     
-// ========== 統一載入所有數據 + 更新界面 ==========
+// 統一載入所有數據
 function loadAllData() {
     Promise.all([fetchWeatherData(), fetchFloodData()])
         .then(() => {
             updateMapMarkers();
             updateLegendPanel(currentTab);
-            renderDataTable(currentTab);
         })
         .catch(err => {
             console.error("整體數據載入失敗：", err);
         });
 }
 
-// 頁面載入完成後執行 + 每5分鐘自動刷新
+// 頁面載入後執行 + 5分鐘自動刷新
 window.addEventListener('DOMContentLoaded', loadAllData);
 setInterval(loadAllData, 300000);
             
