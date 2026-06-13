@@ -377,6 +377,24 @@ body {
 <div id="alertContent" class="content-yellow"></div>
 </div>
 
+<!-- 新增：實時氣象模塊 -->
+<div id="realtimeBox" class="box">
+  <div class="header-orange">實時氣象</div>
+  <div class="content-yellow" style="padding: 20px;">
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+      <a href="#" class="link-box weather" style="margin: 0; padding: 15px; font-size: 14px;">
+        整點天氣
+      </a>
+      <a href="#" class="link-box flood" style="margin: 0; padding: 15px; font-size: 14px;">
+        實時天氣
+      </a>
+      <a href="https://macaosso.github.io/MSSOweb/tc_gis.html" class="link-box map" style="margin: 0; padding: 15px; font-size: 14px;">
+        熱帶氣旋路徑
+      </a>
+    </div>
+  </div>
+</div>
+
 <div id="forecastTime" class="forecast-time"></div>
 
 <!-- 預報 & 圖表 並排容器 -->
@@ -420,6 +438,9 @@ btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 
 // Fill all text content from webdata.js
 window.addEventListener('DOMContentLoaded', function(){
+  // 實時氣象模塊顯示控制（預設顯示，可根據需求修改）
+    const realtimeBox = document.getElementById('realtimeBox');
+realtimeBox.style.display = 'block'; // 若需要條件顯示，可改為判斷邏輯
     // Alertips box
     const alertBox = document.getElementById('alertBox');
     const alertContent = document.getElementById('alertContent');
