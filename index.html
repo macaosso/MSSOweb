@@ -1700,8 +1700,8 @@ async function loadHourlyWeather() {
         errorTip.style.display = 'none';
         weatherMain.style.display = 'none';
 
-        // 发起跨域请求
-        const response = await fetch(proxy, {
+        // 发起跨域請求，修正變數 proxy → proxyUrl
+        const response = await fetch(proxyUrl, {
             method: 'GET',
             cache: 'no-cache' // 禁用缓存，获取最新数据
         });
@@ -1751,9 +1751,9 @@ async function loadHourlyWeather() {
 // 頁面載入完成後首次執行
 window.addEventListener('DOMContentLoaded', loadHourlyWeather);
 
-// 每5分鐘(300000ms)自動刷新數據
-setInterval(loadHourly, 300000);
-  
+// 【修復】定時器函數名改為正確的 loadHourlyWeather
+setInterval(loadHourlyWeather, 300000);
+
 //7day use X label from webdata.label7dX
 function render7dChart(ctx){
   const maxArr = temp7dMax;
