@@ -284,6 +284,88 @@ body {
 .chart-btn.active {background: #4fa6a6;color: white;}
 .chart-btn:hover {opacity: 0.8;}
 
+/* ========== 9. 三標籤天氣模塊（整點/實時/熱帶氣旋路徑） ========== */
+.three-tab-weather-wrap {
+  margin: 15px 35px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.three-tab-header {
+  display: flex;
+  background-color: #43c082;
+}
+.three-tab-item {
+  flex: 1;
+  padding: 16px 10px;
+  text-align: center;
+  color: #fff;
+  font-size: 17px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.25s;
+}
+.three-tab-item.active {
+  background-color: #36a36e;
+}
+.three-tab-item:hover {
+  background-color: #36a36e;
+}
+.tab-icon-small {
+  width: 26px;
+  height: 26px;
+}
+.three-tab-content-box {
+  background-color: #fff;
+  padding: 20px;
+  border: 2px solid #86e0b0;
+  border-top: none;
+}
+.region-select {
+  padding: 8px 16px;
+  border: 2px solid #43c082;
+  border-radius: 8px;
+  font-size: 16px;
+  color: #43c082;
+  background: #fff;
+  margin-bottom: 18px;
+}
+.tab-panel {
+  display: none;
+}
+.tab-panel.active {
+  display: block;
+}
+.hourly-weather-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+}
+.hourly-weather-table th,
+.hourly-weather-table td {
+  border: 1px solid #ccecdb;
+  padding: 10px;
+}
+.hourly-weather-table th {
+  background-color: #e6f9f0;
+}
+
+/* 手機端適配 */
+@media (max-width:768px) {
+  .three-tab-item {
+    font-size: 14px;
+    padding: 12px 5px;
+  }
+  .tab-icon-small {
+    width: 20px;
+    height: 20px;
+  }
+}
+
 /* ========== 桌面端佈局 (螢幕 ≥769px) ========== */
 @media (min-width: 769px) {
   /* 桌面才用 grid，左右並排 */
@@ -377,20 +459,54 @@ body {
 <div id="alertContent" class="content-yellow"></div>
 </div>
 
-<!-- 新增：實時氣象模塊 -->
-<div id="realtimeBox" class="box">
-  <div class="header-orange">實時氣象</div>
-  <div class="content-yellow" style="padding: 20px;">
-    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
-      <a href="#" class="link-box weather" style="margin: 0; padding: 15px; font-size: 14px;">
-        整點天氣
-      </a>
-      <a href="#" class="link-box flood" style="margin: 0; padding: 15px; font-size: 14px;">
-        實時天氣
-      </a>
-      <a href="https://macaosso.github.io/MSSOweb/tc_gis.html" class="link-box map" style="margin: 0; padding: 15px; font-size: 14px;">
-        熱帶氣旋路徑
-      </a>
+<!-- ========== 新增：三標籤天氣模塊 ========== -->
+<div class="three-tab-weather-wrap">
+  <div class="three-tab-header">
+    <div class="three-tab-item active" data-tab="hourly">
+      <img class="tab-icon-small" src="icons/MSSO.png" alt="整點天氣">
+      整點天氣
+    </div>
+    <div class="three-tab-item" data-tab="realtime">
+      <img class="tab-icon-small" src="icons/MSSO.png" alt="實時天氣">
+      實時天氣
+    </div>
+    <div class="three-tab-item" data-tab="tc-track">
+      <img class="tab-icon-small" src="icons/MSSO.png" alt="熱帶氣旋路徑">
+      熱帶氣旋路徑
+    </div>
+  </div>
+  <div class="three-tab-content-box">
+    <select class="region-select">
+      <option>西北太平洋</option>
+      <option>南海</option>
+    </select>
+
+    <!-- 整點天氣面板（載入SMG實時簡報XML數據） -->
+    <div class="tab-panel active" id="panel-hourly">
+      <h3>澳門整點實時天氣數據</h3>
+      <table class="hourly-weather-table" id="hourlyWeatherTable">
+        <thead>
+          <tr>
+            <th>觀測時間</th>
+            <th>氣溫(℃)</th>
+            <th>相對濕度(%)</th>
+            <th>風向風速</th>
+            <th>海平面氣壓(hPa)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <!-- 實時天氣面板 -->
+    <div class="tab-panel" id="panel-realtime">
+      <p>綜合實時氣象數據模塊，可後續擴充溫度、濕度、能見度、降雨量等觀測數據。</p>
+    </div>
+
+    <!-- 熱帶氣旋路徑面板 -->
+    <div class="tab-panel" id="panel-tc-track">
+      <img src="tc_track_map.png" style="width:100%;border-radius:8px;" alt="熱帶氣旋多模式路徑預報圖">
+      <p style="margin-top:12px;color:#666;">初始場時間：20260613 0000Z，整合ECMWF、GFS、AIFS等多數值模式路徑預報</p>
     </div>
   </div>
 </div>
@@ -438,9 +554,6 @@ btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 
 // Fill all text content from webdata.js
 window.addEventListener('DOMContentLoaded', function(){
-  // 實時氣象模塊顯示控制（預設顯示，可根據需求修改）
-    const realtimeBox = document.getElementById('realtimeBox');
-realtimeBox.style.display = 'block'; // 若需要條件顯示，可改為判斷邏輯
     // Alertips box
     const alertBox = document.getElementById('alertBox');
     const alertContent = document.getElementById('alertContent');
@@ -554,7 +667,60 @@ function render24hChart(ctx){
     }
   })
 }
+// ========== 三標籤切換邏輯 ==========
+const tabItems = document.querySelectorAll('.three-tab-item');
+const tabPanels = document.querySelectorAll('.tab-panel');
+tabItems.forEach(item => {
+  item.addEventListener('click', () => {
+    // 清除所有激活狀態
+    tabItems.forEach(btn => btn.classList.remove('active'));
+    tabPanels.forEach(panel => panel.classList.remove('active'));
+    // 激活當前標籤+面板
+    item.classList.add('active');
+    const targetTab = item.dataset.tab;
+    document.getElementById(`panel-${targetTab}`).classList.add('active');
+  })
+})
 
+// ========== 抓取 SMG 澳門實時簡報XML：https://xml.smg.gov.mo/c_actual_brief.xml ==========
+async function fetchHourlyWeatherData() {
+  try {
+    const res = await fetch('https://xml.smg.gov.mo/c_actual_brief.xml');
+    const xmlText = await res.text();
+    // 解析XML文檔
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+    const obsList = xmlDoc.querySelectorAll('actual_brief > data');
+    const tbody = document.querySelector('#hourlyWeatherTable tbody');
+    tbody.innerHTML = '';
+
+    obsList.forEach(obs => {
+      const time = obs.querySelector('time')?.textContent || '--';
+      const temp = obs.querySelector('temperature')?.textContent || '--';
+      const humidity = obs.querySelector('humidity')?.textContent || '--';
+      const wind = obs.querySelector('wind')?.textContent || '--';
+      const pressure = obs.querySelector('pressure')?.textContent || '--';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${time}</td>
+        <td>${temp}</td>
+        <td>${humidity}</td>
+        <td>${wind}</td>
+        <td>${pressure}</td>
+      `;
+      tbody.appendChild(tr);
+    })
+  } catch (err) {
+    console.error('XML數據加載失敗：', err);
+    document.querySelector('#hourlyWeatherTable tbody').innerHTML = `
+      <tr><td colspan="5">暫無法獲取澳門整點天氣數據，請稍後重試</td></tr>
+    `;
+  }
+}
+
+// 頁面載入後自動請求XML數據
+window.addEventListener('DOMContentLoaded', fetchHourlyWeatherData);
 //7day use X label from webdata.label7dX
 function render7dChart(ctx){
   const maxArr = temp7dMax;
