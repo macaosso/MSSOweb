@@ -17,7 +17,64 @@
             padding: 20px;
             background-color: #f8f9fa;
         }
-
+        /* ===== 警報表通用樣式 ===== */
+        .alert-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+        }
+        
+        .alert-table th, 
+        .alert-table td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        /* 表頭 */
+        .alert-table thead {
+            background-color: #2c3e50;
+            color: #fff;
+            font-weight: 600;
+        }
+        
+        /* ===== 不同警報顏色 ===== */
+        .alert-heavy {
+            background-color: #ffffff; /* 大雨 */
+        }
+        
+        .alert-rainstorm {
+            background-color: #fdecea; /* 暴雨（淡紅） */
+            color: #c0392b;
+            font-weight: 600;
+        }
+        
+        .alert-special {
+            background-color: #f4ecf7; /* 豪雨 */
+            color: #8e44ad;
+            font-weight: 600;
+        }
+        
+        /* hover 效果 */
+        .alert-table tbody tr:hover {
+            filter: brightness(1.05);
+        }
+        
+        /* 區塊標題 */
+        .alert-section h2 {
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        /* 間距 */
+        .alert-section {
+            margin-top: 50px;
+        }
         .table-container {
             max-width: 100%;
             overflow: auto;
@@ -121,41 +178,44 @@
     </style>
 </head>
 <body>
-    <div style="margin-top:50px;">
-      <h2 style="margin-bottom:15px;">🌧️ 雨量警報紀錄</h2>
-      <table style="width:100%; border-collapse:collapse; background:#fff; box-shadow:0 1px 6px rgba(0,0,0,0.08);">
+    <div class="alert-section">
+      <h2>雨量警報紀錄</h2>
+    
+      <table class="alert-table">
         <thead>
-          <tr style="background:#2c3e50; color:#fff;">
-            <th style="padding:10px;border:1px solid #ddd;">警報類型</th>
-            <th style="padding:10px;border:1px solid #ddd;">開始時間</th>
-            <th style="padding:10px;border:1px solid #ddd;">結束時間</th>
-            <th style="padding:10px;border:1px solid #ddd;">持續時間</th>
+          <tr>
+            <th>警報類型</th>
+            <th>開始時間</th>
+            <th>結束時間</th>
+            <th>持續時間</th>
           </tr>
         </thead>
         <tbody>
-          <tr><td>大雨警報</td><td>2026-06-13 03:10</td><td>2026-06-13 04:30</td><td>01:20</td></tr>
-          <tr style="background:#fdecea;"><td>暴雨警報</td><td>2026-06-13 04:30</td><td>2026-06-13 06:00</td><td>01:30</td></tr>
-          <tr><td>大雨警報</td><td>2026-06-13 06:00</td><td>2026-06-13 06:40</td><td>00:40</td></tr>
-          <tr><td>大雨警報</td><td>2026-06-14 23:00</td><td>2026-06-15 00:30</td><td>01:30</td></tr>
-          <tr><td>大雨警報</td><td>2026-06-15 00:42</td><td>2026-06-15 01:02</td><td>00:20</td></tr>
-          <tr><td>大雨警報</td><td>2026-06-17 13:55</td><td>2026-06-17 16:55</td><td>03:00</td></tr>
-          <tr><td>大雨警報</td><td>2026-06-18 01:30</td><td>2026-06-18 04:10</td><td>02:40</td></tr>
+          <tr class="alert-heavy"><td>大雨警報</td><td>2026-06-13 03:10</td><td>2026-06-13 04:30</td><td>01:20</td></tr>
+          <tr class="alert-heavy"><td>暴雨警報</td><td>2026-06-13 04:30</td><td>2026-06-13 06:00</td><td>01:30</td></tr>
+          <tr class="alert-heavy"><td>大雨警報</td><td>2026-06-13 06:00</td><td>2026-06-13 06:40</td><td>00:40</td></tr>
+          <tr class="alert-heavy"><td>大雨警報</td><td>2026-06-14 23:00</td><td>2026-06-15 00:30</td><td>01:30</td></tr>
+          <tr class="alert-heavy"><td>大雨警報</td><td>2026-06-15 00:42</td><td>2026-06-15 01:02</td><td>00:20</td></tr>
+          <tr class="alert-heavy"><td>大雨警報</td><td>2026-06-17 13:55</td><td>2026-06-17 16:55</td><td>03:00</td></tr>
+          <tr class="alert-heavy"><td>大雨警報</td><td>2026-06-18 01:30</td><td>2026-06-18 04:10</td><td>02:40</td></tr>
         </tbody>
       </table>
     </div>
-    <div style="margin-top:40px;">
-      <h2 style="margin-bottom:15px;">⚠️ 豪雨特別報告</h2>
-      <table style="width:100%; border-collapse:collapse; background:#fff; box-shadow:0 1px 6px rgba(0,0,0,0.08);">
+
+    <div class="alert-section">
+      <h2>豪雨特別報告</h2>
+    
+      <table class="alert-table">
         <thead>
-          <tr style="background:#8e44ad; color:#fff;">
-            <th style="padding:10px;border:1px solid #ddd;">報告類型</th>
-            <th style="padding:10px;border:1px solid #ddd;">開始時間</th>
-            <th style="padding:10px;border:1px solid #ddd;">結束時間</th>
-            <th style="padding:10px;border:1px solid #ddd;">持續時間</th>
+          <tr>
+            <th>報告類型</th>
+            <th>開始時間</th>
+            <th>結束時間</th>
+            <th>持續時間</th>
           </tr>
         </thead>
         <tbody>
-          <tr style="background:#f4ecf7;">
+          <tr class="alert-special">
             <td>豪雨特別報告</td>
             <td>2026-06-13 04:20</td>
             <td>2026-06-19 10:20</td>
