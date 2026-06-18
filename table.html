@@ -320,28 +320,8 @@
     </div>
 
     <script>
-        // 自動為雨量數值添加對應色階樣式
         document.addEventListener('DOMContentLoaded', function() {
-            const cells = document.querySelectorAll('.rain-table tbody td:not(:first-child)');
-            cells.forEach(cell => {
-                const value = parseFloat(cell.textContent);
-                if (value >= 60 && value < 80) {
-                    cell.classList.add('rain-level-1');
-                } else if (value >= 80 && value < 100) {
-                    cell.classList.add('rain-level-2');
-                } else if (value >= 100 && value < 200) {
-                    cell.classList.add('rain-level-3');
-                } else if (value >= 200 && value < 350) {
-                    cell.classList.add('rain-level-4');
-                } else if (value >= 350 && value < 500) {
-                    cell.classList.add('rain-level-5');
-                }
-            });
-        });
-    </script>
-    <script>
-    // Rainfall color mapping
-    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Color fill table cells first
         const cells = document.querySelectorAll('.rain-table tbody td:not(:first-child)');
         cells.forEach(cell => {
             const value = parseFloat(cell.textContent);
@@ -352,12 +332,13 @@
             else if (value >= 350 && value < 500) cell.classList.add('rain-level-5');
         });
     
-        // Extract table data for charts
+        // ========= MOVE THESE TWO TO TOP (global inside this listener) =========
         const table = document.querySelector('.rain-table');
         const tbodyRows = Array.from(table.querySelectorAll('tbody tr'));
         const stationNames = Array.from(table.querySelectorAll('thead tr:nth-child(3) th')).slice(1).map(th=>th.innerText);
-        
-        // Init 10 charts
+        // =======================================================================
+    
+        // Draw 10 small single-station charts
         for(let col=0; col<10; col++){
             const chartId = document.getElementById(`chart${col}`);
             const data = tbodyRows.map(row => Number(row.querySelectorAll('td')[col+1].innerText));
@@ -376,81 +357,77 @@
                 },
                 options:{
                     responsive:true,
-                    scales:{
-                        y:{title:{display:true, text:'雨量 mm'}}
-                    }
+                    maintainAspectRatio: false
                 }
             })
         }
-    });
-        // ===== Big combined all-station chart + orange 100mm threshold line
-    const bigCanvas = document.getElementById("bigAllChart");
-    const allDatasets = [];
-    // Distinct soft colors for 10 stations
-    const lineColors = [
-      "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
-      "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"
-    ];
     
-    // Build each station dataset
-    for(let col=0; col<10; col++){
-      const stationData = tbodyRows.map(row => Number(row.querySelectorAll('td')[col+1].innerText));
-      allDatasets.push({
-        label: stationNames[col],
-        data: stationData,
-        borderColor: lineColors[col],
-        borderWidth: 2,
-        fill: false,
-        pointRadius: 2,
-        tension: 0.15
-      })
-    }
+        // ===== BIG ALL STATIONS CHART CODE (can now read tbodyRows / stationNames) =====
+        const bigCanvas = document.getElementById("bigAllChart");
+        const allDatasets = [];
+        const lineColors = [
+          "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd",
+          "#8c564b", "#e377c2", "#7f7f7f", "#bcbd22", "#17becf"
+        ];
     
-    // Add fixed orange threshold line y=100
-    allDatasets.push({
-      label: "100mm 警戒線",
-      data: Array(tbodyRows.length).fill(100),
-      borderColor: "#ff7800",
-      borderWidth: 3,
-      borderDash: [6,4], // dashed orange line
-      fill: false,
-      pointRadius: 0
-    });
-    
-    // Render big chart
-    new Chart(bigCanvas, {
-      type: "line",
-      data: {
-        labels: tbodyRows.map(row => row.querySelector("td").innerText),
-        datasets: allDatasets
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          title: {
-            display: true,
-            text: "澳門各測站逐時雨量走勢對照",
-            font: { size: 18 },
-            padding: { bottom: 15 }
-          },
-          legend: {
-            position: "bottom",
-            labels: { font: { size: 12 } }
-          }
-        },
-        scales: {
-          x: {
-            title: { display: true, text: "時間" },
-            grid: { color: "#eee" }
-          },
-          y: {
-            title: { display: true, text: "累計雨量 mm" },
-            grid: { color: "#eee" },
-            min: 0
-          }
+        for(let col=0; col<10; col++){
+          const stationData = tbodyRows.map(row => Number(row.querySelectorAll('td')[col+1].innerText));
+          allDatasets.push({
+            label: stationNames[col],
+            data: stationData,
+            borderColor: lineColors[col],
+            borderWidth: 2,
+            fill: false,
+            pointRadius: 2,
+            tension: 0.15
+          })
         }
-      }
+    
+        // Orange threshold line y=100
+        allDatasets.push({
+          label: "100mm 警戒線",
+          data: Array(tbodyRows.length).fill(100),
+          borderColor: "#ff7800",
+          borderWidth: 3,
+          borderDash: [6,4],
+          fill: false,
+          pointRadius: 0
+        });
+    
+        new Chart(bigCanvas, {
+          type: "line",
+          data: {
+            labels: tbodyRows.map(row => row.querySelector("td").innerText),
+            datasets: allDatasets
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              title: {
+                display: true,
+                text: "澳門各測站逐時雨量走勢對照",
+                font: { size: 18 },
+                padding: { bottom: 15 }
+              },
+              legend: {
+                position: "bottom",
+                labels: { font: { size: 12 } }
+              }
+            },
+            scales: {
+              x: {
+                title: { display: true, text: "時間" },
+                grid: { color: "#eee" }
+              },
+              y: {
+                title: { display: true, text: "累計雨量 mm" },
+                grid: { color: "#eee" },
+                min: 0
+              }
+            }
+          }
+        })
     });
     </script>
 </body>
