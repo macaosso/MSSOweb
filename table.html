@@ -335,9 +335,14 @@
         // ========= MOVE THESE TWO TO TOP (global inside this listener) =========
         const table = document.querySelector('.rain-table');
         const tbodyRows = Array.from(table.querySelectorAll('tbody tr'));
-        const stationNames = Array.from(
-          table.querySelectorAll('thead tr:nth-child(3) th:not(:first-child)')
-        ).map(th => th.innerText.trim());
+        const allHeaders = Array.from(
+          table.querySelectorAll('thead tr:nth-child(3) th')
+        );
+        
+        const stationNames = allHeaders
+          .slice(1)   // ✅ 強制移除第一個「時間」
+          .map(th => th.innerText.trim());
+
         // =======================================================================
     
         // Draw 10 small single-station charts
