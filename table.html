@@ -67,7 +67,17 @@
             font-weight: 600;
             z-index: 4;
         }
-
+        .charts-container > div {
+            background: #fff;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+            min-height: 320px;
+        }
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
         /* 表頭重疊層級優化 */
         .rain-table thead tr:nth-child(1) th:first-child,
         .rain-table thead tr:nth-child(2) th:first-child,
