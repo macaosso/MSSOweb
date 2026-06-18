@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>24小時雨量監測數據</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+        }
+
+        body {
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+
+        .table-container {
+            max-width: 100%;
+            overflow: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background-color: #fff;
+        }
+
+        .rain-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        /* 表頭凍結樣式 */
+        .rain-table thead tr:nth-child(1) th,
+        .rain-table thead tr:nth-child(2) th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background-color: #2c3e50;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .rain-table thead tr:nth-child(2) th {
+            top: 41px;
+            background-color: #34495e;
+        }
+
+        .rain-table thead tr:nth-child(3) th {
+            position: sticky;
+            top: 82px;
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            font-weight: 600;
+            z-index: 5;
+        }
+
+        /* 首列時間列凍結 */
+        .rain-table tbody td:first-child,
+        .rain-table thead tr:nth-child(3) th:first-child {
+            position: sticky;
+            left: 0;
+            background-color: #ecf0f1;
+            font-weight: 600;
+            z-index: 4;
+        }
+
+        /* 表頭重疊層級優化 */
+        .rain-table thead tr:nth-child(1) th:first-child,
+        .rain-table thead tr:nth-child(2) th:first-child,
+        .rain-table thead tr:nth-child(3) th:first-child {
+            z-index: 15;
+        }
+
+        /* 單元格基礎樣式 */
+        .rain-table th, .rain-table td {
+            padding: 10px 8px;
+            text-align: center;
+            border: 1px solid #ddd;
+            min-width: 80px;
+            font-size: 14px;
+        }
+
+        .rain-table th {
+            user-select: none;
+        }
+
+        /* 雨量色階樣式 */
+        .rain-level-1 { background-color: #e2efda; } /* 60-79.9 */
+        .rain-level-2 { background-color: #fff2cc; } /* 80-99.9 */
+        .rain-level-3 { background-color: #fce4d6; } /* 100-199.9 */
+        .rain-level-4 { background-color: #f8cbad; } /* 200-349.9 */
+        .rain-level-5 { background-color: #d3d3d3; } /* 350-499.9 */
+
+        /* 行懸停效果 */
+        .rain-table tbody tr:hover td {
+            filter: brightness(1.05);
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 768px) {
+            .rain-table th, .rain-table td {
+                padding: 8px 5px;
+                font-size: 12px;
+                min-width: 60px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="table-container">
+        <table class="rain-table">
+            <thead>
+                <tr>
+                    <th colspan="11">24 小時雨量</th>
+                </tr>
+                <tr>
+                    <th rowspan="2">時間</th>
+                    <th colspan="5">澳門</th>
+                    <th colspan="3">氹仔</th>
+                    <th colspan="2">路環</th>
+                </tr>
+                <tr>
+                    <th>孫中山公園</th>
+                    <th>大炮台</th>
+                    <th>污水處理廠</th>
+                    <th>外港碼頭</th>
+                    <th>海事博物館</th>
+                    <th>大潭山</th>
+                    <th>東亞運站</th>
+                    <th>澳門大學</th>
+                    <th>路環市區</th>
+                    <th>九澳</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>0:00</td><td>1.2</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.4</td><td>0.6</td><td>2.2</td><td>2.0</td><td>2.0</td></tr>
+                <tr><td>1:00</td><td>1.2</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.4</td><td>0.6</td><td>2.2</td><td>2.0</td><td>2.0</td></tr>
+                <tr><td>2:00</td><td>1.2</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>1.0</td><td>0.8</td><td>3.0</td><td>2.0</td><td>2.0</td></tr>
+                <tr><td>3:00</td><td>1.2</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>1.6</td><td>2.8</td><td>4.2</td><td>3.0</td><td>2.6</td></tr>
+                <tr><td>4:00</td><td>7.4</td><td>9.0</td><td>5.2</td><td>5.0</td><td>13.0</td><td>10.2</td><td>18.4</td><td>12.6</td><td>12.8</td><td>9.8</td></tr>
+                <tr><td>5:00</td><td>28.4</td><td>37.4</td><td>30.8</td><td>35.4</td><td>45.8</td><td>44.4</td><td>58.4</td><td>29.4</td><td>37.4</td><td>31.2</td></tr>
+                <tr><td>6:00</td><td>33.8</td><td>44.8</td><td>38.4</td><td>43.8</td><td>53.2</td><td>56.8</td><td>73.0</td><td>44.0</td><td>53.8</td><td>45.0</td></tr>
+                <tr><td>7:00</td><td>36.8</td><td>49.0</td><td>42.0</td><td>48.8</td><td>57.4</td><td>61.0</td><td>76.4</td><td>46.6</td><td>58.6</td><td>50.0</td></tr>
+                <tr><td>8:00</td><td>36.8</td><td>49.0</td><td>42.2</td><td>48.8</td><td>57.4</td><td>61.4</td><td>76.6</td><td>46.6</td><td>58.8</td><td>50.4</td></tr>
+                <tr><td>9:00</td><td>36.8</td><td>49.0</td><td>42.2</td><td>48.8</td><td>57.4</td><td>61.4</td><td>76.6</td><td>46.6</td><td>58.8</td><td>50.4</td></tr>
+                <tr><td>10:00</td><td>36.8</td><td>49.0</td><td>42.6</td><td>49.4</td><td>57.4</td><td>61.4</td><td>77.0</td><td>46.6</td><td>59.0</td><td>50.4</td></tr>
+                <tr><td>11:00</td><td>37.0</td><td>49.4</td><td>42.6</td><td>49.4</td><td>57.6</td><td>61.4</td><td>77.0</td><td>46.8</td><td>59.6</td><td>50.6</td></tr>
+                <tr><td>12:00</td><td>37.4</td><td>49.4</td><td>42.6</td><td>49.4</td><td>57.8</td><td>61.4</td><td>77.0</td><td>46.8</td><td>59.6</td><td>50.6</td></tr>
+                <tr><td>13:00</td><td>36.4</td><td>50.0</td><td>42.8</td><td>49.8</td><td>58.6</td><td>61.4</td><td>77.4</td><td>47.4</td><td>62.6</td><td>50.6</td></tr>
+                <tr><td>14:00</td><td>37.8</td><td>50.6</td><td>43.4</td><td>50.4</td><td>59.4</td><td>62.6</td><td>77.8</td><td>46.0</td><td>61.6</td><td>49.8</td></tr>
+                <tr><td>15:00</td><td>37.8</td><td>50.6</td><td>43.4</td><td>50.4</td><td>59.4</td><td>62.2</td><td>77.8</td><td>45.8</td><td>61.4</td><td>49.4</td></tr>
+                <tr><td>16:00</td><td>37.8</td><td>50.6</td><td>43.4</td><td>50.4</td><td>59.4</td><td>62.2</td><td>77.8</td><td>45.8</td><td>61.4</td><td>49.4</td></tr>
+                <tr><td>17:00</td><td>37.8</td><td>50.6</td><td>43.4</td><td>50.4</td><td>59.4</td><td>62.2</td><td>77.8</td><td>45.8</td><td>61.4</td><td>49.4</td></tr>
+                <tr><td>18:00</td><td>37.8</td><td>50.6</td><td>43.4</td><td>50.4</td><td>59.4</td><td>62.2</td><td>77.8</td><td>45.8</td><td>61.4</td><td>49.4</td></tr>
+                <tr><td>19:00</td><td>37.8</td><td>50.6</td><td>43.4</td><td>50.4</td><td>59.4</td><td>62.2</td><td>77.8</td><td>45.8</td><td>61.4</td><td>49.4</td></tr>
+                <tr><td>20:00</td><td>37.8</td><td>50.6</td><td>43.4</td><td>50.4</td><td>59.4</td><td>62.2</td><td>77.8</td><td>45.8</td><td>61.4</td><td>49.4</td></tr>
+                <tr><td>21:00</td><td>37.8</td><td>50.6</td><td>43.4</td><td>50.4</td><td>59.4</td><td>62.2</td><td>77.8</td><td>45.8</td><td>61.4</td><td>49.4</td></tr>
+                <tr><td>22:00</td><td>37.8</td><td>50.6</td><td>43.4</td><td>50.4</td><td>59.4</td><td>62.2</td><td>77.8</td><td>45.8</td><td>61.4</td><td>49.4</td></tr>
+                <tr><td>23:00</td><td>37.8</td><td>50.6</td><td>43.4</td><td>50.4</td><td>59.4</td><td>62.2</td><td>77.8</td><td>45.8</td><td>61.4</td><td>49.4</td></tr>
+                <tr><td>0:00</td><td>37.8</td><td>50.6</td><td>43.4</td><td>50.4</td><td>59.4</td><td>62.2</td><td>77.8</td><td>45.8</td><td>61.4</td><td>49.4</td></tr>
+                <tr><td>1:00</td><td>37.8</td><td>50.6</td><td>43.4</td><td>50.4</td><td>59.4</td><td>62.2</td><td>77.8</td><td>45.8</td><td>61.4</td><td>49.4</td></tr>
+                <tr><td>2:00</td><td>37.8</td><td>50.6</td><td>43.4</td><td>50.4</td><td>59.4</td><td>61.6</td><td>77.6</td><td>45.0</td><td>61.4</td><td>49.4</td></tr>
+                <tr><td>3:00</td><td>37.8</td><td>50.6</td><td>43.4</td><td>50.4</td><td>59.4</td><td>61.0</td><td>75.6</td><td>43.8</td><td>60.4</td><td>48.8</td></tr>
+                <tr><td>4:00</td><td>31.6</td><td>41.6</td><td>38.2</td><td>45.4</td><td>46.4</td><td>52.4</td><td>60.0</td><td>35.4</td><td>50.6</td><td>41.6</td></tr>
+                <tr><td>5:00</td><td>10.6</td><td>13.2</td><td>12.6</td><td>15.0</td><td>13.6</td><td>18.2</td><td>20.0</td><td>18.6</td><td>26.0</td><td>20.2</td></tr>
+                <tr><td>6:00</td><td>5.2</td><td>5.8</td><td>5.0</td><td>6.6</td><td>6.2</td><td>5.8</td><td>5.4</td><td>4.0</td><td>9.6</td><td>6.4</td></tr>
+                <tr><td>7:00</td><td>2.2</td><td>1.6</td><td>1.4</td><td>1.6</td><td>2.0</td><td>1.6</td><td>2.0</td><td>1.4</td><td>4.8</td><td>1.4</td></tr>
+                <tr><td>8:00</td><td>2.2</td><td>1.6</td><td>1.2</td><td>1.6</td><td>2.0</td><td>1.2</td><td>1.8</td><td>1.4</td><td>4.6</td><td>1.0</td></tr>
+                <tr><td>9:00</td><td>2.2</td><td>1.6</td><td>1.2</td><td>1.6</td><td>2.0</td><td>1.2</td><td>1.8</td><td>1.4</td><td>4.6</td><td>1.0</td></tr>
+                <tr><td>10:00</td><td>2.2</td><td>1.6</td><td>0.8</td><td>1.0</td><td>2.0</td><td>1.2</td><td>1.4</td><td>1.4</td><td>4.4</td><td>1.0</td></tr>
+                <tr><td>11:00</td><td>2.0</td><td>1.2</td><td>0.8</td><td>1.0</td><td>1.8</td><td>1.2</td><td>1.4</td><td>1.2</td><td>3.8</td><td>0.8</td></tr>
+                <tr><td>12:00</td><td>1.6</td><td>1.2</td><td>0.8</td><td>1.0</td><td>1.6</td><td>1.2</td><td>1.4</td><td>1.2</td><td>3.8</td><td>0.8</td></tr>
+                <tr><td>13:00</td><td>1.4</td><td>0.6</td><td>0.6</td><td>0.6</td><td>0.8</td><td>1.2</td><td>0.6</td><td>0.6</td><td>0.8</td><td>0.8</td></tr>
+                <tr><td>14:00</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td></tr>
+                <tr><td>15:00</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td></tr>
+                <tr><td>16:00</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td></tr>
+                <tr><td>17:00</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td></tr>
+                <tr><td>18:00</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td></tr>
+                <tr><td>19:00</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td></tr>
+                <tr><td>20:00</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td></tr>
+                <tr><td>21:00</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td></tr>
+                <tr><td>22:00</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td></tr>
+                <tr><td>23:00</td><td>0.0</td><td>0.0</td><td>0.0</td><td>0.0</td><td>1.4</td><td>0.4</td><td>7.6</td><td>5.0</td><td>7.2</td><td>1.8</td></tr>
+                <tr><td>0:00</td><td>1.4</td><td>2.8</td><td>2.2</td><td>3.6</td><td>2.8</td><td>16.0</td><td>14.4</td><td>16.0</td><td>19.6</td><td>18.0</td></tr>
+                <tr><td>1:00</td><td>1.6</td><td>3.0</td><td>2.4</td><td>3.6</td><td>2.8</td><td>16.0</td><td>14.6</td><td>16.6</td><td>29.0</td><td>29.8</td></tr>
+                <tr><td>2:00</td><td>1.6</td><td>3.0</td><td>2.4</td><td>3.6</td><td>2.8</td><td>16.2</td><td>14.6</td><td>16.6</td><td>29.0</td><td>29.8</td></tr>
+                <tr><td>3:00</td><td>1.6</td><td>3.0</td><td>2.4</td><td>3.6</td><td>2.8</td><td>16.2</td><td>14.6</td><td>16.6</td><td>29.0</td><td>29.8</td></tr>
+                <tr><td>4:00</td><td>1.8</td><td>3.0</td><td>2.4</td><td>3.6</td><td>3.0</td><td>16.2</td><td>14.6</td><td>16.6</td><td>29.0</td><td>29.8</td></tr>
+                <tr><td>5:00</td><td>1.8</td><td>3.0</td><td>2.4</td><td>3.6</td><td>3.0</td><td>16.2</td><td>14.6</td><td>16.6</td><td>29.0</td><td>29.8</td></tr>
+                <tr><td>6:00</td><td>1.8</td><td>3.0</td><td>2.4</td><td>3.6</td><td>3.0</td><td>16.2</td><td>14.6</td><td>16.6</td><td>29.0</td><td>29.8</td></tr>
+                <tr><td>7:00</td><td>1.8</td><td>3.0</td><td>2.4</td><td>3.6</td><td>3.0</td><td>16.2</td><td>14.6</td><td>16.6</td><td>29.0</td><td>29.8</td></tr>
+                <tr><td>8:00</td><td>1.8</td><td>3.0</td><td>2.4</td><td>3.6</td><td>3.0</td><td>16.2</td><td>14.6</td><td>16.6</td><td>29.0</td><td>29.8</td></tr>
+                <tr><td>9:00</td><td>1.8</td><td>3.0</td><td>2.4</td><td>3.6</td><td>3.0</td><td>16.2</td><td>14.6</td><td>16.6</td><td>29.0</td><td>29.8</td></tr>
+                <tr><td>10:00</td><td>1.8</td><td>3.0</td><td>2.4</td><td>3.6</td><td>3.0</td><td>16.2</td><td>14.6</td><td>16.6</td><td>29.2</td><td>29.8</td></tr>
+                <tr><td>11:00</td><td>2.2</td><td>3.0</td><td>2.4</td><td>3.6</td><td>3.0</td><td>16.2</td><td>14.6</td><td>17.0</td><td>29.2</td><td>30.2</td></tr>
+                <tr><td>12:00</td><td>2.2</td><td>3.0</td><td>2.4</td><td>3.6</td><td>3.0</td><td>16.2</td><td>14.6</td><td>17.0</td><td>29.2</td><td>30.2</td></tr>
+                <tr><td>13:00</td><td>6.0</td><td>3.6</td><td>3.4</td><td>4.2</td><td>3.4</td><td>16.2</td><td>14.8</td><td>17.0</td><td>29.2</td><td>30.2</td></tr>
+                <tr><td>14:00</td><td>6.6</td><td>4.4</td><td>4.2</td><td>5.0</td><td>4.2</td><td>17.2</td><td>15.8</td><td>18.2</td><td>30.2</td><td>31.0</td></tr>
+                <tr><td>15:00</td><td>8.6</td><td>6.0</td><td>6.0</td><td>6.8</td><td>5.2</td><td>18.6</td><td>17.0</td><td>19.2</td><td>31.4</td><td>32.2</td></tr>
+                <tr><td>16:00</td><td>11.0</td><td>8.0</td><td>8.0</td><td>9.2</td><td>6.8</td><td>20.6</td><td>18.8</td><td>20.4</td><td>32.6</td><td>33.6</td></tr>
+                <tr><td>17:00</td><td>12.6</td><td>10.4</td><td>10.8</td><td>14.8</td><td>10.8</td><td>21.6</td><td>19.8</td><td>21.2</td><td>34.2</td><td>34.6</td></tr>
+                <tr><td>18:00</td><td>13.4</td><td>11.4</td><td>11.8</td><td>16.2</td><td>11.6</td><td>22.2</td><td>20.4</td><td>21.8</td><td>35.0</td><td>35.4</td></tr>
+                <tr><td>19:00</td><td>14.4</td><td>11.8</td><td>12.4</td><td>16.6</td><td>12.2</td><td>22.6</td><td>20.8</td><td>22.2</td><td>35.2</td><td>35.6</td></tr>
+                <tr><td>20:00</td><td>14.4</td><td>11.8</td><td>12.6</td><td>16.6</td><td>12.2</td><td>22.6</td><td>20.8</td><td>22.2</td><td>35.2</td><td>35.8</td></tr>
+                <tr><td>21:00</td><td>14.4</td><td>11.8</td><td>12.6</td><td>16.6</td><td>12.2</td><td>22.6</td><td>20.8</td><td>22.2</td><td>35.2</td><td>35.8</td></tr>
+                <tr><td>22:00</td><td>14.4</td><td>11.8</td><td>12.6</td><td>16.6</td><td>12.2</td><td>22.6</td><td>21.0</td><td>22.2</td><td>35.4</td><td>35.8</td></tr>
+                <tr><td>23:00</td><td>14.4</td><td>11.8</td><td>12.6</td><td>16.6</td><td>10.8</td><td>22.2</td><td>13.4</td><td>17.2</td><td>28.2</td><td>34.0</td></tr>
+                <tr><td>0:00</td><td>13.4</td><td>9.6</td><td>10.4</td><td>13.2</td><td>10.2</td><td>6.8</td><td>7.2</td><td>6.6</td><td>16.0</td><td>18.0</td></tr>
+                <tr><td>1:00</td><td>13.4</td><td>9.4</td><td>10.4</td><td>13.4</td><td>10.4</td><td>7.0</td><td>7.2</td><td>6.2</td><td>6.8</td><td>6.4</td></tr>
+                <tr><td>2:00</td><td>13.8</td><td>9.6</td><td>10.6</td><td>13.4</td><td>10.4</td><td>7.0</td><td>7.2</td><td>6.2</td><td>7.0</td><td>6.6</td></tr>
+                <tr><td>3:00</td><td>14.6</td><td>10.2</td><td>11.8</td><td>14.4</td><td>10.8</td><td>8.6</td><td>8.6</td><td>7.8</td><td>8.6</td><td>8.2</td></tr>
+                <tr><td>4:00</td><td>14.4</td><td>10.4</td><td>12.2</td><td>14.8</td><td>10.6</td><td>9.6</td><td>9.2</td><td>8.6</td><td>9.8</td><td>9.4</td></tr>
+                <tr><td>5:00</td><td>14.6</td><td>10.6</td><td>12.4</td><td>15.2</td><td>10.8</td><td>10.6</td><td>9.8</td><td>9.4</td><td>10.8</td><td>10.6</td></tr>
+                <tr><td>6:00</td><td>14.6</td><td>10.6</td><td>12.6</td><td>15.4</td><td>11.0</td><td>11.0</td><td>10.0</td><td>9.8</td><td>11.6</td><td>11.4</td></tr>
+                <tr><td>7:00</td><td>14.6</td><td>10.8</td><td>12.6</td><td>15.6</td><td>11.0</td><td>11.4</td><td>10.4</td><td>10.2</td><td>12.6</td><td>12.6</td></tr>
+                <tr><td>8:00</td><td>14.6</td><td>10.8</td><td>12.6</td><td>15.6</td><td>11.0</td><td>11.6</td><td>10.4</td><td>10.4</td><td>12.6</td><td>12.6</td></tr>
+                <tr><td>9:00</td><td>24.4</td><td>15.4</td><td>20.6</td><td>22.0</td><td>14.4</td><td>14.6</td><td>13.4</td><td>13.6</td><td>15.6</td><td>17.6</td></tr>
+                <tr><td>10:00</td><td>26.4</td><td>17.2</td><td>23.0</td><td>24.2</td><td>16.4</td><td>17.2</td><td>16.4</td><td>16.6</td><td>19.2</td><td>20.4</td></tr>
+                <tr><td>11:00</td><td>26.0</td><td>17.4</td><td>23.0</td><td>24.4</td><td>16.6</td><td>17.6</td><td>16.4</td><td>17.0</td><td>20.8</td><td>21.4</td></tr>
+                <tr><td>12:00</td><td>26.0</td><td>17.4</td><td>23.2</td><td>24.4</td><td>16.8</td><td>17.6</td><td>16.4</td><td>22.2</td><td>26.4</td><td>28.6</td></tr>
+                <tr><td>13:00</td><td>22.2</td><td>16.8</td><td>22.2</td><td>23.8</td><td>16.4</td><td>17.6</td><td>16.2</td><td>22.2</td><td>26.4</td><td>28.6</td></tr>
+                <tr><td>14:00</td><td>21.6</td><td>16.0</td><td>21.4</td><td>23.0</td><td>15.6</td><td>16.6</td><td>15.2</td><td>21.0</td><td>25.4</td><td>27.8</td></tr>
+                <tr><td>15:00</td><td>19.6</td><td>14.4</td><td>19.6</td><td>21.2</td><td>14.6</td><td>15.2</td><td>14.0</td><td>20.0</td><td>24.4</td><td>26.6</td></tr>
+                <tr><td>16:00</td><td>17.2</td><td>12.4</td><td>17.6</td><td>18.8</td><td>13.4</td><td>13.2</td><td>12.8</td><td>19.0</td><td>24.2</td><td>25.6</td></tr>
+                <tr><td>17:00</td><td>18.6</td><td>12.8</td><td>18.0</td><td>15.8</td><td>13.6</td><td>17.6</td><td>16.4</td><td>19.8</td><td>26.2</td><td>26.6</td></tr>
+                <tr><td>18:00</td><td>21.8</td><td>16.6</td><td>21.2</td><td>19.6</td><td>18.2</td><td>22.6</td><td>22.0</td><td>25.0</td><td>32.8</td><td>32.0</td></tr>
+                <tr><td>19:00</td><td>24.8</td><td>20.8</td><td>24.6</td><td>24.2</td><td>21.8</td><td>32.4</td><td>31.4</td><td>33.6</td><td>42.6</td><td>39.0</td></tr>
+                <tr><td>20:00</td><td>25.2</td><td>21.4</td><td>25.0</td><td>25.8</td><td>22.6</td><td>32.8</td><td>34.0</td><td>34.4</td><td>44.2</td><td>40.2</td></tr>
+                <tr><td>21:00</td><td>25.2</td><td>21.4</td><td>25.0</td><td>25.8</td><td>22.6</td><td>32.8</td><td>34.0</td><td>34.6</td><td>44.4</td><td>40.2</td></tr>
+                <tr><td>22:00</td><td>25.2</td><td>21.4</td><td>25.0</td><td>25.8</td><td>22.8</td><td>33.0</td><td>33.8</td><td>34.6</td><td>44.2</td><td>40.2</td></tr>
+                <tr><td>23:00</td><td>25.2</td><td>21.4</td><td>25.0</td><td>25.8</td><td>22.8</td><td>33.0</td><td>33.8</td><td>34.6</td><td>44.4</td><td>40.4</td></tr>
+                <tr><td>0:00</td><td>24.8</td><td>20.8</td><td>25.0</td><td>25.6</td><td>22.0</td><td>32.8</td><td>33.2</td><td>34.2</td><td>44.2</td><td>40.2</td></tr>
+                <tr><td>1:00</td><td>24.6</td><td>20.8</td><td>24.8</td><td>25.4</td><td>21.8</td><td>32.6</td><td>33.2</td><td>34.0</td><td>44.0</td><td>40.0</td></tr>
+                <tr><td>2:00</td><td>24.2</td><td>20.6</td><td>24.6</td><td>25.4</td><td>21.8</td><td>32.4</td><td>33.2</td><td>34.0</td><td>43.8</td><td>39.8</td></tr>
+                <tr><td>3:00</td><td>23.4</td><td>20.0</td><td>23.4</td><td>24.4</td><td>21.4</td><td>30.8</td><td>31.8</td><td>32.4</td><td>42.2</td><td>38.2</td></tr>
+                <tr><td>4:00</td><td>23.4</td><td>19.8</td><td>23.0</td><td>24.0</td><td>21.4</td><td>29.8</td><td>31.2</td><td>31.6</td><td>41.0</td><td>37.0</td></tr>
+                <tr><td>5:00</td><td>23.2</td><td>19.6</td><td>22.8</td><td>23.6</td><td>21.2</td><td>28.8</td><td>30.6</td><td>30.8</td><td>40.0</td><td>35.8</td></tr>
+                <tr><td>6:00</td><td>23.2</td><td>19.6</td><td>22.6</td><td>23.4</td><td>21.0</td><td>28.4</td><td>30.4</td><td>30.4</td><td>39.2</td><td>35.0</td></tr>
+                <tr><td>7:00</td><td>23.2</td><td>19.4</td><td>22.6</td><td>23.2</td><td>21.0</td><td>28.0</td><td>30.0</td><td>30.0</td><td>38.2</td><td>33.8</td></tr>
+                <tr><td>8:00</td><td>23.2</td><td>19.4</td><td>22.6</td><td>23.2</td><td>21.0</td><td>27.8</td><td>30.0</td><td>29.8</td><td>38.2</td><td>33.8</td></tr>
+                <tr><td>9:00</td><td>13.4</td><td>14.8</td><td>14.6</td><td>16.8</td><td>17.6</td><td>24.8</td><td>27.0</td><td>26.8</td><td>35.2</td><td>28.8</td></tr>
+                <tr><td>10:00</td><td>11.6</td><td>13.4</td><td>12.4</td><td>14.8</td><td>15.8</td><td>24.2</td><td>26.4</td><td>29.8</td><td>34.4</td><td>30.6</td></tr>
+                <tr><td>11:00</td><td>11.8</td><td>13.2</td><td>12.4</td><td>14.6</td><td>15.8</td><td>23.8</td><td>26.4</td><td>29.4</td><td>33.8</td><td>29.6</td></tr>
+                <tr><td>12:00</td><td>15.2</td><td>16.0</td><td>15.0</td><td>17.6</td><td>19.0</td><td>29.6</td><td>32.2</td><td>33.6</td><td>40.4</td><td>29.6</td></tr>
+                <tr><td>13:00</td><td>19.6</td><td>19.0</td><td>18.4</td><td>20.8</td><td>20.2</td><td>32.0</td><td>34.2</td><td>36.2</td><td>43.0</td><td>32.8</td></tr>
+                <tr><td>14:00</td><td>28.0</td><td>26.0</td><td>23.4</td><td>25.4</td><td>28.2</td><td>41.0</td><td>47.0</td><td>51.4</td><td>58.0</td><td>41.0</td></tr>
+                <tr><td>15:00</td><td>39.6</td><td>42.8</td><td>40.0</td><td>43.0</td><td>44.4</td><td>62.4</td><td>78.2</td><td>76.0</td><td>80.2</td><td>55.0</td></tr>
+                <tr><td>16:00</td><td>55.2</td><td>60.6</td><td>59.6</td><td>59.6</td><td>57.0</td><td>72.2</td><td>90.4</td><td>85.4</td><td>90.2</td><td>68.2</td></tr>
+                <tr><td>17:00</td><td>56.0</td><td>61.8</td><td>60.0</td><td>60.2</td><td>56.4</td><td>70.0</td><td>89.8</td><td>88.0</td><td>90.4</td><td>69.2</td></tr>
+                <tr><td>18:00</td><td>52.6</td><td>57.6</td><td>56.6</td><td>55.8</td><td>51.4</td><td>65.2</td><td>84.4</td><td>83.4</td><td>84.8</td><td>64.0</td></tr>
+                <tr><td>19:00</td><td>48.6</td><td>53.2</td><td>52.6</td><td>50.8</td><td>47.4</td><td>55.2</td><td>74.8</td><td>74.6</td><td>75.0</td><td>57.0</td></tr>
+                <tr><td>20:00</td><td>48.2</td><td>52.6</td><td>52.0</td><td>49.2</td><td>46.6</td><td>54.8</td><td>72.2</td><td>73.8</td><td>73.4</td><td>55.6</td></tr>
+                <tr><td>21:00</td><td>48.2</td><td>52.6</td><td>52.0</td><td>49.2</td><td>46.6</td><td>54.8</td><td>72.2</td><td>73.6</td><td>73.2</td><td>55.6</td></tr>
+                <tr><td>22:00</td><td>48.2</td><td>52.6</td><td>52.0</td><td>49.2</td><td>46.4</td><td>54.6</td><td>72.2</td><td>73.6</td><td>73.2</td><td>55.6</td></tr>
+                <tr><td>23:00</td><td>48.2</td><td>52.6</td><td>52.0</td><td>49.2</td><td>46.4</td><td>54.6</td><td>72.2</td><td>73.6</td><td>73.0</td><td>55.6</td></tr>
+                <tr><td>0:00</td><td>48.2</td><td>52.6</td><td>52.0</td><td>49.2</td><td>46.4</td><td>54.6</td><td>72.2</td><td>73.6</td><td>73.0</td><td>55.6</td></tr>
+                <tr><td>1:00</td><td>48.2</td><td>52.6</td><td>52.0</td><td>49.2</td><td>46.4</td><td>54.6</td><td>72.0</td><td>73.6</td><td>73.0</td><td>55.6</td></tr>
+                <tr><td>2:00</td><td>48.8</td><td>54.4</td><td>54.0</td><td>53.0</td><td>48.8</td><td>71.6</td><td>88.2</td><td>96.2</td><td>91.0</td><td>74.8</td></tr>
+                <tr><td>3:00</td><td>69.4</td><td>71.8</td><td>70.6</td><td>72.8</td><td>66.0</td><td>80.6</td><td>102.0</td><td>103.8</td><td>98.2</td><td>82.0</td></tr>
+                <tr><td>4:00</td><td>75.0</td><td>76.4</td><td>76.2</td><td>77.6</td><td>70.4</td><td>83.4</td><td>105.6</td><td>106.2</td><td>100.6</td><td>83.8</td></tr>
+                <tr><td>5:00</td><td>77.0</td><td>77.4</td><td>77.8</td><td>78.8</td><td>71.6</td><td>84.6</td><td>106.8</td><td>108.2</td><td>102.2</td><td>85.4</td></tr>
+                <tr><td>6:00</td><td>90.6</td><td>88.4</td><td>88.2</td><td>88.8</td><td>83.4</td><td>90.6</td><td>112.2</td><td>111.6</td><td>105.6</td><td>89.4</td></tr>
+                <tr><td>7:00</td><td>93.2</td><td>90.6</td><td>91.8</td><td>92.4</td><td>84.8</td><td>92.4</td><td>113.6</td><td>112.6</td><td>106.6</td><td>91.2</td></tr>
+                <tr><td>8:00</td><td>95.8</td><td>93.4</td><td>94.2</td><td>94.6</td><td>86.6</td><td>94.6</td><td>115.8</td><td>114.2</td><td>108.0</td><td>93.0</td></tr>
+                <tr><td>9:00</td><td>96.4</td><td>94.0</td><td>94.8</td><td>94.8</td><td>87.2</td><td>95.0</td><td>116.2</td><td>114.6</td><td>108.4</td><td>93.8</td></tr>
+                <tr><td>10:00</td><td>98.8</td><td>95.4</td><td>96.8</td><td>96.8</td><td>88.4</td><td>93.8</td><td>115.8</td><td>109.2</td><td>106.0</td><td>89.8</td></tr>
+                <tr><td>11:00</td><td>111.0</td><td>103.0</td><td>104.4</td><td>106.8</td><td>97.6</td><td>99.8</td><td>125.6</td><td>114.8</td><td>109.2</td><td>97.0</td></tr>
+                <tr><td>12:00</td><td>112.0</td><td>103.8</td><td>105.4</td><td>107.6</td><td>97.8</td><td>99.2</td><td>123.8</td><td>109.4</td><td>101.0</td><td>96.6</td></tr>
+                <tr><td>13:00</td><td>112.0</td><td>105.0</td><td>105.0</td><td>107.0</td><td>99.6</td><td>100.4</td><td>124.6</td><td>111.8</td><td>101.4</td><td>96.0</td></tr>
+                <tr><td>14:00</td><td>106.0</td><td>100.0</td><td>102.0</td><td>104.6</td><td>93.8</td><td>94.2</td><td>114.4</td><td>98.6</td><td>89.0</td><td>90.8</td></tr>
+                <tr><td>15:00</td><td>96.8</td><td>85.2</td><td>87.0</td><td>88.4</td><td>79.6</td><td>74.0</td><td>84.4</td><td>75.2</td><td>67.6</td><td>78.0</td></tr>
+                <tr><td>16:00</td><td>81.4</td><td>67.6</td><td>67.6</td><td>72.0</td><td>66.8</td><td>64.6</td><td>71.8</td><td>65.8</td><td>56.8</td><td>64.8</td></tr>
+                <tr><td>17:00</td><td>85.2</td><td>65.8</td><td>67.8</td><td>71.4</td><td>65.8</td><td>61.8</td><td>69.0</td><td>62.2</td><td>53.2</td><td>61.8</td></tr>
+                <tr><td>18:00</td><td>94.6</td><td>66.4</td><td>67.0</td><td>70.6</td><td>65.8</td><td>61.0</td><td>68.2</td><td>61.0</td><td>51.4</td><td>61.0</td></tr>
+                <tr><td>19:00</td><td>94.6</td><td>67.0</td><td>67.4</td><td>71.6</td><td>66.2</td><td>60.8</td><td>68.8</td><td>60.8</td><td>51.2</td><td>60.8</td></tr>
+                <tr><td>20:00</td><td>97.8</td><td>67.6</td><td>67.6</td><td>71.6</td><td>67.4</td><td>60.8</td><td>68.8</td><td>60.8</td><td>51.2</td><td>60.8</td></tr>
+                <tr><td>21:00</td><td>97.8</td><td>67.6</td><td>67.8</td><td>71.6</td><td>67.4</td><td>60.8</td><td>68.8</td><td>60.8</td><td>51.2</td><td>60.8</td></tr>
+                <tr><td>22:00</td><td>98.0</td><td>67.6</td><td>67.8</td><td>71.6</td><td>67.4</td><td>60.8</td><td>68.8</td><td>60.8</td><td>51.2</td><td>60.8</td></tr>
+                <tr><td>23:00</td><td>98.0</td><td>67.6</td><td>67.8</td><td>71.6</td><td>67.4</td><td>60.8</td><td>68.8</td><td>60.8</td><td>51.2</td><td>60.6</td></tr>
+                <tr><td>0:00</td><td>98.0</td><td>67.8</td><td>67.8</td><td>71.6</td><td>67.6</td><td>60.8</td><td>68.8</td><td>60.8</td><td>51.2</td><td>60.6</td></tr>
+                <tr><td>1:00</td><td>98.0</td><td>67.8</td><td>67.8</td><td>71.6</td><td>67.6</td><td>60.8</td><td>68.8</td><td>60.8</td><td>51.2</td><td>60.6</td></tr>
+                <tr><td>2:00</td><td>97.4</td><td>66.0</td><td>67.2</td><td>68.6</td><td>65.2</td><td>43.8</td><td>53.0</td><td>38.4</td><td>33.2</td><td>41.4</td></tr>
+                <tr><td>3:00</td><td>79.2</td><td>49.4</td><td>50.8</td><td>48.8</td><td>49.6</td><td>34.8</td><td>39.2</td><td>30.8</td><td>26.0</td><td>34.4</td></tr>
+                <tr><td>4:00</td><td>74.0</td><td>44.8</td><td>45.2</td><td>44.0</td><td>45.2</td><td>32.0</td><td>35.6</td><td>28.4</td><td>23.6</td><td>32.6</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // 自動為雨量數值添加對應色階樣式
+        document.addEventListener('DOMContentLoaded', function() {
+            const cells = document.querySelectorAll('.rain-table tbody td:not(:first-child)');
+            cells.forEach(cell => {
+                const value = parseFloat(cell.textContent);
+                if (value >= 60 && value < 80) {
+                    cell.classList.add('rain-level-1');
+                } else if (value >= 80 && value < 100) {
+                    cell.classList.add('rain-level-2');
+                } else if (value >= 100 && value < 200) {
+                    cell.classList.add('rain-level-3');
+                } else if (value >= 200 && value < 350) {
+                    cell.classList.add('rain-level-4');
+                } else if (value >= 350 && value < 500) {
+                    cell.classList.add('rain-level-5');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
