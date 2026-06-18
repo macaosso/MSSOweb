@@ -342,7 +342,10 @@
         for(let col=0; col<10; col++){
             const chartId = document.getElementById(`chart${col}`);
             const data = tbodyRows.map(row => Number(row.querySelectorAll('td')[col+1].innerText));
-            const labels = tbodyRows.map(row => row.querySelector('td').innerText);
+            const labels = tbodyRows.map((row, idx) => {
+              const hour = row.querySelector('td').innerText;
+              return `${idx+1}h | ${hour}`;
+            });
     
             new Chart(chartId, {
                 type: 'line',
