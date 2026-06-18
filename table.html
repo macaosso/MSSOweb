@@ -336,9 +336,9 @@
         // ========= MOVE THESE TWO TO TOP (global inside this listener) =========
         const table = document.querySelector('.rain-table');
         const tbodyRows = Array.from(table.querySelectorAll('tbody tr'));
-        const stationNames = Array.from(table.querySelectorAll('thead tr:nth-child(3) th')).slice(1).map(th=>th.innerText);
-        console.log("測站名稱陣列:", stationNames);
-        console.log("測站數量:", stationNames.length);
+        const stationNames = Array.from(table.querySelectorAll('thead tr:nth-child(3) th'))
+            .map(th => th.innerText.trim())
+            .filter(name => name !== "時間"); // Remove only the extra time header text
         // =======================================================================
     
         // Draw 10 small single-station charts
