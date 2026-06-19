@@ -8,34 +8,41 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <title>澳門民間氣象台-首頁</title>
 <style>
-/* ========== 1. 全域基礎樣式 ========== */
+/* ========== 1. 全域深色Dashboard基礎 ========== */
 html {
   scroll-behavior: smooth;
 }
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background-color: #f5f8fa;
+  background-color: #0f141c;
+  color: #e2e8f0;
+}
+* {
+  box-sizing: border-box;
 }
 
-/* ========== 2. 頁頭Header ========== */
+/* ========== 2. 頁頭Header 深色儀表頂欄 ========== */
 .header {
-  background: #1f3a4d;
-  color: white;
-  padding: 25px 20px;
+  background: #151d2b;
+  color: #ffffff;
+  padding: 22px 20px;
   display: flex;
   align-items: center;
+  border-bottom: 1px solid #243249;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 .title {
   font-size: 20px;
   font-weight: bold;
   margin-left: 10px;
+  letter-spacing: 0.5px;
 }
 .logo {
   height: 40px;
 }
 
-/* ========== 3. 頂部導航菜單 ========== */
+/* ========== 3. 頂部導航菜單 深色側欄風格 ========== */
 .menu-container {
   position: relative;
   z-index: 3000;
@@ -46,70 +53,78 @@ body {
   font-size: 26px;
   padding: 10px 15px;
   cursor: pointer;
-  background: #2d6c94;
-  color: white;
+  background: #233752;
+  color: #fff;
+  border-radius: 6px;
 }
 .nav {
-  background: #2d6c94;
+  background: #1a2538;
   display: flex;
 }
 .nav a {
-  color: white;
+  color: #cbd5e1;
   padding: 25px 20px;
   font-size: 18px;
   text-decoration: none;
   display: block;
+  transition: 0.25s ease;
 }
 .nav a:hover {
-  background: #1f4f6d;
+  background: #233752;
+  color: #ffffff;
 }
 
-/* ========== 4. 首頁快捷鏈接模塊 ========== */
+/* ========== 4. 首頁快捷鏈接模塊 深色霓虹卡片 ========== */
 .quick-links {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
-  margin: 15px 35px;
+  gap: 18px;
+  margin: 20px 35px;
 }
 .link-box {
   display: block;
-  padding: 25px;
-  border-radius: 15px;
+  padding: 28px;
+  border-radius: 16px;
   text-align: center;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: bold;
   text-decoration: none;
   color: white;
-  box-shadow: 0 5px 12px rgba(0,0,0,0.2);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
   transition: all 0.3s ease;
+  border: 1px solid rgba(255,255,255,0.08);
 }
 .link-box.weather {
-  background: linear-gradient(135deg, #4fa6a6, #2d6c94);
+  background: linear-gradient(135deg, #1e4e4e, #1a3850);
+  border-color: rgba(79, 166, 166, 0.3);
 }
 .link-box.flood {
-  background: linear-gradient(135deg, #5dade2, #1b4f72);
+  background: linear-gradient(135deg, #1d4b66, #0f2b42);
+  border-color: rgba(93, 173, 226, 0.3);
 }
 .link-box.map {
-  background: linear-gradient(135deg, #74b9ff, #0984e3);
+  background: linear-gradient(135deg, #193c5c, #092742);
+  border-color: rgba(116, 185, 255, 0.3);
 }
 .link-box:hover {
-  transform: translateY(-3px);
-  opacity: 0.9;
+  transform: translateY(-4px);
+  opacity: 0.92;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.45);
 }
 
-/* ========== 5. 紅色警告卡片(熱帶氣旋/天氣警告) ========== */
+/* ========== 5. 紅色警告卡片(熱帶氣旋/天氣警告) 深色危險模塊 ========== */
 .warning-card {
-  margin: 15px 35px;
-  border-radius: 15px;
-  background: #fdeeee;
-  border: 2px solid #d9534f;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  margin: 20px 35px;
+  border-radius: 16px;
+  background: #291414;
+  border: 2px solid #b94242;
+  box-shadow: 0 5px 18px rgba(0,0,0,0.4);
   overflow: hidden;
 }
 .warning-header {
-  background: #d9534f;
+  background: #b94242;
   color: white;
-  padding: 15px;
+  padding: 16px;
   font-size: 18px;
   font-weight: bold;
   display: flex;
@@ -118,19 +133,20 @@ body {
 }
 .warning-item {
   display: flex;
-  gap: 15px;
-  padding: 20px;
+  gap: 18px;
+  padding: 22px;
   align-items: flex-start;
 }
 .icon-box {
   width: 80px;
   height: 80px;
-  background: #fff;
+  background: #1a0c0c;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  border: 1px solid rgba(255,255,255,0.1);
 }
 .icon-box img {
   width: 100%;
@@ -140,95 +156,96 @@ body {
 .text-box {
   flex: 1;
   font-size: 15px;
-  line-height: 1.6;
-  color: #333;
+  line-height: 1.7;
+  color: #fecfcf;
   text-align: left;
 }
 .divider {
   height: 1px;
-  background: #e6a5a5;
-  margin: 0 20px;
+  background: #5c2626;
+  margin: 0 22px;
 }
 .tc-btn {
-  background: rgba(255,255,255,0.2);
-  color: white;
-  padding: 6px 12px;
-  border-radius: 20px;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  padding: 7px 14px;
+  border-radius: 22px;
   font-size: 14px;
   text-decoration: none;
   font-weight: bold;
+  border: 1px solid rgba(255,255,255,0.2);
 }
 .tc-btn:hover {
-  background: #f5d7d6;
+  background: rgba(255,255,255,0.25);
 }
 
-/* ========== 6. 橙色提示框(特別天氣提示、預警提示) ========== */
+/* ========== 6. 橙色提示框(特別天氣提示、預警提示) 深色警示模塊 ========== */
 .box {
-  margin: 15px 35px;
-  border-radius: 15px;
-  background: #fdfbee;
-  border: 2px solid #f39c12;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  margin: 20px 35px;
+  border-radius: 16px;
+  background: #2b2410;
+  border: 2px solid #d88a10;
+  box-shadow: 0 5px 18px rgba(0,0,0,0.4);
   overflow: hidden;
 }
 .header-orange {
-  background: #f39c12;
-  color: white;
-  padding: 15px;
+  background: #d88a10;
+  color: #000;
+  padding: 16px;
   font-size: 18px;
   font-weight: bold;
 }
 .content-yellow {
-  background: #fff4cc;
-  padding: 25px;
+  background: #1f1a0c;
+  padding: 26px;
   font-size: 15px;
-  line-height:1.6;
-  color:#333;
+  line-height:1.7;
+  color:#ffe7b3;
 }
 
-/* ========== 7. 天氣預報TAB切換模塊 ========== */
+/* ========== 7. 天氣預報TAB切換模塊 深色數據卡 ========== */
 .forecast-tab-wrap {
-  border-radius:12px;
+  border-radius:14px;
   overflow:hidden;
-  border:2px solid #4fa6a6;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  background:#e6f7f7;
-  /* 手機預設有 margin，桌面由 grid 控制 */
-  margin: 15px 35px;
+  border:2px solid #2a6b6b;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.35);
+  background:#142929;
+  margin: 0;
 }
 .tab-header{
   display:flex;
-  gap:10px;
-  padding:15px;
+  gap:12px;
+  padding:18px;
+  background: #102020;
 }
 .tab-btn{
   flex:1;
-  border: 2px solid #4fa6a6;
-  border-radius: 25px;
-  background: #ffffff;
-  color: #4fa6a6;
-  padding:10px;
+  border: 2px solid #2a6b6b;
+  border-radius: 28px;
+  background: #142929;
+  color: #7cd1d1;
+  padding:11px;
   font-size:18px;
   font-weight:bold;
   cursor:pointer;
   transition: all 0.3s;
 }
 .tab-btn.active{
-  background:#4fa6a6;
+  background:#2a6b6b;
   color:#ffffff;
 }
-.tab-btn:hover{
-  opacity:0.8;
+.tab-btn:hover:not(.active){
+  background: #1b3b3b;
 }
 .tab-content-box{
-  background:#e6f7f7;
-  padding:30px;
+  background:#142929;
+  padding:32px;
 }
 .tab-content{
   display:none;
   font-size:15px;
-  line-height:1.6;
-  color:#333;
+  line-height:1.7;
+  color:#cbd5e1;
 }
 .tab-content.active{
   display:block;
@@ -237,69 +254,73 @@ body {
   margin: 0 35px;
   text-align: right;
   font-size: 16px;
-  color: #555;
-  font-weight: bold;
+  color: #94a3b8;
+  font-weight: 500;
+  padding: 8px 0;
 }
 
-/* ========== 8. plot 圖 ========== */
+/* ========== 8. Chart圖表深色卡片 ========== */
 .chart-wrap{
-  border-radius:12px;
+  border-radius:14px;
   overflow:hidden;
-  border:2px solid #4fa6a6;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  background:#e6f7f7;
-  /* 手機預設有 margin，桌面由 grid 控制 */
-  margin: 15px 35px;
+  border:2px solid #2a6b6b;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.35);
+  background:#142929;
+  margin: 0;
 }
 .chart-btn-bar{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  gap:12px;
-  padding:15px;
+  gap:14px;
+  padding:18px;
+  background: #102020;
 }
 .btn-group{
   display:flex;
-  gap:10px;
+  gap:12px;
 }
 .chart-date-text{
   font-size:16px;
   font-weight:bold;
-  color:#4fa6a6;
+  color:#7cd1d1;
 }
 .chart-container {
-  padding:30px;
+  padding:32px;
   height:320px;
   box-sizing: border-box;
+  background: #142929;
 }
 .chart-btn {
-  padding: 10px 20px;
-  border: 2px solid #4fa6a6;
-  border-radius: 25px;
-  background: white;
-  color: #4fa6a6;
+  padding: 11px 22px;
+  border: 2px solid #2a6b6b;
+  border-radius: 28px;
+  background: #142929;
+  color: #7cd1d1;
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.3s;
 }
-.chart-btn.active {background: #4fa6a6;color: white;}
-.chart-btn:hover {opacity: 0.8;}
+.chart-btn.active {background: #2a6b6b;color: white;}
+.chart-btn:hover:not(.active) {background: #1b3b3b;}
 
-/* ========== 9. 三標籤天氣模塊（整點/實時/熱帶氣旋路徑） ========== */
+/* ========== 9. 三標籤天氣模塊（整點/實時/熱帶氣旋路徑）深色面板 ========== */
 .three-tab-weather-wrap {
-  margin: 15px 35px;
-  border-radius: 12px;
+  margin: 20px 35px;
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.08);
+  background: #12271c;
 }
 .three-tab-header {
   display: flex;
-  background-color: #43c082;
+  background-color: #287d4e;
 }
 .three-tab-item {
   flex: 1;
-  padding: 16px 10px;
+  padding: 18px 10px;
   text-align: center;
   color: #fff;
   font-size: 17px;
@@ -312,28 +333,28 @@ body {
   transition: background 0.25s;
 }
 .three-tab-item.active {
-  background-color: #36a36e;
+  background-color: #1e663f;
 }
 .three-tab-item:hover {
-  background-color: #36a36e;
+  background-color: #1e663f;
 }
 .tab-icon-small {
   width: 26px;
   height: 26px;
 }
 .three-tab-content-box {
-  background-color: #fff;
-  padding: 20px;
-  border: 2px solid #86e0b0;
+  background-color: #0f1f17;
+  padding: 22px;
+  border: 2px solid #2c7c54;
   border-top: none;
 }
 .region-select {
-  padding: 8px 16px;
-  border: 2px solid #43c082;
+  padding: 9px 18px;
+  border: 2px solid #287d4e;
   border-radius: 8px;
   font-size: 16px;
-  color: #43c082;
-  background: #fff;
+  color: #82e0b0;
+  background: #0f1f17;
   margin-bottom: 18px;
 }
 .tab-panel {
@@ -346,121 +367,157 @@ body {
   width: 100%;
   border-collapse: collapse;
   text-align: center;
+  color: #e2e8f0;
 }
 .hourly-weather-table th,
 .hourly-weather-table td {
-  border: 1px solid #ccecdb;
-  padding: 10px;
+  border: 1px solid #1f4634;
+  padding: 12px;
 }
 .hourly-weather-table th {
-  background-color: #e6f9f0;
+  background-color: #163326;
+  color: #96f0c7;
+}
+
+/* 整點天氣內部元件深色覆蓋 */
+#load-tip, #error-tip {
+  color: #94a3b8;
+}
+#error-tip {
+  color: #f87171;
+}
+.weather-item {
+  background: #163333 !important;
+  border: 1px solid #2a5555 !important;
+}
+.weather-item div:first-child {
+  color: #94a3b8 !important;
+}
+.weather-item div:last-child {
+  color: #ffffff !important;
+}
+#temp-value {
+  color: #fff !important;
+}
+#feels-desc {
+  color: #fdba74 !important;
+}
+.publishing-time {
+  color: #94a3b8 !important;
 }
 
 /* 手機端適配 */
 @media (max-width:768px) {
   .three-tab-item {
     font-size: 14px;
-    padding: 12px 5px;
+    padding: 14px 5px;
   }
   .tab-icon-small {
     width: 20px;
     height: 20px;
   }
+  .quick-links {
+    grid-template-columns: 1fr;
+    margin: 15px 20px;
+  }
+  .warning-card, .box, .three-tab-weather-wrap {
+    margin: 15px 20px;
+  }
+  .forecast-time {
+    margin: 0 20px;
+  }
 }
 
 /* ========== 桌面端佈局 (螢幕 ≥769px) ========== */
 @media (min-width: 769px) {
-  /* 桌面才用 grid，左右並排 */
   .forecast-chart-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin: 15px 35px;
-  }
-  /* grid 子元素不要自己的 margin，由父 grid 控制 */
-  .forecast-tab-wrap,
-  .chart-wrap {
-    margin: 0;
+    gap: 24px;
+    margin: 20px 35px;
   }
 }
 
-/* ========== 實時天氣：氣象站地圖模塊樣式 ========== */
+/* ========== 實時天氣地圖模塊 原生深色Dashboard（保留原有深色邏輯優化） ========== */
 .realtime-map-container {
     width: 100%;
 }
 .view-switch {
-    margin-bottom: 15px;
+    margin-bottom: 18px;
     display: flex;
-    gap: 10px;
+    gap: 12px;
 }
 .view-switch button {
-    padding: 10px 18px;
+    padding: 11px 20px;
     border: none;
-    border-radius: 8px;
-    background: #1e1e2f;
-    color: #c0c0c0;
+    border-radius: 10px;
+    background: #161a2e;
+    color: #a1a1c9;
     cursor: pointer;
     font-size: 0.95rem;
     font-weight: 500;
     transition: all 0.25s ease;
+    border: 1px solid rgba(255,255,255,0.08);
 }
 .view-switch button.active {
-    background: #3b82f6;
+    background: #254b9c;
     color: #fff;
-    box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3);
+    box-shadow: 0 3px 12px rgba(59, 130, 246, 0.3);
 }
 .view-switch button:hover:not(.active) {
-    background: #252542;
+    background: #1e2342;
     color: #fff;
 }
 
 .tab-wrapper {
-    background: #1e1e2f;
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 20px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    background: #161a2e;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 22px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+    border: 1px solid rgba(255,255,255,0.08);
 }
 .tab-group {
-    margin-bottom: 12px;
+    margin-bottom: 14px;
 }
 .group-title {
     font-size: 1rem;
     font-weight: 600;
-    color: #f0f0f0;
-    margin: 0 0 10px 0;
+    color: #e0e0f0;
+    margin: 0 0 12px 0;
 }
 .group-buttons {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    padding-left: 10px;
+    gap: 10px;
+    padding-left: 12px;
 }
 .tab-btn {
-    padding: 9px 14px;
+    padding: 10px 16px;
     border: none;
-    border-radius: 7px;
-    background: #252542;
-    color: #c5c5c5;
+    border-radius: 8px;
+    background: #1e2342;
+    color: #c5c5e0;
     cursor: pointer;
     font-size: 0.9rem;
     font-weight: 500;
     transition: all 0.25s ease;
+    border: 1px solid rgba(255,255,255,0.05);
 }
 .tab-btn.active {
-    background: #3b82f6;
+    background: #254b9c;
     color: #fff;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+    box-shadow: 0 2px 10px rgba(59, 130, 246, 0.25);
 }
 .tab-btn:hover:not(.active) {
-    background: #2d2d50;
+    background: #272c50;
     color: #fff;
 }
 
 .main-layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 20px;
+    gap: 24px;
 }
 @media (max-width: 1024px) {
     .main-layout {
@@ -468,74 +525,75 @@ body {
     }
 }
 .map-card {
-    background: #1e1e2f;
-    border-radius: 12px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-    padding: 15px;
+    background: #161a2e;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    padding: 18px;
     position: relative;
+    border: 1px solid rgba(255,255,255,0.08);
 }
 #macau-map {
     width: 100%;
     height: 650px;
-    border-radius: 8px;
-    background: #121212;
+    border-radius: 10px;
+    background: #0c0c14;
 }
 
 .map-legend {
     position: absolute;
-    bottom: 15px;
-    right: 15px;
-    background: rgba(20, 20, 35, 0.95);
-    color: #e0e0e0;
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    box-shadow: 0 3px 12px rgba(0,0,0,0.35);
+    bottom: 18px;
+    right: 18px;
+    background: rgba(12, 14, 30, 0.96);
+    color: #e0e0f0;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.4);
     z-index: 1000;
-    min-width: 130px;
-    border: 1px solid #2d2d50;
+    min-width: 140px;
+    border: 1px solid #272c50;
 }
 .map-legend h4 {
-    margin: 0 0 6px 0;
-    font-size: 0.8rem;
+    margin: 0 0 8px 0;
+    font-size: 0.85rem;
     text-align: center;
-    border-bottom: 1px solid #333;
-    padding-bottom: 4px;
-    color: #fff;
+    border-bottom: 1px solid #2d2d50;
+    padding-bottom: 6px;
+    color: #ffffff;
 }
 .legend-items {
-    max-height: 200px;
+    max-height: 220px;
     overflow-y: auto;
 }
 .legend-item {
     display: flex;
     align-items: center;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 .legend-color {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
-    margin-right: 6px;
+    margin-right: 8px;
 }
 
 .time-stamp, .time-stamp-indicator {
     position: absolute;
-    background: rgba(20, 20, 35, 0.9);
-    color: #f0f0f0;
-    padding: 8px 14px;
-    border-radius: 6px;
-    font-size: 0.9rem;
+    background: rgba(12, 14, 30, 0.92);
+    color: #e0e0f0;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.92rem;
     z-index: 1000;
-    border: 1px solid #2d2d50;
+    border: 1px solid #272c50;
 }
 .time-stamp {
-    top: 25px;
-    right: 25px;
+    top: 28px;
+    right: 28px;
 }
 .time-stamp-indicator {
-    top: 65px;
-    right: 25px;
+    top: 72px;
+    right: 28px;
 }
 
 .station-single {
@@ -543,52 +601,53 @@ body {
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    padding-top: 20px;
+    padding-top: 24px;
 }
 .empty-tip {
     color: #888;
     font-size: 1rem;
 }
 .station-card {
-    background: #1e1e2f;
-    border-radius: 12px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-    padding: 20px;
+    background: #161a2e;
+    border-radius: 14px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    padding: 24px;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     display: flex;
     flex-direction: column;
     border-top: 5px solid #3b82f6;
     width: 100%;
-    max-width: 440px;
-    font-size: 13px;
+    max-width: 460px;
+    font-size: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
 }
 .station-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    box-shadow: 0 12px 28px rgba(0,0,0,0.45);
 }
 .station-name {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     font-weight: bold;
     color: #ffffff;
-    border-bottom: 1px solid #333;
-    padding-bottom: 10px;
-    margin-bottom: 10px;
+    border-bottom: 1px solid #2d2d50;
+    padding-bottom: 12px;
+    margin-bottom: 12px;
 }
 .temp-row {
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    margin: 15px 0;
+    margin: 18px 0;
 }
 .current-temp {
-    font-size: 2.2rem;
+    font-size: 2.4rem;
     font-weight: 700;
     color: #ffffff;
 }
 .temp-range {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     text-align: right;
-    color: #c0c0c0;
+    color: #c0c0e0;
 }
 .high-temp { color: #ef4444; font-weight: 600; }
 .low-temp { color: #60a5fa; font-weight: 600; }
@@ -596,91 +655,76 @@ body {
 .metrics-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
-    gap: 10px;
-    font-size: 0.8rem;
+    gap: 12px;
+    font-size: 0.85rem;
 }
 .metric {
-    background: #252542;
-    color: #e0e0e0;
-    padding: 10px;
-    border-radius: 7px;
-    border: 1px solid #2d2d50;
+    background: #1e2342;
+    color: #e0e0f0;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #272c50;
 }
 .col-half { grid-column: span 3; }
 .col-third { grid-column: span 2; }
 .metric span {
     display: block;
-    color: #a0a0a0;
-    font-size: 0.7rem;
+    color: #a0a0c0;
+    font-size: 0.72rem;
     text-transform: uppercase;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 .metric strong {
     color: #ffffff;
-    font-size: 0.95rem;
+    font-size: 1rem;
 }
 
-.rain-active { background: #1e3a8a; border-color: #3b82f6; }
-.heat-high { background: #7f1d1d; border-color: #ef4444; }
-.apparent-high { background: #4a044e; border-color: #d946ef; }
-.dew-high { background: #0c4a6e; border-color: #06b6d4; }
-.rain1-yellow { background: #4d3800; border-color: #eab308; }
-.rain1-red { background: #5c0a10; border-color: #ef4444; }
-.rain1-gray { background: #27272a; border-color: #52525b; }
-.rainDay-orange { background: #5c360e; border-color: #f97316; }
-.rainDay-red { background: #5c0a10; border-color: #ef4444; }
-.rainDay-gray { background: #27272a; border-color: #52525b; }
-.flood-normal { background: #0c4a6e; border-color: #06b6d4; }
-.flood-light { background: #4d3800; border-color: #eab308; }
-.flood-mid { background: #5c360e; border-color: #f97316; }
-.flood-heavy { background: #5c0a10; border-color: #ef4444; }
-.wbgt-warn { background: #5c360e; border-color: #f97316; }
-.wbgt-danger { background: #5c0a10; border-color: #ef4444; }
-
 .table-container {
-    background: #1e1e2f;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+    background: #161a2e;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,255,255,0.08);
 }
 .data-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 15px;
-    font-size: 0.85rem;
-    color: #e0e0e0;
+    margin-top: 18px;
+    font-size: 0.9rem;
+    color: #e0e0f0;
 }
 .data-table th, .data-table td {
-    border: 1px solid #333;
-    padding: 11px;
+    border: 1px solid #2d2d50;
+    padding: 13px;
     text-align: center;
 }
 .data-table th {
-    background: #252542;
+    background: #1e2342;
     font-weight: 600;
     color: #fff;
 }
 .data-table tr:hover {
-    background: #2d2d50;
+    background: #272c50;
 }
 .sort-buttons button {
-    padding: 6px 12px;
-    margin-left: 6px;
+    padding: 8px 14px;
+    margin-left: 8px;
     border: none;
-    border-radius: 5px;
-    background: #252542;
-    color: #c5c5c5;
+    border-radius: 6px;
+    background: #1e2342;
+    color: #c5c5e0;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     transition: all 0.2s;
+    border: 1px solid rgba(255,255,255,0.05);
 }
 .sort-buttons button:hover {
-    background: #3b82f6;
+    background: #254b9c;
     color: #fff;
 }
 .hide { display: none !important; }
 
-/* ========== 手機端響應式樣式 (螢幕 ≤768px) ========== */
+/* ========== 手機端導航切換 ========== */
 @media (max-width: 768px) {
   .menu-toggle {
     display: block;
@@ -689,21 +733,22 @@ body {
     display: none;
     flex-direction: column;
     width: 100%;
-    transition: all 0.3s ease;
+    position: absolute;
+    top: 68px;
+    left: 0;
   }
   .nav a {
     width: 100%;
-    padding: 12px 15px;
-    border-top: 1px solid rgba(255,255,255,0.2);
+    padding: 14px 18px;
+    border-top: 1px solid rgba(255,255,255,0.08);
   }
   .nav.active {
     display:flex;
   }
 
-  /* 手機取消 grid，变回普通流，让子元素自己的 margin 生效 */
   .forecast-chart-row {
     display: block;
-    margin: 0;
+    margin: 0 20px;
   }
 }
 </style>
@@ -779,47 +824,47 @@ body {
     <div class="tab-panel active" id="panel-hourly">
         <div class="hourly-weather-wrap" style="padding: 20px;">
             <!-- 数据加载提示 -->
-            <div id="load-tip" style="text-align: center; font-size: 16px; color: #666; padding: 40px 0;">
+            <div id="load-tip" style="text-align: center; font-size: 16px; padding: 40px 0;">
                 正在載入澳門整點實時天氣數據...
             </div>
     
             <!-- 天气主容器（默认隐藏） -->
             <div id="weather-main" style="display: none;">
                 <!-- 数据发布时间 -->
-                <div class="publish-time" style="margin-bottom: 20px; color: #444; font-size: 15px;">
+                <div class="publishing-time" style="margin-bottom: 20px; font-size: 15px;">
                     數據發布時間：<span id="pub-time"></span>
                 </div>
     
                 <!-- 天气图标 + 核心气温 -->
                 <div style="display: flex; align-items: center; gap: 30px; flex-wrap: wrap; margin-bottom: 25px;">
                     <div>
-                        <img id="weather-icon" alt="天氣圖標" style="width: 80px; height: 80px;">
+                        <img id="weather-icon" alt="天氣圖標" style="width: 80px; height: 80px; filter: drop-shadow(0 0 8px #7cd1d1);">
                     </div>
                     <div>
-                        <div id="temp-value" style="font-size: 48px; font-weight: bold; color: #222;"></div>
-                        <div id="feels-desc" style="font-size: 18px; color: #ff6700; margin-top: 8px;"></div>
+                        <div id="temp-value" style="font-size: 48px; font-weight: bold;"></div>
+                        <div id="feels-desc" style="font-size: 18px; margin-top: 8px;"></div>
                     </div>
                 </div>
     
                 <!-- 气象指标网格 -->
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
-                    <div class="weather-item" style="background: #f7fbfc; padding: 16px; border-radius: 10px; border: 1px solid #e0e9ee;">
-                        <div style="color: #666; font-size: 14px;">相對濕度</div>
+                    <div class="weather-item" style="padding: 16px; border-radius: 10px;">
+                        <div style="font-size: 14px;">相對濕度</div>
                         <div id="hum-value" style="font-size: 20px; font-weight: 600; margin-top: 8px;"></div>
                     </div>
-                    <div class="weather-item" style="background: #f7fbfc; padding: 16px; border-radius: 10px; border: 1px solid #e0e9ee;">
-                        <div style="color: #666; font-size: 14px;">風速</div>
+                    <div class="weather-item" style="padding: 16px; border-radius: 10px;">
+                        <div style="font-size: 14px;">風速</div>
                         <div id="wind-speed" style="font-size: 20px; font-weight: 600; margin-top: 8px;"></div>
                     </div>
-                    <div class="weather-item" style="background: #f7fbfc; padding: 16px; border-radius: 10px; border: 1px solid #e0e9ee;">
-                        <div style="color: #666; font-size: 14px;">風向</div>
+                    <div class="weather-item" style="padding: 16px; border-radius: 10px;">
+                        <div style="font-size: 14px;">風向</div>
                         <div id="wind-dir" style="font-size: 20px; font-weight: 600; margin-top: 8px;"></div>
                     </div>
                 </div>
             </div>
     
             <!-- 加载失败提示 -->
-            <div id="error-tip" style="display: none; text-align: center; color: #d9534f; padding: 40px 0;">
+            <div id="error-tip" style="display: none; text-align: center; padding: 40px 0;">
                 數據載入失敗，請稍後重試
             </div>
         </div>
@@ -831,7 +876,7 @@ body {
         <div class="realtime-map-container">
             <!-- 整合為單個下拉選擇框 -->
             <div class="single-select-box" style="margin-bottom:18px;">
-                <select id="indicatorSelect" style="  padding: 8px 16px;border: 2px solid #43c082;border-radius: 8px;font-size: 16px;color: #43c082;background: #fff;margin-bottom: 18px;">
+                <select id="indicatorSelect" style="  padding: 8px 16px;border: 2px solid #43c082;border-radius: 8px;font-size: 16px;color: #82e0b0;background: #0f1f17;margin-bottom: 18px;">
                     <option value="tempCurrent">實時氣溫 (°C)</option>
                     <option value="tempMax">最高氣溫 (°C)</option>
                     <option value="tempMin">最低氣溫 (°C)</option>
@@ -869,7 +914,7 @@ body {
     <div class="tab-panel" id="panel-tc-track">
         <iframe 
             src="https://macaosso.github.io/MSSOweb/tc_gis.html"
-            style="width:100%; height:720px; border-radius:8px; border:1px solid #ccecdb;"
+            style="width:100%; height:720px; border-radius:8px; border:1px solid #1f4634; background:#0c1812;"
             frameborder="0"
             scrolling="auto">
         </iframe>
@@ -986,6 +1031,11 @@ renderWarnings(warnWarnings, "warnContent", "warnCard");
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+// Chart.js 深色主題配置，圖表自動深色
+Chart.defaults.color = '#cbd5e1';
+Chart.defaults.borderColor = '#2a3a52';
+Chart.defaults.plugins.title.color = '#ffffff';
+
 let tempChart;
 const dateDom = document.getElementById("chartDate");
 
@@ -1015,7 +1065,7 @@ function render24hChart(ctx){
         label:"氣溫(°C)",
         data:temp24h,
         borderColor:"#ff6b6b",
-        backgroundColor:"rgba(255,107,107,0.2)",
+        backgroundColor:"rgba(255,107,107,0.12)",
         fill:true,
         tension:0,
         pointRadius:4
@@ -1142,649 +1192,4 @@ function getWBGTClass(val){
 }
 function getRain1hClass(val) {
     let num = parseFloat(val);
-    if (isNaN(num)) return 'metric col-third';
-    if (num >= 79.5) return 'metric col-third rain1-gray';
-    if (num >= 49.5) return 'metric col-third rain1-red';
-    if (num >= 19.5) return 'metric col-third rain1-yellow';
-    return 'metric col-third';
-}
-function getRainDayClass(val) {
-    let num = parseFloat(val);
-    if (isNaN(num)) return 'metric col-third';
-    if (num >= 350) return 'metric col-third rainDay-gray';
-    if (num >= 200) return 'metric col-third rainDay-red';
-    if (num >= 100) return 'metric col-third rainDay-orange';
-    return 'metric col-third';
-}
-function getWaterLevelClass(val) {
-    let num = parseFloat(val);
-    if (isNaN(num) || num <= 0) return 'metric col-third flood-normal';
-    if (num >= 0.5) return 'metric col-third flood-heavy';
-    if (num >= 0.2) return 'metric col-third flood-mid';
-    return 'metric col-third flood-light';
-}
-function formatVal(val, unit) {
-    return val === '--' ? val : `${val} ${unit}`;
-}
-
-const weatherPoints = {
-    "紀念孫中山市政公園": { code: "DP", lat: 22.215322, lng: 113.543490 },
-    "黑沙環": { code: "EM", lat: 22.207129, lng: 113.559971 },
-    "大炮台": { code: "FM", lat: 22.197066, lng: 113.542261 },
-    "外港": { code: "PE", lat: 22.196556, lng: 113.558333 },
-    "媽閣": { code: "MM", lat: 22.185863, lng: 113.530675 },
-    "大潭山": { code: "TG", lat: 22.159102, lng: 113.568947 },
-    "東亞運大馬路": { code: "JA", lat: 22.155396, lng: 113.542412 },
-    "九澳": { code: "KV", lat: 22.134686, lng: 113.580143 },
-    "澳門大學": { code: "UM", lat: 22.131808, lng: 113.546970 },
-    "路環市區": { code: "DC", lat: 22.117091, lng: 113.551041 },
-    "西灣大橋": { code: "PV", lat: 22.173240, lng: 113.535416 },
-    "友誼大橋北": { code: "PN", lat: 22.191167, lng: 113.563219 },
-    "友誼大橋南": { code: "PS", lat: 22.180189, lng: 113.563299 },
-    "嘉樂庇總督大橋": { code: "PG", lat: 22.180057, lng: 113.545435 },
-    "澳門大橋北": { code: "MN", lat: 22.186985, lng: 113.573231 },
-    "澳門大橋南": { code: "MS", lat: 22.173484, lng: 113.573047 },
-    "蓮花大橋": { code: "LH", lat: 22.139934, lng: 113.549094 }
-};
-
-const floodPoints = {
-    "青洲河邊馬路": { lat: 22.212097, lng: 113.535243 },
-    "花地瑪教會街": { lat: 22.211374, lng: 113.546674 },
-    "紅街市": { lat: 22.205155, lng: 113.544597 },
-    "光復街": { lat: 22.202498, lng: 113.544916 },
-    "永樂戲院": { lat: 22.202574, lng: 113.542885 },
-    "內港北": { lat: 22.199984, lng: 113.536861 },
-    "內港": { lat: 22.198031, lng: 113.536426 },
-    "康公廟": { lat: 22.197330, lng: 113.537858 },
-    "司打口": { lat: 22.193228, lng: 113.536822 },
-    "內港南": { lat: 22.190755, lng: 113.532853 },
-    "下環街": { lat: 22.189418, lng: 113.534413 },
-    "菜園路": { lat: 22.159073, lng: 113.558961 },
-    "沙維斯街": { lat: 22.157666, lng: 113.550649 },
-    "柯維納馬路": { lat: 22.157473, lng: 113.548550 },
-    "益隆": { lat: 22.156058, lng: 113.559474 },
-    "松樹尾": { lat: 22.154766, lng: 113.557309 },
-    "黑橋街": { lat: 22.154409, lng: 113.556284 },
-    "石排灣": { lat: 22.131648, lng: 113.562820 },
-    "聖方濟各堂": { lat: 22.117434, lng: 113.551004 }
-};
-
-const fieldMap = {
-    tempCurrent: {field:'temp', label:'實時氣溫', unit:'℃'},
-    tempMax: {field:'tempMax', label:'最高氣溫', unit:'℃'},
-    tempMin: {field:'tempMin', label:'最低氣溫', unit:'℃'},
-    apparentTemp: {field:'apparentTemp', label:'體感溫度', unit:'℃'},
-    heatIndex: {field:'heatIndex', label:'酷熱指數', unit:'℃'},
-    wbgt:{field:'wbgt',label:'綜合溫度熱指數WBGT',unit:'℃'},
-    dewPoint: {field:'dewPoint', label:'露點溫度', unit:'℃'},
-    humidity: {field:'humidity', label:'相對濕度', unit:'%'},
-    windDir: {field:'windDir', label:'風向', unit:''},
-    windSpeed: {field:'windSpeed', label:'風速', unit:'km/h'},
-    windGust: {field:'windGust', label:'陣風', unit:'km/h'},
-    rain1m:{field:'rain1m',label:'一分鐘雨量',unit:'mm'},
-    rain1h:{field:'rain1h',label:'一小時雨量',unit:'mm'},
-    rainTotal:{field:'rainTotal',label:'日累積雨量',unit:'mm'},
-    pressSea: {field:'pressSea', label:'海平面氣壓', unit:'hPa'},
-    pressStation: {field:'pressStation', label:'站氣壓', unit:'hPa'},
-    waterLevel: {field:'waterLevel', label:'實時水位', unit:'m'}
-};
-
-function getTempColor(tempStr) {
-    const temp = parseFloat(tempStr);
-    if (isNaN(temp)) return "#78797a";
-    if (temp >= 37.5) return "#330101";
-    if (temp >= 35.5) return "#8d1919";
-    if (temp >= 32.5) return "#f12828";
-    if (temp >= 27.5) return "#ff7a00";
-    if (temp >= 22.5) return "#b37802";
-    if (temp >= 17.5) return "#919107";
-    if (temp >= 12.5) return "#19aa75";
-    if (temp >= 7.5)  return "#0d517a";
-    if (temp >= 3.5)  return "#141970";
-    return "#300c46";
-}
-function getHeatIndexColor(hiStr) {
-    const hi = parseFloat(hiStr);
-    if (isNaN(hi)) return "#78797a";
-    if (hi >= 54.5) return "#000000";
-    if (hi >= 49.5) return "#ff0000";
-    if (hi >= 44.5) return "#e06c00";
-    if (hi >= 39.5) return "#c9b200";
-    if (hi >= 35.5) return "#38b000";
-    return "#0077b6";
-}
-function getWBGTColor(wbgtStr){
-    let w=parseFloat(wbgtStr);
-    if(isNaN(w)) return "#78797a";
-    if(w>=33.5) return "#000000";
-    if(w>=31.5) return "#ff0000";
-    if(w>=29.5) return "#e06c00";
-    if(w>=27.5) return "#c9b200";
-    if(w>=24.5) return "#38b000";
-    return "#0077b6";
-}
-function getHumidityColor(humStr) {
-    const hum = parseFloat(humStr);
-    if (isNaN(hum)) return "#78797a";
-    if (hum >= 94.5) return "#071770";
-    if (hum >= 84.5) return "#147ccd";
-    if (hum >= 49.5) return "#0b8743";
-    if (hum >= 30.5) return "#96592d";
-    return "#641515";
-}
-function getDewColor(dewStr) {
-    const dew = parseFloat(dewStr);
-    if (isNaN(dewStr)) return "#78797a";
-    if (dew >= 28)  return "#470f64";
-    if (dew >= 24)  return "#a82020";
-    if (dew >= 18)  return "#347b28";
-    if (dew >= 12)  return "#8f6825";
-    return "#8a462b";
-}
-function getWindColor(windStr) {
-    const wind = parseFloat(windStr);
-    if (isNaN(wind)) return "#78797a";
-    if (wind >= 117.5) return "#6a0606";
-    if (wind >= 87.5)  return "#b1510d";
-    if (wind >= 62.5)  return "#7f710b";
-    if (wind >= 40.5)  return "#154c83";
-    return "#11750a";
-}
-function getPressSeaColor(pressStr) {
-    const press = parseFloat(pressStr);
-    if (isNaN(pressStr)) return "#78797a";
-    if (press < 980)    return "#571b7a";
-    if (press < 990)    return "#b42121";
-    if (press < 1000)   return "#757012";
-    return "#2b7c42";
-}
-function getRain1mColor(valStr) {
-    const v = parseFloat(valStr);
-    if (isNaN(v)) return "#78797a";
-    if (v >= 1.8) return "#6a0c7a";
-    if (v >= 1.4) return "#000000";
-    if (v >= 0.8) return "#921818";
-    if (v >= 0.4) return "#878e14";
-    if (v >= 0.2) return "#227192";
-    return "#636363";
-}
-function getRain1hColor(valStr) {
-    const v = parseFloat(valStr);
-    if (isNaN(v)) return "#78797a";
-    if (v >= 100.0) return "#6a0c7a";
-    if (v >= 80.0) return "#020000";
-    if (v >= 50.0) return "#921818";
-    if (v >= 20.0) return "#878e14";
-    if (v >= 10.0) return "#149f37";
-    if (v >= 0.1) return "#227192";
-    return "#636363";
-}
-function getRainTotalColor(valStr) {
-    const v = parseFloat(valStr);
-    if (isNaN(v)) return "#78797a";
-    if (v >= 350.0) return "#000000";
-    if (v >= 200.0) return "#921818";
-    if (v >= 100.0) return "#e86119";
-    if (v >= 50.0) return "#878e14";
-    if (v >= 0.1) return "#227192";
-    return "#636363";
-}
-function getPressStationColor(pressStr) {
-    const press = parseFloat(pressStr);
-    if (isNaN(press)) return "#78797a";
-    if (press < 965)    return "#571b7a";
-    if (press < 975)    return "#b42121";
-    if (press < 985)    return "#757012";
-    return "#2b7c42";
-}
-function getWaterLevelColor(wlStr) {
-    const wl = parseFloat(wlStr);
-    if (isNaN(wl)) return "#78797a";
-    if (wl >= 2.50)     return "#000000";
-    if (wl >= 1.49)     return "#c61e05";
-    if (wl >= 1.00)     return "#ff7200";
-    if (wl >= 0.50)     return "#c4ab08";
-    if (wl >= 0.01)     return "#1a6080";
-    return "#1b6009";
-}
-
-function updateLegendPanel(tabType) {
-    const legendContent = document.getElementById('legend-content');
-    let legendHTML = '';
-    switch(tabType) {
-        case "tempCurrent":case "tempMax":case "tempMin":case "apparentTemp":
-            legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#330101"></div>≥37.5℃ 極為酷熱</div>
-            <div class="legend-item"><div class="legend-color" style="background:#8d1919"></div>35.5~37.4℃ 非常酷熱</div>
-            <div class="legend-item"><div class="legend-color" style="background:#f12828"></div>32.5~35.4℃ 酷熱</div>
-            <div class="legend-item"><div class="legend-color" style="background:#ff7a00"></div>27.5~32.4℃ 炎熱</div>
-            <div class="legend-item"><div class="legend-color" style="background:#b37802"></div>22.5~27.4℃ 溫暖</div>
-            <div class="legend-item"><div class="legend-color" style="background:#919107"></div>17.5~22.4℃ 和暖</div>
-            <div class="legend-item"><div class="legend-color" style="background:#19aa75"></div>12.5~17.4℃ 清涼</div>
-            <div class="legend-item"><div class="legend-color" style="background:#0d517a"></div>7.5~12.4℃ 寒冷</div>
-            <div class="legend-item"><div class="legend-color" style="background:#141970"></div>3.5~7.4℃ 非常寒冷</div>
-            <div class="legend-item"><div class="legend-color" style="background:#300c46"></div><3.5℃ 極為寒冷</div>`;
-            break;
-        case "wbgt":
-            legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>≥33.5℃ 極度危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#ff0000"></div>31.5~33.4℃ 非常危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#e06c00"></div>29.5~31.4℃ 危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#c9b200"></div>27.5~29.4℃ 警戒</div>
-            <div class="legend-item"><div class="legend-color" style="background:#38b000"></div>24.5~27.4℃ 注意</div>
-            <div class="legend-item"><div class="legend-color" style="background:#0077b6"></div><24.4℃ 正常</div>`;
-        break;
-        case "heatIndex":
-            legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>≥54.5℃ 極度危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#ff0000"></div>49.5~54.4℃ 非常危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#e06c00"></div>44.5~49.4℃ 危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#c9b200"></div>39.5~44.4℃ 警戒</div>
-            <div class="legend-item"><div class="legend-color" style="background:#38b000"></div>35.5~39.4℃ 注意</div>
-            <div class="legend-item"><div class="legend-color" style="background:#0077b6"></div><35.5℃ 正常</div>`;
-            break;
-        case "dewPoint":
-            legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#470f64"></div>≥28℃ 危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#a82020"></div>24~27.9℃ 悶熱</div>
-            <div class="legend-item"><div class="legend-color" style="background:#347b28"></div>18~23.9℃ 舒適</div>
-            <div class="legend-item"><div class="legend-color" style="background:#8f6825"></div>12~17.9℃ 乾爽</div>
-            <div class="legend-item"><div class="legend-color" style="background:#8a462b"></div><12℃ 乾燥</div>`;
-            break;
-        case "humidity":
-            legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#071770"></div>≥94.5% 非常潮濕</div>
-            <div class="legend-item"><div class="legend-color" style="background:#147ccd"></div>84.5~94.4% 潮濕</div>
-            <div class="legend-item"><div class="legend-color" style="background:#0b8743"></div>49.5~84.4% 正常</div>
-            <div class="legend-item"><div class="legend-color" style="background:#96592d"></div>30.5~49.4% 乾燥</div>
-            <div class="legend-item"><div class="legend-color" style="background:#641515"></div><30.5% 非常乾燥</div>`;
-            break;
-        case "windSpeed":case "windGust":
-            legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#6a0606"></div>≥117.5km/h 颶風</div>
-            <div class="legend-item"><div class="legend-color" style="background:#b1510d"></div>87.5~117.4km/h 暴風</div>
-            <div class="legend-item"><div class="legend-color" style="background:#7f710b"></div>62.5~87.4km/h 烈風</div>
-            <div class="legend-item"><div class="legend-color" style="background:#154c83"></div>40.5~62.4km/h 強風</div>
-            <div class="legend-item"><div class="legend-color" style="background:#11750a"></div><40.5km/h 強風以下</div>`;
-            break;
-        case "rain1m":
-            legendHTML=`
-            <div class="legend-item"><div class="legend-color" style="background:#6a0c7a"></div>>= 1.8 mm</div>
-            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>1.4 - 1.7 mm</div>
-            <div class="legend-item"><div class="legend-color" style="background:#921818"></div>0.8 - 1.3 mm</div>
-            <div class="legend-item"><div class="legend-color" style="background:#878e14"></div>0.4 - 0.7 mm</div>
-            <div class="legend-item"><div class="legend-color" style="background:#227192"></div>0.2 - 0.3 mm</div>
-            <div class="legend-item"><div class="legend-color" style="background:#636363"></div><0.2 mm</div>`;break;
-        case"rain1h":
-            legendHTML=`
-            <div class="legend-item"><div class="legend-color" style="background:#6a0c7a"></div>>= 100.0 mm</div>
-            <div class="legend-item"><div class="legend-color" style="background:#020000"></div>80.0 - 99.9 mm</div>
-            <div class="legend-item"><div class="legend-color" style="background:#921818"></div>50.0 - 79.9 mm</div>
-            <div class="legend-item"><div class="legend-color" style="background:#878e14"></div>20.0 - 49.9 mm</div>
-            <div class="legend-item"><div class="legend-color" style="background:#149f37"></div>10.0 - 19.9 mm</div>
-            <div class="legend-item"><div class="legend-color" style="background:#227192"></div>0.1 - 9.9 mm</div>
-            <div class="legend-item"><div class="legend-color" style="background:#636363"></div>0 mm</div>`;break;
-        case "rainTotal":
-            legendHTML=`
-            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>>= 350.0 mm</div>
-            <div class="legend-item"><div class="legend-color" style="background:#921818"></div>200.0 - 349.9 mm</div>
-            <div class="legend-item"><div class="legend-color" style="background:#e86119"></div>100.0 - 199.9 mm</div>
-            <div class="legend-item"><div class="legend-color" style="background:#878e14"></div>50.0 - 99.9 mm</div>
-            <div class="legend-item"><div class="legend-color" style="background:#227192"></div>0.1 - 49.9 mm</div>
-            <div class="legend-item"><div class="legend-color" style="background:#636363"></div>0 mm</div>`;break;
-        case "pressSea":
-            legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#571b7a"></div>&lt; 980 hPa</div>
-            <div class="legend-item"><div class="legend-color" style="background:#b42121"></div>980 - 989 hPa</div>
-            <div class="legend-item"><div class="legend-color" style="background:#757012"></div>990 - 999 hPa</div>
-            <div class="legend-item"><div class="legend-color" style="background:#2b7c42"></div>≥ 1000 hPa</div>`;
-            break;
-        case "pressStation":
-            legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#571b7a"></div>&lt; 965 hPa</div>
-            <div class="legend-item"><div class="legend-color" style="background:#b42121"></div>965 - 974 hPa</div>
-            <div class="legend-item"><div class="legend-color" style="background:#757012"></div>975 - 984 hPa</div>
-            <div class="legend-item"><div class="legend-color" style="background:#2b7c42"></div>≥ 985 hPa</div>`;
-            break;
-        case "waterLevel":
-            legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>≥ 2.50 m</div>
-            <div class="legend-item"><div class="legend-color" style="background:#c61e05"></div>1.49 - 2.49 m</div>
-            <div class="legend-item"><div class="legend-color" style="background:#ff7200"></div>1.00 - 1.49 m</div>
-            <div class="legend-item"><div class="legend-color" style="background:#c4ab08"></div>0.50 - 0.99 m</div>
-            <div class="legend-item"><div class="legend-color" style="background:#1a6080"></div>0.01 - 0.49 m</div>
-            <div class="legend-item"><div class="legend-color" style="background:#1b6009"></div>0.00 m</div>`;
-            break;
-        default:
-            legendHTML = `<div class="legend-item" style="color:#777;">無圖例</div>`;
-    }
-    legendContent.innerHTML = legendHTML;
-}
-
-// 地圖初始化
-let map = L.map('macau-map').setView([22.17, 113.55], 13);
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    subdomains: 'abcd',
-    maxZoom: 19
-}).addTo(map);
-
-let allMarkers = [];
-let currentTab = "tempCurrent";
-document.getElementById('current-indicator').textContent = `${fieldMap[currentTab]?.label || currentTab}`;
-let pointDataList = [];
-let floodDataList = [];
-
-// 下拉選擇框切換監聽（替換原按鈕點擊）
-document.getElementById('indicatorSelect').addEventListener('change', function(){
-    currentTab = this.value;
-    const labelText = fieldMap[currentTab]?.label || currentTab;
-    document.getElementById('current-indicator').textContent = labelText;
-    updateMapMarkers();
-    updateLegendPanel(currentTab);
-});
-
-// 提取XML節點值
-const extractNodeValue = (selector, parent) => {
-    const el = parent.querySelector(selector);
-    if (!el) return '';
-    const val = el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || '';
-    return val.trim();
-};
-
-// 清空地圖標記
-function clearMarkers() {
-    allMarkers.forEach(marker => map.removeLayer(marker));
-    allMarkers = [];
-}
-
-// 更新地圖標記（已刪除單站卡片渲染調用）
-function updateMapMarkers() {
-    clearMarkers();
-    let sourceList, pointCoords;
-
-    if (currentTab === "waterLevel") {
-        sourceList = floodDataList;
-        pointCoords = floodPoints;
-    } else {
-        sourceList = pointDataList;
-        pointCoords = weatherPoints;
-    }
-
-    sourceList.forEach(point => {
-        const name = point.name;
-        const info = pointCoords[name];
-        if (!info) return;
-
-        let showVal = "";
-        let bgColor = "#3498db";
-        let skipMarker = false;
-
-        switch (currentTab) {
-            case "tempCurrent": showVal = point.temp; bgColor = getTempColor(showVal); break;
-            case "tempMax": showVal = point.tempMax; bgColor = getTempColor(showVal); break;
-            case "tempMin": showVal = point.tempMin; bgColor = getTempColor(showVal); break;
-            case "humidity": showVal = point.humidity; bgColor = getHumidityColor(showVal); break;
-            case "dewPoint": showVal = point.dewPoint; bgColor = getDewColor(showVal); break;
-            case "windDir": showVal = point.windDir || "--"; bgColor = "#9b59b6"; break;
-            case "windSpeed": showVal = point.windSpeed; bgColor = getWindColor(showVal); break;
-            case "windGust": showVal = point.windGust; bgColor = getWindColor(showVal); break;
-            case "pressSea": showVal = point.pressSea; bgColor = getPressSeaColor(showVal); break;
-            case "pressStation": showVal = point.pressStation; bgColor = getPressStationColor(showVal); break;
-            case "apparentTemp": showVal = point.apparentTemp; bgColor = getTempColor(showVal); break;
-            case "heatIndex":
-                showVal = point.heatIndex;
-                bgColor = getHeatIndexColor(showVal);
-                const hiNum = parseFloat(showVal);
-                if (isNaN(hiNum) || hiNum < 32.5) skipMarker = true;
-                break;
-            case "wbgt":
-                showVal = point.wbgt;
-                bgColor = getWBGTColor(showVal);
-                const wbgtNum = parseFloat(showVal);
-                if(isNaN(wbgtNum)) skipMarker = true;
-                break;
-            case "rain1m": showVal = point.rain1m; bgColor = getRain1mColor(showVal); break;
-            case "rain1h": showVal = point.rain1h; bgColor = getRain1hColor(showVal); break;
-            case "rainTotal": showVal = point.rainTotal; bgColor = getRainTotalColor(showVal); break;
-            case "waterLevel":
-                showVal = point.waterLevel;
-                if (showVal === '--' || showVal === '') skipMarker = true;
-                bgColor = getWaterLevelColor(showVal);
-                break;
-        }
-
-        if (skipMarker || showVal === '' || showVal === '--') return;
-
-        const markerIconHtml = `<div style="background:${bgColor};color:#fff;border-radius:50%;width:50px;height:50px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:bold;">${showVal}</div>`;
-        const icon = L.divIcon({html: markerIconHtml, className: "", iconSize: [50,50], iconAnchor: [25,25]});
-        const marker = L.marker([info.lat, info.lng], { icon: icon }).addTo(map);
-        marker.bindPopup(`<strong>${name}</strong>`);
-        // 點擊僅彈出彈窗，不再渲染右側詳細卡片
-        marker.on('click', ()=>marker.openPopup());
-        allMarkers.push(marker);
-    });
-}
-
-// 抓取氣象 XML 數據
-function fetchWeatherData() {
-    const cacheBuster = Date.now();
-    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
-    return fetch(url, { cache: "no-store" })
-        .then(res => {
-            if (!res.ok) throw new Error("Weather fetch fail");
-            return res.text();
-        })
-        .then(xmlStr => {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
-            const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent || "未知";
-            document.getElementById("time-stamp").textContent = pubTime;
-
-            const stations = xmlDoc.querySelectorAll("WeatherReport station");
-            pointDataList = [];
-
-            stations.forEach(station => {
-                const name = station.querySelector("stationname")?.textContent || "";
-                const temp = extractNodeValue("Temperature", station);
-                const tempMax = extractNodeValue("Temperature_daily_max", station);
-                const tempMin = extractNodeValue("Temperature_daily_min", station);
-                const humidity = extractNodeValue("Humidity", station);
-                const windSpeed = extractNodeValue("WindSpeed", station);
-                const windGust = extractNodeValue("WindGust", station);
-                const pressSea = extractNodeValue("MeanSeaLevelPressure", station);
-                const pressStation = extractNodeValue("StationPressure", station);
-                const windDirNode = station.querySelector("WindDirection");
-                const windDir = windDirNode?.querySelector("dValue")?.textContent || "";
-
-                let rain1m = "", rain1h = "", rainTotal = "";
-                station.querySelectorAll("Rainfall").forEach(r => {
-                    const type = r.querySelector("Type")?.textContent;
-                    const val = r.querySelector("dValue")?.textContent || "";
-                    if (type === "3") rain1m = val;
-                    if (type === "4") rain1h = val;
-                    if (type === "5") rainTotal = val;
-                });
-
-                const T = parseFloat(temp);
-                const RH = parseFloat(humidity);
-                const windSpeedKmH = parseFloat(windSpeed);
-                const apparentTemp = calculateApparentTemp(T, RH, windSpeedKmH);
-                const heatIndex = calculateHeatIndex(T, RH);
-                const dewPoint = calculateDewPoint(T, RH);
-                const wbgt = calcWBGT(T,RH,windSpeedKmH);
-
-                pointDataList.push({
-                    name, temp, tempMax, tempMin, humidity, windDir,
-                    windSpeed, windGust, rain1m, rain1h, rainTotal,
-                    pressSea, pressStation, apparentTemp, heatIndex, dewPoint,
-                    waterLevel: "--", wbgt
-                });
-            });
-        });
-}
-
-// 抓取水位/積水 XML 數據
-function fetchFloodData() {
-    const cacheBuster = Date.now();
-    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_ftgms.xml?t=${cacheBuster}`;
-    return fetch(url, { cache: "no-store" })
-        .then(res => {
-            if (!res.ok) throw new Error("Flood fetch fail");
-            return res.text();
-        })
-        .then(xmlStr => {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
-            const stations = xmlDoc.querySelectorAll("WLReport station");
-            floodDataList = [];
-
-            stations.forEach(station => {
-                const code = station.getAttribute("code") || "";
-                const name = (station.querySelector("stationname")?.textContent || "未知監測點").trim();
-                let waterLevel = "--";
-                const valNode = station.querySelector("Waterlevel > Value");
-                if (valNode && valNode.textContent) {
-                    waterLevel = valNode.textContent.trim();
-                }
-                if (!waterLevel) waterLevel = "--";
-                floodDataList.push({ name, code, waterLevel });
-            });
-        })
-        .catch(err => {
-            console.error("水位數據載入失敗：", err);
-        });
-}
-    
-// 統一載入所有數據
-function loadAllData() {
-    Promise.all([fetchWeatherData(), fetchFloodData()])
-        .then(() => {
-            updateMapMarkers();
-            updateLegendPanel(currentTab);
-        })
-        .catch(err => {
-            console.error("整體數據載入失敗：", err);
-        });
-}
-
-// 頁面載入後執行 + 5分鐘自動刷新
-window.addEventListener('DOMContentLoaded', loadAllData);
-setInterval(loadAllData, 300000);
-            
-// ========== 抓取 SMG 澳門實時簡報XML：https://xml.smg.gov.mo/c_actual_brief.xml ==========
-/**
- * 澳門整點實時天氣 - 跨域請求 XML (corsproxy 代理)
- * 目標接口：https://xml.smg.gov.mo/c_actual_brief.xml
- * 代理地址：https://corsproxy.io/?url=原始地址
- */
-// 全局DOM元素
-const loadTip = document.getElementById('load-tip');
-const errorTip = document.getElementById('error-tip');
-const weatherMain = document.getElementById('weather-main');
-const pubTime = document.getElementById('pub-time');
-const weatherIcon = document.getElementById('weather-icon');
-const tempValue = document.getElementById('temp-value');
-const feelsDesc = document.getElementById('feels-desc');
-const humValue = document.getElementById('hum-value');
-const windSpeed = document.getElementById('wind-speed');
-const windDir = document.getElementById('wind-dir');
-
-// 原始XML地址
-const originXmlUrl = "https://xml.smg.gov.mo/c_actual_brief.xml";
-// corsproxy 代理地址（标准格式）
-const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(originXmlUrl)}`;
-
-// 加载整点天气数据
-async function loadHourlyWeather() {
-    try {
-        // 重置页面状态
-        loadTip.style.display = 'block';
-        errorTip.style.display = 'none';
-        weatherMain.style.display = 'none';
-
-        // 发起跨域請求，修正變數 proxy → proxyUrl
-        const response = await fetch(proxyUrl, {
-            method: 'GET',
-            cache: 'no-cache' // 禁用缓存，获取最新数据
-        });
-
-        if (!response.ok) throw new Error('接口請求失敗');
-
-        // 获取XML文本并解析
-        const xmlText = await response.text();
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-
-        // 解析XML节点（对应接口字段）
-        const sysPubdate = xmlDoc.querySelector("SysPubdate")?.textContent || "未知時間";
-        const temp = xmlDoc.querySelector("Temperature > Value")?.textContent || "--";
-        const hum = xmlDoc.querySelector("Humidity > Value")?.textContent || "--";
-        const windSpd = xmlDoc.querySelector("WindSpeed > Value")?.textContent || "--";
-        const windSpdDesc = xmlDoc.querySelector("WindSpeedDescription")?.textContent || "";
-        const windDirText = xmlDoc.querySelector("WindDirection > WindDescription")?.textContent || "--";
-        const iconUrl = xmlDoc.querySelector("IconURL")?.textContent || "";
-        const feelDesc = xmlDoc.querySelector("FeelsLikeDescription")?.textContent || "--";
-
-        // 渲染页面数据
-        pubTime.textContent = sysPubdate;
-        tempValue.textContent = `${temp} °C`;
-        feelsDesc.textContent = feelDesc;
-        humValue.textContent = `${hum} %`;
-        windSpeed.textContent = `${windSpd} km/h (${windSpdDesc})`;
-        windDir.textContent = windDirText;
-
-        // 加载天气图标
-        if (iconUrl) {
-            weatherIcon.src = iconUrl;
-            weatherIcon.onerror = () => weatherIcon.style.display = 'none'; // 图标加载失败隐藏
-        }
-
-        // 切换页面状态：展示天气面板
-        loadTip.style.display = 'none';
-        weatherMain.style.display = 'block';
-
-    } catch (err) {
-        console.error("整點天氣數據解析異常：", err);
-        loadTip.style.display = 'none';
-        errorTip.style.display = 'block';
-    }
-}
-
-// 頁面載入完成後首次執行
-window.addEventListener('DOMContentLoaded', loadHourlyWeather);
-
-// 【修復】定時器函數名改為正確的 loadHourlyWeather
-setInterval(loadHourlyWeather, 300000);
-
-//7day use X label from webdata.label7dX
-function render7dChart(ctx){
-  const maxArr = temp7dMax;
-  const minArr = temp7dMin;
-  tempChart = new Chart(ctx,{
-    type:"line",
-    data:{
-      labels: label7dX,
-      datasets:[
-        {label:"最高氣溫",data:maxArr,borderColor:"#ff5555",fill:false,tension:0},
-        {label:"最低氣溫",data:minArr,borderColor:"#38b8b0",fill:false,tension:0}
-      ]
-    },
-    options:{
-      responsive:true,
-      maintainAspectRatio:false,
-      plugins:{title:{display:true,text:"七日高低溫預報"}},
-      scales:{
-        x:{display:true,title:{display:true,text:"日期"}},
-        y:{display:true,title:{display:true,text:"溫度℃"}}
-      }
-    }
-  })
-}
-
-window.addEventListener('DOMContentLoaded',initChart);
-
-
-</script>
-</body>
-</html>
+    if (
