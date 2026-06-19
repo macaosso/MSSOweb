@@ -6,27 +6,42 @@
 <link rel="icon" type="image/png" href="icons/MSSO.png">
 <title>熱帶氣旋距離計算工具 | 澳門民間氣象台 MSSO</title>
 <style>
-/* ========== Global Base ========== */
+/* ========== 全域深色Dashboard基底 ========== */
+html {
+  scroll-behavior: smooth;
+}
 body {
   margin: 0;
   font-family: Arial, sans-serif;
+  background-color: #0f141c;
+  color: #e2e8f0;
+  box-sizing: border-box;
 }
-/* ========== Header & Navigation (Same Index Style) ========== */
+* {
+  box-sizing: border-box;
+}
+
+/* ========== 頁頭Header 全站統一深色儀表頂欄 ========== */
 .header {
-  background: #1f3a4d;
-  color: white;
-  padding: 25px 20px;
+  background: #151d2b;
+  color: #ffffff;
+  padding: 22px 20px;
   display: flex;
   align-items: center;
+  border-bottom: 1px solid #243249;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 .title {
   font-size: 20px;
   font-weight: bold;
   margin-left: 10px;
+  letter-spacing: 0.5px;
 }
 .logo {
   height: 40px;
 }
+
+/* ========== 頂部導航菜單 深色側欄風格 ========== */
 .menu-container {
   position: relative;
   z-index: 3000;
@@ -37,54 +52,58 @@ body {
   font-size: 26px;
   padding: 10px 15px;
   cursor: pointer;
-  background: #2d6c94;
+  background: #233752;
   color: white;
+  border-radius: 6px;
 }
 .nav {
-  background: #2d6c94;
+  background: #1a2538;
   display: flex;
 }
 .nav a {
-  color: white;
+  color: #cbd5e1;
   padding: 25px 20px;
   font-size: 18px;
   text-decoration: none;
   display: block;
+  transition: 0.25s ease;
 }
 .nav a:hover {
-  background: #1f4f6d;
+  background: #233752;
+  color: #ffffff;
 }
 
-/* ========== Page Wrap Layout ========== */
+/* ========== 頁面雙欄佈局 ========== */
 .calc-wrap{
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap:35px;
-  margin:18px 35px;
+  margin:24px 35px;
 }
 
-/* ========== Unified Card Style (Same forecast-tab box) ========== */
+/* ========== 深色統一卡片樣式 ========== */
 .calc-card{
-  border:2px solid #4fa6a6;
-  border-radius:12px;
-  background:#e6f7f7;
-  box-shadow:0 2px 8px rgba(0,0,0,0.2);
-  padding:25px;
-  transition: all 0.25s ease;
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:16px;
+  background:#142929;
+  box-shadow:0 5px 18px rgba(0,0,0,0.4);
+  padding:26px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 .calc-card:hover{
-  box-shadow:0 4px 12px rgba(79,166,166,0.25);
+  transform: translateY(-3px);
+  box-shadow:0 8px 24px rgba(0,0,0,0.45);
 }
 .card-title{
   font-size:19px;
   font-weight:bold;
-  color:#1f3a4d;
+  color:#7cd1d1;
   margin:0 0 20px 0;
   padding-bottom:10px;
-  border-bottom:1px solid #b8d8d8;
+  border-bottom:1px solid rgba(79,166,166,0.25);
 }
 
-/* ========== Form Layout ========== */
+/* ========== 表單輸入區深色風格 ========== */
 .form-row{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -98,16 +117,17 @@ label{
   display:block;
   font-size:15px;
   margin-bottom:6px;
-  color:#333;
+  color:#cbd5e1;
 }
 input, select{
   width:100%;
   box-sizing:border-box;
   padding:11px 12px;
-  border:1px solid #b8d8d8;
+  border:1px solid rgba(79,166,166,0.3);
   border-radius:10px;
   font-size:15px;
-  background:#fff;
+  background:#1a2538;
+  color:#fff;
   transition:0.2s;
 }
 input:focus, select:focus{
@@ -115,8 +135,11 @@ input:focus, select:focus{
   border-color:#4fa6a6;
   box-shadow:0 0 0 3px rgba(79,166,166,0.18);
 }
+input::placeholder {
+  color:#94a3b8;
+}
 
-/* ========== Buttons Beautified (Gradient + Hover animate) ========== */
+/* ========== 按鈕樣式 ========== */
 .btn-row{
   display:grid;
   grid-template-columns: 2fr 1fr;
@@ -142,47 +165,49 @@ input:focus, select:focus{
   padding:12px;
   border:none;
   border-radius:25px;
-  background:#cccccc;
-  color:#333;
+  background:#334155;
+  color:#e2e8f0;
   font-size:15px;
   cursor:pointer;
   transition:0.3s;
 }
 .clear-btn:hover{
-  background:#bbbbbb;
+  background:#475569;
 }
 .unit-title{
   font-size:18px;
   font-weight:bold;
-  color:#222;
+  color:#ffffff;
   margin-bottom:14px;
   display:block;
 }
 
-/* ========== Result Display Box (Highlight output) ========== */
+/* ========== 結果輸出框 ========== */
 .result-box{
   margin-top:18px;
   padding:14px;
-  background:#ffffff;
+  background:#1a2538;
   border-left:5px solid #4fa6a6;
   border-radius:8px;
   font-size:15px;
   line-height:1.7;
   min-height:42px;
+  white-space: pre-line;
 }
 .result-error{
-  border-left-color:#e1665c;
-  background:#fef1f1;
+  border-left-color:#b94242;
+  background:#291414;
+  color:#fecfcf;
 }
 .result-empty{
-  color:#777;
+  color:#94a3b8;
 }
 
-/* ========== Mobile responsive ========== */
+/* ========== 手機響應式 ========== */
 @media(max-width:768px){
   .calc-wrap{
     grid-template-columns:1fr;
-    margin:18px 22px;
+    margin:20px 20px;
   }
   .menu-toggle{
     display:block;
@@ -191,20 +216,23 @@ input:focus, select:focus{
     display:none;
     flex-direction:column;
     width:100%;
+    position:absolute;
+    top:68px;
+    left:0;
   }
   .nav.active{
     display:flex;
   }
   .nav a{
     width:100%;
-    padding:12px 15px;
-    border-top:1px solid rgba(255,255,255,0.2);
+    padding:14px 18px;
+    border-top:1px solid rgba(255,255,255,0.08);
   }
 }
 </style>
 </head>
 <body>
-<!-- Header Nav Copy from your index -->
+<!-- Header Nav 與全站統一 -->
 <div class="header">
 <img src="icons/MSSO.png" class="logo">
 <div class="title">澳門民間氣象台 MSSO</div>
@@ -222,9 +250,9 @@ input:focus, select:focus{
 </div>
 </div>
 
-<!-- Main Two Column Content -->
+<!-- 主雙欄內容 -->
 <div class="calc-wrap">
-  <!-- Left Column: Three Calculation Modules -->
+  <!-- 左側：三大計算模塊 -->
   <div class="left-col">
     <!-- 1.熱帶氣旋距離、方位計算 -->
     <div class="calc-card">
@@ -311,7 +339,7 @@ input:focus, select:focus{
     </div>
   </div>
 
-  <!-- Right Column: Unit Convert Tool -->
+  <!-- 右側：單位換算工具 -->
   <div class="right-col">
     <div class="calc-card">
       <div class="card-title">氣象常用單位換算</div>
@@ -405,7 +433,7 @@ input:focus, select:focus{
         <div id="resTmpConv" class="result-box result-empty" style="margin-top:12px;">換算結果</div>
       </div>
 
-      <!-- 新增：氣壓換算｜測站氣壓 ↔ 海平面氣壓 -->
+      <!-- 氣壓換算｜測站氣壓 ↔ 海平面氣壓 -->
       <div>
         <span class="unit-title">氣壓換算｜測站氣壓 ↔ 海平面氣壓</span>
         <div class="form-full">
@@ -428,7 +456,7 @@ input:focus, select:focus{
 </div>
 
 <script>
-// Mobile Menu Same as your index page
+// 移動端菜單
 function toggleMenu(){
   const nav = document.getElementById("navMenu");
   const btn = document.querySelector(".menu-toggle");
@@ -436,12 +464,12 @@ function toggleMenu(){
   btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
 
-// ========== Global Math Constant ==========
-const R = 6371; // Earth radius km
+// ========== 全局數學常數 ==========
+const R = 6371; // 地球半徑 km
 const rad = deg => deg * Math.PI / 180;
 const deg = rad => rad * 180 / Math.PI;
 
-// 固定9個目標城市名+經緯度【只宣告一次，移除重複】
+// 目標城市清單
 const cityList = [
   {name:"澳門",lat:22.1595,lon:113.5685,limit:5000},
   {name:"香港",lat:22.3000,lon:114.1700,limit:5000},
@@ -454,7 +482,7 @@ const cityList = [
   {name:"東京",lat:35.638430,lon:139.772712,limit:1000}
 ];
 
-// 16方位對照表 每格22.5°
+// 16方位轉換
 function getWindDir(deg){
   const dirArr = ["N","NNE","NE","ENE","E","ESE","SE","SSE",
                   "S","SSW","SW","WSW","W","WNW","NW","NNW"];
@@ -489,7 +517,6 @@ function calcAllTC(){
     let bearDeg = (deg(br)+360)%360;
     let dirText = getWindDir(bearDeg);
 
-    //距離判斷
     if(dist < city.limit){
       outText += `${city.name}：距離${dist.toFixed(2)}km，方位${dirText}\n`;
     }
@@ -536,7 +563,7 @@ function clearDest(){
   document.getElementById("resDest").className="result-box result-empty";
 }
 
-//3.掠過最短距離（已修正ID重複與計算bug）
+//3.掠過最短距離
 function calcClosest(){
   const siteLa = rad(Number(document.getElementById("siteLat").value));
   const siteLo = rad(Number(document.getElementById("siteLon").value));
@@ -549,7 +576,6 @@ function calcClosest(){
     resDom.innerText="請填寫完整有效數值";
     return;
   }
-  // Calc bearing from TC to site
   let br = Math.atan2(Math.sin(siteLo-tcLo)*Math.cos(siteLa), Math.cos(tcLa)*Math.sin(siteLa)-Math.sin(tcLa)*Math.cos(siteLa)*Math.cos(siteLo-tcLo));
   br = (br+2*Math.PI)%(2*Math.PI);
   const ang = Math.abs(br-tcBe);
@@ -564,8 +590,7 @@ function clearClose(){
   document.getElementById("resClose").className="result-box result-empty";
 }
 
-// ========== Unit Conversion Functions ==========
-// distance constants: 1nm=1.852km, 1mile=1.60934km
+// ========== 單位換算函數 ==========
 function convertDis(){
   let num = Number(document.getElementById("disNum").value);
   const f = document.getElementById("disFrom").value;
@@ -573,7 +598,6 @@ function convertDis(){
   const resDom = document.getElementById("resDisConv");
   if(isNaN(num)){resDom.className="result-box result-error";resDom.innerText="輸入有效數字";return;}
   let km;
-  // convert input to base km first
   if(f==="公里(km)") km=num;
   else if(f==="海里(nm)") km=num*1.852;
   else km=num*1.60934;
@@ -587,8 +611,6 @@ function convertDis(){
   resDom.innerText=`${num} ${f} = ${out.toFixed(3)} ${t}`;
 }
 
-// speed: km/h, knot, m/s, mph
-// 1kt=1.852km/h, 1m/s=3.6km/h,1mph=1.60934km/h
 function convertSpd(){
   let num = Number(document.getElementById("spdNum").value);
   const f = document.getElementById("spdFrom").value;
@@ -611,8 +633,6 @@ function convertSpd(){
   resDom.innerText=`${num} ${f} = ${out.toFixed(2)} ${t}`;
 }
 
-// temp: ℃ ℉ K
-// C=F→(F-32)/1.8 , F=C×1.8+32 , K=C+273.15
 function convertTmp(){
   let num = Number(document.getElementById("tmpNum").value);
   const f = document.getElementById("tmpFrom").value;
@@ -633,8 +653,7 @@ function convertTmp(){
   resDom.innerText=`${num} ${f} = ${out.toFixed(2)} ${t}`;
 }
 
-// ========== Pressure Conversion Function (Based on your formula) ==========
-// Psea = Pstation * [1 - (L*H)/(Tstation + L*H)] ^ (-g/(R*L))
+// 海平面氣壓計算
 function convertPressure(){
   const pStation = Number(document.getElementById("pStation").value);
   const hStation = Number(document.getElementById("hStation").value);
@@ -647,11 +666,10 @@ function convertPressure(){
     return;
   }
   
-  // Constants from your formula
-  const L = 0.0065;      // K/m
-  const g = 9.80665;    // m/s²
-  const R = 287.05;     // J/(kg·K)
-  const Tstation = tStationC + 273.15; // Convert ℃ to K
+  const L = 0.0065;
+  const g = 9.80665;
+  const R = 287.05;
+  const Tstation = tStationC + 273.15;
   
   const term1 = (L * hStation) / (Tstation + L * hStation);
   const exponent = -g / (R * L);
