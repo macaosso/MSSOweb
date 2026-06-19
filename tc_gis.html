@@ -50,6 +50,7 @@ body {
 }
 
 /* ========== 導航容器與漢堡按鈕 ========== */
+/* ========== 導航容器與漢堡按鈕 ========== */
 .menu-container {
   position: relative;
   z-index: 3000;
@@ -63,6 +64,7 @@ body {
   background: #233752;
   color: white;
   border-radius: 6px;
+  border: 0;
 }
 .nav {
   background: #1a2538;
@@ -86,8 +88,9 @@ body {
   .menu-toggle {
     display: block;
   }
+  /* 初始隱藏狀態 */
   .nav {
-    display: none;
+    display: flex;
     flex-direction: column;
     width: 240px;
     position: absolute;
@@ -95,13 +98,19 @@ body {
     right: 0;
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+    /* 關鍵：隱藏過渡完整參數 */
     opacity: 0;
     visibility: hidden;
-    transition: all 0.25s ease;
+    transform: translateY(-10px);
+    transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
+    pointer-events: none; /* 隱藏時禁止點擊穿透 */
   }
+  /* active 顯示狀態 */
   .nav.active {
     opacity: 1;
     visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
   }
   .nav a {
     width: 100%;
@@ -137,7 +146,7 @@ body {
   /* 加寬面板原180→220px */
   width: 220px;
   max-width: 90vw;
-  max-height: 180px;
+  max-height: 240px;
   overflow-y: auto;
   opacity: 0.92;
   background: #0f141c;
@@ -225,7 +234,7 @@ body {
   position: fixed;
   left: 15px;
   bottom: 60px;
-  width: 180px;
+  width: 140px;
   background: rgba(15, 20, 28, 0.92);
   border: 1px solid rgba(255,255,255,0.08);
   color: #e2e8f0;
