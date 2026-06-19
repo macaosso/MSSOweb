@@ -598,8 +598,10 @@ function createWindRadii(lat, lon, radii) {
 }
 function updateMarkerSize() {
   const zoom = map.getZoom();
-  forecastMarkers.forEach(m => {
-    const type = getTypeFromWind(m.options.icon.options.iconUrl.split("/").pop().replace(".png",""));
+  // Loop over forecastPoints instead of reading marker icon filenames
+  forecastMarkers.forEach((m, idx) => {
+    const p = forecastPoints[idx];
+    const type = getTypeFromWind(p.wind);
     const size = zoom >= 7 ? 30 : zoom >= 5 ? 24 : 20;
     m.setIcon(getIcon(type, size));
   });
@@ -661,10 +663,13 @@ const trackLine = L.curve(catmullRom2bezier(forecastPoints),{
 let forecastMarkers = [];
 let pastMarkers = [];
 forecastPoints.forEach(p => {
+  // Step 1: Calculate storm category FROM WIND SPEED (correct order)
   const type = getTypeFromWind(p.wind);
+  // Step 2: Load matching icon based on real wind-derived type
   let marker = L.marker([p.lat, p.lon], {
     icon: getIcon(type, isMobile ? 24 : 22)
   }).addTo(map);
+
   marker.bindPopup(`
     <b>預報位置</b><br>
     時間: ${p.time}<br>
@@ -672,19 +677,37 @@ forecastPoints.forEach(p => {
     強度: ${getTypeName(type)} (${type})<br>
     中心風力: ${p.wind} km/h<br>
   `);
+
   marker.bindTooltip(p.time, {
     permanent: true,
     direction: "right",
     offset: [8, 0],
     className: "time-label"
   });
+
   if (!isMobile) {
-    marker.on('mouseover', function () {this.setIcon(getIcon(type, 32)); this.openPopup();});
-    marker.on('mouseout', function () {this.setIcon(getIcon(type, 22));});
+    marker.on('mouseover', function () {
+      // Recalc type from point wind, not icon file
+      const t = getTypeFromWind(p.wind);
+      this.setIcon(getIcon(t, 32));
+      this.openPopup();
+    });
+    marker.on('mouseout', function () {
+      const t = getTypeFromWind(p.wind);
+      this.setIcon(getIcon(t, 22));
+    });
   } else {
-    marker.on('click', function () {this.setIcon(getIcon(type, 30)); this.openPopup();});
-    marker.on('popupclose', function () {this.setIcon(getIcon(type, 24));});
+    marker.on('click', function () {
+      const t = getTypeFromWind(p.wind);
+      this.setIcon(getIcon(t, 30));
+      this.openPopup();
+    });
+    marker.on('popupclose', function () {
+      const t = getTypeFromWind(p.wind);
+      this.setIcon(getIcon(t, 24));
+    });
   }
+
   forecastMarkers.push(marker);
 });
 
