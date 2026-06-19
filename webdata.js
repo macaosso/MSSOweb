@@ -50,23 +50,33 @@ const temp7dMin = [27,25,25,25,25,26,26];
 
 //Tropical Cyclone Track
 const forecastInfo = {
-  updated: "/"
+  updated: "2026-06-19 08:00 MST"
 };
 
 const pastPoints = [
+  {lat:12.2, lon:145.2, time: "06-19 02H", wind: 45},
+  {lat:12.4, lon:144.3, time: "06-19 08H", wind: 50}
+  
 ];
 
 const forecastPoints = [
-  {lat:19.5, lon:118.6, time: "06-04 17H", wind: 45,
+  {lat:12.4, lon:144.3, time: "06-19 08H", wind: 50,
     wind41: { ne: 0, se: 0, sw: 0, nw: 0 }, 
     wind88: { ne: 0, se: 0, sw: 0,  nw: 0 } 
-  }
+  },
+  {lat:12.7, lon:143.4, time: "06-19 20H", wind: 55},
+  {lat:14.0, lon:148.4, time: "06-20 08H", wind: 65},
+  {lat:15.3, lon:133.5, time: "06-21 08H", wind: 55},
+  {lat:17.1, lon:128.9, time: "06-22 08H", wind: 55},
+  {lat:18.6, lon:126.0, time: "06-23 08H", wind: 55},
+  {lat:20.5, lon:125.3, time: "06-24 08H", wind: 55}
+  
 ];
 
 window.tcInfo = {
-  name: "/", 
+  name: "07W", 
   wind: forecastPoints[0].wind,
-  pressure: 1000
+  pressure: 1004
 };
 
 //  { lat: 42.5, lon: 149.0, time: "06-09 14H", wind: '-' }, 
