@@ -30,6 +30,7 @@ body {
 }
 
 /* ========== 頁頭Header 標準深色頂欄 ========== */
+/* ========== 頁頭Header 標準深色頂欄 ========== */
 .header {
   background: #151d2b;
   color: #ffffff;
@@ -50,7 +51,6 @@ body {
 }
 
 /* ========== 導航容器與漢堡按鈕 ========== */
-/* ========== 導航容器與漢堡按鈕 ========== */
 .menu-container {
   position: relative;
   z-index: 3000;
@@ -64,7 +64,10 @@ body {
   background: #233752;
   color: white;
   border-radius: 6px;
-  border: 0;
+  border: none;
+  /* 提升點擊層級，防止被地圖遮擋 */
+  position: relative;
+  z-index: 3001;
 }
 .nav {
   background: #1a2538;
@@ -83,7 +86,7 @@ body {
   color: #ffffff;
 }
 
-/* ========== 移動端導航下拉面板 ========== */
+/* ========== 移動端專用導航規則（重點修復） ========== */
 @media (max-width: 768px) {
   .menu-toggle {
     display: block;
@@ -98,19 +101,19 @@ body {
     right: 0;
     border-radius: 10px;
     box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-    /* 關鍵：隱藏過渡完整參數 */
+    /* 完整過渡屬性，缺一不可 */
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-10px);
+    transform: translateY(-12px);
     transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
-    pointer-events: none; /* 隱藏時禁止點擊穿透 */
+    pointer-events: none; /* 隱藏時攔截點擊 */
   }
   /* active 顯示狀態 */
   .nav.active {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
-    pointer-events: auto;
+    pointer-events: auto; /* 開啟點擊交互 */
   }
   .nav a {
     width: 100%;
@@ -129,7 +132,6 @@ body {
     height: 28px;
   }
 }
-
 /* ========== 地圖容器 ========== */
 #map {
   height: calc(100vh - 66px);
@@ -354,7 +356,7 @@ body {
   <img src="icons/MSSO.png" class="logo">
   <div class="title">MSSO 熱帶氣旋路徑預測</div>
   <div class="menu-container">
-    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+    <div class="menu-toggle" onclick="toggleMenu(event)">☰</div>
     <div class="nav" id="navMenu">
       <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
       <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
@@ -446,12 +448,33 @@ const radii = [15,60,100,170,255,345,465];
 const macau = [22.1595, 113.5685];
 
 // ================= 通用工具函數 =================
-function toggleMenu() {
+// 改良版切換菜單，解決移動端點擊延遲、殘留狀態
+function toggleMenu(e) {
+  // 阻止事件冒泡，避免地圖捕獲點擊
+  if(e) e.stopPropagation();
   const nav = document.getElementById("navMenu");
   const btn = document.querySelector(".menu-toggle");
   nav.classList.toggle("active");
+  // 切換圖標 ☰ / ✕
   btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
+
+// 頁面載入強制重置菜單狀態，防止緩存殘留active
+window.addEventListener('load', ()=>{
+  const nav = document.getElementById("navMenu");
+  nav.classList.remove("active");
+});
+
+// 點擊頁面空白處自動關閉菜單（額外優化，避免彈出後關不掉）
+document.addEventListener("click", (e)=>{
+  const nav = document.getElementById("navMenu");
+  const toggleBtn = document.querySelector(".menu-toggle");
+  // 如果菜單開啟，且點擊區域不是按鈕、不是導航面板，就關閉
+  if(nav.classList.contains("active") && !toggleBtn.contains(e.target) && !nav.contains(e.target)){
+    nav.classList.remove("active");
+    toggleBtn.innerHTML = "☰";
+  }
+});
 function getIcon(type, size = 16) {
   return L.icon({
     iconUrl: `TC logo/${type}.png`,
