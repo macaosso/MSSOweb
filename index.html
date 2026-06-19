@@ -288,16 +288,15 @@ body {
   margin: 0;
 }
 .chart-btn-bar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:14px;
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:12px;
   padding:18px;
   background: #102020;
 }
+/* 隱藏多餘的空白間距組，不需要了 */
 .btn-group{
-  display:flex;
-  gap:12px;
+  display:contents;
 }
 .chart-date-text{
   font-size:16px;
@@ -311,18 +310,24 @@ body {
   background: #142929;
 }
 .chart-btn {
-  padding: 11px 22px;
+  flex: 1;
   border: 2px solid #2a6b6b;
   border-radius: 28px;
   background: #142929;
   color: #7cd1d1;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
+  padding:11px;
+  font-size:18px;
+  font-weight:bold;
+  cursor:pointer;
   transition: all 0.3s;
 }
-.chart-btn.active {background: #2a6b6b;color: white;}
-.chart-btn:hover:not(.active) {background: #1b3b3b;}
+.chart-btn.active{
+  background:#2a6b6b;
+  color:#ffffff;
+}
+.chart-btn:hover:not(.active){
+  background: #1b3b3b;
+}
 
 /* ========== 9. 三標籤天氣模塊（整點/實時/熱帶氣旋路徑）深色面板 ========== */
 .three-tab-weather-wrap {
