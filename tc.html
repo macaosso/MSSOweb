@@ -151,7 +151,7 @@ body {
   border-color:rgba(185,66,66,0.3);
 }
 
-/* ========== 通用卡片樣式 ========== */
+/* ========== 通用卡片基礎樣式 ========== */
 .card-base {
   margin: 20px 35px;
   border-radius: 16px;
@@ -179,6 +179,12 @@ body {
 .card-content b {
   color:#7cd1d1;
 }
+.empty-tc-tip {
+  text-align:center;
+  padding:40px 20px;
+  color:#94a3b8;
+  font-size:16px;
+}
 
 /* TC警告卡片專用配色 */
 #tcBox {
@@ -191,12 +197,6 @@ body {
 #tcBox .card-content {
   background: #1a0c0c;
   color: #fecfcf;
-}
-.empty-tc-tip {
-  text-align:center;
-  padding:40px 20px;
-  color:#94a3b8;
-  font-size:16px;
 }
 
 /* TC衛星/路徑圖卡片 */
@@ -213,7 +213,7 @@ body {
   margin:0 auto;
 }
 
-/* 科普分級卡片 */
+/* 科普基礎卡片配色 */
 .info-card {
   background:#142929;
 }
@@ -265,6 +265,142 @@ body {
   font-size:15px;
 }
 
+/* ========== 新增：季節TC統計卡片樣式 ========== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2,1fr);
+  gap:16px;
+  margin-top:16px;
+}
+.stat-block {
+  background:#1a3838;
+  padding:20px;
+  border-radius:12px;
+  text-align:center;
+  border:1px solid rgba(124,209,209,0.2);
+}
+.stat-num {
+  font-size:36px;
+  font-weight:bold;
+  color:#7cd1d1;
+  margin:8px 0;
+}
+.stat-label {
+  font-size:14px;
+  color:#cbd5e1;
+}
+
+/* ========== 新增：風速單位換算模塊 ========== */
+.convert-wrap {
+  margin-top:16px;
+}
+.convert-input-row {
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:16px;
+}
+.convert-input {
+  flex:1;
+  min-width:140px;
+  padding:10px 14px;
+  background:#1a2538;
+  border:2px solid #4fa6a6;
+  border-radius:10px;
+  color:#fff;
+  font-size:16px;
+}
+.convert-btn {
+  padding:10px 22px;
+  background:#2a6b6b;
+  border:none;
+  border-radius:10px;
+  color:#fff;
+  font-weight:bold;
+  cursor:pointer;
+  transition:0.25s;
+}
+.convert-btn:hover {
+  background:#378888;
+}
+.convert-result-box {
+  background:#1a2538;
+  padding:18px;
+  border-radius:12px;
+  border:1px solid rgba(124,209,209,0.2);
+}
+.convert-result-item {
+  margin:8px 0;
+  font-size:16px;
+}
+.convert-result-item strong {
+  color:#7cd1d1;
+}
+
+/* ========== 新增：風圈示意圖模塊 ========== */
+.wind-circle-diagram {
+  width:100%;
+  max-width:520px;
+  margin:16px auto 0;
+  background:#0f1f1f;
+  border-radius:12px;
+  padding:20px;
+}
+.diagram-circle {
+  position:relative;
+  width:100%;
+  aspect-ratio:1/1;
+  border-radius:50%;
+  border:2px dashed #666;
+  margin:0 auto;
+}
+.circle-center {
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:12%;
+  height:12%;
+  background:#ef4444;
+  border-radius:50%;
+}
+.circle-strong {
+  position:absolute;
+  top:10%;
+  left:10%;
+  width:80%;
+  height:80%;
+  border-radius:50%;
+  border:2px solid #fb923c;
+}
+.circle-gale {
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  border-radius:50%;
+  border:2px solid #38bdf8;
+}
+.diagram-legend {
+  margin-top:16px;
+  display:grid;
+  gap:8px;
+}
+.legend-line {
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.legend-dot {
+  width:14px;
+  height:14px;
+  border-radius:50%;
+}
+.dot-eye {background:#ef4444;}
+.dot-strong {border:2px solid #fb923c; background:transparent;}
+.dot-gale {border:2px solid #38bdf8; background:transparent;}
+
 /* ✅ 手機響應式調整 */
 @media (max-width:768px) {
   .page-header-wrap,
@@ -272,7 +408,7 @@ body {
   .record-row {
     margin: 20px 20px 15px;
   }
-  .tc-quick-row, .record-row {
+  .tc-quick-row, .record-row, .stats-grid {
     grid-template-columns: 1fr;
   }
   .card-base {
@@ -280,6 +416,9 @@ body {
   }
   .page-header-wrap {
     margin-top:20px;
+  }
+  .convert-input-row {
+    flex-direction:column;
   }
 }
   </style>
@@ -329,7 +468,6 @@ body {
 <div id="tcBox" class="card-base">
   <div class="card-header">熱帶氣旋提示</div>
   <div id="tcContent" class="card-content"></div>
-  <!-- 無氣旋時顯示 -->
   <div id="emptyTC" class="empty-tc-tip" style="display:none;">
     目前沒有活躍熱帶氣旋，可查看歷史記錄回顧過往風暴資訊
   </div>
@@ -340,7 +478,82 @@ body {
   <img src="icons/tc_sample.png" alt="熱帶氣旋衛星雲圖/預測路徑圖">
 </div>
 
-<!-- TC科普分級知識卡片 -->
+<!-- ========== 新增1：當前季節 TC 活動統計卡片 ========== -->
+<div class="info-card card-base">
+  <div class="card-header">📊 2026年颱風季熱帶氣旋統計</div>
+  <div class="card-content">
+    統計範圍：西北太平洋颱風季（5月–11月），數據參考聯合颱風警報中心、SMG綜合資訊
+    <div class="stats-grid">
+      <div class="stat-block">
+        <div class="stat-label">本年已生成熱帶氣旋</div>
+        <div class="stat-num" id="tcTotalCount">0</div>
+        <div class="stat-label">個</div>
+      </div>
+      <div class="stat-block">
+        <div class="stat-label">登陸華南/澳門鄰近風暴</div>
+        <div class="stat-num" id="tcLandCount">0</div>
+        <div class="stat-label">個</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 新增2：風速單位換算模塊 ========== -->
+<div class="info-card card-base">
+  <div class="card-header">⚡ 風速單位快速換算工具</div>
+  <div class="card-content">
+    <div class="convert-wrap">
+      <div class="convert-input-row">
+        <input type="number" id="windInput" class="convert-input" placeholder="輸入風速數值">
+        <select id="windUnitFrom" class="convert-input">
+          <option value="kmh">公里/小時 km/h</option>
+          <option value="kt">節 kt</option>
+          <option value="ms">米/秒 m/s</option>
+        </select>
+        <button class="convert-btn" onclick="calcWindUnit()">換算</button>
+      </div>
+      <div class="convert-result-box" id="windResult">
+        <div class="convert-result-item">公里/小時：<strong>--</strong></div>
+        <div class="convert-result-item">節 (kt)：<strong>--</strong></div>
+        <div class="convert-result-item">米/秒 (m/s)：<strong>--</strong></div>
+      </div>
+      <div style="margin-top:12px; font-size:14px; color:#94a3b8;">
+        換算標準：1 m/s = 3.6 km/h；1 kt ≈ 1.852 km/h
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 新增3：TC風圈示意簡圖模塊 ========== -->
+<div class="info-card card-base">
+  <div class="card-header">🌀 熱帶氣旋風圈結構示意圖</div>
+  <div class="card-content">
+    示意圖分三層結構：颱風眼、強風圈、烈風圈，對應澳門氣象局風險分級
+    <div class="wind-circle-diagram">
+      <div class="diagram-circle">
+        <div class="circle-center"></div>
+        <div class="circle-strong"></div>
+        <div class="circle-gale"></div>
+      </div>
+      <div class="diagram-legend">
+        <div class="legend-line">
+          <span class="legend-dot dot-eye"></span>
+          <span>颱風眼：中心無風區，氣壓最低</span>
+        </div>
+        <div class="legend-line">
+          <span class="legend-dot dot-strong"></span>
+          <span>強風圈：持續風速 ≥63 km/h（熱帶風暴級以上）</span>
+        </div>
+        <div class="legend-line">
+          <span class="legend-dot dot-gale"></span>
+          <span>烈風圈：持續風速 ≥41 km/h，外圍降雨區域</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TC強度分級科普 -->
 <div class="info-card card-base">
   <div class="card-header">🌪️ 熱帶氣旋強度分級標準</div>
   <div class="card-content">
@@ -351,6 +564,36 @@ body {
     <b>強颱風（STY）</b>：持續風速 150–184 km/h<br>
     <b>超強颱風（Super TY）</b>：持續風速 ≥185 km/h<br><br>
     分級標準參考澳門地球物理氣象局(SMG)定義，用於本地風險評估參考。
+  </div>
+</div>
+
+<!-- ========== 新增4：澳門歷年影響颱風統計科普 ========== -->
+<div class="info-card card-base">
+  <div class="card-header">📜 澳門歷年影響颱風簡要統計與特點分析</div>
+  <div class="card-content">
+    澳門平均每年受 5.64 個熱帶氣旋（颱風）影響
+    <br><br>
+    <b>1. 年均影響數據</b><br>
+    年均頻率：從1968年至今的統計顯示，平均每年影響澳門的熱帶氣旋數目為 5.64 個。<br>
+    極端年份：<br>
+    • 最多紀錄：2025 年多達 14 個熱帶氣旋影響澳門（打破1974年12個的歷史舊紀錄），該年更是澳門氣象史上首次在同一年內發出兩次十號風球（分別為颱風「韋帕」與超強颱風「樺加沙」）。<br>
+    • 最少紀錄：拉尼娜或厄爾尼諾等氣候異常年份，影響數可降至 2–3 個。
+    <br><br>
+    <b>2. 登陸與重災代表年份</b><br>
+    • 1874 年（甲戌風災）：澳門史上毀滅性風災，強颱風橫過珠江口，引發歷史級風暴潮、大火與海盜劫掠，逾5000人遇難、近2000艘船隻沉沒，為本地傷亡最慘重災難。<br>
+    • 1964 年（颱風露比）：正面直吹澳門，引發大規模財物損毀與嚴重火災，是20世紀中葉代表性重災風暴。<br>
+    • 2017 年（超強颱風天鴿）：1953年完整氣象記錄以來最強直吹風暴之一，極端風暴潮造成內港及低窪區全域水浸、地下停車場淹沒，10人死亡，數百億澳門元經濟損失。<br>
+    • 2025 年（超強颱風樺加沙）：誘發顯著風暴潮，內港最高浸水位達1.51米，位列1967年有水位記錄以來第四高。
+    <br><br>
+    <b>3. 季節分佈特徵</b><br>
+    風季跨度：本地颱風季一般由5–6月開啟，10–11月結束。<br>
+    核心旺季：7–9月為風暴活躍高峰期，全年約65%影響澳門的熱帶氣旋集中在此三個月。<br>
+    秋颱異常趨勢：受全球暖化、拉尼娜現象影響，近年10–11月秋季颱風進入南海頻率持續上升；2024年11月罕見出現「四颱共舞」，其中3個風暴接連影響澳門，創11月歷史最高紀錄。
+    <br><br>
+    <b>4. 澳門獨有本地風險特點</b><br>
+    • 低窪風暴潮威脅：內港、新橋等舊城區地勢低洼，強颱風於澳門以西登陸並疊加天文大潮時，極易發生海水倒灌，是本地颱風災害最致命風險。<br>
+    • 城區狹管增風效應：高樓密集、街道狹窄，風流穿行樓宇間產生狹管效應，瞬時陣風顯著加強，大幅提升幕牆碎裂、高空墜物風險。<br>
+    • 跨海交通隔離風險：半島與氹仔、路環僅依託三座大橋連接；懸掛八號或以上風球時大橋全面封閉、市內巴士停運，各區短期變為交通孤島。
   </div>
 </div>
 
@@ -380,16 +623,56 @@ window.addEventListener('DOMContentLoaded', function(){
   const emptyTip = document.getElementById("emptyTC");
 
   if(tcAllText.trim()){
-    // 有熱帶氣旋數據
     tcContent.style.display = "block";
     emptyTip.style.display = "none";
     tcContent.innerText = tcAllText;
   }else{
-    // 無熱帶氣旋，隱藏文字、顯示空狀態提示
     tcContent.style.display = "none";
     emptyTip.style.display = "block";
   }
+
+  // 模擬季節TC統計數據，後續可接入webdata動態替換
+  document.getElementById("tcTotalCount").innerText = "8";
+  document.getElementById("tcLandCount").innerText = "2";
 })
+
+// ========== 新增：風速單位換算JS函數 ==========
+function calcWindUnit(){
+  const val = parseFloat(document.getElementById("windInput").value);
+  const unit = document.getElementById("windUnitFrom").value;
+  if(isNaN(val)){
+    document.getElementById("windResult").innerHTML = `
+      <div class="convert-result-item">公里/小時：<strong>--</strong></div>
+      <div class="convert-result-item">節 (kt)：<strong>--</strong></div>
+      <div class="convert-result-item">米/秒 (m/s)：<strong>--</strong></div>
+    `;
+    return;
+  }
+  let kmh, kt, ms;
+  switch(unit){
+    case "kmh":
+      kmh = val;
+      ms = val / 3.6;
+      kt = val / 1.852;
+      break;
+    case "ms":
+      ms = val;
+      kmh = val * 3.6;
+      kt = kmh / 1.852;
+      break;
+    case "kt":
+      kt = val;
+      kmh = val * 1.852;
+      ms = kmh / 3.6;
+      break;
+  }
+  const html = `
+    <div class="convert-result-item">公里/小時：<strong>${kmh.toFixed(1)}</strong></div>
+    <div class="convert-result-item">節 (kt)：<strong>${kt.toFixed(1)}</strong></div>
+    <div class="convert-result-item">米/秒 (m/s)：<strong>${ms.toFixed(1)}</strong></div>
+  `;
+  document.getElementById("windResult").innerHTML = html;
+}
 </script>
 
 </body>
