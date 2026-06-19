@@ -75,24 +75,21 @@ body {
 }
 
 /* ========== 4. 首頁快捷鏈接模塊 深色霓虹卡片 ========== */
+/* 容器：横向3列网格 */
 .quick-links {
   display: grid;
-  /* 强制3列均分，不换行 */
-  grid-template-columns: repeat(3, 1fr);
-  /* 缩小按钮间距，适配小屏 */
-  gap: 8px;
-  /* 减少容器边距，让按钮更舒展 */
-  margin: 8px 10px;
+  grid-template-columns: repeat(3, 1fr); /* 核心：3个等宽列 */
+  gap: 10px; /* 按钮之间的间距 */
+  margin: 15px 20px; /* 容器边距，避免贴边 */
 }
 
+/* 按钮样式：紧凑化，适配横向 */
 .link-box {
   display: block;
-  /* 大幅缩小内边距，让按钮更紧凑 */
-  padding: 20px 8px;
+  padding: 22px 6px; /* 缩小上下内边距，横向更紧凑 */
   border-radius: 12px;
   text-align: center;
-  /* 缩小字体，避免文字溢出 */
-  font-size: 11px;
+  font-size: 11px; /* 缩小字体，防止文字换行 */
   font-weight: bold;
   text-decoration: none;
   color: white;
@@ -101,7 +98,7 @@ body {
   border: 1px solid rgba(255,255,255,0.08);
 }
 
-/* 保持原有渐变配色 */
+/* 保持你原来的渐变配色 */
 .link-box.weather {
   background: linear-gradient(135deg, #1e4e4e, #1a3850);
   border-color: rgba(79, 166, 166, 0.3);
@@ -115,20 +112,21 @@ body {
   border-color: rgba(116, 185, 255, 0.3);
 }
 
+/* 交互效果 */
 .link-box:hover {
   transform: translateY(-3px);
   opacity: 0.92;
   box-shadow: 0 6px 16px rgba(0,0,0,0.45);
 }
 
-/* 极端小屏适配（<375px），确保3列不挤压变形 */
+/* 极端小屏手机适配 */
 @media (max-width: 375px) {
   .quick-links {
     gap: 6px;
-    margin: 8px 10px;
+    margin: 10px 12px;
   }
   .link-box {
-    padding: 16px 4px;
+    padding: 18px 4px;
     font-size: 10px;
   }
 }
@@ -794,10 +792,11 @@ body {
 </div>
 </div>
 
+<!-- 把这3个按钮放进 .quick-links 容器 -->
 <div class="quick-links">
-  <a href="https://macaosso.github.io/MSSOweb/AQImap.html" class="link-box weather">空氣質量實況</a>
-  <a href="https://macaosso.github.io/MSSOweb/TCtracker.html" class="link-box flood">熱帶氣旋追蹤</a>
-  <a href="map.html" class="link-box weather">綜合氣象實況</a>
+  <a href="#" class="link-box weather">空氣質量實況</a>
+  <a href="#" class="link-box flood">熱帶氣旋追蹤</a>
+  <a href="#" class="link-box map">綜合氣象實況</a>
 </div>
 
 <div class="warning-card" id="tcCard">
