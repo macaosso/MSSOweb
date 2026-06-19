@@ -7,101 +7,172 @@
   <link rel="icon" type="image/png" href="icons/MSSO.png">
 
   <style>
-    body { margin: 0; font-family: Arial, sans-serif; }
+/* ========== 全域深色Dashboard基底 ========== */
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #0f141c;
+  color: #e2e8f0;
+  box-sizing: border-box;
+}
+* {
+  box-sizing: border-box;
+}
 
-    .header {
-      background: #1f3a4d;
-      color: white;
-      padding: 25px 20px;
-      display:flex;
-      align-items:center;
-    }
+/* ========== 頁頭Header 深色儀表頂欄 ========== */
+.header {
+  background: #151d2b;
+  color: #ffffff;
+  padding: 22px 20px;
+  display:flex;
+  align-items:center;
+  border-bottom: 1px solid #243249;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+.title { 
+  font-size: 20px; 
+  font-weight: bold; 
+  margin-left:10px;
+  letter-spacing: 0.5px;
+}
+.logo { height:40px; }
 
-    .title { font-size: 20px; font-weight: bold; margin-left:10px; }
-    .logo { height:40px; }
+/* ========== 頂部導航菜單 深色側欄風格 ========== */
+.menu-container {
+  position: relative;
+  z-index: 3000;
+  margin-left: auto;
+}
 
-    /* ✅ MENU SYSTEM */
-    .menu-container {
-      position: relative;
-      z-index: 3000;
-    }
+.menu-toggle {
+  display: none;
+  font-size: 26px;
+  padding: 10px 15px;
+  cursor: pointer;
+  background: #233752;
+  color: white;
+  border-radius: 6px;
+}
 
-    .menu-toggle {
-      display: none;
-      font-size: 26px;
-      padding: 10px 15px;
-      cursor: pointer;
-      background: #2d6c94;
-      color: white;
-    }
+.nav {
+  background: #1a2538;
+  display: flex;
+}
 
-    .nav {
-      background: #2d6c94;
-      display: flex;
-    }
+.nav a {
+  color: #cbd5e1;
+  padding: 25px 20px;
+  font-size: 18px;
+  text-decoration: none;
+  display: block;
+  transition: 0.25s ease;
+}
 
-    .nav a {
-      color: white;
-      padding: 12px 15px;
-      font-size: 18px;
-      text-decoration: none;
-      display: block;
-    }
-    .tc-image {
-      text-align: center;
-      margin: 20px;
-    }
+.nav a:hover {
+  background: #233752;
+  color: #ffffff;
+}
 
-    .tc-image img {
-      display:block;
-      max-width: 100%;
-      height: auto;
-      border-radius: 10px;
-    }
+/* ✅ 手機導航菜單 */
+@media (max-width: 768px) {
+  .menu-toggle { display: block; }
 
-    .nav a:hover { background: #1f4f6d; }
+  .nav {
+    display: none;
+    flex-direction: column;
+    width: 100%;
+    position: absolute;
+    top: 68px;
+    left: 0;
+  }
 
-    /* ✅ MOBILE FIX */
-    @media (max-width: 768px) {
+  .nav.active {
+    display: flex;
+  }
 
-      .menu-toggle {
-        display: block;
-      }
+  .nav a {
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding: 14px 18px;
+  }
+}
 
-      .nav {
-        display: none;
-        flex-direction: column;
-        width: 100%;
-      }
+/* ========== 頁面標題 ========== */
+.page-title {
+  font-size: 24px;
+  margin: 24px 35px 10px;
+  font-weight: bold;
+  color: #ffffff;
+  border-left: 4px solid #e1665c;
+  padding-left: 12px;
+}
 
-      .nav.active {
-        display: flex;   /* ✅ KEY */
-      }
-    }
+/* ========== 熱帶氣旋圖片卡片 ========== */
+.tc-image {
+  margin: 20px 35px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #142929;
+  box-shadow: 0 5px 18px rgba(0,0,0,0.4);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.tc-image:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+}
+.tc-image img {
+  display:block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 10px;
+}
 
-    /* Warning boxes */
-    .box {
-      display: none;
-      margin: 20px;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
+/* ========== 熱帶氣旋提示卡片（深色紅色警告模塊） ========== */
+.box {
+  display: none;
+  margin: 20px 35px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #291414;
+  border: 2px solid #b94242;
+  box-shadow: 0 5px 18px rgba(0,0,0,0.4);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+}
 
-    .header-red {
-      background: #e1665c;
-      color: white;
-      padding: 15px;
-      font-size: 20px;
-      font-weight: bold;
-    }
+.header-red {
+  background: #b94242;
+  color: white;
+  padding: 16px 20px;
+  font-size: 20px;
+  font-weight: bold;
+}
 
-    .content-red {
-      background: #f5d7d6;
-      padding: 20px;
-      color: #333;
-    }
+.content-red {
+  background: #1a0c0c;
+  padding: 26px;
+  color: #fecfcf;
+  font-size: 15px;
+  line-height: 1.7;
+}
 
+/* ✅ 手機邊距修正 */
+@media (max-width:768px) {
+  .page-title {
+    margin: 20px 20px 8px;
+  }
+  .tc-image, .box {
+    margin: 18px 20px;
+  }
+}
   </style>
 </head>
 
@@ -126,12 +197,19 @@
       <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
     </div>
   </div>
-</div>
 
-<!-- 🔴 tc.txt -->
+<!-- 頁面標題 -->
+<div class="page-title">熱帶氣旋資訊</div>
+
+<!-- 🔴 熱帶氣旋提示卡片 -->
 <div id="tcBox" class="box">
   <div class="header-red">熱帶氣旋提示</div>
   <div id="tcContent" class="content-red"></div>
+</div>
+
+<!-- 熱帶氣旋圖片展示卡片 -->
+<div class="tc-image">
+  <img src="icons/tc_sample.png" alt="熱帶氣旋衛星圖/路徑圖">
 </div>
 
 <script src="webdata.js"></script>
