@@ -6,7 +6,6 @@
 <link rel="icon" type="image/png" href="icons/MSSO.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <title>澳門民間氣象台-首頁</title>
 <style>
 /* ========== 1. 全域深色Dashboard基礎 ========== */
@@ -319,15 +318,18 @@ body {
   display: flex;
   background-color: #287d4e;
 }
-/* 【修改1】縮小按鈕內邊距、字體，手機端並排完整顯示 */
 .three-tab-item {
   flex: 1;
-  padding: 12px 4px;
+  padding: 18px 10px;
   text-align: center;
   color: #fff;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: bold;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   transition: background 0.25s;
 }
 .three-tab-item.active {
@@ -336,9 +338,9 @@ body {
 .three-tab-item:hover {
   background-color: #1e663f;
 }
-/* 【修改2】移除圖標樣式，直接刪除html圖標元素 */
 .tab-icon-small {
-  display: none;
+  width: 26px;
+  height: 26px;
 }
 .three-tab-content-box {
   background-color: #0f1f17;
@@ -406,10 +408,13 @@ body {
 
 /* 手機端適配 */
 @media (max-width:768px) {
-  /* 手機三標籤進一步壓縮尺寸，保證一行三個完整顯示 */
   .three-tab-item {
-    font-size: 13px;
-    padding: 10px 2px;
+    font-size: 14px;
+    padding: 14px 5px;
+  }
+  .tab-icon-small {
+    width: 20px;
+    height: 20px;
   }
   .quick-links {
     grid-template-columns: 1fr;
@@ -433,7 +438,7 @@ body {
   }
 }
 
-/* ========== 實時天氣模塊（地圖替換為柱狀圖） ========== */
+/* ========== 實時天氣地圖模塊 原生深色Dashboard（保留原有深色邏輯優化） ========== */
 .realtime-map-container {
     width: 100%;
 }
@@ -511,7 +516,7 @@ body {
 
 .main-layout {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 24px;
 }
 @media (max-width: 1024px) {
@@ -519,8 +524,7 @@ body {
         grid-template-columns: 1fr;
     }
 }
-/* 【修改3】刪除地圖容器，替換柱狀圖容器 */
-.bar-chart-card {
+.map-card {
     background: #161a2e;
     border-radius: 14px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.4);
@@ -528,15 +532,68 @@ body {
     position: relative;
     border: 1px solid rgba(255,255,255,0.08);
 }
-#stationBarChart {
+#macau-map {
     width: 100%;
     height: 650px;
     border-radius: 10px;
     background: #0c0c14;
 }
 
-.map-legend, #macau-map, .time-stamp, .time-stamp-indicator {
-    display: none !important;
+.map-legend {
+    position: absolute;
+    bottom: 18px;
+    right: 18px;
+    background: rgba(12, 14, 30, 0.96);
+    color: #e0e0f0;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 0.78rem;
+    box-shadow: 0 3px 14px rgba(0,0,0,0.4);
+    z-index: 1000;
+    min-width: 140px;
+    border: 1px solid #272c50;
+}
+.map-legend h4 {
+    margin: 0 0 8px 0;
+    font-size: 0.85rem;
+    text-align: center;
+    border-bottom: 1px solid #2d2d50;
+    padding-bottom: 6px;
+    color: #ffffff;
+}
+.legend-items {
+    max-height: 220px;
+    overflow-y: auto;
+}
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.legend-color {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.time-stamp, .time-stamp-indicator {
+    position: absolute;
+    background: rgba(12, 14, 30, 0.92);
+    color: #e0e0f0;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    z-index: 1000;
+    border: 1px solid #272c50;
+}
+.time-stamp {
+    top: 28px;
+    right: 28px;
+}
+.time-stamp-indicator {
+    top: 72px;
+    right: 28px;
 }
 
 .station-single {
@@ -745,17 +802,19 @@ body {
 <div id="alertContent" class="content-yellow"></div>
 </div>
 
-<!-- ========== 新增：三標籤天氣模塊【已刪除所有tab-icon-small圖片】 ========== -->
+<!-- ========== 新增：三標籤天氣模塊 ========== -->
 <div class="three-tab-weather-wrap">
   <div class="three-tab-header">
-    <!-- 移除所有<img class="tab-icon-small"> -->
     <div class="three-tab-item active" data-tab="hourly">
+      <img class="tab-icon-small" src="icons/MSSO.png" alt="整點天氣">
       整點天氣
     </div>
     <div class="three-tab-item" data-tab="realtime">
+      <img class="tab-icon-small" src="icons/MSSO.png" alt="實時天氣">
       實時天氣
     </div>
     <div class="three-tab-item" data-tab="tc-track">
+      <img class="tab-icon-small" src="icons/MSSO.png" alt="熱帶氣旋路徑">
       熱帶氣旋路徑
     </div>
   </div>
@@ -811,7 +870,8 @@ body {
         </div>
     </div>
 
-    <!-- 實時天氣面板【刪除Leaflet地圖，替換柱狀圖canvas】 -->
+    <!-- 實時天氣面板 -->
+   <!-- 實時天氣面板（重構後） -->
     <div class="tab-panel" id="panel-realtime">
         <div class="realtime-map-container">
             <!-- 整合為單個下拉選擇框 -->
@@ -837,9 +897,15 @@ body {
                 </select>
             </div>
     
-            <!-- 替換地圖為柱狀圖卡片 -->
-            <div class="bar-chart-card">
-                <canvas id="stationBarChart"></canvas>
+            <!-- 僅保留地圖視圖，刪除表格 -->
+            <div class="map-card">
+                <div id="macau-map"></div>
+                <div id="time-stamp" class="time-stamp"></div>
+                <div id="current-indicator" class="time-stamp-indicator"></div>
+                <div id="map-legend" class="map-legend">
+                    <h4>圖例</h4>
+                    <div id="legend-content" class="legend-items"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -971,7 +1037,6 @@ Chart.defaults.borderColor = '#2a3a52';
 Chart.defaults.plugins.title.color = '#ffffff';
 
 let tempChart;
-let stationBarChart;
 const dateDom = document.getElementById("chartDate");
 
 function initChart(){
@@ -1029,8 +1094,6 @@ tabItems.forEach(item => {
     item.classList.add('active');
     const targetTab = item.dataset.tab;
     document.getElementById(`panel-${targetTab}`).classList.add('active');
-    // 切換到實時天氣時渲染柱狀圖
-    if(targetTab === "realtime") renderStationBarChart();
   })
 })
 
