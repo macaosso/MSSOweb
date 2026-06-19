@@ -72,12 +72,12 @@ const forecastPoints = [
     wind41: { ne: 0, se: 0, sw: 0, nw: 0 }, 
     wind88: { ne: 0, se: 0, sw: 0,  nw: 0 } 
   },
-  {lat:13.2, lon:141.4, time: "06-19 20H", wind: 65},
+  {lat:13.2, lon:141.4, time: "06-19 20H", wind: 75},
   {lat:14.0, lon:138.4, time: "06-20 08H", wind: 85},
-  {lat:15.3, lon:133.5, time: "06-21 08H", wind: 110},
-  {lat:17.1, lon:128.9, time: "06-22 08H", wind: 150},
-  {lat:18.6, lon:126.0, time: "06-23 08H", wind: 185},
-  {lat:20.5, lon:125.3, time: "06-24 08H", wind: 175}
+  {lat:15.3, lon:133.5, time: "06-21 08H", wind: 90},
+  {lat:17.1, lon:128.9, time: "06-22 08H", wind: 90},
+  {lat:18.6, lon:126.0, time: "06-23 08H", wind: 90},
+  {lat:20.5, lon:125.3, time: "06-24 08H", wind: 85}
   
 ];
 
