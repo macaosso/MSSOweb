@@ -65,7 +65,7 @@ const forecastPoints = [
     wind88: { ne: 0, se: 0, sw: 0,  nw: 0 } 
   },
   {lat:12.7, lon:143.4, time: "06-19 20H", wind: 55},
-  {lat:14.0, lon:148.4, time: "06-20 08H", wind: 75},
+  {lat:14.0, lon:138.4, time: "06-20 08H", wind: 75},
   {lat:15.3, lon:133.5, time: "06-21 08H", wind: 105},
   {lat:17.1, lon:128.9, time: "06-22 08H", wind: 150},
   {lat:18.6, lon:126.0, time: "06-23 08H", wind: 185},
