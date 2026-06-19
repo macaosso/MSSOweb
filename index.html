@@ -78,19 +78,19 @@ body {
 .quick-links {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  margin: 20px 35px;
+  gap: 12px; /* 缩小间距 */
+  margin: 12px 15px; /* 大幅减少内外边距 */
 }
 .link-box {
   display: block;
-  padding: 28px;
-  border-radius: 16px;
+  padding: 16px 8px; /* 减小盒子内边距 */
+  border-radius: 12px;
   text-align: center;
-  font-size: 16px;
+  font-size: 12px; /* 缩小字体 */
   font-weight: bold;
   text-decoration: none;
   color: white;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
   transition: all 0.3s ease;
   border: 1px solid rgba(255,255,255,0.08);
 }
@@ -107,9 +107,22 @@ body {
   border-color: rgba(116, 185, 255, 0.3);
 }
 .link-box:hover {
-  transform: translateY(-4px);
+  transform: translateY(-3px);
   opacity: 0.92;
-  box-shadow: 0 8px 22px rgba(0,0,0,0.45);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.45);
+}
+
+/* 手机适配，依旧保持3列不变 */
+@media (max-width: 768px) {
+  .quick-links {
+    gap: 8px;
+    margin: 8px 10px;
+  }
+  .link-box {
+    padding: 12px 4px;
+    font-size: 11px;
+    border-radius: 10px;
+  }
 }
 
 /* ========== 5. 紅色警告卡片(熱帶氣旋/天氣警告) 深色危險模塊 ========== */
