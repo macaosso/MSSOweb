@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Macau Tropical Cyclone Storm Surge Deviation Calculator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+        }
+        body {
+            max-width: 820px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            background: #f5f7fa;
+            color: #1a202c;
+        }
+        .container {
+            background: white;
+            padding: 28px;
+            border-radius: 14px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+        h1 {
+            text-align: center;
+            color: #0f4c81;
+            font-size: 22px;
+            margin-top: 0;
+        }
+        .section-title {
+            font-weight: 600;
+            margin: 24px 0 12px;
+            color: #2d3748;
+            border-left: 4px solid #0f4c81;
+            padding-left: 10px;
+        }
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 14px;
+        }
+        label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: #4a5568;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 15px;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #0f4c81;
+            box-shadow: 0 0 0 3px rgba(15,76,129,0.15);
+        }
+        .btn-calc {
+            width: 100%;
+            padding: 13px;
+            margin-top: 16px;
+            background: #0f4c81;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .btn-calc:hover {
+            background: #0c3c66;
+        }
+        .result-block {
+            margin-top: 22px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f0f7ff;
+            border: 1px solid #c5e0fb;
+        }
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .result-row:last-child {
+            border-bottom: none;
+        }
+        .label-text {
+            font-weight: 500;
+        }
+        .value-text {
+            font-family: "Menlo", monospace;
+            font-size: 16px;
+        }
+        .warning-badge {
+            margin-top: 14px;
+            padding: 10px 14px;
+            border-radius: 7px;
+            font-weight: 600;
+            text-align: center;
+        }
+        .blue { background:#e6f4ff; color:#0050b3; border:1px solid #91caff; }
+        .yellow { background:#fffbe6; color:#d48806; border:1px solid #ffd591; }
+        .orange { background:#fff7e6; color:#d9480f; border:1px solid #ffadd2; }
+        .red { background:#fff1f0; color:#cf1322; border:1px solid #ffa39e; }
+        .black { background:#1f1f1f; color:#fff; border:1px solid #666; }
+        .note {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #718096;
+            line-height: 1.5;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Macau Inner Harbour TC Storm Surge Deviation Calculator</h1>
+
+    <div class="section-title">Tropical Cyclone Meteorological Inputs</div>
+    <div class="input-row">
+        <div>
+            <label>Central Pressure P0 (hPa)</label>
+            <input type="number" id="p0" value="960" min="880" max="1010">
+        </div>
+        <div>
+            <label>Max Wind Radius r0 (km)</label>
+            <input type="number" id="r0" value="60" min="20" max="120">
+        </div>
+    </div>
+    <div class="input-row">
+        <div>
+            <label>Distance TC Center to Macau r (km)</label>
+            <input type="number" id="rDist" value="120" min="10" max="500">
+        </div>
+        <div>
+            <label>Ambient Sea Pressure P∞ (hPa)</label>
+            <input type="number" id="pInf" value="1010" min="1000" max="1015">
+        </div>
+    </div>
+    <div class="input-row">
+        <div>
+            <label>TC Wind Direction Factor (Macau Bay) 0~1</label>
+            <input type="number" id="windCoef" value="0.7" min="0" max="1" step="0.05">
+        </div>
+        <div>
+            <label>Track Type Correction</label>
+            <select id="trackType">
+                <option value="1.0">Westbound (Strong Surge) ×1.0</option>
+                <option value="0.75">NW Track ×0.75</option>
+                <option value="0.5">Pass East of Macau ×0.5</option>
+                <option value="0.3">Pass South Faraway ×0.3</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="section-title">Tidal Observation Inputs (Macau Chart Datum)</div>
+    <div class="input-row">
+        <div>
+            <label>Observed Total Water Level (m)</label>
+            <input type="number" id="obsTide" value="3.80" min="2.0" max="6.0" step="0.01">
+        </div>
+        <div>
+            <label>Astronomical Tide Forecast (m)</label>
+            <input type="number" id="astroTide" value="3.00" min="2.0" max="5.5" step="0.01">
+        </div>
+    </div>
+
+    <button class="btn-calc" onclick="calculateSurge()">Calculate Storm Surge Deviation & Warning Level</button>
+
+    <div class="result-block" id="resultBlock" style="display:none;">
+        <div class="result-row">
+            <span class="label-text">Pressure Deficit ΔP (hPa):</span>
+            <span class="value-text" id="dpVal"></span>
+        </div>
+        <div class="result-row">
+            <span class="label-text">Empirical Model Storm Surge ΔH_model (m):</span>
+            <span class="value-text" id="modelSurgeVal"></span>
+        </div>
+        <div class="result-row">
+            <span class="label-text">Observed Surge Deviation ΔH_obs (m):</span>
+            <span class="value-text" id="obsSurgeVal"></span>
+        </div>
+        <div class="result-row">
+            <span class="label-text">Deviation Error (Model vs Observed):</span>
+            <span class="value-text" id="errorVal"></span>
+        </div>
+        <div class="result-row">
+            <span class="label-text">Total Predicted Water Level (Astro + Model Surge):</span>
+            <span class="value-text" id="totalPredVal"></span>
+        </div>
+        <div id="warningLabel" class="warning-badge"></div>
+    </div>
+
+    <div class="note">
+        <strong>Formula & Macau Local Parameter:</strong><br>
+        1. Empirical surge ΔH_model = 0.012 × ΔP × (1 - exp(-r0/r)) × windCoef × trackCoef (unit: meter)<br>
+        2. ΔP = P∞ - P0 (pressure deficit hPa)<br>
+        3. Observed Storm Surge Deviation = Observed Tide - Astronomical Tide<br>
+        4. SMG Macau Storm Surge Warning Threshold (Inner Harbour Road Datum 3.2m):<br>
+        Blue <0.5m, Yellow 0.5~1.0m, Orange 1.0~1.5m, Red 1.5~2.5m, Black >2.5m inundation above road
+    </div>
+</div>
+
+<script>
+function calculateSurge() {
+    // Get inputs
+    const p0 = parseFloat(document.getElementById('p0').value);
+    const r0 = parseFloat(document.getElementById('r0').value);
+    const rDist = parseFloat(document.getElementById('rDist').value);
+    const pInf = parseFloat(document.getElementById('pInf').value);
+    const windCoef = parseFloat(document.getElementById('windCoef').value);
+    const trackCoef = parseFloat(document.getElementById('trackType').value);
+    const obsTide = parseFloat(document.getElementById('obsTide').value);
+    const astroTide = parseFloat(document.getElementById('astroTide').value);
+
+    // Core formula
+    const dp = pInf - p0;
+    const expTerm = 1 - Math.exp(-r0 / rDist);
+    const modelSurge = 0.012 * dp * expTerm * windCoef * trackCoef;
+    const obsSurge = obsTide - astroTide;
+    const error = modelSurge - obsSurge;
+    const totalPred = astroTide + modelSurge;
+
+    // Render results
+    document.getElementById('dpVal').textContent = dp.toFixed(2);
+    document.getElementById('modelSurgeVal').textContent = modelSurge.toFixed(3);
+    document.getElementById('obsSurgeVal').textContent = obsSurge.toFixed(3);
+    document.getElementById('errorVal').textContent = error.toFixed(3);
+    document.getElementById('totalPredVal').textContent = totalPred.toFixed(3);
+
+    // SMG warning threshold (water above Inner Harbour road level = totalPred - 3.2)
+    const inundation = totalPred - 3.2;
+    let warnText, warnClass;
+    if (inundation < 0.5) {
+        warnText = "BLUE WARNING: Inundation <0.5m above Inner Harbour Road";
+        warnClass = "blue";
+    } else if (inundation < 1.0) {
+        warnText = "YELLOW WARNING: 0.5~1.0m inundation";
+        warnClass = "yellow";
+    } else if (inundation < 1.5) {
+        warnText = "ORANGE WARNING: 1.0~1.5m inundation";
+        warnClass = "orange";
+    } else if (inundation <= 2.5) {
+        warnText = "RED WARNING: 1.5~2.5m severe inundation";
+        warnClass = "red";
+    } else {
+        warnText = "BLACK WARNING: >2.5m catastrophic inundation";
+        warnClass = "black";
+    }
+    const warnEl = document.getElementById('warningLabel');
+    warnEl.className = `warning-badge ${warnClass}`;
+    warnEl.innerText = warnText;
+
+    document.getElementById('resultBlock').style.display = "block";
+}
+</script>
+</body>
+</html>
