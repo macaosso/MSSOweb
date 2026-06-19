@@ -2,38 +2,42 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="icon" type="image/png" href="icons/MSSO.png">
 <title>澳門民間氣象台 - 警告記錄查詢</title>
 <style>
-/* ========== 全域基礎樣式 ========== */
+/* ========== 全域深色基礎樣式 ========== */
 html {
   scroll-behavior: smooth;
 }
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background-color: #f5f8fa;
+  background-color: #0f141c;
+  color: #e2e8f0;
 }
 
 /* ========== 頁頭Header ========== */
 .header {
-  background: #1f3a4d;
-  color: white;
+  background: #151d2b;
+  color: #ffffff;
   padding: 20px 25px;
   display: flex;
   align-items: center;
+  border-bottom: 1px solid #243249;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
 .title {
   font-size: 20px;
   font-weight: bold;
   margin-left: 10px;
+  letter-spacing: 0.5px;
 }
 .logo {
   height: 40px;
 }
 
-/* ========== 頂部導航菜單 ========== */
+/* ========== 頂部導航菜單（修復移動彈出BUG） ========== */
 .menu-container {
   position: relative;
   z-index: 3000;
@@ -44,22 +48,28 @@ body {
   font-size: 26px;
   padding: 10px 15px;
   cursor: pointer;
-  background: #2d6c94;
+  background: #233752;
   color: white;
+  border: none;
+  border-radius: 6px;
+  position: relative;
+  z-index: 3001;
 }
 .nav {
-  background: #2d6c94;
+  background: #1a2538;
   display: flex;
 }
 .nav a {
-  color: white;
+  color: #cbd5e1;
   padding: 14px 18px;
   font-size: 16px;
   text-decoration: none;
   display: block;
+  transition: 0.25s ease;
 }
 .nav a:hover {
-  background: #1f4f6d;
+  background: #233752;
+  color: #ffffff;
 }
 
 /* ========== 主要容器 ========== */
@@ -69,13 +79,14 @@ body {
   padding: 0 25px;
 }
 
-/* ========== 篩選控制區 ========== */
+/* ========== 篩選控制區 深色卡片 ========== */
 .filter-bar {
-  background: white;
+  background: #151d2b;
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 12px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
   display: flex;
   flex-wrap: wrap;
   gap: 15px;
@@ -88,13 +99,15 @@ body {
 }
 .filter-group label {
   font-weight: bold;
-  color: #333;
+  color: #e2e8f0;
 }
 .filter-group select {
   padding: 8px 12px;
   border: 2px solid #4fa6a6;
   border-radius: 8px;
   font-size: 16px;
+  background: #1a2538;
+  color: #e2e8f0;
 }
 .reset-btn {
   margin-left: auto;
@@ -110,12 +123,13 @@ body {
   opacity: 0.9;
 }
 
-/* ========== 表格區域 ========== */
+/* ========== 表格區域 深色卡片 ========== */
 .table-container {
-  background: white;
+  background: #151d2b;
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.25);
 }
 table {
   width: 100%;
@@ -123,7 +137,7 @@ table {
 }
 th {
   background: #4fa6a6;
-  color: white;
+  color: #0f141c;
   padding: 15px;
   text-align: left;
   cursor: pointer;
@@ -139,16 +153,17 @@ th .sort-icon {
 }
 td {
   padding: 15px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  color: #e2e8f0;
 }
 tr:nth-child(even) {
-  background-color: #f8fdfd;
+  background-color: #1a2538;
 }
 tr:hover {
-  background-color: #e6f7f7;
+  background-color: #233752;
 }
 
-/* 警告類型顏色標示 */
+/* 警告類型顏色標示（保留原有分類對比色） */
 /* 寒冷系列 */
 .warning-cold-1 { background-color: #e3f2fd; color: #000; } /* 寒冷 */
 .warning-cold-2 { background-color: #d1d9e6; color: #000; } /* 非常寒冷 */
@@ -179,26 +194,47 @@ tr:hover {
 .warning-tsunami { background-color: #1c4587; color: #fff; } /* 海嘯 */
 .warning-tsunami-s { background-color: #240a33; color: #fff; } /* 嚴重海嘯 */
 
-/* ========== 響應式樣式 ========== */
+/* ========== 響應式移動端導航（徹底修復點擊無彈窗） ========== */
 @media (max-width: 768px) {
   .menu-toggle {
     display: block;
   }
   .nav {
-    display: none;
+    display: flex;
     flex-direction: column;
-    width: 100%;
+    width: 240px;
     position: absolute;
-    top: 100%;
+    top: 68px;
     right: 0;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-12px);
+    transition: opacity 0.25s ease, visibility 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
   }
   .nav.active {
-    display: flex;
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    pointer-events: auto;
   }
   .nav a {
     width: 100%;
-    padding: 12px 15px;
-    border-top: 1px solid rgba(255,255,255,0.2);
+    padding: 14px 18px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 16px;
+  }
+  .header {
+    padding: 15px;
+    flex-wrap: wrap;
+  }
+  .title {
+    font-size: 16px;
+  }
+  .logo {
+    height: 28px;
   }
   .filter-bar {
     flex-direction: column;
@@ -221,7 +257,6 @@ tr:hover {
 }
 </style>
 </head>
-
 <body>
 <div class="header">
   <img src="icons/MSSO.png" class="logo">
