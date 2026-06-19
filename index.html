@@ -77,16 +77,22 @@ body {
 /* ========== 4. 首頁快捷鏈接模塊 深色霓虹卡片 ========== */
 .quick-links {
   display: grid;
+  /* 强制3列均分，不换行 */
   grid-template-columns: repeat(3, 1fr);
-  gap: 12px; /* 缩小间距 */
-  margin: 12px 15px; /* 大幅减少内外边距 */
+  /* 缩小按钮间距，适配小屏 */
+  gap: 8px;
+  /* 减少容器边距，让按钮更舒展 */
+  margin: 12px 15px;
 }
+
 .link-box {
   display: block;
-  padding: 16px 8px; /* 减小盒子内边距 */
+  /* 大幅缩小内边距，让按钮更紧凑 */
+  padding: 20px 8px;
   border-radius: 12px;
   text-align: center;
-  font-size: 12px; /* 缩小字体 */
+  /* 缩小字体，避免文字溢出 */
+  font-size: 11px;
   font-weight: bold;
   text-decoration: none;
   color: white;
@@ -94,6 +100,8 @@ body {
   transition: all 0.3s ease;
   border: 1px solid rgba(255,255,255,0.08);
 }
+
+/* 保持原有渐变配色 */
 .link-box.weather {
   background: linear-gradient(135deg, #1e4e4e, #1a3850);
   border-color: rgba(79, 166, 166, 0.3);
@@ -106,22 +114,22 @@ body {
   background: linear-gradient(135deg, #193c5c, #092742);
   border-color: rgba(116, 185, 255, 0.3);
 }
+
 .link-box:hover {
   transform: translateY(-3px);
   opacity: 0.92;
   box-shadow: 0 6px 16px rgba(0,0,0,0.45);
 }
 
-/* 手机适配，依旧保持3列不变 */
-@media (max-width: 768px) {
+/* 极端小屏适配（<375px），确保3列不挤压变形 */
+@media (max-width: 375px) {
   .quick-links {
-    gap: 8px;
+    gap: 6px;
     margin: 8px 10px;
   }
   .link-box {
-    padding: 12px 4px;
-    font-size: 11px;
-    border-radius: 10px;
+    padding: 16px 4px;
+    font-size: 10px;
   }
 }
 
