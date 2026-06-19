@@ -131,11 +131,13 @@ body {
 .legend {
   position: fixed;
   z-index: 1000;
+  /* 桌面強制固定右側，不受螢幕寬度影響 */
   right: 15px;
   bottom: 15px;
-  width: 180px;
+  /* 加寬面板原180→220px */
+  width: 220px;
   max-width: 90vw;
-  max-height: 160px;
+  max-height: 180px;
   overflow-y: auto;
   opacity: 0.92;
   background: #0f141c;
@@ -299,10 +301,14 @@ body {
 /* 移動端小螢幕調整 */
 @media (max-width: 768px) {
   .legend {
-    left: 50%;
-    transform: translateX(-50%);
-    right: unset;
-    bottom: 20px;
+    /* 移除原本 left:50% 置中程式碼，強制保持靠右 */
+    left: unset;
+    transform: unset;
+    right: 12px;
+    /* 加大底部距離，避開左下角TC資訊框、更新時間文字 */
+    bottom: 80px;
+    width: 220px;
+    max-height: 160px;
   }
   .tc-info-box {
     width: calc(100vw - 30px);
@@ -314,7 +320,9 @@ body {
 }
 @media (max-width: 480px) {
   .legend {
-    width: calc(100vw - 30px);
+    right: 8px;
+    width: calc(100vw - 20px);
+    max-width: 220px;
   }
   .legend-grid {
     grid-template-columns: 1fr 1fr;
