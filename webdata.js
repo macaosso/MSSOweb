@@ -55,15 +55,15 @@ const forecastInfo = {
 const pastPoints = [
   {lat:12.2, lon:145.2, time: "06-19 02H", wind: 45},
   {lat:12.4, lon:144.3, time: "06-19 08H", wind: 50},
-  {lat:12.4, lon:144.3, time: "06-19 14H", wind: 55},
-  {lat:12.4, lon:144.3, time: "06-19 20H", wind: 65},
-  {lat:12.4, lon:144.3, time: "06-20 02H", wind: 65},
-  {lat:12.4, lon:144.3, time: "06-20 08H", wind: 75},
-  {lat:12.4, lon:144.3, time: "06-20 14H", wind: 75}  
+  {lat:13.4, lon:141.9, time: "06-19 14H", wind: 55},
+  {lat:13.7, lon:140.3, time: "06-19 20H", wind: 65},
+  {lat:14.1, lon:138.7, time: "06-20 02H", wind: 65},
+  {lat:14.3, lon:137.6, time: "06-20 08H", wind: 75},
+  {lat:14.3, lon:136.7, time: "06-20 14H", wind: 75}  
 ];
 
 const forecastPoints = [
-  {lat:12.4, lon:144.3, time: "06-20 14H", wind: 75,
+  {lat:14.3, lon:136.7, time: "06-20 14H", wind: 75,
     wind41: { ne: 100, se: 70, sw: 120, nw: 140 }, 
     wind88: { ne: 0, se: 0, sw: 0,  nw: 0 } 
   },
