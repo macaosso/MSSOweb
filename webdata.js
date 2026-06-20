@@ -59,7 +59,7 @@ const pastPoints = [
   {lat:12.4, lon:144.3, time: "06-19 20H", wind: 65},
   {lat:12.4, lon:144.3, time: "06-20 02H", wind: 65},
   {lat:12.4, lon:144.3, time: "06-20 08H", wind: 75},
-  {lat:12.4, lon:144.3, time: "06-20 14H", wind: 75},  
+  {lat:12.4, lon:144.3, time: "06-20 14H", wind: 75}  
 ];
 
 const forecastPoints = [
