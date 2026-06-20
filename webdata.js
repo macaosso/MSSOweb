@@ -49,7 +49,7 @@ const temp7dMin = [28,29,29,29,29,29,29];
 
 //Tropical Cyclone Track
 const forecastInfo = {
-  updated: "2026-06-19 08:00 MST"
+  updated: "2026-06-20 14:00 MST"
 };
 
 const pastPoints = [
