@@ -885,6 +885,10 @@ body {
                         <div style="font-size: 14px;">風向</div>
                         <div id="wind-dir" style="font-size: 20px; font-weight: 600; margin-top: 8px;"></div>
                     </div>
+                    <div class="weather-item" style="padding: 16px; border-radius: 10px;">
+                         <div style="font-size: 14;">紫外線指數</div>
+                         <div id="uv-value" style="font-size: 20px; font-weight: 600; margin-top: 8px;"></div>
+                     </div>
                 </div>
             </div>
     
@@ -1764,7 +1768,12 @@ const feelsDesc = document.getElementById('feels-desc');
 const humValue = document.getElementById('hum-value');
 const windSpeed = document.getElementById('wind-speed');
 const windDir = document.getElementById('wind-dir');
-
+const uvValue = document.getElementById('uv-value');
+// UV接口代理地址
+const uvXmlUrl = "https://xml.smg.gov.mo/c_actualUVI.xml";
+const uvProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(uvXmlUrl)}`;
+// 全域UV數據變數
+let currentUV = "--";
 // 原始XML地址
 const originXmlUrl = "https://xml.smg.gov.mo/c_actual_brief.xml";
 // corsproxy 代理地址（标准格式）
@@ -1824,10 +1833,42 @@ async function loadHourlyWeather() {
         loadTip.style.display = 'none';
         errorTip.style.display = 'block';
     }
+}// 載入紫外線UV數據
+async function loadUVData() {
+    try {
+        const res = await fetch(uvProxyUrl, { cache: "no-store" });
+        if (!res.ok) throw new Error("UV數據載入失敗");
+        const xmlText = await res.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+        // 解析UV-Index Value
+        const uvVal = xmlDoc.querySelector("UV-Index > Value")?.textContent || "--";
+        currentUV = uvVal;
+        // 渲染UV數值
+        uvValue.textContent = currentUV;
+        // 根據UV值設定顏色
+        uvValue.style.color = getUVColor(parseFloat(currentUV));
+    } catch (err) {
+        console.error("UV載入錯誤：", err);
+        uvValue.textContent = "--";
+    }
+}
+
+// UV指數顏色分級函數
+function getUVColor(uv) {
+    if (isNaN(uv)) return "#cccccc";
+    if (uv >= 11) return "#990099"; // 極高
+    if (uv >= 8) return "#dd2222";  // 很高
+    if (uv >= 6) return "#ff7700";  // 高
+    if (uv >= 3) return "#dddd00";  // 中等
+    return "#22bb22"; // 低
 }
 
 // 頁面載入完成後首次執行
-window.addEventListener('DOMContentLoaded', loadHourlyWeather);
+window.addEventListener('DOMContentLoaded', async () => {
+    await loadHourlyWeather();
+    loadUVData();
+});
 
 // 【修復】定時器函數名改為正確的 loadHourlyWeather
 setInterval(loadHourlyWeather, 300000);
