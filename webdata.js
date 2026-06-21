@@ -71,8 +71,8 @@ const forecastPoints = [
   // Forecast hour 0: base point (0h)
   {
     lat:17.1, lon:129.0, time: "06-22 02H", wind: 145,
-    wind41: { ne: 200, se: 200, sw: 140, nw: 170 }, 
-    wind88: { ne: 80, se: 70, sw: 50, nw: 60 } 
+    wind41: { ne: 200, se: 170, sw: 140, nw: 200 }, 
+    wind88: { ne: 80, se: 60, sw: 50, nw: 70 } 
   },
   {lat:17.7, lon:128.1, time: "06-22 14H", wind: 165},
   {lat:18.4, lon:126.3, time: "06-23 02H", wind: 175},
