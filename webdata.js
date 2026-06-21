@@ -53,33 +53,39 @@ const forecastInfo = {
 };
 
 const pastPoints = [
-  {lat:12.2, lon:145.2, time: "06-19 02H", wind: 45},
-  {lat:12.4, lon:144.3, time: "06-19 08H", wind: 50},
-  {lat:13.4, lon:141.9, time: "06-19 14H", wind: 55},
-  {lat:13.7, lon:140.3, time: "06-19 20H", wind: 65},
-  {lat:14.1, lon:138.7, time: "06-20 02H", wind: 65},
-  {lat:14.3, lon:137.6, time: "06-20 08H", wind: 75},
-  {lat:14.3, lon:136.7, time: "06-20 14H", wind: 75}  
+  // Match STORM_DATA.past_track lats/lons sequence
+  {lat:13.4, lon:141.9, time: "06-19 14H", wind: 45},
+  {lat:14.0, lon:140.3, time: "06-19 20H", wind: 55},
+  {lat:14.3, lon:138.7, time: "06-20 02H", wind: 65},
+  {lat:14.3, lon:137.6, time: "06-20 08H", wind: 65},
+  {lat:14.3, lon:136.7, time: "06-20 14H", wind: 75},
+  {lat:14.5, lon:135.3, time: "06-20 20H", wind: 85},
+  {lat:14.7, lon:134.0, time: "06-21 02H", wind: 90},
+  {lat:15.2, lon:133.1, time: "06-21 08H", wind: 105},
+  {lat:16.2, lon:131.8, time: "06-21 14H", wind: 110},
+  {lat:16.7, lon:130.5, time: "06-22 20H", wind: 130},
+  {lat:17.1, lon:129.0, time: "06-22 02H", wind: 145}
 ];
 
 const forecastPoints = [
-  {lat:14.3, lon:136.7, time: "06-20 14H", wind: 75,
-    wind41: { ne: 100, se: 70, sw: 120, nw: 140 }, 
-    wind88: { ne: 0, se: 0, sw: 0,  nw: 0 } 
+  // Forecast hour 0: base point (0h)
+  {
+    lat:17.1, lon:129.0, time: "06-22 02H", wind: 145,
+    wind41: { ne: 200, se: 200, sw: 140, nw: 170 }, 
+    wind88: { ne: 80, se: 70, sw: 50, nw: 60 } 
   },
-  {lat:15.3, lon:133.5, time: "06-21 02H", wind: 85},
-  {lat:16.7, lon:130.9, time: "06-21 14H", wind: 105},
-  {lat:18.8, lon:126.0, time: "06-22 14H", wind: 130},
-  {lat:19.7, lon:124.9, time: "06-23 14H", wind: 145},
-  {lat:21.8, lon:124.9, time: "06-24 14H", wind: 120},
-  {lat:24.8, lon:126.2, time: "06-25 14H", wind: 90}
-  
+  {lat:17.7, lon:128.1, time: "06-22 14H", wind: 165},
+  {lat:18.4, lon:126.3, time: "06-23 02H", wind: 175},
+  {lat:19.7, lon:124.7, time: "06-24 02H", wind: 165},
+  {lat:21.8, lon:124.7, time: "06-25 02H", wind: 140},
+  {lat:24.0, lon:125.5, time: "06-26 02H", wind: 110},
+  {lat:27.0, lon:127.6, time: "06-27 02H", wind: 85}
 ];
 
 window.tcInfo = {
   name: "米克拉", 
   wind: forecastPoints[0].wind,
-  pressure: 994
+  pressure: 965
 };
 
 //  { lat: 42.5, lon: 149.0, time: "06-09 14H", wind: '-' }, 
