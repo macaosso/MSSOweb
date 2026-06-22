@@ -2,22 +2,32 @@ name: Deploy Static Dashboard to GitHub Pages
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: # Allow manual run from repo Actions tab
+  workflow_dispatch:
+
 permissions:
   contents: read
   pages: write
   id-token: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # Critical mandatory environment block to fix "Missing environment" error
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout all repo files
         uses: actions/checkout@v4
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v4
-      - name: Upload static site assets
+
+      - name: Upload all static assets
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./
-      - name: Publish to GitHub Pages
+
+      - name: Publish Pages site
+        id: deployment
         uses: actions/deploy-pages@v4
