@@ -25,7 +25,7 @@
         }
         body { background: var(--bg-main); color: var(--text-primary); overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
 
-        /* Dashboard Top Header Bar */
+        /* Top Header Bar */
         .dashboard-header {
             width: 100%;
             height: 64px;
@@ -63,9 +63,9 @@
         }
         .auto-fetch-btn:hover { filter: brightness(1.15); }
         #csvFileInput { display: none; }
-        .fetch-status { font-size: 12px; color: var(--text-secondary); max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .fetch-status { font-size: 12px; color: var(--text-secondary); max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Animation Control Bar (Above Timeline) */
+        /* Animation Control Bar */
         .anim-control-bar {
             width: 100%;
             height: 60px;
@@ -108,7 +108,7 @@
             border-color: var(--accent-blue-light);
         }
 
-        /* Main Layout: Map + Side Legend Panel */
+        /* Main Map + Sidebar */
         .dashboard-body { display: flex; flex: 1; overflow: hidden; }
         #map { flex: 1; height: 100%; }
         .side-panel {
@@ -138,7 +138,7 @@
         .meta-card h4 { font-size: 13px; margin-bottom: 6px; color: var(--text-primary); }
         .meta-card p { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
 
-        /* Bottom Timeline Slider Bar */
+        /* Timeline Slider */
         .timeline-container {
             width: 100%;
             height: 72px;
@@ -163,7 +163,7 @@
             text-align: right;
         }
 
-        /* Loading Overlay Fix */
+        /* Loading Mask Fix */
         .loading {
             position: fixed; inset: 0; background: var(--bg-main); z-index: 9999;
             display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--text-secondary);
@@ -174,82 +174,75 @@
             pointer-events: none;
         }
 
-        /* Map Overlay Watermark */
+        /* Watermark & Popup */
         .watermark {
             position: absolute; top: 70px; right: 240px; z-index: 990; opacity: 0.65; width: 130px;
         }
-
-        /* Leaflet Dark Popup Styling */
         .leaflet-popup-content-wrapper {
             background: var(--bg-panel); color: var(--text-primary); border-radius: 6px;
         }
         .leaflet-popup-tip { background: var(--bg-panel); }
         .leaflet-popup-content { font-size: 12px; line-height: 1.5; }
-
-        /* Hide native leaflet zoom control white bg */
         .leaflet-control-zoom { background: var(--bg-card) !important; border: 1px solid var(--border-gray) !important; }
         .leaflet-control-zoom a { color: var(--text-primary) !important; background: transparent !important; }
     </style>
 </head>
 <body>
-    <!-- Global Loading Screen -->
-    <div class="loading" id="loading">Initializing Pyodide Runtime... Ready to load forecast data</div>
+    <div class="loading" id="loading">Initializing Pyodide Runtime...</div>
 
-    <!-- Dashboard Top Header Bar -->
+    <!-- Top Header: Status + Remote/Local Upload Buttons -->
     <div class="dashboard-header">
         <div class="dashboard-title">FNV3 Ensemble Cyclogenesis Forecast Dashboard</div>
         <div class="header-controls">
-            <span class="fetch-status" id="fetchStatus">Auto-refresh: Off | No remote data loaded</span>
-            <button class="auto-fetch-btn" id="autoFetchBtn">🌐 Load Latest FNV3 CSV</button>
-            <label class="upload-btn" for="csvFileInput">📂 Upload Local CSV File</label>
+            <span class="fetch-status" id="fetchStatus">Auto-refresh: Off | Waiting for data</span>
+            <button class="auto-fetch-btn" id="autoFetchBtn">🌐 Load LATEST UTC Run</button>
+            <label class="upload-btn" for="csvFileInput">📂 Upload Local CSV</label>
             <input type="file" id="csvFileInput" accept=".csv">
         </div>
     </div>
 
-    <!-- Main Body: Map + Right Side Panel -->
-    <div class="dashboard-body">
-        <div id="map"></div>
-        <!-- Right Side Info & Legend Panel -->
-        <div class="side-panel" id="sidePanel">
-            <div class="panel-heading">WIND INTENSITY LEGEND</div>
-            <div id="legendBox"></div>
-            <div class="meta-card" id="metaInfoCard">
-                <h4>Forecast Metadata</h4>
-                <p id="metaText">Upload CSV or load remote FNV3 data to load forecast information</p>
-            </div>
-            <div class="panel-heading">MAP CONTROLS</div>
-            <p style="font-size:11px;color:var(--text-secondary);margin-top:8px;">
-                Drag timeline slider to filter forecast lead time<br>
-                Click scatter points to view full storm metadata<br>
-                Green button pulls live DeepMind FNV3 ensemble data<br>
-                Use animation bar to auto-play forecast timeline
-            </p>
-        </div>
-    </div>
-
-    <!-- Animation Control Bar (New) -->
+    <!-- Animation Play Control Bar -->
     <div class="anim-control-bar">
         <button class="anim-btn play-btn" id="playBtn">▶ Play</button>
         <button class="anim-btn stop-btn" id="stopBtn">■ Stop</button>
-        <button class="anim-btn step-btn" id="backBtn">◀ Step Back</button>
-        <button class="anim-btn step-btn" id="forwardBtn">Step Forward ▶</button>
+        <button class="anim-btn" id="backBtn">◀ Step Back</button>
+        <button class="anim-btn" id="forwardBtn">Step Forward ▶</button>
         <div class="speed-group">
-            <span class="speed-label">Play Speed:</span>
+            <span class="speed-label">Speed:</span>
             <button class="speed-btn active" data-speed="1">x1</button>
             <button class="speed-btn" data-speed="2">x2</button>
             <button class="speed-btn" data-speed="4">x4</button>
         </div>
     </div>
 
-    <!-- Bottom Timeline Slider -->
+    <!-- Map + Right Legend Panel -->
+    <div class="dashboard-body">
+        <div id="map"></div>
+        <div class="side-panel" id="sidePanel">
+            <div class="panel-heading">WIND INTENSITY LEGEND</div>
+            <div id="legendBox"></div>
+            <div class="meta-card" id="metaInfoCard">
+                <h4>Forecast Metadata</h4>
+                <p id="metaText">Upload CSV or fetch remote data</p>
+            </div>
+            <div class="panel-heading">OPERATIONS</div>
+            <p style="font-size:11px;color:var(--text-secondary);margin-top:8px;">
+                Drag slider to filter lead time<br>
+                Click dots to view storm info<br>
+                Auto fetch auto-refresh every 5 mins<br>
+                Animation bar for timeline replay
+            </p>
+        </div>
+    </div>
+
+    <!-- Timeline Slider -->
     <div class="timeline-container">
-        <span class="timeline-label">Forecast Lead Time Filter (0 ~ 288h, step 6h):</span>
+        <span class="timeline-label">Forecast Lead Time (0–288h / step 6h):</span>
         <input type="range" id="timeSlider" min="0" max="288" value="288" step="6">
         <span class="time-value" id="timeDisplay">288 h</span>
     </div>
 
-    <!-- MSSO Watermark -->
-    <img class="watermark" id="logoImg" src="icons/MSSO (1).png" alt="MSSO Logo">
+    <img class="watermark" id="logoImg" src="MSSO (1).png" alt="MSSO Logo">
 
     <script>
         let map;
@@ -259,23 +252,50 @@
         let pointLookupMap = new Map();
         let autoRefreshInterval = null;
         let animationInterval = null;
-        let playSpeed = 1; // default x1 speed
+        let playSpeed = 1;
         const MAX_LEAD_GLOBAL = 288;
         const STEP_HOUR = 6;
         const MACAU_LAT = 22.1595;
         const MACAU_LON = 113.5685;
-        // DeepMind FNV3 base URL + CORS proxy
-        const CORS_PROXY = "https://corsproxy.io/?";
-        const BASE_FNV3_URL = "https://deepmind.google.com/science/weatherlab/download/cyclones/FNV3/ensemble/paired/csv/FNV3_2026_06_22T";
-        const CYCLE_HOURS = ["00", "06", "12", "18"];
-        const TARGET_CSV_URL = `${CORS_PROXY}https://deepmind.google.com/science/weatherlab/download/cyclones/FNV3/ensemble/paired/csv/FNV3_2026_06_22T06_00_paired.csv`;
+
+        // Dual backup CORS proxies to solve overseas link block
+        const PROXIES = [
+            "https://corsproxy.io/?",
+            "https://api.allorigins.win/raw?url="
+        ];
+        let proxyIndex = 0;
+
+        // DeepMind base URL template
+        const BASE_DM = "https://deepmind.google.com/science/weatherlab/download/cyclones/FNV3/ensemble/cyclogenesis/csv/FNV3_";
+        const UTC_HOURS = ["00","06","12","18"];
+
+        // Get latest available UTC model run URL automatically
+        function getLatestFNVUrl() {
+            const now = new Date();
+            const utcHour = now.getUTCHours();
+            let targetUtc;
+            if (utcHour < 6) targetUtc = "00";
+            else if (utcHour <12) targetUtc = "06";
+            else if (utcHour <18) targetUtc = "12";
+            else targetUtc = "18";
+            // Format date string YYYY_MM_DD
+            const year = now.getUTCFullYear();
+            const mon = String(now.getUTCMonth()+1).padStart(2,"0");
+            const day = String(now.getUTCDate()).padStart(2,"0");
+            const dateStr = `${year}_${mon}_${day}`;
+            const rawUrl = `${BASE_DM}${dateStr}T${targetUtc}_cyclogenesis.csv`;
+            return PROXIES[proxyIndex] + encodeURIComponent(rawUrl);
+        }
+
+        function switchProxy() {
+            proxyIndex = (proxyIndex + 1) % PROXIES.length;
+        }
 
         function initMap() {
             map = L.map('map', { minZoom: 3, maxZoom: 8 }).setView([28, 125], 4);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; CARTO Dark Map', subdomains: 'abcd'
             }).addTo(map);
-
             layerTracks = L.layerGroup().addTo(map);
             layerPoints = L.layerGroup().addTo(map);
             layerCircles = L.layerGroup().addTo(map);
@@ -295,13 +315,11 @@
             const data = fullDataset;
             const meta = data.meta;
             const KM_PER_DEG = 111.32;
-
             document.getElementById("metaText").innerHTML = `
                 Initial Time: ${meta.init_time}<br>
-                Max Forecast Range: ${meta.max_lead_h}h<br>
-                Active Filter: ≤ ${maxHour}h
+                Max Forecast: ${meta.max_lead_h}h<br>
+                Current Filter: ≤ ${maxHour}h
             `;
-
             const legendBox = document.getElementById("legendBox");
             legendBox.innerHTML = "";
             meta.wind_bins.forEach(([lo, hi, color, lab]) => {
@@ -310,91 +328,73 @@
                 div.innerHTML = `<span class="legend-dot" style="border-color:${color}"></span><span>${lab}</span>`;
                 legendBox.appendChild(div);
             });
-
-            // Fully connected track lines up to selected hour
+            // Draw full connected tracks
             data.tracks.forEach(track => {
-                const trackKey = `${track.track_id}|${track.sample}`;
-                const trackPoints = pointLookupMap.get(trackKey) || [];
-                const filteredPoints = trackPoints.filter(p => p.lead_time_hours <= maxHour);
-                if (filteredPoints.length >= 2) {
-                    const latLngPath = filteredPoints.map(p => [p.lat, p.lon]);
-                    L.polyline(latLngPath, { color: "#b0b0b0", weight: 1, opacity: 0.5 }).addTo(layerTracks);
+                const key = `${track.track_id}|${track.sample}`;
+                const pts = pointLookupMap.get(key) || [];
+                const filtered = pts.filter(p => p.lead_time_hours <= maxHour);
+                if (filtered.length >=2) {
+                    const latlngs = filtered.map(p => [p.lat, p.lon]);
+                    L.polyline(latlngs, {color:"#b0b0b0", weight:1, opacity:0.5}).addTo(layerTracks);
                 }
             });
-
-            // Filtered scatter points with click popup
-            const filteredPoints = data.points.filter(p => p.lead_time_hours <= maxHour);
-            filteredPoints.forEach(p => {
-                const windKmh = Math.round(p.wind * 1.852);
-                const popupText = `
-                    <strong>Lead Time: ${p.lead_time_hours}h</strong><br>
-                    Track ID: ${p.track_id}<br>
-                    Ensemble Sample: ${p.sample}<br>
-                    Wind: ${p.wind} kt / ${windKmh} km/h<br>
+            // Scatter points with popup
+            const filteredPts = data.points.filter(p => p.lead_time_hours <= maxHour);
+            filteredPts.forEach(p => {
+                const kmh = Math.round(p.wind * 1.852);
+                const popup = `
+                    <strong>Lead: ${p.lead_time_hours}h</strong><br>
+                    Track: ${p.track_id}<br>
+                    Sample: ${p.sample}<br>
+                    Wind: ${p.wind} kt / ${kmh} km/h<br>
                     MSLP: ${p.mslp} hPa<br>
-                    Position: ${p.lon.toFixed(2)}°E, ${p.lat.toFixed(2)}°N
+                    Lon ${p.lon.toFixed(2)}E, Lat ${p.lat.toFixed(2)}N
                 `;
-                L.circleMarker([p.lat, p.lon], {
-                    radius: 4, fill: false, stroke: true, color: p.color, weight: 1.4, opacity: 0.5
-                }).bindPopup(popupText).addTo(layerPoints);
+                L.circleMarker([p.lat, p.lon], {radius:4, fill:false, stroke:true, color:p.color, weight:1.4, opacity:0.5})
+                .bindPopup(popup).addTo(layerPoints);
             });
-
-            // Macau fixed distance rings (no labels)
+            // Macau rings
             meta.circle_list.forEach(cfg => {
-                const radiusM = cfg.km * 1000;
-                L.circle([MACAU_LAT, MACAU_LON], {
-                    radius: radiusM, color: "#949494", fill: false, weight: 0.5, opacity: 0.5, dashArray: "4 4"
-                }).addTo(layerCircles);
+                const m = cfg.km * 1000;
+                L.circle([MACAU_LAT, MACAU_LON], {radius:m, color:"#949494", fill:false, weight:0.5, opacity:0.5, dashArray:"4 4"}).addTo(layerCircles);
             });
-            L.circleMarker([MACAU_LAT, MACAU_LON], { radius: 5, fillColor: "#fff", fillOpacity: 1, stroke: false }).addTo(layerCircles);
-
-            // 0-hour initial storm markers
+            L.circleMarker([MACAU_LAT, MACAU_LON], {radius:5, fillColor:"#fff", fillOpacity:1, stroke:false}).addTo(layerCircles);
+            // T=0 storm markers
             data.initial_systems.forEach(sys => {
-                let sysColor = "#0c0000";
-                for (const [lo, hi, col] of meta.wind_bins) {
-                    if (sys.wind >= lo && sys.wind <= hi) { sysColor = col; break; }
-                }
-                L.circleMarker([sys.lat, sys.lon], {
-                    radius: 8, fill: false, stroke: true, color: sysColor, weight: 2
-                }).addTo(layerSystems);
+                let c = "#0c0000";
+                for (const [lo,hi,col] of meta.wind_bins) if (sys.wind >= lo && sys.wind <= hi) {c=col;break;}
+                L.circleMarker([sys.lat, sys.lon], {radius:8, fill:false, stroke:true, color:c, weight:2}).addTo(layerSystems);
             });
-
-            map.setMaxBounds([[5,90], [50,160]]);
+            map.setMaxBounds([[5,90],[50,160]]);
             document.getElementById("loading").classList.add("hidden");
         }
 
-        // Parse CSV text via Pyodide shared logic
-        async function processCsvText(rawCsvText, sourceName) {
+        // Process CSV via Pyodide shared parser
+        async function processRawCsv(rawText, sourceName) {
             const loadingEl = document.getElementById("loading");
             loadingEl.style.display = "flex";
             loadingEl.classList.remove("hidden");
-            loadingEl.innerText = `Processing CSV source: ${sourceName}`;
-
-            pyodideInstance.FS.writeFile("/remote_data.csv", rawCsvText);
+            loadingEl.innerText = `Parsing ${sourceName}`;
+            pyodideInstance.FS.write("/remote_data.csv", rawText);
             const pyCode = `
 import pandas as pd
 import numpy as np
 import json
-
-csv_file = "/remote_data.csv"
+csv_file = "/remote_data"
 start_row = None
-with open(csv_file, "r") as f:
-    for i, line in enumerate(f):
+with open("/remote_data.csv","r") as f:
+    for i,line in enumerate(f):
         if "BEGIN DATA" in line:
-            start_row = i + 1
+            start_row = i+1
             break
-if start_row is None:
-    raise RuntimeError("BEGIN DATA marker missing from CSV")
-
-df = pd.read_csv(csv_file, skiprows=start_row)
+if start_row is None: raise RuntimeError("Missing BEGIN DATA")
+df = pd.read_csv("/remote_data.csv", skiprows=start_row)
 df = df.rename(columns={
-    "maximum_sustained_wind_speed_knots": "wind",
-    "minimum_sea_level_pressure_hpa": "mslp"
+    "maximum_sustained_wind_speed_knots":"wind",
+    "minimum_sea_level_pressure_hpa":"mslp"
 })
-
 MAX_LEAD = 288
 df = df[df["lead_time_hours"] <= MAX_LEAD].copy()
-
 bins = [
     (119, 200.99999, "#A230FF", "SuTY"),
     (100, 118.99999, "#DE82FF", "SuTY"),
@@ -405,203 +405,145 @@ bins = [
     (25, 33.99999, "#6DD8FA", "TD"),
     (15, 24.99999, "#DDDFE2", "LPA"),
 ]
-
-def wind_to_color(wind):
-    for lo, hi, col, _ in bins:
-        if lo <= wind <= hi:
-            return col
+def wind_color(w):
+    for lo,hi,c,_ in bins:
+        if lo <= w <= hi: return c
     return "#0c0000"
-
-df["color"] = df["wind"].apply(wind_to_color)
-df = df[(df["lon"] >= 0) & (df["lon"] <= 180)].copy()
-
+df["color"] = df["wind"].apply(wind_color)
+df = df[(df["lon"]>=0) & (df["lon"]<=180)].copy()
 track_data = []
-for (track_id, sample), g in df.groupby(["track_id", "sample"]):
-    path = g[["lon", "lat"]].values.tolist()
-    track_data.append({"track_id": track_id, "sample": sample, "path": path})
-
-point_data = df[["track_id","sample","lon", "lat", "wind", "color", "lead_time_hours", "mslp"]].to_dict("records")
-
-df_now = df[df["lead_time_hours"] == 0]
-now_systems = df_now.groupby("track_id", as_index=False).agg(
-    lat=("lat", "mean"),
-    lon=("lon", "mean"),
-    wind=("wind", "mean"),
-    mslp=("mslp", "mean")
+for (tid,samp),g in df.groupby(["track_id","sample"]):
+    track_data.append({"track_id":tid,"sample":samp,"path":g[["lon","lat"]].values.tolist()})
+point_data = df[["track_id","sample","lon","lat","wind","color","lead_time_hours","mslp"]].to_dict("records")
+df0 = df[df["lead_time_hours"]==0]
+init_systems = df0.groupby("track_id",as_index=False).agg(
+    lat=("lat","mean"),lon=("lon"),wind=("wind"),mslp=("mslp")
 ).to_dict("records")
-
-init_time = pd.to_datetime(df["init_time"].iloc[0]).strftime("%Y-%m-%d %H:%M UTC")
-circle_config = [
-    {"km": 100, "label": "100 km"},
-    {"km": 205, "label": "200 km"},
-    {"km": 410, "label": "400 km"},
-    {"km": 850, "label": "800 km"},
-]
-
+init_t = pd.to_datetime(df["init_time"].iloc[0]).strftime("%Y-%m-%d %H:%M UTC")
 export = {
-    "meta": {
-        "init_time": init_time,
-        "max_lead_h": MAX_LEAD,
-        "macau_lat": 22.1595,
-        "macau_lon": 113.5685,
-        "circle_list": circle_config,
-        "wind_bins": bins
-    },
-    "tracks": track_data,
-    "points": point_data,
-    "initial_systems": now_systems
+    "meta":{"init_time":init_t,"max_lead_h":288,"macau_lat":22.1595,"macau_lon":113.5685,"circle_list":[{"km":100,"label":"100km"},{"km":205,"label":"200km"},{"km":410,"label":"400km"},{"km":850,"label":"800km"}],"wind_bins":bins},
+    "tracks":track_data,"points":point_data,"initial_systems":init_systems
 }
 json.dumps(export)
 `;
-            loadingEl.innerText = "Building track lookup table";
             const jsonStr = pyodideInstance.runPython(pyCode);
             fullDataset = JSON.parse(jsonStr);
-
-            // Rebuild point lookup for track rendering
             pointLookupMap.clear();
-            fullDataset.points.forEach(p => {
-                const key = `${p.track_id}|${p.sample}`;
-                if (!pointLookupMap.has(key)) pointLookupMap.set(key, []);
-                pointLookupMap.get(key).push(p);
+            fullDataset.points.forEach(p=>{
+                const k = `${p.track_id}|${p.sample}`;
+                if (!pointLookupMap.has(k)) pointLookupMap.set(k,[]);
+                pointLookupMap.get(k).push(p);
             });
-
-            loadingEl.innerText = "Render full 288h ensemble map";
+            loadingEl.innerText = "Render full timeline";
             renderFilteredChart(MAX_LEAD_GLOBAL);
         }
 
-        // Load remote DeepMind CSV via CORS proxy
-        async function loadRemoteFNV3Csv() {
+        // Auto fetch latest remote CSV with proxy fallback
+        async function fetchLatestRemote() {
             const statusEl = document.getElementById("fetchStatus");
             const loadingEl = document.getElementById("loading");
+            const url = getLatestFNVUrl();
+            statusEl.textContent = `Fetching latest UTC run via proxy ${proxyIndex+1}...`;
             try {
-                statusEl.textContent = "Fetching live FNV3 paired CSV from DeepMind WeatherLab...";
-                const res = await fetch(TARGET_CSV_URL);
+                const res = await fetch(url, {cache:"no-cache"});
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
-                const csvRaw = await res.text();
-                await processCsvText(csvRaw, "DeepMind Remote FNV3 Paired CSV");
-                statusEl.textContent = "Auto-refresh: Enabled | Remote FNV3 data loaded successfully";
-                // Start auto refresh every 10 minutes (600000ms)
+                const rawCsv = await res.text();
+                await processRawCsv(rawCsv, `Remote UTC ${new Date().getUTCHours()}`);
+                statusEl.textContent = `Auto-refresh ON | Latest UTC data loaded, proxy #${proxyIndex+1}`;
+                // Auto refresh every 5 minutes
                 if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-                autoRefreshInterval = setInterval(async () => {
-                    statusEl.textContent = "Auto-refresh polling: Reloading latest FNV3 CSV";
-                    await loadRemoteFNV3Csv();
-                }, 600000);
-            } catch (err) {
-                statusEl.textContent = `Fetch failed: ${err.message} | Check network/CORS proxy`;
-                loadingEl.style.display = "none";
-                console.error("Remote CSV fetch error:", err);
+                autoRefreshInterval = setInterval(fetchLatestRemote, 300000);
+            } catch(err) {
+                switchProxy();
+                statusEl.textContent = `Proxy ${proxyIndex+1} failed, switch proxy & retry... Error:${err.message}`;
+                setTimeout(fetchLatestRemote, 1500);
             }
         }
 
-        // Handle local file upload
-        async function handleCsvUpload(file) {
+        // Local file upload handler
+        async function handleLocalUpload(file) {
             const statusEl = document.getElementById("fetchStatus");
-            statusEl.textContent = "Auto-refresh: Disabled | Loading local CSV file";
-            // Stop auto remote refresh when local file loaded
             if (autoRefreshInterval) {
                 clearInterval(autoRefreshInterval);
                 autoRefreshInterval = null;
+                statusEl.textContent = "Auto-refresh OFF (Local file active)";
             }
             const text = await file.text();
-            await processCsvText(text, `Local File: ${file.name}`);
-            statusEl.textContent = "Auto-refresh: Disabled | Local CSV loaded";
+            await processRawCsv(text, `Local File: ${file.name}`);
         }
 
-        // Animation Control Functions
-        function stopAnimation() {
-            if(animationInterval) clearInterval(animationInterval);
-            animationInterval = null;
-        }
+        // Animation control
+        function stopAnimation() { if(animationInterval) clearInterval(animationInterval); animationInterval=null; }
         function playAnimation() {
             stopAnimation();
             const slider = document.getElementById("timeSlider");
-            const delayMs = 1000 / playSpeed;
+            const delay = 1000 / playSpeed;
             animationInterval = setInterval(()=>{
-                let current = parseInt(slider.value);
-                if(current >= MAX_LEAD_GLOBAL) {
-                    stopAnimation();
-                    return;
-                }
-                current += STEP_HOUR;
-                slider.value = current;
-                document.getElementById("timeDisplay").textContent = `${current} h`;
-                renderFilteredChart(current);
-            }, delayMs);
+                let curr = parseInt(slider.value);
+                if (curr >= MAX_LEAD_GLOBAL) { stopAnimation(); return; }
+                curr += STEP_HOUR;
+                slider.value = curr;
+                document.getElementById("timeDisplay").textContent = `${curr} h`;
+                renderFilteredChart(curr);
+            }, delay);
         }
         function stepBack() {
             stopAnimation();
-            const slider = document.getElementById("timeSlider");
-            let current = parseInt(slider.value);
-            current = Math.max(0, current - STEP_HOUR);
-            slider.value = current;
-            document.getElementById("timeDisplay").textContent = `${current} h`;
-            renderFilteredChart(current);
+            const s = document.getElementById("timeSlider");
+            let v = Math.max(0, parseInt(s.value)-STEP_HOUR);
+            s.value = v;
+            document.getElementById("timeDisplay").textContent = `${v} h`;
+            renderFilteredChart(v);
         }
         function stepForward() {
             stopAnimation();
-            const slider = document.getElementById("timeSlider");
-            let current = parseInt(slider.value);
-            current = Math.min(MAX_LEAD_GLOBAL, current + STEP_HOUR);
-            slider.value = current;
-            document.getElementById("timeDisplay").textContent = `${current} h`;
-            renderFilteredChart(current);
+            const s = document.getElementById("timeSlider");
+            let v = Math.min(MAX_LEAD_GLOBAL, parseInt(s.value)+STEP_HOUR);
+            s.value = v;
+            document.getElementById("timeDisplay").textContent = `${v} h`;
+            renderFilteredChart(v);
         }
         function setSpeed(speed) {
             playSpeed = speed;
-            // Update active button style
-            document.querySelectorAll(".speed-btn").forEach(btn=>{
-                btn.classList.remove("active");
-                if(Number(btn.dataset.speed) === speed) btn.classList.add("active");
-            })
-            // Restart animation if playing
-            if(animationInterval) playAnimation();
+            document.querySelectorAll(".speed-btn").forEach(b=>{
+                b.classList.toggle("active", Number(b.dataset.speed) === speed);
+            });
+            if (animationInterval) playAnimation();
         }
 
         window.onload = async () => {
             initMap();
             const loadingEl = document.getElementById("loading");
-            loadingEl.innerText = "Downloading Pyodide & core libraries...";
+            loadingEl.innerText = "Download Pyodide runtime...";
             pyodideInstance = await loadPyodide();
-            loadingEl.innerText = "Loading pandas + numpy...";
-            await pyodideInstance.loadPackage(["pandas", "numpy"]);
-            // Hide loading overlay immediately after Pyodide ready (Fix button invisible bug)
+            loadingEl.innerText = "Load pandas & numpy...";
+            await pyodideInstance.loadPackage(["pandas","numpy"]);
+            loadingEl.innerText = "Dashboard Ready";
             loadingEl.classList.add("hidden");
-            loadingEl.innerText = "Dashboard ready! Upload CSV or load remote FNV3 data";
 
-            // Local file upload bind
-            const fileInput = document.getElementById("csvFileInput");
-            fileInput.addEventListener("change", async (e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-                await handleCsvUpload(file);
+            // Local upload bind
+            document.getElementById("csvFileInput").addEventListener("change", async e=>{
+                const f = e.target.files[0];
+                if (!f) return;
+                await handleLocalUpload(f);
             });
-
-            // Remote auto-fetch button
-            const autoFetchBtn = document.getElementById("autoFetchBtn");
-            autoFetchBtn.addEventListener("click", loadRemoteFNV3Csv);
-
-            // Timeline slider real-time filter
+            // Remote fetch button
+            document.getElementById("autoFetchBtn").addEventListener("click", fetchLatestRemote);
+            // Timeline slider
             const slider = document.getElementById("timeSlider");
-            const timeDisplay = document.getElementById("timeDisplay");
-            slider.addEventListener("input", () => {
-                const selectedHour = parseInt(slider.value);
-                timeDisplay.textContent = `${selectedHour} h`;
-                renderFilteredChart(selectedHour);
+            slider.addEventListener("input", ()=>{
+                const h = parseInt(slider.value);
+                document.getElementById("timeDisplay").textContent = `${h} h`;
+                renderFilteredChart(h);
             });
-
-            // Animation Button Bind
+            // Animation buttons
             document.getElementById("playBtn").addEventListener("click", playAnimation);
             document.getElementById("stopBtn").addEventListener("click", stopAnimation);
             document.getElementById("backBtn").addEventListener("click", stepBack);
             document.getElementById("forwardBtn").addEventListener("click", stepForward);
-            // Speed buttons
-            document.querySelectorAll(".speed-btn").forEach(btn=>{
-                btn.addEventListener("click", ()=> setSpeed(Number(btn.dataset.speed)));
-            })
-
-            // Hide logo if missing
-            const logoImg = document.getElementById("logoImg");
-            logoImg.onerror = () => logoImg.style.display = "none";
+            document.querySelectorAll(".speed-btn").forEach(b=>b.addEventListener("click", ()=>setSpeed(Number(b.dataset.speed))));
+            // Hide missing logo
+            document.getElementById("logoImg").onerror = ()=>document.getElementById("logoImg").style.display="none";
         };
     </script>
 </body>
