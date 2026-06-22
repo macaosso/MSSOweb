@@ -27,29 +27,29 @@ const alertipsText = `高溫預警提示於本地時間06月19日08時20分發�
 //Weather Forecast
 const forecastRaw = `副熱帶高壓脊仍然會在未來數日覆蓋華南沿岸，該區天氣穩定，日間天氣酷熱。
 
-06月22日（一）  29 - 34 °C   60 - 80 %
-大致天晴，日間天氣酷熱。
-
 06月23日（二）  29 - 34 °C   60 - 80 %
 大致天晴，日間天氣酷熱。
 
-更新時間：2026-06-22 02:00 MST
+06月24日（三）  29 - 35 °C   60 - 80 %
+大致天晴，日間天氣酷熱。
+
+更新時間：2026-06-22 14:00 MST
 `;
 
 // 氣溫
-const chartRightDate = "2026-06-14 00:00 MST";
+const chartRightDate = "2026-06-22 14:00 MST";
 
 const label24hX = ["00H","01H","02H","03H","04H","05H","06H","07H","08H","09H","10H","11H",
                    "12H","13H","14H","15H","16H","17H","18H","19H","20H","21H","22H","23H"];
 const temp24h = [30,30,29,29,29,29,29,29,30,30,31,32,33,34,34,33,33,32,31,31,30,30,30,30];
 
-const label7dX = ["22","23","24","25","26","27"];
-const temp7dMax = [34,34,35,34,34,33,32];
-const temp7dMin = [29,29,29,29,28,28,27];
+const label7dX = ["23","24","25","26","27","28"];
+const temp7dMax = [34,35,34,34,33,32,32];
+const temp7dMin = [29,29,29,28,28,27,27];
 
 //Tropical Cyclone Track
 const forecastInfo = {
-  updated: "2026-06-22 02:00 MST"
+  updated: "2026-06-22 14:00 MST"
 };
 
 const pastPoints = [
@@ -63,29 +63,31 @@ const pastPoints = [
   {lat:14.7, lon:134.0, time: "06-21 02H", wind: 90},
   {lat:15.2, lon:133.1, time: "06-21 08H", wind: 105},
   {lat:16.2, lon:131.8, time: "06-21 14H", wind: 110},
-  {lat:16.7, lon:130.5, time: "06-22 20H", wind: 130},
-  {lat:17.1, lon:129.0, time: "06-22 02H", wind: 145}
+  {lat:16.7, lon:130.5, time: "06-21 20H", wind: 130},
+  {lat:17.2, lon:129.1, time: "06-22 02H", wind: 145},
+  {lat:17.4, lon:127.9, time: "06-22 08H", wind: 165},
+  {lat:17.9, lon:126.9, time: "06-22 14H", wind: 195},
 ];
 
 const forecastPoints = [
   // Forecast hour 0: base point (0h)
   {
-    lat:17.1, lon:129.0, time: "06-22 02H", wind: 145,
-    wind41: { ne: 200, se: 170, sw: 140, nw: 200 }, 
-    wind88: { ne: 80, se: 60, sw: 50, nw: 70 } 
+    lat:17.9, lon:126.9, time: "06-22 14H", wind: 195,
+    wind41: { ne: 230, nw: 230, sw: 150, se: 180 }, 
+    wind88: { ne: 100, nw: 100, sw: 60, se: 80 } 
   },
-  {lat:17.7, lon:128.1, time: "06-22 14H", wind: 165},
-  {lat:18.4, lon:126.3, time: "06-23 02H", wind: 175},
-  {lat:19.7, lon:124.7, time: "06-24 02H", wind: 165},
-  {lat:21.8, lon:124.7, time: "06-25 02H", wind: 140},
-  {lat:24.0, lon:125.5, time: "06-26 02H", wind: 110},
-  {lat:27.0, lon:127.6, time: "06-27 02H", wind: 85}
+  {lat:18.7, lon:125.8, time: "06-23 02H", wind: 205},
+  {lat:19.3, lon:125.1, time: "06-24 14H", wind: 210},
+  {lat:21.2, lon:124.8, time: "06-25 14H", wind: 185},
+  {lat:23.8, lon:125.9, time: "06-26 14H", wind: 155},
+  {lat:27.5, lon:129.2, time: "06-27 14H", wind: 130},
+  {lat:33.2, lon:137.4, time: "06-28 14H", wind: 110},
 ];
 
 window.tcInfo = {
   name: "米克拉", 
   wind: forecastPoints[0].wind,
-  pressure: 965
+  pressure: 935
 };
 
 //  { lat: 42.5, lon: 149.0, time: "06-09 14H", wind: '-' }, 
