@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FNV3 Ensemble Cyclogenesis Dashboard</title>
+    <!-- Leaflet -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Pyodide -->
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+        :root {
+            --bg-main: #12161d;
+            --bg-card: #1c222b;
+            --bg-panel: #232b38;
+            --text-primary: #ffffff;
+            --text-secondary: #b8c2cc;
+            --accent-blue: #2980b9;
+            --accent-blue-light: #3498db;
+            --border-gray: #3a4454;
+            --accent-green: #27ae60;
+            --accent-red: #e74c3c;
+        }
+        body { background: var(--bg-main); color: var(--text-primary); overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
+
+        /* Dashboard Top Header Bar */
+        .dashboard-header {
+            width: 100%;
+            height: 64px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-gray);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 1002;
+            gap: 20px;
+            overflow-x: auto;
+            flex-shrink: 0;
+        }
+        .dashboard-title { font-size: 20px; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+        .header-controls { display: flex; gap: 16px; align-items: center; }
+        .upload-btn {
+            background: var(--accent-blue);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .upload-btn:hover { background: var(--accent-blue-light); }
+        .auto-fetch-btn {
+            background: var(--accent-green);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: filter 0.2s;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .auto-fetch-btn:hover { filter: brightness(1.15); }
+        #csvFileInput { display: none; }
+        .fetch-status { font-size: 12px; color: var(--text-secondary); max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Animation Control Bar (Above Timeline) */
+        .anim-control-bar {
+            width: 100%;
+            height: 60px;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-gray);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 30px;
+        }
+        .anim-btn {
+            padding: 6px 14px;
+            border-radius: 5px;
+            border: none;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .play-btn { background: var(--accent-green); }
+        .stop-btn { background: var(--accent-red); }
+        .step-btn { background: var(--accent-blue); }
+        .speed-group {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .speed-label { color: var(--text-secondary); font-size:14px; }
+        .speed-btn {
+            padding:4px 10px;
+            border-radius:4px;
+            border:1px solid var(--border-gray);
+            background: var(--bg-panel);
+            color: var(--text-secondary);
+            cursor:pointer;
+        }
+        .speed-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue-light);
+        }
+
+        /* Main Layout: Map + Side Legend Panel */
+        .dashboard-body { display: flex; flex: 1; overflow: hidden; }
+        #map { flex: 1; height: 100%; }
+        .side-panel {
+            width: 220px;
+            background: var(--bg-card);
+            border-left: 1px solid var(--border-gray);
+            padding: 16px;
+            overflow-y: auto;
+        }
+        .panel-heading {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+            letter-spacing: 0.5px;
+        }
+        .legend-item { display: flex; align-items: center; gap: 10px; margin: 8px 0; font-size: 12px; color: var(--text-secondary); }
+        .legend-dot {
+            width: 14px; height: 14px; border: 1.5px solid; background: transparent; border-radius: 50%;
+        }
+        .meta-card {
+            background: var(--bg-panel);
+            border-radius: 6px;
+            padding: 12px;
+            margin: 16px 0;
+        }
+        .meta-card h4 { font-size: 13px; margin-bottom: 6px; color: var(--text-primary); }
+        .meta-card p { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
+
+        /* Bottom Timeline Slider Bar */
+        .timeline-container {
+            width: 100%;
+            height: 72px;
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-gray);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 0 30px;
+        }
+        .timeline-label { font-size: 14px; min-width: 160px; color: var(--text-secondary); }
+        #timeSlider {
+            flex-grow: 1;
+            height: 6px;
+            accent-color: var(--accent-blue);
+        }
+        .time-value {
+            min-width: 90px;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--accent-blue-light);
+            text-align: right;
+        }
+
+        /* Loading Overlay Fix */
+        .loading {
+            position: fixed; inset: 0; background: var(--bg-main); z-index: 9999;
+            display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--text-secondary);
+            transition: opacity 0.4s ease;
+        }
+        .loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Map Overlay Watermark */
+        .watermark {
+            position: absolute; top: 70px; right: 240px; z-index: 990; opacity: 0.65; width: 130px;
+        }
+
+        /* Leaflet Dark Popup Styling */
+        .leaflet-popup-content-wrapper {
+            background: var(--bg-panel); color: var(--text-primary); border-radius: 6px;
+        }
+        .leaflet-popup-tip { background: var(--bg-panel); }
+        .leaflet-popup-content { font-size: 12px; line-height: 1.5; }
+
+        /* Hide native leaflet zoom control white bg */
+        .leaflet-control-zoom { background: var(--bg-card) !important; border: 1px solid var(--border-gray) !important; }
+        .leaflet-control-zoom a { color: var(--text-primary) !important; background: transparent !important; }
+    </style>
+</head>
+<body>
+    <!-- Global Loading Screen -->
+    <div class="loading" id="loading">Initializing Pyodide Runtime... Ready to load forecast data</div>
+
+    <!-- Dashboard Top Header Bar -->
+    <div class="dashboard-header">
+        <div class="dashboard-title">FNV3 Ensemble Cyclogenesis Forecast Dashboard</div>
+        <div class="header-controls">
+            <span class="fetch-status" id="fetchStatus">Auto-refresh: Off | No remote data loaded</span>
+            <button class="auto-fetch-btn" id="autoFetchBtn">🌐 Load Latest FNV3 CSV</button>
+            <label class="upload-btn" for="csvFileInput">📂 Upload Local CSV File</label>
+            <input type="file" id="csvFileInput" accept=".csv">
+        </div>
+    </div>
+
+    <!-- Main Body: Map + Right Side Panel -->
+    <div class="dashboard-body">
+        <div id="map"></div>
+        <!-- Right Side Info & Legend Panel -->
+        <div class="side-panel" id="sidePanel">
+            <div class="panel-heading">WIND INTENSITY LEGEND</div>
+            <div id="legendBox"></div>
+            <div class="meta-card" id="metaInfoCard">
+                <h4>Forecast Metadata</h4>
+                <p id="metaText">Upload CSV or load remote FNV3 data to load forecast information</p>
+            </div>
+            <div class="panel-heading">MAP CONTROLS</div>
+            <p style="font-size:11px;color:var(--text-secondary);margin-top:8px;">
+                Drag timeline slider to filter forecast lead time<br>
+                Click scatter points to view full storm metadata<br>
+                Green button pulls live DeepMind FNV3 ensemble data<br>
+                Use animation bar to auto-play forecast timeline
+            </p>
+        </div>
+    </div>
+
+    <!-- Animation Control Bar (New) -->
+    <div class="anim-control-bar">
+        <button class="anim-btn play-btn" id="playBtn">▶ Play</button>
+        <button class="anim-btn stop-btn" id="stopBtn">■ Stop</button>
+        <button class="anim-btn step-btn" id="backBtn">◀ Step Back</button>
+        <button class="anim-btn step-btn" id="forwardBtn">Step Forward ▶</button>
+        <div class="speed-group">
+            <span class="speed-label">Play Speed:</span>
+            <button class="speed-btn active" data-speed="1">x1</button>
+            <button class="speed-btn" data-speed="2">x2</button>
+            <button class="speed-btn" data-speed="4">x4</button>
+        </div>
+    </div>
+
+    <!-- Bottom Timeline Slider -->
+    <div class="timeline-container">
+        <span class="timeline-label">Forecast Lead Time Filter (0 ~ 288h, step 6h):</span>
+        <input type="range" id="timeSlider" min="0" max="288" value="288" step="6">
+        <span class="time-value" id="timeDisplay">288 h</span>
+    </div>
+
+    <!-- MSSO Watermark -->
+    <img class="watermark" id="logoImg" src="MSSO (1).png" alt="MSSO Logo">
+
+    <script>
+        let map;
+        let layerTracks, layerPoints, layerCircles, layerSystems;
+        let pyodideInstance = null;
+        let fullDataset = null;
+        let pointLookupMap = new Map();
+        let autoRefreshInterval = null;
+        let animationInterval = null;
+        let playSpeed = 1; // default x1 speed
+        const MAX_LEAD_GLOBAL = 288;
+        const STEP_HOUR = 6;
+        const MACAU_LAT = 22.1595;
+        const MACAU_LON = 113.5685;
+        // DeepMind FNV3 base URL + CORS proxy
+        const CORS_PROXY = "https://corsproxy.io/?";
+        const BASE_FNV3_URL = "https://deepmind.google.com/science/weatherlab/download/cyclones/FNV3/ensemble/paired/csv/FNV3_2026_06_22T";
+        const CYCLE_HOURS = ["00", "06", "12", "18"];
+        const TARGET_CSV_URL = `${CORS_PROXY}https://deepmind.google.com/science/weatherlab/download/cyclones/FNV3/ensemble/paired/csv/FNV3_2026_06_22T06_00_paired.csv`;
+
+        function initMap() {
+            map = L.map('map', { minZoom: 3, maxZoom: 8 }).setView([28, 125], 4);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; CARTO Dark Map', subdomains: 'abcd'
+            }).addTo(map);
+
+            layerTracks = L.layerGroup().addTo(map);
+            layerPoints = L.layerGroup().addTo(map);
+            layerCircles = L.layerGroup().addTo(map);
+            layerSystems = L.layerGroup().addTo(map);
+        }
+
+        function clearAllLayers() {
+            layerTracks.clearLayers();
+            layerPoints.clearLayers();
+            layerCircles.clearLayers();
+            layerSystems.clearLayers();
+        }
+
+        function renderFilteredChart(maxHour) {
+            if (!fullDataset) return;
+            clearAllLayers();
+            const data = fullDataset;
+            const meta = data.meta;
+            const KM_PER_DEG = 111.32;
+
+            document.getElementById("metaText").innerHTML = `
+                Initial Time: ${meta.init_time}<br>
+                Max Forecast Range: ${meta.max_lead_h}h<br>
+                Active Filter: ≤ ${maxHour}h
+            `;
+
+            const legendBox = document.getElementById("legendBox");
+            legendBox.innerHTML = "";
+            meta.wind_bins.forEach(([lo, hi, color, lab]) => {
+                const div = document.createElement("div");
+                div.className = "legend-item";
+                div.innerHTML = `<span class="legend-dot" style="border-color:${color}"></span><span>${lab}</span>`;
+                legendBox.appendChild(div);
+            });
+
+            // Fully connected track lines up to selected hour
+            data.tracks.forEach(track => {
+                const trackKey = `${track.track_id}|${track.sample}`;
+                const trackPoints = pointLookupMap.get(trackKey) || [];
+                const filteredPoints = trackPoints.filter(p => p.lead_time_hours <= maxHour);
+                if (filteredPoints.length >= 2) {
+                    const latLngPath = filteredPoints.map(p => [p.lat, p.lon]);
+                    L.polyline(latLngPath, { color: "#b0b0b0", weight: 1, opacity: 0.5 }).addTo(layerTracks);
+                }
+            });
+
+            // Filtered scatter points with click popup
+            const filteredPoints = data.points.filter(p => p.lead_time_hours <= maxHour);
+            filteredPoints.forEach(p => {
+                const windKmh = Math.round(p.wind * 1.852);
+                const popupText = `
+                    <strong>Lead Time: ${p.lead_time_hours}h</strong><br>
+                    Track ID: ${p.track_id}<br>
+                    Ensemble Sample: ${p.sample}<br>
+                    Wind: ${p.wind} kt / ${windKmh} km/h<br>
+                    MSLP: ${p.mslp} hPa<br>
+                    Position: ${p.lon.toFixed(2)}°E, ${p.lat.toFixed(2)}°N
+                `;
+                L.circleMarker([p.lat, p.lon], {
+                    radius: 4, fill: false, stroke: true, color: p.color, weight: 1.4, opacity: 0.5
+                }).bindPopup(popupText).addTo(layerPoints);
+            });
+
+            // Macau fixed distance rings (no labels)
+            meta.circle_list.forEach(cfg => {
+                const radiusM = cfg.km * 1000;
+                L.circle([MACAU_LAT, MACAU_LON], {
+                    radius: radiusM, color: "#949494", fill: false, weight: 0.5, opacity: 0.5, dashArray: "4 4"
+                }).addTo(layerCircles);
+            });
+            L.circleMarker([MACAU_LAT, MACAU_LON], { radius: 5, fillColor: "#fff", fillOpacity: 1, stroke: false }).addTo(layerCircles);
+
+            // 0-hour initial storm markers
+            data.initial_systems.forEach(sys => {
+                let sysColor = "#0c0000";
+                for (const [lo, hi, col] of meta.wind_bins) {
+                    if (sys.wind >= lo && sys.wind <= hi) { sysColor = col; break; }
+                }
+                L.circleMarker([sys.lat, sys.lon], {
+                    radius: 8, fill: false, stroke: true, color: sysColor, weight: 2
+                }).addTo(layerSystems);
+            });
+
+            map.setMaxBounds([[5,90], [50,160]]);
+            document.getElementById("loading").classList.add("hidden");
+        }
+
+        // Parse CSV text via Pyodide shared logic
+        async function processCsvText(rawCsvText, sourceName) {
+            const loadingEl = document.getElementById("loading");
+            loadingEl.style.display = "flex";
+            loadingEl.classList.remove("hidden");
+            loadingEl.innerText = `Processing CSV source: ${sourceName}`;
+
+            pyodideInstance.FS.writeFile("/remote_data.csv", rawCsvText);
+            const pyCode = `
+import pandas as pd
+import numpy as np
+import json
+
+csv_file = "/remote_data.csv"
+start_row = None
+with open(csv_file, "r") as f:
+    for i, line in enumerate(f):
+        if "BEGIN DATA" in line:
+            start_row = i + 1
+            break
+if start_row is None:
+    raise RuntimeError("BEGIN DATA marker missing from CSV")
+
+df = pd.read_csv(csv_file, skiprows=start_row)
+df = df.rename(columns={
+    "maximum_sustained_wind_speed_knots": "wind",
+    "minimum_sea_level_pressure_hpa": "mslp"
+})
+
+MAX_LEAD = 288
+df = df[df["lead_time_hours"] <= MAX_LEAD].copy()
+
+bins = [
+    (119, 200.99999, "#A230FF", "SuTY"),
+    (100, 118.99999, "#DE82FF", "SuTY"),
+    (81, 99.99999, "#FF6F6F", "STY"),
+    (64, 80.99999, "#F78A31", "TY"),
+    (48, 63.99999, "#FFD363", "STS"),
+    (34, 47.99999, "#9DD79C", "TS"),
+    (25, 33.99999, "#6DD8FA", "TD"),
+    (15, 24.99999, "#DDDFE2", "LPA"),
+]
+
+def wind_to_color(wind):
+    for lo, hi, col, _ in bins:
+        if lo <= wind <= hi:
+            return col
+    return "#0c0000"
+
+df["color"] = df["wind"].apply(wind_to_color)
+df = df[(df["lon"] >= 0) & (df["lon"] <= 180)].copy()
+
+track_data = []
+for (track_id, sample), g in df.groupby(["track_id", "sample"]):
+    path = g[["lon", "lat"]].values.tolist()
+    track_data.append({"track_id": track_id, "sample": sample, "path": path})
+
+point_data = df[["track_id","sample","lon", "lat", "wind", "color", "lead_time_hours", "mslp"]].to_dict("records")
+
+df_now = df[df["lead_time_hours"] == 0]
+now_systems = df_now.groupby("track_id", as_index=False).agg(
+    lat=("lat", "mean"),
+    lon=("lon", "mean"),
+    wind=("wind", "mean"),
+    mslp=("mslp", "mean")
+).to_dict("records")
+
+init_time = pd.to_datetime(df["init_time"].iloc[0]).strftime("%Y-%m-%d %H:%M UTC")
+circle_config = [
+    {"km": 100, "label": "100 km"},
+    {"km": 205, "label": "200 km"},
+    {"km": 410, "label": "400 km"},
+    {"km": 850, "label": "800 km"},
+]
+
+export = {
+    "meta": {
+        "init_time": init_time,
+        "max_lead_h": MAX_LEAD,
+        "macau_lat": 22.1595,
+        "macau_lon": 113.5685,
+        "circle_list": circle_config,
+        "wind_bins": bins
+    },
+    "tracks": track_data,
+    "points": point_data,
+    "initial_systems": now_systems
+}
+json.dumps(export)
+`;
+            loadingEl.innerText = "Building track lookup table";
+            const jsonStr = pyodideInstance.runPython(pyCode);
+            fullDataset = JSON.parse(jsonStr);
+
+            // Rebuild point lookup for track rendering
+            pointLookupMap.clear();
+            fullDataset.points.forEach(p => {
+                const key = `${p.track_id}|${p.sample}`;
+                if (!pointLookupMap.has(key)) pointLookupMap.set(key, []);
+                pointLookupMap.get(key).push(p);
+            });
+
+            loadingEl.innerText = "Render full 288h ensemble map";
+            renderFilteredChart(MAX_LEAD_GLOBAL);
+        }
+
+        // Load remote DeepMind CSV via CORS proxy
+        async function loadRemoteFNV3Csv() {
+            const statusEl = document.getElementById("fetchStatus");
+            const loadingEl = document.getElementById("loading");
+            try {
+                statusEl.textContent = "Fetching live FNV3 paired CSV from DeepMind WeatherLab...";
+                const res = await fetch(TARGET_CSV_URL);
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const csvRaw = await res.text();
+                await processCsvText(csvRaw, "DeepMind Remote FNV3 Paired CSV");
+                statusEl.textContent = "Auto-refresh: Enabled | Remote FNV3 data loaded successfully";
+                // Start auto refresh every 10 minutes (600000ms)
+                if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+                autoRefreshInterval = setInterval(async () => {
+                    statusEl.textContent = "Auto-refresh polling: Reloading latest FNV3 CSV";
+                    await loadRemoteFNV3Csv();
+                }, 600000);
+            } catch (err) {
+                statusEl.textContent = `Fetch failed: ${err.message} | Check network/CORS proxy`;
+                loadingEl.style.display = "none";
+                console.error("Remote CSV fetch error:", err);
+            }
+        }
+
+        // Handle local file upload
+        async function handleCsvUpload(file) {
+            const statusEl = document.getElementById("fetchStatus");
+            statusEl.textContent = "Auto-refresh: Disabled | Loading local CSV file";
+            // Stop auto remote refresh when local file loaded
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+            const text = await file.text();
+            await processCsvText(text, `Local File: ${file.name}`);
+            statusEl.textContent = "Auto-refresh: Disabled | Local CSV loaded";
+        }
+
+        // Animation Control Functions
+        function stopAnimation() {
+            if(animationInterval) clearInterval(animationInterval);
+            animationInterval = null;
+        }
+        function playAnimation() {
+            stopAnimation();
+            const slider = document.getElementById("timeSlider");
+            const delayMs = 1000 / playSpeed;
+            animationInterval = setInterval(()=>{
+                let current = parseInt(slider.value);
+                if(current >= MAX_LEAD_GLOBAL) {
+                    stopAnimation();
+                    return;
+                }
+                current += STEP_HOUR;
+                slider.value = current;
+                document.getElementById("timeDisplay").textContent = `${current} h`;
+                renderFilteredChart(current);
+            }, delayMs);
+        }
+        function stepBack() {
+            stopAnimation();
+            const slider = document.getElementById("timeSlider");
+            let current = parseInt(slider.value);
+            current = Math.max(0, current - STEP_HOUR);
+            slider.value = current;
+            document.getElementById("timeDisplay").textContent = `${current} h`;
+            renderFilteredChart(current);
+        }
+        function stepForward() {
+            stopAnimation();
+            const slider = document.getElementById("timeSlider");
+            let current = parseInt(slider.value);
+            current = Math.min(MAX_LEAD_GLOBAL, current + STEP_HOUR);
+            slider.value = current;
+            document.getElementById("timeDisplay").textContent = `${current} h`;
+            renderFilteredChart(current);
+        }
+        function setSpeed(speed) {
+            playSpeed = speed;
+            // Update active button style
+            document.querySelectorAll(".speed-btn").forEach(btn=>{
+                btn.classList.remove("active");
+                if(Number(btn.dataset.speed) === speed) btn.classList.add("active");
+            })
+            // Restart animation if playing
+            if(animationInterval) playAnimation();
+        }
+
+        window.onload = async () => {
+            initMap();
+            const loadingEl = document.getElementById("loading");
+            loadingEl.innerText = "Downloading Pyodide & core libraries...";
+            pyodideInstance = await loadPyodide();
+            loadingEl.innerText = "Loading pandas + numpy...";
+            await pyodideInstance.loadPackage(["pandas", "numpy"]);
+            // Hide loading overlay immediately after Pyodide ready (Fix button invisible bug)
+            loadingEl.classList.add("hidden");
+            loadingEl.innerText = "Dashboard ready! Upload CSV or load remote FNV3 data";
+
+            // Local file upload bind
+            const fileInput = document.getElementById("csvFileInput");
+            fileInput.addEventListener("change", async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                await handleCsvUpload(file);
+            });
+
+            // Remote auto-fetch button
+            const autoFetchBtn = document.getElementById("autoFetchBtn");
+            autoFetchBtn.addEventListener("click", loadRemoteFNV3Csv);
+
+            // Timeline slider real-time filter
+            const slider = document.getElementById("timeSlider");
+            const timeDisplay = document.getElementById("timeDisplay");
+            slider.addEventListener("input", () => {
+                const selectedHour = parseInt(slider.value);
+                timeDisplay.textContent = `${selectedHour} h`;
+                renderFilteredChart(selectedHour);
+            });
+
+            // Animation Button Bind
+            document.getElementById("playBtn").addEventListener("click", playAnimation);
+            document.getElementById("stopBtn").addEventListener("click", stopAnimation);
+            document.getElementById("backBtn").addEventListener("click", stepBack);
+            document.getElementById("forwardBtn").addEventListener("click", stepForward);
+            // Speed buttons
+            document.querySelectorAll(".speed-btn").forEach(btn=>{
+                btn.addEventListener("click", ()=> setSpeed(Number(btn.dataset.speed)));
+            })
+
+            // Hide logo if missing
+            const logoImg = document.getElementById("logoImg");
+            logoImg.onerror = () => logoImg.style.display = "none";
+        };
+    </script>
+</body>
+</html>
