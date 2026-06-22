@@ -734,7 +734,7 @@ forecastPoints.forEach(p => {
     });
     marker.on('mouseout', function () {
       const t = getTypeFromWind(p.wind);
-      this.setIcon(getIcon(t, 22));
+      this.setIcon(getIcon(t, 24));
     });
   } else {
     marker.on('click', function () {
