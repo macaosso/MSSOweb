@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FNV3 Ensemble Cyclogenesis Forecast Dashboard</title>
+    <title>FNV3 Ensemble Cyclogenesis Dashboard</title>
     <!-- Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Pyodide -->
-    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script> 
+    <script src="https://cdn.jsdelivr.net/pyodide/v0.26.1/full/pyodide.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
         :root {
@@ -22,7 +22,6 @@
             --border-gray: #3a4454;
             --accent-green: #27ae60;
             --accent-red: #e74c3c;
-            --warn-orange: #f39c12;
         }
         body { background: var(--bg-main); color: var(--text-primary); overflow: hidden; display: flex; flex-direction: column; height: 100vh; }
 
@@ -40,96 +39,27 @@
             gap: 20px;
             overflow-x: auto;
             flex-shrink: 0;
-            -webkit-overflow-scrolling: touch;
         }
         .dashboard-title { font-size: 20px; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
-        .header-controls { display: flex; gap: 16px; align-items: center; white-space: nowrap; }
-        .upload-btn, .auto-fetch-btn {
+        .header-controls { display: flex; gap: 16px; align-items: center; }
+        .upload-btn {
+            background: var(--accent-blue);
             padding: 8px 16px;
             border-radius: 6px;
             cursor: pointer;
-            transition: background 0.2s, filter 0.2s;
+            transition: background 0.2s;
             font-weight: 500;
             white-space: nowrap;
-            border: none;
-            color: white;
         }
-        .upload-btn { background: var(--accent-blue); }
         .upload-btn:hover { background: var(--accent-blue-light); }
-        .auto-fetch-btn { background: var(--accent-green); }
-        .auto-fetch-btn:hover { filter: brightness(1.15); }
-        button:disabled, label:disabled { opacity: 0.4; cursor: not-allowed; }
         #csvFileInput { display: none; }
         .fetch-status { font-size: 12px; color: var(--text-secondary); max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .status-error { color: var(--warn-orange); }
 
-        /* Animation Control Bar (Above Timeline, Original Position) */
-        .anim-control-bar {
-            width: 100%;
-            min-height: 60px;
-            height: auto;
-            background: var(--bg-card);
-            border-top: 1px solid var(--border-gray);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 30px;
-            flex-wrap: wrap;
-        }
-        .anim-btn {
-            padding: 6px 12px;
-            border-radius: 5px;
-            border: none;
-            color: white;
-            font-weight: 500;
-            cursor: pointer;
-            min-width: 70px;
-        }
-        .jump-btn { background: #444654; }
-        .step-btn { background: var(--accent-blue); }
-        .play-toggle-btn { background: var(--accent-green); }
-        .play-toggle-btn.playing { background: var(--accent-red); }
-        .speed-group {
-            margin-left: auto;
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .speed-label { color: var(--text-secondary); font-size:14px; margin-right:6px; }
-        .speed-btn {
-            padding:4px 10px;
-            border-radius:4px;
-            border:1px solid var(--border-gray);
-            background: var(--bg-panel);
-            color: var(--text-secondary);
-            cursor:pointer;
-        }
-        .speed-btn.active {
-            background: var(--accent-blue);
-            color: white;
-            border-color: var(--accent-blue-light);
-        }
+        /* Animation Control Bar REMOVED - moved to timeline */
 
-        /* Main Layout: Map + Collapsible Sidebar */
+        /* Main Map + Sidebar */
         .dashboard-body { display: flex; flex: 1; overflow: hidden; }
-        #map { flex: 1; height: 100%; transition: flex 0.3s ease; }
-        /* Sidebar Toggle Button */
-        .sidebar-toggle-wrap {
-            position: relative;
-            z-index: 1001;
-        }
-        #sidebarToggleBtn {
-            position: absolute;
-            left: -32px;
-            top: 12px;
-            width: 32px;
-            height: 40px;
-            background: var(--bg-card);
-            border: 1px solid var(--border-gray);
-            color: var(--text-primary);
-            border-radius: 6px 0 0 6px;
-            cursor: pointer;
-        }
+        #map { flex: 1; height: 100%; }
         .side-panel {
             width: 220px;
             min-width: 220px;
@@ -137,14 +67,29 @@
             border-left: 1px solid var(--border-gray);
             padding: 16px;
             overflow-y: auto;
-            transition: min-width 0.3s ease, width 0.3s ease, padding 0.3s ease;
+            transition: width 0.3s ease, min-width 0.3s ease, padding 0.3s ease;
         }
         .side-panel.collapsed {
-            width: 0;
-            min-width: 0;
+            width: 0px;
+            min-width: 0px;
             padding: 0;
             overflow: hidden;
-            border-left: none;
+        }
+        .panel-toggle-btn {
+            position: absolute;
+            right: 220px;
+            top: 80px;
+            z-index: 991;
+            background: var(--bg-panel);
+            color: white;
+            border: 1px solid var(--border-gray);
+            padding: 4px 8px;
+            border-radius: 4px 0 0 4px;
+            cursor: pointer;
+            transition: right 0.3s ease;
+        }
+        .side-panel.collapsed + .panel-toggle-btn {
+            right: 0px;
         }
         .panel-heading {
             font-size: 14px;
@@ -166,25 +111,64 @@
         .meta-card h4 { font-size: 13px; margin-bottom: 6px; color: var(--text-primary); }
         .meta-card p { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
 
-        /* Bottom Timeline Slider Bar */
+        /* Timeline Slider (now holds all animation buttons on left) */
         .timeline-container {
             width: 100%;
-            min-height: 72px;
-            height: auto;
+            height: 72px;
             background: var(--bg-card);
             border-top: 1px solid var(--border-gray);
             display: flex;
             align-items: center;
-            gap: 20px;
-            padding: 12px 30px;
-            flex-wrap: wrap;
+            gap: 14px;
+            padding: 0 20px;
         }
-        .timeline-label { font-size: 14px; min-width: 160px; color: var(--text-secondary); }
+        .timeline-btn-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .anim-btn {
+            padding: 6px 12px;
+            border-radius: 5px;
+            border: none;
+            color: white;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .playstop-btn.play-state { background: var(--accent-green); }
+        .playstop-btn.stop-state { background: var(--accent-red); }
+        .step-btn { background: var(--accent-blue); }
+        .edge-label-btn {
+            background: var(--bg-panel);
+            border: 1px solid var(--border-gray);
+            color: var(--text-secondary);
+        }
+        .speed-group {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        .speed-label { color: var(--text-secondary); font-size:14px; }
+        .speed-btn {
+            padding:4px 10px;
+            border-radius:4px;
+            border:1px solid var(--border-gray);
+            background: var(--bg-panel);
+            color: var(--text-secondary);
+            cursor:pointer;
+        }
+        .speed-btn.active {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue-light);
+        }
         #timeSlider {
             flex-grow: 1;
             height: 6px;
             accent-color: var(--accent-blue);
-            min-width: 120px;
         }
         .time-value {
             min-width: 90px;
@@ -192,6 +176,7 @@
             font-weight: bold;
             color: var(--accent-blue-light);
             text-align: right;
+            flex-shrink: 0;
         }
 
         /* Loading Mask Fix */
@@ -199,8 +184,6 @@
             position: fixed; inset: 0; background: var(--bg-main); z-index: 9999;
             display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--text-secondary);
             transition: opacity 0.4s ease;
-            opacity: 1;
-            pointer-events: all;
         }
         .loading.hidden {
             opacity: 0;
@@ -212,8 +195,8 @@
             position: absolute; top: 70px; right: 240px; z-index: 990; opacity: 0.65; width: 130px;
             transition: right 0.3s ease;
         }
-        .watermark.sidebar-collapsed {
-            right: 20px;
+        .side-panel.collapsed ~ .watermark {
+            right: 10px;
         }
         .leaflet-popup-content-wrapper {
             background: var(--bg-panel); color: var(--text-primary); border-radius: 6px;
@@ -227,59 +210,56 @@
 <body>
     <div class="loading" id="loading">Initializing Pyodide Runtime...</div>
 
-    <!-- Top Header: Status + Remote/Local Upload Buttons -->
+    <!-- Top Header: Removed Auto Fetch Button -->
     <div class="dashboard-header">
         <div class="dashboard-title">FNV3 Ensemble Cyclogenesis Forecast Dashboard</div>
         <div class="header-controls">
-            <span class="fetch-status" id="fetchStatus">Auto-refresh: Off | Waiting for data</span>
-            <button class="auto-fetch-btn" id="autoFetchBtn">🌐 Load LATEST UTC Run</button>
+            <span class="fetch-status" id="fetchStatus">Waiting for data (Local CSV only)</span>
             <label class="upload-btn" for="csvFileInput">📂 Upload Local CSV</label>
             <input type="file" id="csvFileInput" accept=".csv">
         </div>
     </div>
 
-    <!-- Animation Control Bar (Original position above timeline) -->
-    <div class="anim-control-bar">
-        <button class="anim-btn jump-btn" id="jumpZeroBtn">0H</button>
-        <button class="anim-btn step-btn" id="backBtn">◀ Back</button>
-        <!-- Single merged Play/Stop Toggle Button -->
-        <button class="anim-btn play-toggle-btn" id="playToggleBtn">▶ Play</button>
-        <button class="anim-btn step-btn" id="forwardBtn">Forward ▶</button>
-        <button class="anim-btn jump-btn" id="jumpMaxBtn">288H</button>
-        <div class="speed-group">
-            <span class="speed-label">Speed:</span>
-            <button class="speed-btn active" data-speed="1">x1</button>
-            <button class="speed-btn" data-speed="2">x2</button>
-            <button class="speed-btn" data-speed="4">x4</button>
-        </div>
-    </div>
+    <!-- REMOVED Separate Animation Control Bar -->
 
-    <!-- Map + Collapsible Right Sidebar -->
+    <!-- Map + Right Legend Panel with Collapse Toggle Button -->
     <div class="dashboard-body">
         <div id="map"></div>
-        <div class="sidebar-toggle-wrap">
-            <button id="sidebarToggleBtn">⇨</button>
-            <div class="side-panel" id="sidePanel">
-                <div class="panel-heading">WIND INTENSITY LEGEND</div>
-                <div id="legendBox"></div>
-                <div class="meta-card" id="metaInfoCard">
-                    <h4>Forecast Metadata</h4>
-                    <p id="metaText">Upload CSV or fetch remote data<br><small id="logoHint">MSSO Logo: Missing</small></p>
-                </div>
-                <div class="panel-heading">OPERATIONS</div>
-                <p style="font-size:11px;color:var(--text-secondary);margin-top:8px;">
-                    Drag slider to filter lead time<br>
-                    Click dots to view storm info<br>
-                    Auto fetch auto-refresh every 5 mins<br>
-                    Animation bar for timeline replay
-                </p>
+        <div class="side-panel" id="sidePanel">
+            <div class="panel-heading">WIND INTENSITY LEGEND</div>
+            <div id="legendBox"></div>
+            <div class="meta-card" id="metaInfoCard">
+                <h4>Forecast Metadata</h4>
+                <p id="metaText">Upload CSV or fetch remote data</p>
             </div>
+            <div class="panel-heading">OPERATIONS</div>
+            <p style="font-size:11px;color:var(--text-secondary);margin-top:8px;">
+                Drag slider to filter lead time<br>
+                Click dots to view storm info<br>
+                Animation bar for timeline replay<br>
+                Click arrow to collapse legend panel
+            </p>
         </div>
+        <button class="panel-toggle-btn" id="panelToggleBtn">◀</button>
     </div>
 
-    <!-- Timeline Slider -->
+    <!-- Timeline Slider - All animation buttons moved here, new order -->
     <div class="timeline-container">
-        <span class="timeline-label">Forecast Lead Time (0–288h / step 6h):</span>
+        <div class="timeline-btn-group">
+            <button class="anim-btn edge-label-btn" id="jumpZeroBtn">0H</button>
+            <button class="anim-btn step-btn" id="backBtn">◀ Step Back</button>
+            <!-- Merged Play/Stop single toggle button -->
+            <button class="anim-btn playstop-btn play-state" id="playStopBtn">▶ Play</button>
+            <button class="anim-btn step-btn" id="forwardBtn">Step Forward ▶</button>
+            <button class="anim-btn edge-label-btn" id="jumpMaxBtn">288H</button>
+            <!-- Speed controls inline left -->
+            <div class="speed-group">
+                <span class="speed-label">Speed:</span>
+                <button class="speed-btn active" data-speed="1">x1</button>
+                <button class="speed-btn" data-speed="2">x2</button>
+                <button class="speed-btn" data-speed="4">x4</button>
+            </div>
+        </div>
         <input type="range" id="timeSlider" min="0" max="288" value="288" step="6">
         <span class="time-value" id="timeDisplay">288 h</span>
     </div>
@@ -287,21 +267,6 @@
     <img class="watermark" id="logoImg" src="MSSO (1).png" alt="MSSO Logo">
 
     <script>
-        // Global Config
-        const CONFIG = {
-            MAX_LEAD: 288,
-            STEP_HOUR: 6,
-            MACAU_LAT: 22.1595,
-            MACAU_LON: 113.5685,
-            REFRESH_INTERVAL_MS: 300000,
-            PROXIES: [
-                "https://corsproxy.io/?",
-                "https://api.allorigins.win/raw?url="
-            ],
-            DM_BASE: "https://deepmind.google.com/science/weatherlab/download/cyclones/FNV3/ensemble/cyclogenesis/csv/FNV3_",
-            UTC_CYCLES: ["00","06","12","18"]
-        };
-
         let map;
         let layerTracks, layerPoints, layerCircles, layerSystems;
         let pyodideInstance = null;
@@ -310,59 +275,43 @@
         let autoRefreshInterval = null;
         let animationInterval = null;
         let playSpeed = 1;
-        let sidebarCollapsed = false;
+        let isPlaying = false; // Toggle state for merged play/stop button
+        const MAX_LEAD_GLOBAL = 288;
+        const STEP_HOUR = 6;
+        const MACAU_LAT = 22.1595;
+        const MACAU_LON = 113.5685;
+
+        // Dual backup CORS proxies (auto-fetch UI removed, logic kept for backend if needed)
+        const PROXIES = [
+            "https://corsproxy.io/?",
+            "https://api.allorigins.win/raw?url="
+        ];
         let proxyIndex = 0;
-        let isParsing = false;
-        let isFetchingRemote = false;
-        let isStaticHost = false;
 
-        // Detect GitHub Pages static host
-        function detectStaticHost() {
-            const host = window.location.hostname;
-            if (host.includes("github.io")) {
-                isStaticHost = true;
-                document.getElementById("autoFetchBtn").disabled = true;
-                setStatus("Auto-refresh disabled: Static hosting blocks remote CSV fetch", true);
-            }
-        }
+        // DeepMind base URL template
+        const BASE_DM = "https://deepmind.google.com/science/weatherlab/download/cyclones/FNV3/ensemble/cyclogenesis/csv/FNV3_";
+        const UTC_HOURS = ["00","06","12","18"];
 
-        // Status text helper
-        function setStatus(text, isError = false) {
-            const el = document.getElementById("fetchStatus");
-            el.textContent = text;
-            el.classList.toggle("status-error", isError);
-        }
-
-        // Disable all control buttons during loading
-        function setControlsDisabled(state) {
-            const btns = document.querySelectorAll(".anim-btn, .speed-btn, #autoFetchBtn");
-            btns.forEach(b => b.disabled = state);
-        }
-
-        // Pure UTC date generator for DeepMind filename
-        function getUtcDateParts() {
-            const now = new Date();
-            const utcY = now.getUTCFullYear();
-            const utcM = String(now.getUTCMonth() + 1).padStart(2, "0");
-            const utcD = String(now.getUTCDate()).padStart(2, "0");
-            const utcH = now.getUTCHours();
-            let targetCycle;
-            if (utcH < 6) targetCycle = "00";
-            else if (utcH < 12) targetCycle = "06";
-            else if (utcH < 18) targetCycle = "12";
-            else targetCycle = "18";
-            return { y: utcY, m: utcM, d: utcD, h: targetCycle };
-        }
-
+        // Get latest available UTC model run URL automatically
         function getLatestFNVUrl() {
-            const dt = getUtcDateParts();
-            const dateStr = `${dt.y}_${dt.m}_${dt.d}`;
-            const raw = `${CONFIG.DM_BASE}${dateStr}T${dt.h}_cyclogenesis.csv`;
-            return CONFIG.PROXIES[proxyIndex] + encodeURIComponent(raw);
+            const now = new Date();
+            const utcHour = now.getUTCHours();
+            let targetUtc;
+            if (utcHour < 6) targetUtc = "00";
+            else if (utcHour <12) targetUtc = "06";
+            else if (utcHour <18) targetUtc = "12";
+            else targetUtc = "18";
+            // Format date string YYYY_MM_DD
+            const year = now.getUTCFullYear();
+            const mon = String(now.getUTCMonth()+1).padStart(2,"0");
+            const day = String(now.getUTCDate()).padStart(2,"0");
+            const dateStr = `${year}_${mon}_${day}`;
+            const rawUrl = `${BASE_DM}${dateStr}T${targetUtc}_cyclogenesis.csv`;
+            return PROXIES[proxyIndex] + encodeURIComponent(rawUrl);
         }
 
         function switchProxy() {
-            proxyIndex = (proxyIndex + 1) % CONFIG.PROXIES.length;
+            proxyIndex = (proxyIndex + 1) % PROXIES.length;
         }
 
         function initMap() {
@@ -402,14 +351,14 @@
                 div.innerHTML = `<span class="legend-dot" style="border-color:${color}"></span><span>${lab}</span>`;
                 legendBox.appendChild(div);
             });
-            // Full connected tracks
+            // Draw full connected tracks
             data.tracks.forEach(track => {
                 const key = `${track.track_id}|${track.sample}`;
                 const pts = pointLookupMap.get(key) || [];
                 const filtered = pts.filter(p => p.lead_time_hours <= maxHour);
-                if (filtered.length >= 2) {
+                if (filtered.length >=2) {
                     const latlngs = filtered.map(p => [p.lat, p.lon]);
-                    L.polyline(latlngs, { color: "#b0b0b0", weight: 1, opacity: 0.5 }).addTo(layerTracks);
+                    L.polyline(latlngs, {color:"#b0b0b0", weight:1, opacity:0.5}).addTo(layerTracks);
                 }
             });
             // Scatter points with popup
@@ -424,51 +373,45 @@
                     MSLP: ${p.mslp} hPa<br>
                     Lon ${p.lon.toFixed(2)}E, Lat ${p.lat.toFixed(2)}N
                 `;
-                L.circleMarker([p.lat, p.lon], { radius: 4, fill: false, stroke: true, color: p.color, weight: 1.4, opacity: 0.5 })
-                    .bindPopup(popup).addTo(layerPoints);
+                L.circleMarker([p.lat, p.lon], {radius:4, fill:false, stroke:true, color:p.color, weight:1.4, opacity:0.5})
+                .bindPopup(popup).addTo(layerPoints);
             });
             // Macau rings
             meta.circle_list.forEach(cfg => {
                 const m = cfg.km * 1000;
-                L.circle([CONFIG.MACAU_LAT, CONFIG.MACAU_LON], { radius: m, color: "#949494", fill: false, weight: 0.5, opacity: 0.5, dashArray: "4 4" }).addTo(layerCircles);
+                L.circle([MACAU_LAT, MACAU_LON], {radius:m, color:"#949494", fill:false, weight:0.5, opacity:0.5, dashArray:"4 4"}).addTo(layerCircles);
             });
-            L.circleMarker([CONFIG.MACAU_LAT, CONFIG.MACAU_LON], { radius: 5, fillColor: "#fff", fillOpacity: 1, stroke: false }).addTo(layerCircles);
+            L.circleMarker([MACAU_LAT, MACAU_LON], {radius:5, fillColor:"#fff", fillOpacity:1, stroke:false}).addTo(layerCircles);
             // T=0 storm markers
             data.initial_systems.forEach(sys => {
                 let c = "#0c0000";
-                for (const [lo, hi, col] of meta.wind_bins) if (sys.wind >= lo && sys.wind <= hi) { c = col; break; }
-                L.circleMarker([sys.lat, sys.lon], { radius: 8, fill: false, stroke: true, color: c, weight: 2 }).addTo(layerSystems);
+                for (const [lo,hi,col] of meta.wind_bins) if (sys.wind >= lo && sys.wind <= hi) {c=col;break;}
+                L.circleMarker([sys.lat, sys.lon], {radius:8, fill:false, stroke:true, color:c, weight:2}).addTo(layerSystems);
             });
-            map.setMaxBounds([[5, 90], [50, 160]]);
+            map.setMaxBounds([[5,90],[50,160]]);
             document.getElementById("loading").classList.add("hidden");
-            isParsing = false;
-            setControlsDisabled(false);
         }
 
-        // Parse CSV via Pyodide, clear cache first
+        // Process CSV via Pyodide shared parser
         async function processRawCsv(rawText, sourceName) {
-            isParsing = true;
-            setControlsDisabled(true);
             const loadingEl = document.getElementById("loading");
             loadingEl.style.display = "flex";
             loadingEl.classList.remove("hidden");
             loadingEl.innerText = `Parsing ${sourceName}`;
-            // Clear old FS file
-            try { pyodideInstance.FS.unlink("/remote_data.csv"); } catch (e) { }
             pyodideInstance.FS.write("/remote_data.csv", rawText);
             const pyCode = `
 import pandas as pd
 import numpy as np
 import json
-csv_file = "/remote_data.csv"
+csv_file = "/remote_data"
 start_row = None
-with open(csv_file,"r") as f:
+with open("/remote_data.csv","r") as f:
     for i,line in enumerate(f):
         if "BEGIN DATA" in line:
             start_row = i+1
             break
 if start_row is None: raise RuntimeError("Missing BEGIN DATA")
-df = pd.read_csv(csv_file, skiprows=start_row)
+df = pd.read_csv("/remote_data.csv", skiprows=start_row)
 df = df.rename(columns={
     "maximum_sustained_wind_speed_knots":"wind",
     "minimum_sea_level_pressure_hpa":"mslp"
@@ -497,7 +440,7 @@ for (tid,samp),g in df.groupby(["track_id","sample"]):
 point_data = df[["track_id","sample","lon","lat","wind","color","lead_time_hours","mslp"]].to_dict("records")
 df0 = df[df["lead_time_hours"]==0]
 init_systems = df0.groupby("track_id",as_index=False).agg(
-    lat=("lat","mean"),lon=("lon","mean"),wind=("wind"),mslp=("mslp")
+    lat=("lat","mean"),lon=("lon"),wind=("wind"),mslp=("mslp")
 ).to_dict("records")
 init_t = pd.to_datetime(df["init_time"].iloc[0]).strftime("%Y-%m-%d %H:%M UTC")
 export = {
@@ -508,200 +451,164 @@ json.dumps(export)
 `;
             const jsonStr = pyodideInstance.runPython(pyCode);
             fullDataset = JSON.parse(jsonStr);
-            // Rebuild lookup
             pointLookupMap.clear();
-            fullDataset.points.forEach(p => {
+            fullDataset.points.forEach(p=>{
                 const k = `${p.track_id}|${p.sample}`;
-                if (!pointLookupMap.has(k)) pointLookupMap.set(k, []);
+                if (!pointLookupMap.has(k)) pointLookupMap.set(k,[]);
                 pointLookupMap.get(k).push(p);
             });
             loadingEl.innerText = "Render full timeline";
-            renderFilteredChart(CONFIG.MAX_LEAD);
+            renderFilteredChart(MAX_LEAD_GLOBAL);
         }
 
-        // Auto fetch remote CSV with proxy retry loop
+        // Auto fetch UI removed, function kept unused
         async function fetchLatestRemote() {
-            if (isFetchingRemote || isStaticHost) return;
-            isFetchingRemote = true;
-            setControlsDisabled(true);
+            const statusEl = document.getElementById("fetchStatus");
             const loadingEl = document.getElementById("loading");
             const url = getLatestFNVUrl();
-            setStatus(`Fetching UTC ${getUtcDateParts().h}Z via proxy ${proxyIndex + 1}`);
+            statusEl.textContent = `Fetching latest UTC run via proxy ${proxyIndex+1}...`;
             try {
-                const res = await fetch(url, { cache: "no-cache" });
+                const res = await fetch(url, {cache:"no-cache"});
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const rawCsv = await res.text();
-                // Clear old refresh timer to avoid duplicate intervals
-                if (autoRefreshInterval) clearInterval(autoRefreshInterval);
-                await processRawCsv(rawCsv, `Remote UTC ${getUtcDateParts().h}Z`);
-                setStatus(`Auto-refresh ON | UTC ${getUtcDateParts().h}Z loaded, proxy #${proxyIndex + 1}`);
-                autoRefreshInterval = setInterval(fetchLatestRemote, CONFIG.REFRESH_INTERVAL_MS);
-            } catch (err) {
+                await processRawCsv(rawCsv, `Remote UTC ${new Date().getUTCHours()}`);
+                statusEl.textContent = `Latest UTC data loaded, proxy #${proxyIndex+1}`;
+            } catch(err) {
                 switchProxy();
-                setStatus(`Proxy ${proxyIndex} failed, retry... Error:${err.message}`, true);
+                statusEl.textContent = `Proxy ${proxyIndex+1} failed, switch proxy & retry... Error:${err.message}`;
                 setTimeout(fetchLatestRemote, 1500);
-                return;
-            } finally {
-                isFetchingRemote = false;
-                setControlsDisabled(false);
             }
         }
 
         // Local file upload handler
         async function handleLocalUpload(file) {
-            if (isParsing) return;
-            // Stop auto refresh
+            const statusEl = document.getElementById("fetchStatus");
             if (autoRefreshInterval) {
                 clearInterval(autoRefreshInterval);
                 autoRefreshInterval = null;
-                setStatus("Auto-refresh OFF (Local file active)");
+                statusEl.textContent = "Auto-refresh OFF (Local file active)";
             }
             const text = await file.text();
             await processRawCsv(text, `Local File: ${file.name}`);
-            setStatus("Auto-refresh OFF | Local CSV loaded");
         }
 
-        // Animation Control Logic
+        // Animation control - merged single Play/Stop toggle
         function stopAnimation() {
-            if (animationInterval) clearInterval(animationInterval);
-            animationInterval = null;
-            const toggleBtn = document.getElementById("playToggleBtn");
-            toggleBtn.classList.remove("playing");
-            toggleBtn.innerText = "▶ Play";
+            if(animationInterval) clearInterval(animationInterval);
+            animationInterval=null;
+            isPlaying = false;
+            const btn = document.getElementById("playStopBtn");
+            btn.textContent = "▶ Play";
+            btn.classList.remove("stop-state");
+            btn.classList.add("play-state");
         }
-        function togglePlay() {
-            if (isParsing) return;
-            const toggleBtn = document.getElementById("playToggleBtn");
-            if (animationInterval) {
-                stopAnimation();
-                return;
-            }
+        function playAnimation() {
             stopAnimation();
-            toggleBtn.classList.add("playing");
-            toggleBtn.innerText = "■ Stop";
             const slider = document.getElementById("timeSlider");
             const delay = 1000 / playSpeed;
-            animationInterval = setInterval(() => {
+            animationInterval = setInterval(()=>{
                 let curr = parseInt(slider.value);
-                if (curr >= CONFIG.MAX_LEAD) { stopAnimation(); return; }
-                curr += CONFIG.STEP_HOUR;
+                if (curr >= MAX_LEAD_GLOBAL) { stopAnimation(); return; }
+                curr += STEP_HOUR;
                 slider.value = curr;
                 document.getElementById("timeDisplay").textContent = `${curr} h`;
                 renderFilteredChart(curr);
             }, delay);
+            isPlaying = true;
+            const btn = document.getElementById("playStopBtn");
+            btn.textContent = "■ Stop";
+            btn.classList.remove("play-state");
+            btn.classList.add("stop-state");
         }
-        function jumpZero() {
-            if (isParsing) return;
-            stopAnimation();
-            const s = document.getElementById("timeSlider");
-            s.value = 0;
-            document.getElementById("timeDisplay").textContent = "0 h";
-            renderFilteredChart(0);
-        }
-        function jumpMax() {
-            if (isParsing) return;
-            stopAnimation();
-            const s = document.getElementById("timeSlider");
-            s.value = CONFIG.MAX_LEAD;
-            document.getElementById("timeDisplay").textContent = `${CONFIG.MAX_LEAD} h`;
-            renderFilteredChart(CONFIG.MAX_LEAD);
+        function togglePlayStop() {
+            if(isPlaying) stopAnimation();
+            else playAnimation();
         }
         function stepBack() {
-            if (isParsing) return;
             stopAnimation();
             const s = document.getElementById("timeSlider");
-            let v = Math.max(0, parseInt(s.value) - CONFIG.STEP_HOUR);
+            let v = Math.max(0, parseInt(s.value)-STEP_HOUR);
             s.value = v;
             document.getElementById("timeDisplay").textContent = `${v} h`;
             renderFilteredChart(v);
         }
         function stepForward() {
-            if (isParsing) return;
             stopAnimation();
             const s = document.getElementById("timeSlider");
-            let v = Math.min(CONFIG.MAX_LEAD, parseInt(s.value) + CONFIG.STEP_HOUR);
+            let v = Math.min(MAX_LEAD_GLOBAL, parseInt(s.value)+STEP_HOUR);
             s.value = v;
             document.getElementById("timeDisplay").textContent = `${v} h`;
             renderFilteredChart(v);
         }
+        function jumpZero() {
+            stopAnimation();
+            const s = document.getElementById("timeSlider");
+            s.value = 0;
+            document.getElementById("timeDisplay").textContent = `0 h`;
+            renderFilteredChart(0);
+        }
+        function jumpMax() {
+            stopAnimation();
+            const s = document.getElementById("timeSlider");
+            s.value = MAX_LEAD_GLOBAL;
+            document.getElementById("timeDisplay").textContent = `${MAX_LEAD_GLOBAL} h`;
+            renderFilteredChart(MAX_LEAD_GLOBAL);
+        }
         function setSpeed(speed) {
             playSpeed = speed;
-            document.querySelectorAll(".speed-btn").forEach(b => {
+            document.querySelectorAll(".speed-btn").forEach(b=>{
                 b.classList.toggle("active", Number(b.dataset.speed) === speed);
             });
-            if (animationInterval) togglePlay();
+            if (animationInterval) playAnimation();
         }
-
-        // Sidebar Collapse Toggle
-        function toggleSidebar() {
-            sidebarCollapsed = !sidebarCollapsed;
+        // Side panel collapse toggle
+        function toggleSidePanel() {
             const panel = document.getElementById("sidePanel");
-            const toggleBtn = document.getElementById("sidebarToggleBtn");
-            const watermark = document.getElementById("logoImg");
-            if (sidebarCollapsed) {
-                panel.classList.add("collapsed");
-                toggleBtn.innerText = "⇨";
-                watermark.classList.add("sidebar-collapsed");
+            const toggleBtn = document.getElementById("panelToggleBtn");
+            panel.classList.toggle("collapsed");
+            if(panel.classList.contains("collapsed")) {
+                toggleBtn.textContent = "▶";
             } else {
-                panel.classList.remove("collapsed");
-                toggleBtn.innerText = "⇦";
-                watermark.classList.remove("sidebar-collapsed");
+                toggleBtn.textContent = "◀";
             }
         }
 
-        // Window resize recalc watermark
-        window.addEventListener("resize", () => {
-            const watermark = document.getElementById("logoImg");
-            if (sidebarCollapsed) watermark.classList.add("sidebar-collapsed");
-            else watermark.classList.remove("sidebar-collapsed");
-        });
-
         window.onload = async () => {
-            detectStaticHost();
             initMap();
             const loadingEl = document.getElementById("loading");
             loadingEl.innerText = "Download Pyodide runtime...";
             pyodideInstance = await loadPyodide();
             loadingEl.innerText = "Load pandas & numpy...";
-            await pyodideInstance.loadPackage(["pandas", "numpy"]);
+            await pyodideInstance.loadPackage(["pandas","numpy"]);
             loadingEl.innerText = "Dashboard Ready";
             loadingEl.classList.add("hidden");
 
             // Local upload bind
-            document.getElementById("csvFileInput").addEventListener("change", async e => {
+            document.getElementById("csvFileInput").addEventListener("change", async e=>{
                 const f = e.target.files[0];
                 if (!f) return;
                 await handleLocalUpload(f);
             });
-            // Remote fetch button
-            document.getElementById("autoFetchBtn").addEventListener("click", fetchLatestRemote);
-            // Timeline slider stop animation on drag
+
+            // Timeline slider
             const slider = document.getElementById("timeSlider");
-            slider.addEventListener("input", () => {
-                stopAnimation();
+            slider.addEventListener("input", ()=>{
                 const h = parseInt(slider.value);
                 document.getElementById("timeDisplay").textContent = `${h} h`;
                 renderFilteredChart(h);
             });
-            // Animation buttons bind
-            document.getElementById("jumpZeroBtn").addEventListener("click", jumpZero);
+
+            // New timeline button binds
+            document.getElementById("playStopBtn").addEventListener("click", togglePlayStop);
             document.getElementById("backBtn").addEventListener("click", stepBack);
-            document.getElementById("playToggleBtn").addEventListener("click", togglePlay);
             document.getElementById("forwardBtn").addEventListener("click", stepForward);
+            document.getElementById("jumpZeroBtn").addEventListener("click", jumpZero);
             document.getElementById("jumpMaxBtn").addEventListener("click", jumpMax);
-            // Speed buttons
-            document.querySelectorAll(".speed-btn").forEach(b => b.addEventListener("click", () => setSpeed(Number(b.dataset.speed))));
-            // Sidebar toggle
-            document.getElementById("sidebarToggleBtn").addEventListener("click", toggleSidebar);
-            // Logo missing hint
-            const logoImg = document.getElementById("logoImg");
-            logoImg.onerror = () => {
-                document.getElementById("logoHint").style.display = "block";
-                logoImg.style.display = "none";
-            };
-            logoImg.onload = () => {
-                document.getElementById("logoHint").style.display = "none";
-            };
+            document.getElementById("panelToggleBtn").addEventListener("click", toggleSidePanel);
+            document.querySelectorAll(".speed-btn").forEach(b=>b.addEventListener("click", ()=>setSpeed(Number(b.dataset.speed))));
+
+            // Hide missing logo
+            document.getElementById("logoImg").onerror = ()=>document.getElementById("logoImg").style.display="none";
         };
     </script>
 </body>
