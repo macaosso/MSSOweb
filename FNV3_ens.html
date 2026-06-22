@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FNV3 Ensemble Cyclogenesis Dashboard</title>
+    <title>FNV3 Ensemble Cyclogenesis Forecast Dashboard</title>
     <!-- Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -65,7 +65,7 @@
         #csvFileInput { display: none; }
         .fetch-status { font-size: 12px; color: var(--text-secondary); max-width: 400px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Animation Control Bar */
+        /* Animation Control Bar (Above Timeline, Original Position) */
         .anim-control-bar {
             width: 100%;
             height: 60px;
@@ -73,27 +73,29 @@
             border-top: 1px solid var(--border-gray);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             padding: 0 30px;
         }
         .anim-btn {
-            padding: 6px 14px;
+            padding: 6px 12px;
             border-radius: 5px;
             border: none;
             color: white;
             font-weight: 500;
             cursor: pointer;
+            min-width: 70px;
         }
-        .play-btn { background: var(--accent-green); }
-        .stop-btn { background: var(--accent-red); }
+        .jump-btn { background: #444654; }
         .step-btn { background: var(--accent-blue); }
+        .play-toggle-btn { background: var(--accent-green); }
+        .play-toggle-btn.playing { background: var(--accent-red); }
         .speed-group {
             margin-left: auto;
             display: flex;
             gap: 8px;
             align-items: center;
         }
-        .speed-label { color: var(--text-secondary); font-size:14px; }
+        .speed-label { color: var(--text-secondary); font-size:14px; margin-right:6px; }
         .speed-btn {
             padding:4px 10px;
             border-radius:4px;
@@ -108,15 +110,41 @@
             border-color: var(--accent-blue-light);
         }
 
-        /* Main Map + Sidebar */
+        /* Main Layout: Map + Collapsible Sidebar */
         .dashboard-body { display: flex; flex: 1; overflow: hidden; }
-        #map { flex: 1; height: 100%; }
+        #map { flex: 1; height: 100%; transition: flex 0.3s ease; }
+        /* Sidebar Toggle Button */
+        .sidebar-toggle-wrap {
+            position: relative;
+            z-index: 1001;
+        }
+        #sidebarToggleBtn {
+            position: absolute;
+            left: -32px;
+            top: 12px;
+            width: 32px;
+            height: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border-gray);
+            color: var(--text-primary);
+            border-radius: 6px 0 0 6px;
+            cursor: pointer;
+        }
         .side-panel {
             width: 220px;
+            min-width: 220px;
             background: var(--bg-card);
             border-left: 1px solid var(--border-gray);
             padding: 16px;
             overflow-y: auto;
+            transition: min-width 0.3s ease, width 0.3s ease, padding 0.3s ease;
+        }
+        .side-panel.collapsed {
+            width: 0;
+            min-width: 0;
+            padding: 0;
+            overflow: hidden;
+            border-left: none;
         }
         .panel-heading {
             font-size: 14px;
@@ -138,7 +166,7 @@
         .meta-card h4 { font-size: 13px; margin-bottom: 6px; color: var(--text-primary); }
         .meta-card p { font-size: 11px; color: var(--text-secondary); line-height: 1.4; }
 
-        /* Timeline Slider */
+        /* Bottom Timeline Slider Bar */
         .timeline-container {
             width: 100%;
             height: 72px;
@@ -177,6 +205,10 @@
         /* Watermark & Popup */
         .watermark {
             position: absolute; top: 70px; right: 240px; z-index: 990; opacity: 0.65; width: 130px;
+            transition: right 0.3s ease;
+        }
+        .watermark.sidebar-collapsed {
+            right: 20px;
         }
         .leaflet-popup-content-wrapper {
             background: var(--bg-panel); color: var(--text-primary); border-radius: 6px;
@@ -201,12 +233,14 @@
         </div>
     </div>
 
-    <!-- Animation Play Control Bar -->
+    <!-- Animation Control Bar (Original position above timeline) -->
     <div class="anim-control-bar">
-        <button class="anim-btn play-btn" id="playBtn">▶ Play</button>
-        <button class="anim-btn stop-btn" id="stopBtn">■ Stop</button>
-        <button class="anim-btn" id="backBtn">◀ Step Back</button>
-        <button class="anim-btn" id="forwardBtn">Step Forward ▶</button>
+        <button class="anim-btn jump-btn" id="jumpZeroBtn">0H</button>
+        <button class="anim-btn step-btn" id="backBtn">◀ Back</button>
+        <!-- Single merged Play/Stop Toggle Button -->
+        <button class="anim-btn play-toggle-btn" id="playToggleBtn">▶ Play</button>
+        <button class="anim-btn step-btn" id="forwardBtn">Forward ▶</button>
+        <button class="anim-btn jump-btn" id="jumpMaxBtn">288H</button>
         <div class="speed-group">
             <span class="speed-label">Speed:</span>
             <button class="speed-btn active" data-speed="1">x1</button>
@@ -215,23 +249,26 @@
         </div>
     </div>
 
-    <!-- Map + Right Legend Panel -->
+    <!-- Map + Collapsible Right Sidebar -->
     <div class="dashboard-body">
         <div id="map"></div>
-        <div class="side-panel" id="sidePanel">
-            <div class="panel-heading">WIND INTENSITY LEGEND</div>
-            <div id="legendBox"></div>
-            <div class="meta-card" id="metaInfoCard">
-                <h4>Forecast Metadata</h4>
-                <p id="metaText">Upload CSV or fetch remote data</p>
+        <div class="sidebar-toggle-wrap">
+            <button id="sidebarToggleBtn">⇨</button>
+            <div class="side-panel" id="sidePanel">
+                <div class="panel-heading">WIND INTENSITY LEGEND</div>
+                <div id="legendBox"></div>
+                <div class="meta-card" id="metaInfoCard">
+                    <h4>Forecast Metadata</h4>
+                    <p id="metaText">Upload CSV or fetch remote data</p>
+                </div>
+                <div class="panel-heading">OPERATIONS</div>
+                <p style="font-size:11px;color:var(--text-secondary);margin-top:8px;">
+                    Drag slider to filter lead time<br>
+                    Click dots to view storm info<br>
+                    Auto fetch auto-refresh every 5 mins<br>
+                    Animation bar for timeline replay
+                </p>
             </div>
-            <div class="panel-heading">OPERATIONS</div>
-            <p style="font-size:11px;color:var(--text-secondary);margin-top:8px;">
-                Drag slider to filter lead time<br>
-                Click dots to view storm info<br>
-                Auto fetch auto-refresh every 5 mins<br>
-                Animation bar for timeline replay
-            </p>
         </div>
     </div>
 
@@ -253,12 +290,13 @@
         let autoRefreshInterval = null;
         let animationInterval = null;
         let playSpeed = 1;
+        let sidebarCollapsed = false;
         const MAX_LEAD_GLOBAL = 288;
         const STEP_HOUR = 6;
         const MACAU_LAT = 22.1595;
         const MACAU_LON = 113.5685;
 
-        // Dual backup CORS proxies to solve overseas link block
+        // Dual backup CORS proxies
         const PROXIES = [
             "https://corsproxy.io/?",
             "https://api.allorigins.win/raw?url="
@@ -269,7 +307,7 @@
         const BASE_DM = "https://deepmind.google.com/science/weatherlab/download/cyclones/FNV3/ensemble/cyclogenesis/csv/FNV3_";
         const UTC_HOURS = ["00","06","12","18"];
 
-        // Get latest available UTC model run URL automatically
+        // Auto get latest UTC run URL
         function getLatestFNVUrl() {
             const now = new Date();
             const utcHour = now.getUTCHours();
@@ -278,7 +316,6 @@
             else if (utcHour <12) targetUtc = "06";
             else if (utcHour <18) targetUtc = "12";
             else targetUtc = "18";
-            // Format date string YYYY_MM_DD
             const year = now.getUTCFullYear();
             const mon = String(now.getUTCMonth()+1).padStart(2,"0");
             const day = String(now.getUTCDate()).padStart(2,"0");
@@ -328,7 +365,7 @@
                 div.innerHTML = `<span class="legend-dot" style="border-color:${color}"></span><span>${lab}</span>`;
                 legendBox.appendChild(div);
             });
-            // Draw full connected tracks
+            // Full connected tracks
             data.tracks.forEach(track => {
                 const key = `${track.track_id}|${track.sample}`;
                 const pts = pointLookupMap.get(key) || [];
@@ -369,7 +406,7 @@
             document.getElementById("loading").classList.add("hidden");
         }
 
-        // Process CSV via Pyodide shared parser
+        // Parse CSV via Pyodide
         async function processRawCsv(rawText, sourceName) {
             const loadingEl = document.getElementById("loading");
             loadingEl.style.display = "flex";
@@ -380,15 +417,15 @@
 import pandas as pd
 import numpy as np
 import json
-csv_file = "/remote_data"
+csv_file = "/remote_data.csv"
 start_row = None
-with open("/remote_data.csv","r") as f:
+with open(csv_file,"r") as f:
     for i,line in enumerate(f):
         if "BEGIN DATA" in line:
             start_row = i+1
             break
 if start_row is None: raise RuntimeError("Missing BEGIN DATA")
-df = pd.read_csv("/remote_data.csv", skiprows=start_row)
+df = pd.read_csv(csv_file, skiprows=start_row)
 df = df.rename(columns={
     "maximum_sustained_wind_speed_knots":"wind",
     "minimum_sea_level_pressure_hpa":"mslp"
@@ -417,7 +454,7 @@ for (tid,samp),g in df.groupby(["track_id","sample"]):
 point_data = df[["track_id","sample","lon","lat","wind","color","lead_time_hours","mslp"]].to_dict("records")
 df0 = df[df["lead_time_hours"]==0]
 init_systems = df0.groupby("track_id",as_index=False).agg(
-    lat=("lat","mean"),lon=("lon"),wind=("wind"),mslp=("mslp")
+    lat=("lat","mean"),lon=("lon","mean"),wind=("wind"),mslp=("mslp")
 ).to_dict("records")
 init_t = pd.to_datetime(df["init_time"].iloc[0]).strftime("%Y-%m-%d %H:%M UTC")
 export = {
@@ -438,7 +475,7 @@ json.dumps(export)
             renderFilteredChart(MAX_LEAD_GLOBAL);
         }
 
-        // Auto fetch latest remote CSV with proxy fallback
+        // Auto fetch latest remote CSV
         async function fetchLatestRemote() {
             const statusEl = document.getElementById("fetchStatus");
             const loadingEl = document.getElementById("loading");
@@ -450,7 +487,6 @@ json.dumps(export)
                 const rawCsv = await res.text();
                 await processRawCsv(rawCsv, `Remote UTC ${new Date().getUTCHours()}`);
                 statusEl.textContent = `Auto-refresh ON | Latest UTC data loaded, proxy #${proxyIndex+1}`;
-                // Auto refresh every 5 minutes
                 if (autoRefreshInterval) clearInterval(autoRefreshInterval);
                 autoRefreshInterval = setInterval(fetchLatestRemote, 300000);
             } catch(err) {
@@ -472,10 +508,23 @@ json.dumps(export)
             await processRawCsv(text, `Local File: ${file.name}`);
         }
 
-        // Animation control
-        function stopAnimation() { if(animationInterval) clearInterval(animationInterval); animationInterval=null; }
-        function playAnimation() {
+        // Animation Control Logic
+        function stopAnimation() {
+            if(animationInterval) clearInterval(animationInterval);
+            animationInterval = null;
+            const toggleBtn = document.getElementById("playToggleBtn");
+            toggleBtn.classList.remove("playing");
+            toggleBtn.innerText = "▶ Play";
+        }
+        function togglePlay() {
+            const toggleBtn = document.getElementById("playToggleBtn");
+            if(animationInterval) {
+                stopAnimation();
+                return;
+            }
             stopAnimation();
+            toggleBtn.classList.add("playing");
+            toggleBtn.innerText = "■ Stop";
             const slider = document.getElementById("timeSlider");
             const delay = 1000 / playSpeed;
             animationInterval = setInterval(()=>{
@@ -486,6 +535,20 @@ json.dumps(export)
                 document.getElementById("timeDisplay").textContent = `${curr} h`;
                 renderFilteredChart(curr);
             }, delay);
+        }
+        function jumpZero() {
+            stopAnimation();
+            const s = document.getElementById("timeSlider");
+            s.value = 0;
+            document.getElementById("timeDisplay").textContent = "0 h";
+            renderFilteredChart(0);
+        }
+        function jumpMax() {
+            stopAnimation();
+            const s = document.getElementById("timeSlider");
+            s.value = MAX_LEAD_GLOBAL;
+            document.getElementById("timeDisplay").textContent = `${MAX_LEAD_GLOBAL} h`;
+            renderFilteredChart(MAX_LEAD_GLOBAL);
         }
         function stepBack() {
             stopAnimation();
@@ -508,7 +571,24 @@ json.dumps(export)
             document.querySelectorAll(".speed-btn").forEach(b=>{
                 b.classList.toggle("active", Number(b.dataset.speed) === speed);
             });
-            if (animationInterval) playAnimation();
+            if (animationInterval) togglePlay();
+        }
+
+        // Sidebar Collapse Toggle
+        function toggleSidebar() {
+            sidebarCollapsed = !sidebarCollapsed;
+            const panel = document.getElementById("sidePanel");
+            const toggleBtn = document.getElementById("sidebarToggleBtn");
+            const watermark = document.getElementById("logoImg");
+            if(sidebarCollapsed) {
+                panel.classList.add("collapsed");
+                toggleBtn.innerText = "⇨";
+                watermark.classList.add("sidebar-collapsed");
+            } else {
+                panel.classList.remove("collapsed");
+                toggleBtn.innerText = "⇦";
+                watermark.classList.remove("sidebar-collapsed");
+            }
         }
 
         window.onload = async () => {
@@ -536,12 +616,16 @@ json.dumps(export)
                 document.getElementById("timeDisplay").textContent = `${h} h`;
                 renderFilteredChart(h);
             });
-            // Animation buttons
-            document.getElementById("playBtn").addEventListener("click", playAnimation);
-            document.getElementById("stopBtn").addEventListener("click", stopAnimation);
+            // Animation buttons bind
+            document.getElementById("jumpZeroBtn").addEventListener("click", jumpZero);
             document.getElementById("backBtn").addEventListener("click", stepBack);
+            document.getElementById("playToggleBtn").addEventListener("click", togglePlay);
             document.getElementById("forwardBtn").addEventListener("click", stepForward);
+            document.getElementById("jumpMaxBtn").addEventListener("click", jumpMax);
+            // Speed buttons
             document.querySelectorAll(".speed-btn").forEach(b=>b.addEventListener("click", ()=>setSpeed(Number(b.dataset.speed))));
+            // Sidebar toggle
+            document.getElementById("sidebarToggleBtn").addEventListener("click", toggleSidebar);
             // Hide missing logo
             document.getElementById("logoImg").onerror = ()=>document.getElementById("logoImg").style.display="none";
         };
