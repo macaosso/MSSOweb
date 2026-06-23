@@ -400,6 +400,41 @@ body {
 .dot-eye {background:#ef4444;}
 .dot-strong {border:2px solid #fb923c; background:transparent;}
 .dot-gale {border:2px solid #38bdf8; background:transparent;}
+/* ========== 颱風命名專用表格樣式（深色主題） ========== */
+.typhoon-table-wrap {
+  margin-top:16px;
+  overflow-x:auto;
+}
+.typhoon-name-table {
+  width:100%;
+  border-collapse: collapse;
+  min-width:720px;
+}
+.typhoon-name-table th,
+.typhoon-name-table td {
+  border:1px solid rgba(124,209,209,0.18);
+  padding:10px 8px;
+  text-align:center;
+  font-size:14px;
+}
+.typhoon-name-table th {
+  background:#1a3838;
+  color:#7cd1d1;
+  font-weight:bold;
+}
+.typhoon-name-table tr:nth-child(even) {
+  background:rgba(255,255,255,0.04);
+}
+.typhoon-name-table tr:hover {
+  background:rgba(124,209,209,0.1);
+}
+@media (max-width:768px) {
+  .typhoon-name-table th,
+  .typhoon-name-table td {
+    padding:8px 4px;
+    font-size:12px;
+  }
+}
 
 /* ✅ 手機響應式調整 */
 @media (max-width:768px) {
@@ -583,6 +618,260 @@ body {
     • 低窪風暴潮威脅：內港、新橋等舊城區地勢低洼，強颱風於澳門以西登陸並疊加天文大潮時，極易發生海水倒灌，是本地颱風災害最致命風險。<br>
     • 城區狹管增風效應：高樓密集、街道狹窄，風流穿行樓宇間產生狹管效應，瞬時陣風顯著加強，大幅提升幕牆碎裂、高空墜物風險。<br>
     • 跨海交通隔離風險：半島與氹仔、路環僅依託三座大橋連接；懸掛八號或以上風球時大橋全面封閉、市內巴士停運，各區短期變為交通孤島。
+  </div>
+</div>
+<!-- ========== 新增颱風命名表卡片 ========== -->
+<div class="info-card card-base">
+  <div class="card-header">📋 西北太平洋及南海熱帶氣旋命名表（2026年起生效）</div>
+  <div class="card-content">
+    <div class="typhoon-table-wrap">
+      <table class="typhoon-name-table">
+        <thead>
+          <tr>
+            <th>來源</th>
+            <th>I</th>
+            <th>II</th>
+            <th>III</th>
+            <th>IV</th>
+            <th>V</th>
+          </tr>
+          <tr>
+            <th></th>
+            <th>名字</th>
+            <th>名字</th>
+            <th>名字</th>
+            <th>名字</th>
+            <th>名字</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>柬埔寨 Cambodia</td>
+            <td>達維 Damrey</td>
+            <td>高基 Koki</td>
+            <td>娜基莉 Nakri</td>
+            <td>科羅旺 Krovanh</td>
+            <td>翠絲 Trases</td>
+          </tr>
+          <tr>
+            <td>中國 China</td>
+            <td>天馬 Tianma</td>
+            <td>銀杏 Yinxing</td>
+            <td>風神 Fengshen</td>
+            <td>杜鵑 Dujuan</td>
+            <td>木蘭 Mulan</td>
+          </tr>
+          <tr>
+            <td>朝鮮 DPR Korea</td>
+            <td>鴻雁 Kirogi</td>
+            <td>簡古維 Gaeguri</td>
+            <td>海鷗 Kalmaegi</td>
+            <td>舒力基 Surigae</td>
+            <td>米雷 Meari</td>
+          </tr>
+          <tr>
+            <td>中國香港 HK, China</td>
+            <td>鴛鴦 Yun-yeung</td>
+            <td>點心 Dim-sum</td>
+            <td>鳳凰 Fung-wong</td>
+            <td>彩雲 Choi-wan</td>
+            <td>青馬 Tsing-ma</td>
+          </tr>
+          <tr>
+            <td>日本 Japan</td>
+            <td>小犬 Koinu</td>
+            <td>希比 Hebi</td>
+            <td>天琴 Koto</td>
+            <td>小熊 Koguma</td>
+            <td>蝎虎 Tokage</td>
+          </tr>
+          <tr>
+            <td>老撾 Lao PDR</td>
+            <td>布拉萬 Bolaven</td>
+            <td>帕布 Pabuk</td>
+            <td>洛鞍 Nokaen</td>
+            <td>薔琵 Champi</td>
+            <td>坡鹿 Ong-mang</td>
+          </tr>
+          <tr>
+            <td>中國澳門 Macau, China</td>
+            <td>三巴 Sanba</td>
+            <td>蝴蝶 Wutip</td>
+            <td>西望洋 Penha</td>
+            <td>煙花 In-Fa</td>
+            <td>梅花 Muifa</td>
+          </tr>
+          <tr>
+            <td>馬來西亞 Malaysia</td>
+            <td>杰拉華 Jelawat</td>
+            <td>聖帕 Sepat</td>
+            <td>鸚鵡 Nuri</td>
+            <td>查帕卡 Cempaka</td>
+            <td>苗柏 Merbok</td>
+          </tr>
+          <tr>
+            <td>米克羅尼西亞 Micronesia</td>
+            <td>蒂魯 Tirou</td>
+            <td>木恩 Mun</td>
+            <td>森拉克 Sinlaku</td>
+            <td>尼伯特 Nepartak</td>
+            <td>南瑪都 Nanmadol</td>
+          </tr>
+          <tr>
+            <td>菲律賓 Philippines</td>
+            <td>馬力斯 Maliksi</td>
+            <td>丹娜絲 Danas</td>
+            <td>黑格比 Hagupit</td>
+            <td>盧碧 Lupit</td>
+            <td>塔拉斯 Talas</td>
+          </tr>
+          <tr>
+            <td>韓國 RO Korea</td>
+            <td>格美 Gaemi</td>
+            <td>百合 Nari</td>
+            <td>薔薇 Jangmi</td>
+            <td>銀河 Mirinae</td>
+            <td>核桃 Hodu</td>
+          </tr>
+          <tr>
+            <td>泰國 Thailand</td>
+            <td>派比安 Prapiroon</td>
+            <td>韋帕 Wipha</td>
+            <td>米克拉 Mekkhala</td>
+            <td>妮妲 Nida</td>
+            <td>玫瑰 Kulap</td>
+          </tr>
+          <tr>
+            <td>美國 U.S.A.</td>
+            <td>瑪莉亞 Maria</td>
+            <td>范斯高 Francisco</td>
+            <td>海高斯 Higos</td>
+            <td>奧麥斯 Omais</td>
+            <td>洛克 Roke</td>
+          </tr>
+          <tr>
+            <td>越南 Viet Nam</td>
+            <td>山神 Son-Tinh</td>
+            <td>竹節草 Co-may</td>
+            <td>巴威 Bavi</td>
+            <td>浮蓮 Luc-Binh</td>
+            <td>桑卡 Sonca</td>
+          </tr>
+          <tr>
+            <td>柬埔寨 Cambodia</td>
+            <td>安比 Ampil</td>
+            <td>羅莎 Krosa</td>
+            <td>美莎克 Maysak</td>
+            <td>燦都 Chanthu</td>
+            <td>納沙 Nesat</td>
+          </tr>
+          <tr>
+            <td>中國 China</td>
+            <td>悟空 Wukong</td>
+            <td>白鹿 Bailu</td>
+            <td>海神 Haishen</td>
+            <td>電母 Dianmu</td>
+            <td>海棠 Haitang</td>
+          </tr>
+          <tr>
+            <td>朝鮮 DPR Korea</td>
+            <td>雲雀 Jongdari</td>
+            <td>楊柳 Podul</td>
+            <td>紅霞 Noul</td>
+            <td>蒲公英 Mindulle</td>
+            <td>蜻蜓 Jamjari</td>
+          </tr>
+          <tr>
+            <td>中國香港 HK, China</td>
+            <td>珊珊 Shanshan</td>
+            <td>玲玲 Lingling</td>
+            <td>白海豚 Dolphin</td>
+            <td>獅子山 Lionrock</td>
+            <td>榕樹 Banyan</td>
+          </tr>
+          <tr>
+            <td>日本 Japan</td>
+            <td>船尾 Tomo</td>
+            <td>劍魚 Kajiki</td>
+            <td>鯨魚 Kujira</td>
+            <td>道璣 Tokei</td>
+            <td>山貓 Yamaneko</td>
+          </tr>
+          <tr>
+            <td>老撾 Lao PDR</td>
+            <td>麗琵 Leepi</td>
+            <td>藍湖 Nongfa</td>
+            <td>燦鴻 Chan-hom</td>
+            <td>南川 Namtheun</td>
+            <td>帕卡 Pakhar</td>
+          </tr>
+          <tr>
+            <td>中國澳門 Macau, China</td>
+            <td>貝碧嘉 Bebinca</td>
+            <td>琵琶 Peipah</td>
+            <td>琵鷺 Peilou</td>
+            <td>瑪瑙 Malou</td>
+            <td>珊瑚 Sanvu</td>
+          </tr>
+          <tr>
+            <td>馬來西亞 Malaysia</td>
+            <td>普拉桑 Pulasan</td>
+            <td>塔巴 Tapah</td>
+            <td>浪卡 Nangka</td>
+            <td>妮亞圖 Nyatoh</td>
+            <td>瑪娃 Mawar</td>
+          </tr>
+          <tr>
+            <td>米克羅尼西亞 Micronesia</td>
+            <td>蘇力 Soulik</td>
+            <td>米娜 Mitag</td>
+            <td>沙德爾 Saudel</td>
+            <td>沙布爾 Sarbul</td>
+            <td>古超 Guchol</td>
+          </tr>
+          <tr>
+            <td>菲律賓 Philippines</td>
+            <td>西馬侖 Cimaron</td>
+            <td>樺加沙 Ragasa</td>
+            <td>紫檀 Narra</td>
+            <td>阿穆丘 Amuyao</td>
+            <td>泰利 Talim</td>
+          </tr>
+          <tr>
+            <td>韓國 RO Korea</td>
+            <td>娜尼 Narae</td>
+            <td>浣熊 Neoguri</td>
+            <td>簡拉維 Gaenari</td>
+            <td>古莎莉 Gosari</td>
+            <td>布里 Bori</td>
+          </tr>
+          <tr>
+            <td>泰國 Thailand</td>
+            <td>布拉帕 Burapha</td>
+            <td>博羅依 Bualoi</td>
+            <td>艾莎尼 Atsani</td>
+            <td>暹芭 Chaba</td>
+            <td>卡努 Khanun</td>
+          </tr>
+          <tr>
+            <td>美國 U.S.A.</td>
+            <td>百里嘉 Barijat</td>
+            <td>麥德姆 Matmo</td>
+            <td>艾濤 Etau</td>
+            <td>艾利 Aere</td>
+            <td>蘭恩 Lan</td>
+          </tr>
+          <tr>
+            <td>越南 Viet Nam</td>
+            <td>花斑 Hoaban</td>
+            <td>夏浪 Halong</td>
+            <td>班朗 Bang-lang</td>
+            <td>桑達 Songda</td>
+            <td>海星 Saobien</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
