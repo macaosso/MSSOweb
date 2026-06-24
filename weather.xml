@@ -2,11 +2,11 @@
 <ActualWeatherBrief>
 <System>
 <SysAuthor>DINF</SysAuthor>
-<SysPubdate>2026-06-24 19:53</SysPubdate>
+<SysPubdate>2026-06-24 22:54</SysPubdate>
 <SysLanguage>0</SysLanguage>
 </System>
 <Custom>
-<ValidFor>2026-06-24 20:00</ValidFor>
+<ValidFor>2026-06-24 23:00</ValidFor>
 <Temperature>
 <MeasureUnit>°C</MeasureUnit>
 <Type>3</Type>
@@ -15,13 +15,13 @@
 <Humidity>
 <MeasureUnit>%</MeasureUnit>
 <Type>3</Type>
-<Value>88</Value>
+<Value>90</Value>
 </Humidity>
 <WindSpeed>
 <MeasureUnit>km/h</MeasureUnit>
 <Type>3</Type>
-<Value>13</Value>
-<WindSpeedDescription>三級</WindSpeedDescription>
+<Value>7</Value>
+<WindSpeedDescription>二級</WindSpeedDescription>
 </WindSpeed>
 <WindDirection>
 <MeasureUnit>°</MeasureUnit>
@@ -39,17 +39,12 @@
 <Type>9</Type>
 <Value>28</Value>
 </Temperature>
-<Rainfall>
-<MeasureUnit>mm</MeasureUnit>
-<Type>5</Type>
-<Value>0.0</Value>
-</Rainfall>
 <Icon>
-<IconName>ww-ca1.gif</IconName>
-<IconURL>https://www.smg.gov.mo/icons/weatherIcon/ww-ca1.gif</IconURL>
+<IconName>ww-ca2.gif</IconName>
+<IconURL>https://www.smg.gov.mo/icons/weatherIcon/ww-ca2.gif</IconURL>
 </Icon>
-<WeatherStatus>a1</WeatherStatus>
-<FeelsLikeLevel>7</FeelsLikeLevel>
-<FeelsLikeDescription>炎熱</FeelsLikeDescription>
+<WeatherStatus>a2</WeatherStatus>
+<FeelsLikeLevel>8</FeelsLikeLevel>
+<FeelsLikeDescription>酷熱</FeelsLikeDescription>
 </Custom>
 </ActualWeatherBrief>
