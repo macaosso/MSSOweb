@@ -2,7 +2,7 @@
 <html lang="zh">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FNV3 Ensemble Cyclogenesis Dashboard</title>
     <!-- Leaflet -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -92,6 +92,24 @@
             margin-bottom: 12px;
             color: var(--text-secondary);
             letter-spacing: 0.5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .panel-heading-toggle {
+            background: transparent;
+            border: none;
+            color: var(--accent-blue-light);
+            font-size: 14px;
+            cursor: pointer;
+        }
+        .panel-collapsible-block {
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            max-height: 2000px;
+        }
+        .panel-collapsible-block.collapse {
+            max-height: 0;
         }
         .legend-item { display: flex; align-items: center; gap: 10px; margin: 8px 0; font-size: 12px; color: var(--text-secondary); }
         .legend-dot {
@@ -178,7 +196,54 @@
             border-color: var(--accent-blue-light);
         }
 
-        /* Bottom Timeline Slider Bar (整合全部动画按钮) */
+        /* Mobile Settings Section */
+        .mobile-setting-row {
+            display:flex;
+            justify-content: space-between;
+            align-items:center;
+            font-size:11px;
+            color:var(--text-secondary);
+            padding:6px 0;
+            border-bottom:1px solid var(--border-gray);
+        }
+        .mobile-setting-row:last-child {
+            border-bottom:none;
+        }
+        /* Toggle Switch Style */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 18px;
+        }
+        .toggle-switch input { opacity: 0; width:0; height:0; }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #444;
+            transition: .3s;
+            border-radius: 18px;
+        }
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .toggle-slider {
+            background-color: var(--accent-blue-light);
+        }
+        input:checked + .toggle-slider:before {
+            transform: translateX(16px);
+        }
+
+        /* Bottom Timeline Slider Bar */
         .timeline-container {
             width: 100%;
             height: 72px;
@@ -274,6 +339,20 @@
         /* Hide native leaflet zoom control white bg */
         .leaflet-control-zoom { background: var(--bg-card) !important; border: 1px solid var(--border-gray) !important; }
         .leaflet-control-zoom a { color: var(--text-primary) !important; background: transparent !important; }
+
+        /* MOBILE MEDIA QUERY (≤768px) */
+        @media screen and (max-width:768px) {
+            .dashboard-header { height:52px; padding:0 12px; }
+            .dashboard-title { font-size:15px; }
+            .upload-btn { padding:6px 10px; font-size:11px; }
+            .side-panel { width:180px; padding:10px; }
+            .timeline-container { height:60px; gap:6px; padding:0 10px; }
+            .anim-btn, .timeline-fixed-btn { padding:4px 6px; font-size:11px; }
+            .time-value { min-width:60px; font-size:14px; }
+            .watermark { width:90px; top:60px; right:190px; }
+            .side-panel.collapsed ~ .watermark { right:8px; }
+            .panel-heading { font-size:12px; }
+        }
     </style>
 </head>
 <body>
@@ -290,14 +369,12 @@
         </div>
     </div>
 
-    <!-- Main Body: Map + Right Side Panel Wrapper (with fold toggle) -->
+    <!-- Main Body: Map + Right Side Panel Wrapper -->
     <div class="dashboard-body">
         <div id="map"></div>
 
         <div class="side-panel-wrap">
-            <!-- Fold/Expand Toggle Button -->
             <button class="panel-toggle-btn" id="panelToggle">◀</button>
-            <!-- Right Side Info & Legend Panel -->
             <div class="side-panel" id="sidePanel">
                 <div class="panel-heading">WIND INTENSITY LEGEND</div>
                 <div id="legendBox"></div>
@@ -306,27 +383,53 @@
                     <p id="metaText">Upload CSV or load remote FNV3 data to load forecast information</p>
                 </div>
 
-                <!-- Active Cyclones Card (New, placed before Track Filter) -->
                 <div class="active-cyclone-card" id="activeCycloneCard">
                     <h4>Active Cyclones @ Current Lead Time</h4>
                     <div id="activeCycloneList"></div>
                 </div>
 
-                <!-- MULTI SELECT Track ID Filter (Replaced with Tick Checkbox List) -->
+                <!-- TRACK FILTER -->
                 <div class="panel-heading">TRACK FILTER (TICK BOXES)</div>
                 <div style="margin:8px 0;">
                     <label style="font-size:11px;color:var(--text-secondary);display:block;margin-bottom:4px;">Tick boxes to select tracks:</label>
-                    <!-- Tick checkbox container replaces native multi-select -->
-                    <div class="track-checkbox-container" id="trackCheckboxList">
-                        <!-- Checkboxes injected by JS dynamically -->
-                    </div>
+                    <div class="track-checkbox-container" id="trackCheckboxList"></div>
                 </div>
                 <p id="trackFilterHint" style="font-size:11px;color:var(--accent-blue-light);margin-top:6px;"></p>
-                <!-- Split Button Group -->
                 <div class="track-btn-group">
                     <button class="track-filter-btn" id="deselectAllBtn">Deselect All</button>
                     <button class="track-filter-btn" id="showAllBtn">Show All Tracks</button>
                     <button class="track-filter-btn wp" id="selectWPBtn" style="grid-column: span 2;">Select Only WP Tracks</button>
+                </div>
+
+                <!-- NEW MOBILE SETTINGS SECTION -->
+                <div style="margin-top:16px;">
+                    <div class="panel-heading">
+                        MOBILE DISPLAY SETTINGS
+                        <button class="panel-heading-toggle" id="mobileSettingToggle">−</button>
+                    </div>
+                    <div class="panel-collapsible-block" id="mobileSettingBlock">
+                        <div class="mobile-setting-row">
+                            <span>Auto collapse panel on mobile load</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="autoCollapseMobile">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="mobile-setting-row">
+                            <span>Smaller storm markers for mobile</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="smallMarkerMobile">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="mobile-setting-row">
+                            <span>Slow animation playback on mobile</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="slowAnimMobile">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="panel-heading" style="margin-top:16px;">MAP CONTROLS</div>
@@ -339,7 +442,7 @@
         </div>
     </div>
 
-    <!-- Bottom Timeline Slider Bar (整合全部动画控制按钮) -->
+    <!-- Bottom Timeline Slider Bar -->
     <div class="timeline-container">
         <button class="timeline-fixed-btn" data-val="0">⏮</button>
         <button class="anim-btn step-btn" id="backBtn">Back</button>
@@ -358,8 +461,7 @@
         </div>
     </div>
 
-    <!-- MSSO Watermark -->
-    <img class="watermark" id="logoImg" src="icons/MSSO (1).png" alt="MSSO Logo">
+    <img class="watermark" id="logoImg" src="MSSO (1).png" alt="MSSO Logo">
 
     <script>
         let map;
@@ -374,11 +476,23 @@
         const STEP_HOUR = 6;
         const MACAU_LAT = 22.1595;
         const MACAU_LON = 113.5685;
-        // Multi track filter array: empty = show all tracks
         let activeFilterTrackIds = [];
 
+        // Mobile Settings State Object
+        const mobileSettings = {
+            autoCollapsePanel: false,
+            smallMarkers: false,
+            slowAnimation: false,
+            panelOpen: true
+        };
+
+        // Check if device is mobile screen width
+        function isMobileScreen() {
+            return window.innerWidth <= 768;
+        }
+
         function initMap() {
-            map = L.map('map', { minZoom: 3, maxZoom: 8 }).setView([28, 125], 4);
+            map = L.map('map', { minZoom: 1, maxZoom: 10 }).setView([28, 125], 4);
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 attribution: '&copy; CARTO Dark Map', subdomains: 'abcd'
             }).addTo(map);
@@ -410,8 +524,6 @@
 
             const activePoints = fullDataset.points.filter(p => p.lead_time_hours <= maxHour);
             const uniqueActiveTids = [...new Set(activePoints.map(p => p.track_id))].sort((a,b)=>a-b);
-
-            // Only keep WP tracks
             const wpTracks = uniqueActiveTids.filter(tid => String(tid).toUpperCase().startsWith("WP"));
 
             if (wpTracks.length === 0) {
@@ -422,15 +534,10 @@
             let html = "";
             wpTracks.forEach(tid => {
                 const initSys = fullDataset.initial_systems.find(s => String(s.track_id) === String(tid));
-                // All points of this track across all forecast hours
                 const allPointsOfTrack = fullDataset.points.filter(p => String(p.track_id) === String(tid));
-                // Get maximum existing lead hour for this track (when the storm dissipates)
                 const trackMaxLead = Math.max(...allPointsOfTrack.map(p => p.lead_time_hours));
-
-                // Core condition: if track's last lead time < current slider maxHour → skip this cyclone (already dissipated)
                 if (trackMaxLead < maxHour) return;
 
-                // Only process if track still exists at current lead time
                 const trackAllPoints = activePoints.filter(p => String(p.track_id) === String(tid));
                 const latestPoint = trackAllPoints.sort((a,b)=>b.lead_time_hours - a.lead_time_hours)[0];
 
@@ -441,15 +548,11 @@
                 const currLat = latestPoint ? latestPoint.lat.toFixed(2) : "N/A";
                 const currLead = latestPoint ? latestPoint.lead_time_hours : 0;
 
-                // Convert knots to km/h
                 const initWindKmh = initWind !== "N/A" ? Math.round(initWind * 1.852) : "N/A";
                 const currWindKmh = currWindKt !== "N/A" ? Math.round(currWindKt * 1.852) : "N/A";
 
-                // UTC valid time + UTC+8 MST
                 const validDateUTC = new Date(initDateObj.getTime() + currLead * 3600000);
                 const validDateCST = new Date(validDateUTC.getTime() + 8 * 3600000);
-
-                // Format MST date & hour
                 const cstY = validDateCST.getUTCFullYear();
                 const cstM = String(validDateCST.getUTCMonth() + 1).padStart(2, "0");
                 const cstD = String(validDateCST.getUTCDate()).padStart(2, "0");
@@ -469,12 +572,10 @@
                 `;
             });
 
-            // After filtering out dissipated storms, if nothing left
             if (html === "") {
                 listEl.innerHTML = "<div class='no-active-cyclone'>No active WP cyclones remaining at this lead time</div>";
                 return;
             }
-
             listEl.innerHTML = html;
         }
 
@@ -484,8 +585,9 @@
             const data = fullDataset;
             const meta = data.meta;
             const KM_PER_DEG = 111.32;
+            const markerRadius = mobileSettings.smallMarkers ? 2.5 : 4;
+            const initMarkerRadius = mobileSettings.smallMarkers ? 5 : 8;
 
-            // Update active cyclone info card every render
             updateActiveCycloneInfo(maxHour);
 
             document.getElementById("metaText").innerHTML = `
@@ -503,12 +605,9 @@
                 legendBox.appendChild(div);
             });
 
-            // Draw track lines with multi-track filter
             data.tracks.forEach(track => {
                 const tidStr = String(track.track_id);
-                // Empty array = show all; else only draw selected IDs
                 if (activeFilterTrackIds.length > 0 && !activeFilterTrackIds.includes(tidStr)) return;
-
                 const trackKey = `${track.track_id}|${track.sample}`;
                 const trackPoints = pointLookupMap.get(trackKey) || [];
                 const filteredPoints = trackPoints.filter(p => p.lead_time_hours <= maxHour);
@@ -518,7 +617,6 @@
                 }
             });
 
-            // Filter scatter points with multi-track
             let filteredPoints = data.points.filter(p => p.lead_time_hours <= maxHour);
             if (activeFilterTrackIds.length > 0) {
                 filteredPoints = filteredPoints.filter(p => activeFilterTrackIds.includes(String(p.track_id)));
@@ -535,11 +633,10 @@
                     Position: ${p.lon.toFixed(2)}°E, ${p.lat.toFixed(2)}°N
                 `;
                 L.circleMarker([p.lat, p.lon], {
-                    radius: 4, fill: false, stroke: true, color: p.color, weight: 1.4, opacity: 0.5
+                    radius: markerRadius, fill: false, stroke: true, color: p.color, weight: 1.4, opacity: 0.5
                 }).bindPopup(popupText).addTo(layerPoints);
             });
 
-            // Macau rings
             meta.circle_list.forEach(cfg => {
                 const radiusM = cfg.km * 1000;
                 L.circle([MACAU_LAT, MACAU_LON], {
@@ -548,97 +645,118 @@
             });
             L.circleMarker([MACAU_LAT, MACAU_LON], { radius: 5, fillColor: "#fff", fillOpacity: 1, stroke: false }).addTo(layerCircles);
 
-            // Initial 0h storm markers multi filter
             data.initial_systems.forEach(sys => {
                 const tidStr = String(sys.track_id);
                 if (activeFilterTrackIds.length > 0 && !activeFilterTrackIds.includes(tidStr)) return;
-
                 let sysColor = "#0c0000";
                 for (const [lo, hi, col] of meta.wind_bins) {
                     if (sys.wind >= lo && sys.wind <= hi) { sysColor = col; break; }
                 }
                 L.circleMarker([sys.lat, sys.lon], {
-                    radius: 8, fill: false, stroke: true, color: sysColor, weight: 2
+                    radius: initMarkerRadius, fill: false, stroke: true, color: sysColor, weight: 2
                 }).addTo(layerSystems);
             });
 
-            map.setMaxBounds([[5,90], [50,160]]);
+            
             document.getElementById("loading").classList.add("hidden");
         }
 
-        // Populate tick checkbox list (ALL tracks selected by default)
         function populateTrackSelector() {
             const checkboxContainer = document.getElementById("trackCheckboxList");
             const hintEl = document.getElementById("trackFilterHint");
             checkboxContainer.innerHTML = "";
-
             const uniqueTrackIds = [...new Set(fullDataset.points.map(p => p.track_id))].sort((a,b) => a - b);
-
-            // Default: all tracks are selected
             activeFilterTrackIds = uniqueTrackIds.map(id => String(id));
 
             uniqueTrackIds.forEach(tid => {
                 const wrapper = document.createElement("label");
                 wrapper.className = "track-checkbox-item";
                 wrapper.dataset.trackid = tid;
-
                 const checkbox = document.createElement("input");
                 checkbox.type = "checkbox";
                 checkbox.value = tid;
-                // Auto tick every box
                 checkbox.checked = true;
-
                 const labelText = document.createTextNode(`Track ${tid}`);
-
                 wrapper.appendChild(checkbox);
                 wrapper.appendChild(labelText);
                 checkboxContainer.appendChild(wrapper);
-
-                // Listen tick change for each box
                 checkbox.addEventListener("change", () => {
                     syncFilterFromCheckboxes();
-                    const currentHour = parseInt(document.getElementById("timeSlider").value);
-                    renderFilteredChart(currentHour);
+                    renderFilteredChart(parseInt(document.getElementById("timeSlider").value));
                 });
             });
-
             hintEl.textContent = `Total unique tracks: ${uniqueTrackIds.length} (All selected)`;
         }
 
-        // Sync activeFilterTrackIds from all checked tick boxes
         function syncFilterFromCheckboxes() {
             const allCheckboxes = document.querySelectorAll("#trackCheckboxList input[type='checkbox']:checked");
             activeFilterTrackIds = Array.from(allCheckboxes).map(cb => cb.value);
         }
 
-        // 1. Deselect All Tracks (untick all)
         function deselectAllTracks() {
             activeFilterTrackIds = [];
-            const allCheckboxes = document.querySelectorAll("#trackCheckboxList input[type='checkbox']");
-            allCheckboxes.forEach(cb => cb.checked = false);
-            const currentHour = parseInt(document.getElementById("timeSlider").value);
-            renderFilteredChart(currentHour);
+            document.querySelectorAll("#trackCheckboxList input[type='checkbox']").forEach(cb => cb.checked = false);
+            renderFilteredChart(parseInt(document.getElementById("timeSlider").value));
         }
-
-        // 2. Show All Tracks (tick all)
         function showAllTracks() {
-            const allCheckboxes = document.querySelectorAll("#trackCheckboxList input[type='checkbox']");
-            allCheckboxes.forEach(cb => cb.checked = true);
+            document.querySelectorAll("#trackCheckboxList input[type='checkbox']").forEach(cb => cb.checked = true);
             syncFilterFromCheckboxes();
-            const currentHour = parseInt(document.getElementById("timeSlider").value);
-            renderFilteredChart(currentHour);
+            renderFilteredChart(parseInt(document.getElementById("timeSlider").value));
         }
-
-        // 3. Select Only WP Tracks
         function selectOnlyWPTracks() {
-            const allCheckboxes = document.querySelectorAll("#trackCheckboxList input[type='checkbox']");
-            allCheckboxes.forEach(cb => {
-                const tid = cb.value;
-                cb.checked = String(tid).toUpperCase().startsWith("WP");
+            document.querySelectorAll("#trackCheckboxList input[type='checkbox']").forEach(cb => {
+                cb.checked = String(cb.value).toUpperCase().startsWith("WP");
             });
             syncFilterFromCheckboxes();
-            const currentHour = parseInt(document.getElementById("timeSlider").value);
-            renderFilteredChart(currentHour);
+            renderFilteredChart(parseInt(document.getElementById("timeSlider").value));
+        }
+
+        // Mobile Setting Toggle Handlers
+        function bindMobileSettingControls() {
+            const mobileBlock = document.getElementById("mobileSettingBlock");
+            const toggleBtn = document.getElementById("mobileSettingToggle");
+            toggleBtn.addEventListener("click", ()=>{
+                mobileSettings.panelOpen = !mobileSettings.panelOpen;
+                if(mobileSettings.panelOpen) {
+                    mobileBlock.classList.remove("collapse");
+                    toggleBtn.textContent = "−";
+                } else {
+                    mobileBlock.classList.add("collapse");
+                    toggleBtn.textContent = "+";
+                }
+            });
+
+            // Auto Collapse Panel Switch
+            const autoCollapseInput = document.getElementById("autoCollapseMobile");
+            autoCollapseInput.addEventListener("change", e=>{
+                mobileSettings.autoCollapsePanel = e.target.checked;
+            });
+            // Small Marker Switch
+            const smallMarkerInput = document.getElementById("smallMarkerMobile");
+            smallMarkerInput.addEventListener("change", e=>{
+                mobileSettings.smallMarkers = e.target.checked;
+                if(fullDataset) renderFilteredChart(parseInt(document.getElementById("timeSlider").value));
+            });
+            // Slow Animation Switch
+            const slowAnimInput = document.getElementById("slowAnimMobile");
+            slowAnimInput.addEventListener("change", e=>{
+                mobileSettings.slowAnimation = e.target.checked;
+                if(mobileSettings.slowAnimation) playSpeed = 0.5;
+                else playSpeed = 1;
+                document.querySelectorAll(".speed-btn").forEach(btn=>{
+                    btn.classList.remove("active");
+                    if(Number(btn.dataset.speed) === playSpeed) btn.classList.add("active");
+                });
+                if(animationInterval) playAnimation();
+            });
+
+            // Auto apply mobile collapse on load
+            if(isMobileScreen()) {
+                autoCollapseInput.checked = true;
+                mobileSettings.autoCollapsePanel = true;
+                document.getElementById("sidePanel").classList.add("collapsed");
+                document.getElementById("panelToggle").textContent = "▶";
+            }
         }
 
         // Animation Controls
@@ -661,9 +779,8 @@
             updatePlayStopBtnUI();
         }
         function togglePlayStop() {
-            if(isPlaying) {
-                stopAnimation();
-            } else {
+            if(isPlaying) stopAnimation();
+            else {
                 const slider = document.getElementById("timeSlider");
                 if(parseInt(slider.value) >= MAX_LEAD_GLOBAL) slider.value = 0;
                 playAnimation();
@@ -677,10 +794,7 @@
             const delayMs = 1000 / playSpeed;
             animationInterval = setInterval(()=>{
                 let current = parseInt(slider.value);
-                if(current >= MAX_LEAD_GLOBAL) {
-                    stopAnimation();
-                    return;
-                }
+                if(current >= MAX_LEAD_GLOBAL) { stopAnimation(); return; }
                 current += STEP_HOUR;
                 slider.value = current;
                 document.getElementById("timeDisplay").textContent = `${current} h`;
@@ -706,7 +820,7 @@
             renderFilteredChart(current);
         }
         function setSpeed(speed) {
-            playSpeed = speed;
+            playSpeed = mobileSettings.slowAnimation ? 0.5 : speed;
             document.querySelectorAll(".speed-btn").forEach(btn=>{
                 btn.classList.remove("active");
                 if(Number(btn.dataset.speed) === speed) btn.classList.add("active");
@@ -725,15 +839,13 @@
             const panel = document.getElementById("sidePanel");
             const toggleBtn = document.getElementById("panelToggle");
             panel.classList.toggle("collapsed");
-            if(panel.classList.contains("collapsed")) {
-                toggleBtn.textContent = "▶";
-            } else {
-                toggleBtn.textContent = "◀";
-            }
+            if(panel.classList.contains("collapsed")) toggleBtn.textContent = "▶";
+            else toggleBtn.textContent = "◀";
         }
 
         window.onload = async () => {
             initMap();
+            bindMobileSettingControls();
             const loadingEl = document.getElementById("loading");
             loadingEl.innerText = "Downloading Pyodide & core libraries...";
             pyodideInstance = await loadPyodide();
@@ -771,7 +883,7 @@
             })
             document.getElementById("panelToggle").addEventListener("click", toggleSidePanel);
 
-            // New Track Filter Buttons
+            // Track filter buttons
             document.getElementById("deselectAllBtn").addEventListener("click", deselectAllTracks);
             document.getElementById("showAllBtn").addEventListener("click", showAllTracks);
             document.getElementById("selectWPBtn").addEventListener("click", selectOnlyWPTracks);
@@ -783,7 +895,6 @@
             updatePlayStopBtnUI();
         };
 
-        // Parse CSV via Pyodide
         async function processCsvText(rawCsvText, sourceName) {
             const loadingEl = document.getElementById("loading");
             loadingEl.style.display = "flex";
@@ -885,7 +996,6 @@ json.dumps(export)
             });
 
             populateTrackSelector();
-
             loadingEl.innerText = "Render full 288h ensemble map";
             renderFilteredChart(MAX_LEAD_GLOBAL);
         }
