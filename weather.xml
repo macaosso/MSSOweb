@@ -2,11 +2,11 @@
 <ActualWeatherBrief>
 <System>
 <SysAuthor>DINF</SysAuthor>
-<SysPubdate>2026-06-26 04:55</SysPubdate>
+<SysPubdate>2026-06-26 05:55</SysPubdate>
 <SysLanguage>0</SysLanguage>
 </System>
 <Custom>
-<ValidFor>2026-06-26 05:00</ValidFor>
+<ValidFor>2026-06-26 06:00</ValidFor>
 <Temperature>
 <MeasureUnit>°C</MeasureUnit>
 <Type>3</Type>
@@ -15,19 +15,19 @@
 <Humidity>
 <MeasureUnit>%</MeasureUnit>
 <Type>3</Type>
-<Value>92</Value>
+<Value>91</Value>
 </Humidity>
 <WindSpeed>
 <MeasureUnit>km/h</MeasureUnit>
 <Type>3</Type>
-<Value>4</Value>
+<Value>3</Value>
 <WindSpeedDescription>微風</WindSpeedDescription>
 </WindSpeed>
 <WindDirection>
 <MeasureUnit>°</MeasureUnit>
 <Type>3</Type>
-<Value>NNW</Value>
-<WindDescription>西北偏北</WindDescription>
+<Value>NW</Value>
+<WindDescription>西北</WindDescription>
 </WindDirection>
 <Icon>
 <IconName>ww-c03.gif</IconName>
