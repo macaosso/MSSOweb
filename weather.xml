@@ -2,32 +2,32 @@
 <ActualWeatherBrief>
 <System>
 <SysAuthor>DINF</SysAuthor>
-<SysPubdate>2026-06-26 20:55</SysPubdate>
+<SysPubdate>2026-06-26 22:55</SysPubdate>
 <SysLanguage>0</SysLanguage>
 </System>
 <Custom>
-<ValidFor>2026-06-26 21:00</ValidFor>
+<ValidFor>2026-06-26 23:00</ValidFor>
 <Temperature>
 <MeasureUnit>°C</MeasureUnit>
 <Type>3</Type>
-<Value>26</Value>
+<Value>27</Value>
 </Temperature>
 <Humidity>
 <MeasureUnit>%</MeasureUnit>
 <Type>3</Type>
-<Value>94</Value>
+<Value>91</Value>
 </Humidity>
 <WindSpeed>
 <MeasureUnit>km/h</MeasureUnit>
 <Type>3</Type>
-<Value>1</Value>
-<WindSpeedDescription>靜止</WindSpeedDescription>
+<Value>6</Value>
+<WindSpeedDescription>微風</WindSpeedDescription>
 </WindSpeed>
 <WindDirection>
 <MeasureUnit>°</MeasureUnit>
 <Type>3</Type>
-<Value>E</Value>
-<WindDescription>東</WindDescription>
+<Value>S</Value>
+<WindDescription>南</WindDescription>
 </WindDirection>
 <Temperature>
 <MeasureUnit>°C</MeasureUnit>
