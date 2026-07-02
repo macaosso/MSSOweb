@@ -923,8 +923,9 @@ function fetchTyphoon(){
     const t=Date.now();
     return fetch(`https://corsproxy.io/?https://xml.smg.gov.mo/c_typhoon.xml?t=${t}`)
     .then(r=>r.text()).then(x=>{
-        const txt=x.trim();
-        document.getElementById("typhoon-info").innerText=txt.includes("沒有熱帶氣旋")?"現時並沒有熱帶氣旋信號。":txt;
+        const doc=new DOMParser().parseFromString(x,"text/xml");
+        const ttsText = doc.querySelector("TTS")?.textContent?.trim() || "現時並沒有熱帶氣旋信號。";
+        document.getElementById("typhoon-info").innerText = ttsText;
     });
 }
 
