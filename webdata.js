@@ -104,3 +104,74 @@ window.tcInfo = {
     //wind41: { ne: 0, se: 0, sw: 0, nw: 0 }, 
     //wind88: { ne: 0, se: 0, sw: 0,  nw: 0 } 
  // }，
+
+
+// tc_warning_data.js 獨立數據層：所有表格數據在這裡修改
+const TC_WARNING_DATA = {
+  // 更新時間文字
+  updateTimeText: "2026-07-14  01:30 MST",
+  // 熱帶氣旋名稱
+  cycloneName: "99W",
+  // 表格行數據：對應截圖每一行
+  tableRows: [
+    { signal: "戒備警報", period: "已發出", probability: "" },
+    { signal: "強風警報", period: "4日下午", probability: "高" },
+    { signal: "烈風警報", period: "4日晚間至5日凌晨", probability: "較低至中等" },
+    { signal: "暴風警報", period: "4日日間", probability: "高" },
+    { signal: "颶風警報", period: "", probability: "較低至中等" },
+    { signal: "風暴潮觀察警報", period: "4日晚間至5日凌晨", probability: "較低至中等" },
+    { signal: "風暴潮戒備警報", period: "4日日間", probability: "高" },
+    { signal: "風暴潮危險警報", period: "", probability: "較低至中等" },    
+  ]
+};
+
+function renderTcWarningTable(data) {
+  // 1. 更新卡片標題右側更新時間
+  const timeEl = document.querySelector("#tcForecastTableCard .tc-update-time");
+  if(timeEl) timeEl.textContent = data.updateTimeText;
+
+  // 2. 拿到表格容器，清空舊內容
+  const container = document.getElementById("tcTableContent");
+  if(!container) return;
+  container.innerHTML = "";
+
+  // 3. 拼裝完整表格HTML
+  let tableHtml = `
+    <table class="tc-warning-table">
+      <thead>
+        <tr>
+          <th>警告信號</th>
+          <th>預計可能發佈時段</th>
+          <th>可能性</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+  // 遍歷數據生成每一行
+  data.tableRows.forEach(row => {
+    tableHtml += `
+      <tr>
+        <td>${row.signal}</td>
+        <td>${row.period}</td>
+        <td>${row.probability}</td>
+      </tr>
+    `;
+  });
+  tableHtml += `</tbody></table>`;
+
+  // 4. 插入到頁面
+  container.innerHTML = tableHtml;
+}
+
+/**
+ * 外部更新數據接口：後續切換氣旋/更新數據直接呼叫這個函數
+ * @param {Object} newData 新的表格數據
+ */
+function refreshTcWarningTable(newData) {
+  renderTcWarningTable(newData);
+}
+
+// 頁面載入自動渲染初始數據
+window.addEventListener("DOMContentLoaded", () => {
+  renderTcWarningTable(TC_WARNING_DATA);
+});
