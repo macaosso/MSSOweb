@@ -105,23 +105,19 @@ window.tcInfo = {
     //wind88: { ne: 0, se: 0, sw: 0,  nw: 0 } 
  // }，
 
-
-// tc_warning_data.js 獨立數據層：所有表格數據在這裡修改
 const TC_WARNING_DATA = {
-  // 更新時間文字
-  updateTimeText: "2026-07-14  01:30 MST",
-  // 熱帶氣旋名稱
-  cycloneName: "99W",
-  // 表格行數據：對應截圖每一行
+  mainTitle: "受熱帶氣旋 99W 可能發佈之警報",
+  updateTimeText: "2026-07-14  01:30 MST 更新",
   tableRows: [
-    { signal: "戒備警報", period: "已發出", probability: "" },
-    { signal: "強風警報", period: "4日下午", probability: "高" },
-    { signal: "烈風警報", period: "4日晚間至5日凌晨", probability: "較低至中等" },
-    { signal: "暴風警報", period: "4日日間", probability: "高" },
-    { signal: "颶風警報", period: "", probability: "較低至中等" },
-    { signal: "風暴潮觀察警報", period: "4日晚間至5日凌晨", probability: "較低至中等" },
-    { signal: "風暴潮戒備警報", period: "4日日間", probability: "高" },
-    { signal: "風暴潮危險警報", period: "", probability: "較低至中等" },    
+    { signal: "注意警報", period: "已發出", probability: "" },
+    { signal: "戒備警報", period: "14日早上", probability: "中等" },
+    { signal: "強風警報", period: "14日日間", probability: "中等" },
+    { signal: "烈風警報", period: "", probability: "偏低" },
+    { signal: "暴風警報", period: "", probability: "" },
+    { signal: "颶風警報", period: "", probability: "" },
+    { signal: "風暴潮觀察警報", period: "14日早上", probability: "中等" },
+    { signal: "風暴潮戒備警報", period: "", probability: "" },
+    { signal: "風暴潮危險警報", period: "", probability: "" },    
   ]
 };
 
