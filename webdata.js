@@ -73,15 +73,18 @@ const pastPoints = [
   
   
 ];
+const hours = [0,4];
+const radii = [15,40];
+const macau = [22.1595, 113.5685];
 
 const forecastPoints = [
    //Forecast hour 0: base point (0h)
   {
-    lat:116.2, lon:117.4, time: "07-14 04H", wind: 55,
+    lat:21.8, lon:114.4, time: "07-14 04H", wind: 40,
     wind41: { ne: 0, nw: 0, sw: 0, se: 0 }, 
     wind88: { ne: 0, nw: 0, sw: 0, se: 0 } 
   },
-  {lat:117.0, lon:114.7, time: "07-02 04H", wind: 65},
+  {lat:22.0, lon:114, time: "07-02 08H", wind: 40},
 
 ];
 
@@ -103,15 +106,15 @@ window.tcInfo = {
 
 const TC_WARNING_DATA = {
   mainTitle: "受熱帶氣旋 99W 可能發佈之警報",
-  updateTimeText: "2026-07-14  01:30 MST 更新",
+  updateTimeText: "2026-07-14  05:30 MST 更新",
   tableRows: [
     { signal: "注意警報", period: "07月13日22時20分發出", probability: "現正生效" },
     { signal: "戒備警報", period: "14日早上", probability: "中等" },
-    { signal: "強風警報", period: "14日日間", probability: "中等" },
-    { signal: "烈風警報", period: "", probability: "偏低" },
+    { signal: "強風警報", period: "14日日間", probability: "偏低" },
+    { signal: "烈風警報", period: "", probability: "" },
     { signal: "暴風警報", period: "", probability: "" },
     { signal: "颶風警報", period: "", probability: "" },
-    { signal: "風暴潮觀察警報", period: "14日早上", probability: "中等" },
+    { signal: "風暴潮觀察警報", period: "14日早上", probability: "偏低" },
     { signal: "風暴潮戒備警報", period: "", probability: "" },
     { signal: "風暴潮危險警報", period: "", probability: "" },    
   ]
