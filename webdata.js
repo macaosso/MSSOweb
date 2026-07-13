@@ -48,7 +48,7 @@ const forecastRaw = `副熱帶高壓脊仍然會在未來一兩日覆蓋華南�
 `;
 
 // 氣溫
-const chartRightDate = "2026-06-24 14:00 MST";
+const chartRightDate = "2026-07-14 05:00 MST";
 
 const label24hX = ["00H","04H","08H",
                    "12H","16H","23H"];
@@ -60,39 +60,39 @@ const temp7dMin = [29,29,29,28,28,27,27];
 
 //Tropical Cyclone Track
 const forecastInfo = {
-  updated: "2026-07-01 16:00 MST"
+  updated: "2026-07-14 05:00 MST"
 };
 
 const pastPoints = [
   // Match STORM_DATA.past_track lats/lons sequence
-  {lat:13.8, lon:120.1, time: "06-30 20H", wind: 45},
-  {lat:14.1, lon:119.3, time: "07-01 02H", wind: 45},
-  {lat:14.9, lon:118.4, time: "07-01 08H", wind: 50},
-  {lat:15.8, lon:117.7, time: "07-01 14H", wind: 55},
-  {lat:16.2, lon:117.4, time: "07-01 16H", wind: 55},
+  {lat:21.3, lon:115.5, time: "07-14 00H", wind: 40},
+  {lat:21.5, lon:115.1, time: "07-14 01H", wind: 40},
+  {lat:21.7, lon:114.8, time: "07-14 02H", wind: 40},
+  {lat:21.8, lon:114.6, time: "07-14 03H", wind: 40},
+  {lat:21.8, lon:114.4, time: "07-14 04H", wind: 40},
   
   
 ];
 
-const forecastPoints = [
+//const forecastPoints = [
   // Forecast hour 0: base point (0h)
   {
-    lat:16.2, lon:117.4, time: "07-01 16H", wind: 55,
-    wind41: { ne: 0, nw: 0, sw: 0, se: 0 }, 
-    wind88: { ne: 0, nw: 0, sw: 0, se: 0 } 
-  },
-  {lat:17.0, lon:114.7, time: "07-02 04H", wind: 65},
-  {lat:17.2, lon:112.7, time: "07-02 16H", wind: 75},
-  {lat:18.3, lon:110.7, time: "07-03 16H", wind: 90},
-  {lat:21.0, lon:109.1, time: "07-04 16H", wind: 90},
-  {lat:24.0, lon:109.5, time: "07-05 16H", wind: 55},
-  {lat:24.6, lon:110.0, time: "07-06 16H", wind: 40},
-];
+//    lat:16.2, lon:117.4, time: "07-14 04H", wind: 55,
+//    wind41: { ne: 0, nw: 0, sw: 0, se: 0 }, 
+//    wind88: { ne: 0, nw: 0, sw: 0, se: 0 } 
+//  },
+//  {lat:17.0, lon:114.7, time: "07-02 04H", wind: 65},
+//  {lat:17.2, lon:112.7, time: "07-02 16H", wind: 75},
+//  {lat:18.3, lon:110.7, time: "07-03 16H", wind: 90},
+//  {lat:21.0, lon:109.1, time: "07-04 16H", wind: 90},
+//  {lat:24.0, lon:109.5, time: "07-05 16H", wind: 55},
+//  {lat:24.6, lon:110.0, time: "07-06 16H", wind: 40},
+//];
 
 window.tcInfo = {
-  name: "96W", 
+  name: "99W", 
   wind: forecastPoints[0].wind,
-  pressure: 1000
+  pressure: 1002
 };
 
 //  { lat: 42.5, lon: 149.0, time: "06-09 14H", wind: '-' }, 
