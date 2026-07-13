@@ -83,7 +83,7 @@ const forecastPoints = [
   },
   {lat:117.0, lon:114.7, time: "07-02 04H", wind: 65},
 
-//];
+];
 
 window.tcInfo = {
   name: "99W", 
