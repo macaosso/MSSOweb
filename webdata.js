@@ -75,7 +75,7 @@ const pastPoints = [
 ];
 
 const forecastPoints = [
-   Forecast hour 0: base point (0h)
+   //Forecast hour 0: base point (0h)
   {
     lat:116.2, lon:117.4, time: "07-14 04H", wind: 55,
     wind41: { ne: 0, nw: 0, sw: 0, se: 0 }, 
