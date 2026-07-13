@@ -489,6 +489,11 @@ body {
   }
 }
 
+/* 隱藏類：無數據時隱藏整個卡片 */
+.hide {
+  display: none !important;
+}
+
 /* 手機端適配 */
 @media (max-width:768px) {
   .three-tab-item {
@@ -805,7 +810,6 @@ body {
     background: #254b9c;
     color: #fff;
 }
-.hide { display: none !important; }
 
 /* ========== 手機端導航切換 ========== */
 @media (max-width: 768px) {
@@ -871,7 +875,7 @@ body {
 <div id="tcContent"></div>
 </div>
 
-<!-- 【新增】熱帶氣旋可能發佈警告表格卡片，標題與更新時間全部由外部JS控制 -->
+<!-- 【新增】熱帶氣旋可能發佈警告表格卡片，預設不隱藏 -->
 <div class="warning-card" id="tcForecastTableCard">
   <div class="warning-header tc-forecast-header-row">
     <div class="tc-forecast-title" id="tableMainTitle"></div>
