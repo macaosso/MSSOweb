@@ -74,19 +74,15 @@ const pastPoints = [
   
 ];
 
-//const forecastPoints = [
-  // Forecast hour 0: base point (0h)
-//  {
-//    lat:16.2, lon:117.4, time: "07-14 04H", wind: 55,
-//    wind41: { ne: 0, nw: 0, sw: 0, se: 0 }, 
-//    wind88: { ne: 0, nw: 0, sw: 0, se: 0 } 
-//  },
-//  {lat:17.0, lon:114.7, time: "07-02 04H", wind: 65},
-//  {lat:17.2, lon:112.7, time: "07-02 16H", wind: 75},
-//  {lat:18.3, lon:110.7, time: "07-03 16H", wind: 90},
-//  {lat:21.0, lon:109.1, time: "07-04 16H", wind: 90},
-//  {lat:24.0, lon:109.5, time: "07-05 16H", wind: 55},
-//  {lat:24.6, lon:110.0, time: "07-06 16H", wind: 40},
+const forecastPoints = [
+   Forecast hour 0: base point (0h)
+  {
+    lat:116.2, lon:117.4, time: "07-14 04H", wind: 55,
+    wind41: { ne: 0, nw: 0, sw: 0, se: 0 }, 
+    wind88: { ne: 0, nw: 0, sw: 0, se: 0 } 
+  },
+  {lat:117.0, lon:114.7, time: "07-02 04H", wind: 65},
+
 //];
 
 window.tcInfo = {
