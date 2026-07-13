@@ -2,11 +2,11 @@
 <ActualWeatherBrief>
 <System>
 <SysAuthor>DINF</SysAuthor>
-<SysPubdate>2026-07-13 18:56</SysPubdate>
+<SysPubdate>2026-07-13 20:55</SysPubdate>
 <SysLanguage>0</SysLanguage>
 </System>
 <Custom>
-<ValidFor>2026-07-13 19:00</ValidFor>
+<ValidFor>2026-07-13 21:00</ValidFor>
 <Temperature>
 <MeasureUnit>°C</MeasureUnit>
 <Type>3</Type>
@@ -15,7 +15,7 @@
 <Humidity>
 <MeasureUnit>%</MeasureUnit>
 <Type>3</Type>
-<Value>87</Value>
+<Value>91</Value>
 </Humidity>
 <WindSpeed>
 <MeasureUnit>km/h</MeasureUnit>
@@ -33,6 +33,11 @@
 <MeasureUnit>°C</MeasureUnit>
 <Type>8</Type>
 <Value>33</Value>
+</Temperature>
+<Temperature>
+<MeasureUnit>°C</MeasureUnit>
+<Type>9</Type>
+<Value>28</Value>
 </Temperature>
 <Icon>
 <IconName>ww-ca2.gif</IconName>
