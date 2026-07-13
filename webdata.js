@@ -1,7 +1,7 @@
 //Tropical Cyclone Warning
 const tcWarnings = [
   {
-    icon:"",
+    icon:"warn_icon/t1.jpg",
     text: "注意警報於本地時間07月13日22時20分發出。表示有一個潛在熱帶氣旋位於本澳800公里範圍內，未來24小時內將發展成熱帶氣旋，並有可能對澳門構成較大威脅。"
   },
   
