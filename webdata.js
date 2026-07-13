@@ -109,7 +109,7 @@ const TC_WARNING_DATA = {
   mainTitle: "受熱帶氣旋 99W 可能發佈之警報",
   updateTimeText: "2026-07-14  01:30 MST 更新",
   tableRows: [
-    { signal: "注意警報", period: "現正生效", probability: "已發出" },
+    { signal: "注意警報", period: "07月13日22時20分發出", probability: "現正生效" },
     { signal: "戒備警報", period: "14日早上", probability: "中等" },
     { signal: "強風警報", period: "14日日間", probability: "中等" },
     { signal: "烈風警報", period: "", probability: "偏低" },
