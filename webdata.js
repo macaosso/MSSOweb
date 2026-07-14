@@ -78,18 +78,18 @@ const pastPoints = [
   {lat:22.5, lon:113.35, time: "07-14 16H", wind: 40},
   
 ];
-const hours = [0,2];
-const radii = [5,10];
+const hours = [0,0];
+const radii = [0,0];
 const macau = [22.1595, 113.5685];
 
 const forecastPoints = [
    //Forecast hour 0: base point (0h)
   {
-    lat:22.3, lon:113.5, time: "07-14 14H", wind: 45,
+    lat:22.5, lon:113.35, time: "07-14 16H", wind: 40,
     wind41: { ne: 0, nw: 0, sw: 0, se: 0 }, 
     wind88: { ne: 0, nw: 0, sw: 0, se: 0 } 
   },
-  {lat:22.35, lon:113.3, time: "07-14 16H", wind: 40},
+  {lat:22.5, lon:113.35, time: "07-14 16H", wind: 40},
 
 ];
 
