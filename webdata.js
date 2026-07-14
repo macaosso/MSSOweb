@@ -62,32 +62,41 @@ const forecastInfo = {
 const pastPoints = [
   // Match STORM_DATA.past_track lats/lons sequence
   {lat:21.3, lon:115.5, time: "07-14 00H", wind: 40},
-  {lat:21.5, lon:115.1, time: "07-14 01H", wind: 40},
-  {lat:21.7, lon:114.8, time: "07-14 02H", wind: 40},
-  {lat:21.8, lon:114.6, time: "07-14 03H", wind: 40},
-  {lat:21.8, lon:114.4, time: "07-14 04H", wind: 40},
-  
+  {lat:21.5, lon:115.3, time: "07-14 01H", wind: 40},
+  {lat:21.7, lon:114.9, time: "07-14 02H", wind: 40},
+  {lat:21.8, lon:114.7, time: "07-14 03H", wind: 40},
+  {lat:21.8, lon:114.6, time: "07-14 04H", wind: 40},
+  {lat:21.9, lon:114.5, time: "07-14 05H", wind: 40},
+  {lat:21.9, lon:114.4, time: "07-14 06H", wind: 40},
+  {lat:21.9, lon:114.3, time: "07-14 07H", wind: 40},
+  {lat:22.0, lon:114.1, time: "07-14 08H", wind: 40},
+  {lat:22.03, lon:114.0, time: "07-14 09H", wind: 40},
+  {lat:22.05, lon:113.9, time: "07-14 10H", wind: 40},
+  {lat:22.1, lon:113.8, time: "07-14 11H", wind: 45},
+  {lat:22.2, lon:113.7, time: "07-14 12H", wind: 45},
+  {lat:22.25, lon:113.6, time: "07-14 13H", wind: 45},
+  {lat:22.3, lon:113.5, time: "07-14 14H", wind: 45},
   
 ];
-const hours = [0,4];
-const radii = [15,40];
+const hours = [0,2];
+const radii = [5,10];
 const macau = [22.1595, 113.5685];
 
 const forecastPoints = [
    //Forecast hour 0: base point (0h)
   {
-    lat:21.8, lon:114.4, time: "07-14 04H", wind: 40,
+    lat:22.3, lon:113.5, time: "07-14 14H", wind: 45,
     wind41: { ne: 0, nw: 0, sw: 0, se: 0 }, 
     wind88: { ne: 0, nw: 0, sw: 0, se: 0 } 
   },
-  {lat:22.0, lon:114, time: "07-02 08H", wind: 40},
+  {lat:22.35, lon:113.3, time: "07-14 16H", wind: 40},
 
 ];
 
 window.tcInfo = {
   name: "99W", 
   wind: forecastPoints[0].wind,
-  pressure: 1002
+  pressure: 1000
 };
 
 //  { lat: 42.5, lon: 149.0, time: "06-09 14H", wind: '-' }, 
