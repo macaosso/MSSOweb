@@ -24,10 +24,10 @@ const warnWarnings = [
 ];
 
 //Special Warning Tips
-const swtText = `與西南氣流相關的雨帶現時正位於珠江口西部及南海北部，有可能在今日初時影響本澳，預計今日雨勢間中較為頻密，市民應留意最新天氣訊息。`;
+const swtText = ``;
 
 //Alert Tips
-const alertipsText = ``;
+const alertipsText = `與西南氣流相關的雨帶現時正位於珠江口西部及南海北部，有可能在今日初時影響本澳，預計今日雨勢間中較為頻密，市民應留意最新天氣訊息。`;
 
 //Weather Forecast
 const forecastRaw = `受西南氣流影響，預料本澳今日有驟雨及幾陣雷暴，雨勢有時頗大。本週後期至下週初本澳仍然受西南氣流影響，天色以多雲為主，日間短暫時間有陽光，但仍有幾陣雷雨。
