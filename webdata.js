@@ -2,12 +2,12 @@
 const tcWarnings = [
   {
     icon:"",
-    text: "戒備警報於本地時間07月14日16時40分取消。所有熱帶氣旋警報現已取消。"
+    text: ""
   },
   
   {
     icon:"",
-    text: "熱帶低氣壓已經減弱為低壓區。"
+    text: ""
   },
 ];
 
@@ -114,7 +114,7 @@ const TC_WARNING_DATA = {
   updateTimeText: "2026-07-14  16:40 MST 更新",
   tableRows: [
     { signal: "注意警報", period: "07月13日22時20分發出", probability: "" },
-    { signal: "戒備警報", period: "07月14日16時40分取消", probability: "現已取消" },
+    { signal: "戒備警報", period: "07月14日16時40分取消", probability: "" },
     { signal: "強風警報", period: "", probability: "" },
     { signal: "烈風警報", period: "", probability: "" },
     { signal: "暴風警報", period: "", probability: "" },
