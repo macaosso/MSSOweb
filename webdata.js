@@ -14,8 +14,8 @@ const tcWarnings = [
 //Warning
 const warnWarnings = [
   {
-    icon: "",
-    text: ""
+    icon: "warn_icon/r0.jpg",
+    text: "降雨預警於本地時間07月15日04時05分發出，有效時間至07時00分。位於珠江口以南海域的雨區未來一兩小時將會影響澳門。請市民留意天氣變化及最新天氣訊息。"
   },
   {
     icon: "",
