@@ -74,6 +74,8 @@ const pastPoints = [
   {lat:22.2, lon:113.7, time: "07-14 12H", wind: 45},
   {lat:22.25, lon:113.6, time: "07-14 13H", wind: 45},
   {lat:22.3, lon:113.5, time: "07-14 14H", wind: 45},
+  {lat:22.4, lon:113.4, time: "07-14 15H", wind: 45},
+  {lat:22.5, lon:113.35, time: "07-14 16H", wind: 40},
   
 ];
 const hours = [0,2];
