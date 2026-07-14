@@ -129,20 +129,38 @@ const TC_WARNING_DATA = {
 };
 
 function renderTcWarningTable(data) {
-  // 1. 更新卡片主標題 (JS完全控制)
-  const titleEl = document.querySelector("#tcForecastTableCard .tc-forecast-title");
+  // Get the whole card wrapper element
+  const cardWrapper = document.getElementById("tcForecastTableCard");
+  if (!cardWrapper) return;
+
+  // Check if ALL probability are empty
+  const hasValidProbability = data.tableRows.some(row => 
+    row.probability && row.probability.trim() !== ""
+  );
+
+  // Hide entire card box if no valid probability exists
+  if (!hasValidProbability) {
+    cardWrapper.style.display = "none";
+    return;
+  }
+
+  // Show card again when there is valid probability data
+  cardWrapper.style.display = "block";
+
+  // 1. Update main title
+  const titleEl = cardWrapper.querySelector(".tc-forecast-title");
   if(titleEl) titleEl.textContent = data.mainTitle;
 
-  // 2. 更新卡片右側更新時間
-  const timeEl = document.querySelector("#tcForecastTableCard .tc-update-time");
+  // 2. Update update time
+  const timeEl = cardWrapper.querySelector(".tc-update-time");
   if(timeEl) timeEl.textContent = data.updateTimeText;
 
-  // 3. 拿到表格容器，清空舊內容
+  // 3. Clear old table content
   const container = document.getElementById("tcTableContent");
   if(!container) return;
   container.innerHTML = "";
 
-  // 4. 拼裝完整表格HTML
+  // 4. Build table HTML
   let tableHtml = `
     <table class="tc-warning-table">
       <thead>
@@ -154,7 +172,7 @@ function renderTcWarningTable(data) {
       </thead>
       <tbody>
   `;
-  // 空probability自動跳過/隱藏該行
+  // Only render rows with non-empty probability
   data.tableRows.forEach(row => {
     if (!row.probability || row.probability.trim() === "") return;
     tableHtml += `
@@ -167,7 +185,7 @@ function renderTcWarningTable(data) {
   });
   tableHtml += `</tbody></table>`;
 
-  // 5. 插入到頁面
+  // 5. Inject table into page
   container.innerHTML = tableHtml;
 }
 
