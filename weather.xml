@@ -2,38 +2,38 @@
 <ActualWeatherBrief>
 <System>
 <SysAuthor>DINF</SysAuthor>
-<SysPubdate>2026-07-14 07:52</SysPubdate>
+<SysPubdate>2026-07-14 10:56</SysPubdate>
 <SysLanguage>0</SysLanguage>
 </System>
 <Custom>
-<ValidFor>2026-07-14 08:00</ValidFor>
+<ValidFor>2026-07-14 11:00</ValidFor>
 <Temperature>
 <MeasureUnit>°C</MeasureUnit>
 <Type>3</Type>
-<Value>26</Value>
+<Value>27</Value>
 </Temperature>
 <Humidity>
 <MeasureUnit>%</MeasureUnit>
 <Type>3</Type>
-<Value>97</Value>
+<Value>94</Value>
 </Humidity>
 <WindSpeed>
 <MeasureUnit>km/h</MeasureUnit>
 <Type>3</Type>
-<Value>14</Value>
+<Value>18</Value>
 <WindSpeedDescription>三級</WindSpeedDescription>
 </WindSpeed>
 <WindDirection>
 <MeasureUnit>°</MeasureUnit>
 <Type>3</Type>
-<Value>N</Value>
-<WindDescription>北</WindDescription>
+<Value>NNE</Value>
+<WindDescription>東北偏北</WindDescription>
 </WindDirection>
-<Temperature>
-<MeasureUnit>°C</MeasureUnit>
-<Type>9</Type>
-<Value>26</Value>
-</Temperature>
+<Rainfall>
+<MeasureUnit>mm</MeasureUnit>
+<Type>5</Type>
+<Value>14.4</Value>
+</Rainfall>
 <Icon>
 <IconName>ww-c16.gif</IconName>
 <IconURL>https://www.smg.gov.mo/icons/weatherIcon/ww-c16.gif</IconURL>
