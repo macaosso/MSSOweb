@@ -113,8 +113,8 @@ window.tcInfo = {
 //2026-07-14  16:40 MST 更新
 
 const TC_WARNING_DATA = {
-  mainTitle: "",
-  updateTimeText: "",
+  mainTitle: "受熱帶氣旋 99W 可能發佈之警報",
+  updateTimeText: "2026-07-14  16:40 MST 更新",
   tableRows: [
     { signal: "注意警報", period: "07月13日22時20分發出", probability: "" },
     { signal: "戒備警報", period: "07月14日16時40分取消", probability: "" },
