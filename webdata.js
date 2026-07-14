@@ -78,7 +78,7 @@ const pastPoints = [
   {lat:22.5, lon:113.35, time: "07-14 16H", wind: 40},
   
 ];
-const hours = [0,0];
+const hours = [0,2];
 const radii = [0,0];
 const macau = [22.1595, 113.5685];
 
