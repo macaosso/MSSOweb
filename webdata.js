@@ -27,7 +27,7 @@ const warnWarnings = [
 const swtText = ``;
 
 //Alert Tips
-const alertipsText = ``;
+const alertipsText = `受西南氣流影響，本澳明日初時仍然有驟雨，亦有幾陣雷暴，部份地區雨勢較為頻密，市民需留意最新天氣資訊。（10:05 更新）`;
 
 //Weather Forecast
 const forecastRaw = `受西南氣流影響，預料本澳今日有驟雨及幾陣雷暴，本週後期至下週初本澳仍然受西南氣流影響，天色以多雲為主，日間短暫時間有陽光，但仍有幾陣雷雨。
@@ -49,8 +49,8 @@ const label24hX = ["00H","04H","08H",
 const temp24h = [26,26,28,30,30,29];
 
 const label7dX = [15,16,17,18,19,20,21];
-const temp7dMax = [31,31,32,32,32,32];
-const temp7dMin = [26,26,27,26,26,26];
+const temp7dMax = [31,31,32,32,32,32,31];
+const temp7dMin = [26,26,27,26,26,26,26];
 
 //Tropical Cyclone Track
 const forecastInfo = {
