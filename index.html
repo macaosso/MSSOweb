@@ -75,30 +75,36 @@ body {
 }
 
 /* ========== 4. 首頁快捷鏈接模塊 深色霓虹卡片 ========== */
-/* 容器：横向3列网格 */
+/* 容器：横向3列网格，强制不换行 */
 .quick-links {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 核心：3个等宽列 */
-  gap: 10px; /* 按钮之间的间距 */
-  margin: 15px 20px; /* 容器边距，避免贴边 */
+  grid-template-columns: repeat(3, minmax(0, 1fr)); /* minmax 解决窄屏挤压换行 */
+  gap: 10px;
+  margin: 15px 20px;
+  width: 100%;       /* 强制占满父宽度 */
+  box-sizing: border-box;
 }
 
 /* 按钮样式：紧凑化，适配横向 */
 .link-box {
   display: block;
-  padding: 22px 6px; /* 缩小上下内边距，横向更紧凑 */
+  padding: 22px 6px;
   border-radius: 12px;
   text-align: center;
-  font-size: 11px; /* 缩小字体，防止文字换行 */
+  font-size: 13px;
   font-weight: bold;
   text-decoration: none;
   color: white;
   box-shadow: 0 4px 12px rgba(0,0,0,0.35);
   transition: all 0.3s ease;
   border: 1px solid rgba(255,255,255,0.08);
+  white-space: nowrap; /* 文字禁止换行 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-sizing: border-box;
 }
 
-/* 保持你原来的渐变配色 */
+/* 保持渐变配色 */
 .link-box.weather {
   background: linear-gradient(135deg, #1e4e4e, #1a3850);
   border-color: rgba(79, 166, 166, 0.3);
@@ -119,11 +125,12 @@ body {
   box-shadow: 0 6px 16px rgba(0,0,0,0.45);
 }
 
-/* 极端小屏手机适配 */
+/* 小屏手机：依旧保持一行3列，只缩小内边距与字号 */
 @media (max-width: 375px) {
   .quick-links {
     gap: 6px;
     margin: 10px 12px;
+    /* 不修改 grid 布局，依旧3列 */
   }
   .link-box {
     padding: 18px 4px;
