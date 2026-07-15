@@ -14,8 +14,8 @@ const tcWarnings = [
 //Warning
 const warnWarnings = [
   {
-    icon: "warn_icon/r0.jpg",
-    text: "降雨預警於本地時間07月15日04時05分發出，有效時間至07時00分。位於珠江口以南海域的雨區未來一兩小時將會影響澳門。請市民留意天氣變化及最新天氣訊息。"
+    icon: "",
+    text: ""
   },
   {
     icon: "",
@@ -27,34 +27,34 @@ const warnWarnings = [
 const swtText = ``;
 
 //Alert Tips
-const alertipsText = `與西南氣流相關的雨帶現時正位於珠江口西部及南海北部，有可能在今日初時影響本澳，預計今日雨勢間中較為頻密，市民應留意最新天氣訊息。`;
+const alertipsText = ``;
 
 //Weather Forecast
-const forecastRaw = `受西南氣流影響，預料本澳今日有驟雨及幾陣雷暴，雨勢有時頗大。本週後期至下週初本澳仍然受西南氣流影響，天色以多雲為主，日間短暫時間有陽光，但仍有幾陣雷雨。
+const forecastRaw = `受西南氣流影響，預料本澳今日有驟雨及幾陣雷暴，本週後期至下週初本澳仍然受西南氣流影響，天色以多雲為主，日間短暫時間有陽光，但仍有幾陣雷雨。
 
-07月14日（二）  26 - 30 °C   75 - 90 %
-大致多雲，間中有驟雨。
-
-07月15日（三）  26 - 30 °C   75 - 90 %
+07月15日（三）  26 - 31 °C   75 - 95 %
 大致多雲，間中有驟雨，初時雨勢較為頻密，有幾陣雷暴。
 
-更新時間：2026-07-14 15:00 MST
+07月16日（四）  26 - 31 °C   75 - 90 %
+大致多雲，初時間中有驟雨及有幾陣雷暴。日間短暫時間有陽光。
+
+更新時間：2026-07-15 10:00 MST
 `;
 
 // 氣溫
-const chartRightDate = "2026-07-14 15:00 MST";
+const chartRightDate = "2026-07-15 10:00 MST";
 
 const label24hX = ["00H","04H","08H",
                    "12H","16H","23H"];
-const temp24h = [29,29,28,26,26,27];
+const temp24h = [26,26,28,30,30,29];
 
-const label7dX = [14,15,16,17,18,19,20];
-const temp7dMax = [30,30,30,31,32,32,31];
-const temp7dMin = [26,26,26,27,26,26,26];
+const label7dX = [15,16,17,18,19,20,21];
+const temp7dMax = [31,31,32,32,32,32];
+const temp7dMin = [26,26,27,26,26,26];
 
 //Tropical Cyclone Track
 const forecastInfo = {
-  updated: "2026-07-14 05:00 MST"
+  updated: "2026-07-15 00:00 MST"
 };
 
 const pastPoints = [
