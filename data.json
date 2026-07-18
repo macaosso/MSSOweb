@@ -1,17 +1,17 @@
 {
-  "datetime": "2026-07-19 04:35",
+  "datetime": "2026-07-19 04:45",
   "pohopolu": {
     "Chinese": "荷蘭園（路邊）",
     "Portuguese": "Conselheiro Ferreira de Almeida (Berma da Estrada)",
     "English": "Conselheiro Ferreira de Almeida (Roadside)",
     "DDTT": "2026071904",
     "CODE": "PO",
-    "HE_CO": "0.409",
     "HE_SO2": "5.334",
-    "HE_O3": "31.321",
     "HE_PM2_5": "8.000",
     "HE_PM10": "25.000",
-    "HE_NO2": "8.282"
+    "HE_O3": "31.321",
+    "HE_NO2": "8.282",
+    "HE_CO": "0.409"
   },
   "khhopolu": {
     "Chinese": "九澳（路邊）",
@@ -19,12 +19,12 @@
     "English": "Ka-Hó (Roadside)",
     "DDTT": "2026071904",
     "CODE": "KH",
-    "HE_CO": null,
     "HE_SO2": null,
-    "HE_O3": null,
     "HE_PM2_5": "6.000",
     "HE_PM10": "16.000",
-    "HE_NO2": null
+    "HE_O3": null,
+    "HE_NO2": null,
+    "HE_CO": null
   },
   "enhopolu": {
     "Chinese": "台山（高密度住宅區）",
@@ -32,12 +32,12 @@
     "English": "Bairro de Tamagnini Barbosa (High Density Residental Area)",
     "DDTT": "2026071904",
     "CODE": "EN",
-    "HE_CO": null,
     "HE_SO2": null,
-    "HE_O3": null,
     "HE_PM2_5": "6.000",
     "HE_PM10": "24.000",
-    "HE_NO2": null
+    "HE_O3": null,
+    "HE_NO2": null,
+    "HE_CO": null
   },
   "tchopolu": {
     "Chinese": "氹仔中心區（高密度住宅區）",
@@ -45,12 +45,12 @@
     "English": "Baixa da Taipa (High Density Residental Area)",
     "DDTT": "2026071904",
     "CODE": "TC",
-    "HE_CO": "0.353",
     "HE_SO2": "0.078",
-    "HE_O3": "47.429",
     "HE_PM2_5": "7.000",
     "HE_PM10": "28.000",
-    "HE_NO2": "8.443"
+    "HE_O3": "47.429",
+    "HE_NO2": "8.443",
+    "HE_CO": "0.353"
   },
   "tghopolu": {
     "Chinese": "大潭山（一般性）",
@@ -58,12 +58,12 @@
     "English": "Taipa Grande (Ambient)",
     "DDTT": "2026071904",
     "CODE": "TG",
-    "HE_CO": "0.445",
     "HE_SO2": "0.782",
-    "HE_O3": "50.971",
     "HE_PM2_5": "7.000",
     "HE_PM10": "21.000",
-    "HE_NO2": "2.902"
+    "HE_O3": "50.971",
+    "HE_NO2": "2.902",
+    "HE_CO": "0.445"
   },
   "cdhopolu": {
     "Chinese": "石排灣（一般性）",
@@ -71,11 +71,11 @@
     "English": "Seac Pai Van (Ambient)",
     "DDTT": "2026071904",
     "CODE": "CD",
-    "HE_CO": "0.760",
     "HE_SO2": "1.841",
-    "HE_O3": "50.974",
     "HE_PM2_5": "6.000",
     "HE_PM10": "21.000",
-    "HE_NO2": "4.782"
+    "HE_O3": "50.974",
+    "HE_NO2": "4.782",
+    "HE_CO": "0.760"
   }
 }
