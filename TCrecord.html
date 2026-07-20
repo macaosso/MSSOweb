@@ -13,12 +13,13 @@
             --text-secondary: #a1aebf;
             --border: #272c36;
             --accent: #2563eb;
-            --warning-1: #6366f1; /* 注意警報 */
-            --warning-2: #0ea5e9; /* 戒備警報 */
-            --warning-3: #f59e0b; /* 強風警報 */
-            --warning-4: #f97316; /* 烈風 / 烈風預警 */
-            --warning-5: #ef4444; /* 暴風警報 */
-            --warning-6: #dc2626; /* 颶風警報 */
+            --warning-1: #5b635d; /* 注意警報 */
+            --warning-2: #218d34; /* 戒備警報 */
+            --warning-3: #157ba4; /* 強風警報 */
+            --warning-4: #fbf205; /* 烈風預警 */
+            --warning-5: #d6990a; /* 烈風警報(定向烈風) */
+            --warning-6: #d76400; /* 暴風警報 */
+            --warning-7: #d41111; /* 颶風警報 */
         }
         * {
             margin: 0;
@@ -170,19 +171,20 @@
             font-size: 15px;
         }
         /* Alert Level Color Classes */
-        .lv-注意警報 { background: rgba(99, 102, 241, 0.15); border-left: 3px solid var(--warning-1); }
-        .lv-戒備警報 { background: rgba(14, 165, 233, 0.15); border-left: 3px solid var(--warning-2); }
-        .lv-強風警報 { background: rgba(245, 158, 11, 0.15); border-left: 3px solid var(--warning-3); }
-        .lv-烈風預警警報, .lv-東北烈風警報, .lv-東南烈風警報, .lv-西北烈風警報, .lv-西南烈風警報 { background: rgba(249, 115, 22, 0.15); border-left: 3px solid var(--warning-4); }
-        .lv-暴風警報 { background: rgba(239, 68, 68, 0.15); border-left: 3px solid var(--warning-5); }
-        .lv-颶風警報 { background: rgba(220, 38, 38, 0.2); border-left: 3px solid var(--warning-6); }
+        .lv-注意警報 { background: rgba(91, 99, 93, 0.15); border-left: 3px solid var(--warning-1); }
+        .lv-戒備警報 { background: rgba(33, 141, 52, 0.15); border-left: 3px solid var(--warning-2); }
+        .lv-強風警報 { background: rgba(21, 123, 164, 0.15); border-left: 3px solid var(--warning-3); }
+        .lv-烈風預警警報 { background: rgba(251, 242, 5, 0.15); border-left: 3px solid var(--warning-4); }
+        .lv-東北烈風警報, .lv-東南烈風警報, .lv-西北烈風警報, .lv-西南烈風警報 { background: rgba(214, 153, 10, 0.15); border-left: 3px solid var(--warning-5); }
+        .lv-暴風警報 { background: rgba(215, 100, 0, 0.15); border-left: 3px solid var(--warning-6); }
+        .lv-颶風警報 { background: rgba(212, 17, 17, 0.2); border-left: 3px solid var(--warning-7); }
 
         .badge-注意警報 { background: var(--warning-1); color: #fff; }
         .badge-戒備警報 { background: var(--warning-2); color: #fff; }
-        .badge-強風警報 { background: var(--warning-3); color: #000; }
-        .badge-烈風 { background: var(--warning-4); color: #fff; }
-        .badge-暴風警報 { background: var(--warning-5); color: #fff; }
-        .badge-颶風警報 { background: var(--warning-6); color: #fff; }
+        .badge-強風警報 { background: var(--warning-3); color: #fff; }
+        .badge-烈風警報 { background: var(--warning-5); color: #000; }
+        .badge-暴風警報 { background: var(--warning-6); color: #fff; }
+        .badge-颶風警報 { background: var(--warning-7); color: #fff; }
 
         @media(max-width: 900px) {
             body { flex-direction: column; }
@@ -205,12 +207,13 @@
                 <option value="2023">2023</option>
                 <option value="2024">2024</option>
                 <option value="2025">2025</option>
+                <option value="2026">2026</option>
             </select>
         </div>
 
         <div class="filter-group">
             <label>氣旋名稱搜尋 TC Name</label>
-            <input id="nameFilter" placeholder="輸入名稱：彩雲、韋帕、樺加沙...">
+            <input id="nameFilter" placeholder="輸入名稱：風神、鳳凰">
         </div>
 
         <div class="filter-group">
@@ -220,7 +223,7 @@
                 <option value="注意警報">注意警報</option>
                 <option value="戒備警報">戒備警報</option>
                 <option value="強風警報">強風警報</option>
-                <option value="烈風">烈風警報</option>
+                <option value="烈風警報">烈風警報</option>
                 <option value="暴風警報">暴風警報</option>
                 <option value="颶風警報">颶風警報</option>
             </select>
@@ -242,15 +245,19 @@
             </div>
             <div class="legend-item">
                 <span class="color-dot" style="background:var(--warning-4)"></span>
-                <span>烈風警報</span>
+                <span>烈風預警</span>
             </div>
             <div class="legend-item">
                 <span class="color-dot" style="background:var(--warning-5)"></span>
-                <span>暴風警報</span>
+                <span>烈風警報</span>
             </div>
             <div class="legend-item">
                 <span class="color-dot" style="background:var(--warning-6)"></span>
-                <span>颶風警報 (最高)</span>
+                <span>暴風警報</span>
+            </div>
+            <div class="legend-item">
+                <span class="color-dot" style="background:var(--warning-7)"></span>
+                <span>颶風警報</span>
             </div>
         </div>
     </aside>
@@ -267,12 +274,12 @@
                 <div class="num" id="filteredTC">0</div>
             </div>
             <div class="stat-card">
-                <h4>含颶風警報個案</h4>
-                <div class="num" id="hurricaneCount">0</div>
+                <h4>烈風及以上個案</h4>
+                <div class="num" id="galeCount">0</div>
             </div>
             <div class="stat-card">
-                <h4>含暴風警報個案</h4>
-                <div class="num" id="stormCount">0</div>
+                <h4>最高為颶風警報個案</h4>
+                <div class="num" id="hurricaneCount">0</div>
             </div>
         </div>
 
@@ -286,22 +293,22 @@
             "戒備警報": 2,
             "強風警報": 3,
             "烈風預警警報": 4,
-            "東北烈風警報": 4,
-            "東南烈風警報": 4,
-            "西北烈風警報": 4,
-            "西南烈風警報": 4,
-            "暴風警報": 5,
-            "颶風警報": 6
+            "東北烈風警報": 5,
+            "東南烈風警報": 5,
+            "西北烈風警報":5,
+            "西南烈風警報": 5,
+            "暴風警報": 6,
+            "颶風警報": 7
         };
         const groupMap = {
             "注意警報": "注意警報",
             "戒備警報": "戒備警報",
             "強風警報": "強風警報",
-            "烈風預警警報": "烈風",
-            "東北烈風警報": "烈風",
-            "東南烈風警報": "烈風",
-            "西北烈風警報": "烈風",
-            "西南烈風警報": "烈風",
+            "烈風預警警報": "烈風預警警報",
+            "東北烈風警報": "烈風警報",
+            "東南烈風警報": "烈風警報",
+            "西北烈風警報": "烈風警報",
+            "西南烈風警報": "烈風警報",
             "暴風警報": "暴風警報",
             "颶風警報": "颶風警報"
         };
@@ -309,7 +316,7 @@
             "注意警報": "badge-注意警報",
             "戒備警報": "badge-戒備警報",
             "強風警報": "badge-強風警報",
-            "烈風": "badge-烈風",
+            "烈風": "badge-烈風警報",
             "暴風警報": "badge-暴風警報",
             "颶風警報": "badge-颶風警報"
         };
@@ -665,103 +672,130 @@
                 year:2025, name:"超強颱風「鳳凰」2526", totalH:"38h 00m", alerts:[
                     {type:"戒備警報", start:"11月10日 14:20", end:"11月12日 04:20"}
                 ]
+            },
+                {
+                year:2026, name:"颱風「美莎克」2610", totalH:"63h 00m", alerts:[
+                    {type:"戒備警報", start:"07月02日 02:20", end:"07月03日 11:20"},
+                    {type:"強風警報", start:"07月03日 11:20", end:"07月04日 17:20"}
+                ]
+            },
+            // 新增 2026 熱帶低氣壓99W
+            {
+                year:2026, name:"熱帶低氣壓 99W", totalH:"18h 20m", alerts:[
+                    {type:"注意警報", start:"07月13日 22:20", end:"07月14日 10:40"},
+                    {type:"戒備警報", start:"07月14日 10:40", end:"07月14日 16:40"}
+                ]
             }
+        
         ];
 
-    // Calculate max alert level per TC
-    function enrichTC(tc) {
-        let maxRank = 0;
-        let maxType = "";
-        tc.alerts.forEach(a => {
-            const r = levelRank[a.type];
-            if(r > maxRank) {
-                maxRank = r;
-                maxType = a.type;
-            }
-        });
-        tc.maxRaw = maxType;
-        tc.maxGroup = groupMap[maxType];
-        return tc;
-    }
-    const dataset = rawData.map(enrichTC);
+        // Calculate max alert level per TC
+        function enrichTC(tc) {
+            let maxRank = 0;
+            let maxType = "";
+            tc.alerts.forEach(a => {
+                const r = levelRank[a.type];
+                if(r > maxRank) {
+                    maxRank = r;
+                    maxType = a.type;
+                }
+            });
+            tc.maxRaw = maxType;
+            tc.maxGroup = groupMap[maxType];
+            return tc;
+        }
+        const dataset = rawData.map(enrichTC);
 
-    // Render top statistics panel
-    function renderStats(list) {
-        document.getElementById("totalTC").textContent = dataset.length;
-        document.getElementById("filteredTC").textContent = list.length;
-        let hur = 0, storm = 0;
-        list.forEach(tc => {
-            if(tc.maxGroup === "颶風警報") hur++;
-            if(tc.maxGroup === "暴風警報") storm++;
-        });
-        document.getElementById("hurricaneCount").textContent = hur;
-        document.getElementById("stormCount").textContent = storm;
-    }
+        // Render top statistics panel with all tier counters
+        function renderStats(list) {
+            document.getElementById("totalTC").textContent = dataset.length;
+            document.getElementById("filteredTC").textContent = list.length;
 
-    // Filter handler for Year / Name / Max Level
-    function getFilteredList() {
-        const yearVal = document.getElementById("yearFilter").value;
-        const nameVal = document.getElementById("nameFilter").value.trim().toLowerCase();
-        const levelVal = document.getElementById("levelFilter").value;
+            let hurricane = 0;
+            let galeOrAbove = 0; // 烈風及以上：烈風預警、烈風警報、暴風、颶風
+            list.forEach(tc => {
+                if (!tc?.maxGroup) return;
+                // 單獨統計颶風
+                if(tc.maxGroup === "颶風警報") hurricane++;
+                // 烈風及以上全部計入
+                if(["烈風預警警報", "烈風警報", "暴風警報", "颶風警報"].includes(tc.maxGroup)) {
+                    galeOrAbove++;
+                }
+            });
 
-        return dataset.filter(tc => {
-            if(yearVal && String(tc.year) !== yearVal) return false;
-            if(nameVal && !tc.name.toLowerCase().includes(nameVal)) return false;
-            if(levelVal && tc.maxGroup !== levelVal) return false;
-            return true;
-        });
-    }
-
-    // Render TC card list
-    function renderList() {
-        const container = document.getElementById("tcList");
-        const filtered = getFilteredList();
-        renderStats(filtered);
-
-        if(filtered.length === 0) {
-            container.innerHTML = `<div class="empty-tip">沒有符合篩選條件的熱帶氣旋記錄</div>`;
-            return;
+            document.getElementById("hurricaneCount").textContent = hurricane;
+            document.getElementById("galeCount").textContent = galeOrAbove;
         }
 
-        let html = "";
-        filtered.forEach(tc => {
-            const badgeCls = badgeClassMap[tc.maxGroup];
-            let alertRows = "";
-            tc.alerts.forEach(alert => {
-                const rowCls = `lv-${alert.type}`;
-                alertRows += `
+        // Filter handler for Year / Name / Max Level
+        function getFilteredList() {
+            const yearVal = document.getElementById("yearFilter").value;
+            const nameVal = document.getElementById("nameFilter").value.trim().toLowerCase();
+            const levelVal = document.getElementById("levelFilter").value;
+
+            return dataset.filter(tc => {
+                if(yearVal && String(tc.year) !== yearVal) return false;
+                if(nameVal && !tc.name.toLowerCase().includes(nameVal)) return false;
+                if(levelVal) {
+                    if(levelVal === "烈風警報") {
+                        if(tc.maxGroup !== "烈風警報" && tc.maxGroup !== "烈風預警警報") return false;
+                    } else if(tc.maxGroup !== levelVal) return false;
+                }
+                return true;
+            });
+        }
+
+        // Render TC card list
+        function renderList() {
+            const container = document.getElementById("tcList");
+            const filtered = getFilteredList();
+            renderStats(filtered);
+
+            if(filtered.length === 0) {
+                container.innerHTML = `<div class="empty-tip">沒有符合篩選條件的熱帶氣旋記錄</div>`;
+                return;
+            }
+
+            let html = "";
+            filtered.forEach(tc => {
+                const badgeCls = badgeClassMap[tc.maxGroup];
+                let alertRows = "";
+                tc.alerts.forEach(alert => {
+                    const rowCls = `lv-${alert.type}`;
+                    alertRows += `
                     <div class="alert-row ${rowCls}">
                         <span>${alert.type}</span>
                         <span>${alert.start} ～ ${alert.end}</span>
+                        <span></span>
                     </div>
+                    `;
+                });
+
+                html += `
+                <div class="tc-card">
+                    <div class="tc-header">
+                        <div>
+                            <div class="tc-name">${tc.name}</div>
+                            <div class="tc-meta">年份：${tc.year}｜總警報時長：${tc.totalH}</div>
+                        </div>
+                        <span class="tc-max-level ${badgeCls}">最高：${tc.maxGroup}</span>
+                    </div>
+                    <div class="alert-list">
+                        ${alertRows}
+                    </div>
+                </div>
                 `;
             });
+            container.innerHTML = html;
+        }
 
-            html += `
-            <div class="tc-card">
-                <div class="tc-header">
-                    <div>
-                        <div class="tc-name">${tc.name}</div>
-                        <div class="tc-meta">年份：${tc.year}｜總警報時長：${tc.totalH}</div>
-                    </div>
-                    <span class="tc-max-level ${badgeCls}">最高：${tc.maxGroup}</span>
-                </div>
-                <div class="alert-list">
-                    ${alertRows}
-                </div>
-            </div>
-            `;
-        });
-        container.innerHTML = html;
-    }
+        // Bind filter events
+        document.getElementById("yearFilter").addEventListener("change", renderList);
+        document.getElementById("nameFilter").addEventListener("input", renderList);
+        document.getElementById("levelFilter").addEventListener("change", renderList);
 
-    // Bind filter events
-    document.getElementById("yearFilter").addEventListener("change", renderList);
-    document.getElementById("nameFilter").addEventListener("input", renderList);
-    document.getElementById("levelFilter").addEventListener("change", renderList);
-
-    // Initialize page load
-    window.addEventListener("DOMContentLoaded", renderList);
-</script>
+        // Initialize page load
+        window.addEventListener("DOMContentLoaded", renderList);
+    </script>
 </body>
 </html>
