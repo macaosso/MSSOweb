@@ -2,7 +2,7 @@
 const tcWarnings = [
   {
     icon:"",
-    text: ""
+    text: "預料位於菲律賓以東海域的熱帶氣旋會在本週後期進入南海北部，週末期間移向廣東沿岸一帶，並有所￼增強，進入南海後移動路徑仍然存在較大變數￼。"
   },
   
   {
@@ -27,12 +27,12 @@ const warnWarnings = [
 const swtText = ``;
 
 //Alert Tips
-const alertipsText = `受西南氣流影響，本澳未來一兩日初時仍然有驟雨，亦有幾陣雷暴，部份地區雨勢較為頻密，市民需留意最新天氣資訊。（14:00 更新）`;
+const alertipsText = `高溫預警提示於本地時間07月21日20時20分發出。表示澳門高溫天氣持續。預計本澳未來數日日間天氣相當炎熱，最高氣溫將達到32度以上。`;
 
 //Weather Forecast
-const forecastRaw = `受西南氣流影響，預料本澳今日有驟雨及幾陣雷暴，本週後期至下週初本澳仍然受西南氣流影響，天色以多雲為主，日間短暫時間有陽光，但仍有幾陣雷雨。
+const forecastRaw = `預料未來數日逐漸轉受高空反氣旋影響，驟雨減少，及後本澳日間陽光充沛及天氣酷熱。目前位於菲律賓以東海域的低壓區，本週末期有機會發展成熱帶氣旋並進入南海北部，但目前移動路徑仍存在較大不確定性。下週初期本澳雷雨增多及風勢較大。
 
-07月15日（三）  26 - 31 °C   75 - 95 %
+07月21日（三）  26 - 31 °C   75 - 95 %
 大致多雲，間中有驟雨，初時雨勢較為頻密，有幾陣雷暴。
 
 07月16日（四）  26 - 31 °C   75 - 90 %
@@ -58,45 +58,33 @@ const forecastInfo = {
 };
 
 const pastPoints = [
-  // Match STORM_DATA.past_track lats/lons sequence
-  {lat:21.3, lon:115.5, time: "07-14 00H", wind: 40},
-  {lat:21.5, lon:115.3, time: "07-14 01H", wind: 40},
-  {lat:21.7, lon:114.9, time: "07-14 02H", wind: 40},
-  {lat:21.8, lon:114.7, time: "07-14 03H", wind: 40},
-  {lat:21.8, lon:114.6, time: "07-14 04H", wind: 40},
-  {lat:21.9, lon:114.5, time: "07-14 05H", wind: 40},
-  {lat:21.9, lon:114.4, time: "07-14 06H", wind: 40},
-  {lat:21.9, lon:114.3, time: "07-14 07H", wind: 40},
-  {lat:22.0, lon:114.1, time: "07-14 08H", wind: 40},
-  {lat:22.03, lon:114.0, time: "07-14 09H", wind: 40},
-  {lat:22.05, lon:113.9, time: "07-14 10H", wind: 40},
-  {lat:22.1, lon:113.8, time: "07-14 11H", wind: 45},
-  {lat:22.2, lon:113.7, time: "07-14 12H", wind: 45},
-  {lat:22.25, lon:113.6, time: "07-14 13H", wind: 45},
-  {lat:22.3, lon:113.5, time: "07-14 14H", wind: 45},
-  {lat:22.4, lon:113.4, time: "07-14 15H", wind: 45},
-  {lat:22.5, lon:113.35, time: "07-14 16H", wind: 40},
-  
+  {lat:13.5, lon:136.0, wind: 40},
+  {lat:13.5, lon:136.0, wind: 40}
 ];
-const hours = [0,2];
-const radii = [0,0];
+
+const hours = [0,12,24,48,72,96,120];
+const radii = [15, 50, 100, 170, 255, 345, 465];
 const macau = [22.1595, 113.5685];
 
 const forecastPoints = [
-   //Forecast hour 0: base point (0h)
-  {
-    lat:22.5, lon:113.35, time: "07-14 16H", wind: 40,
+  { lat: 13.5, lon: 136.0, time: "07-21 20H", wind: 45,
     wind41: { ne: 0, nw: 0, sw: 0, se: 0 }, 
-    wind88: { ne: 0, nw: 0, sw: 0, se: 0 } 
+    wind88: { ne: 0, nw: 0, sw: 0, se: 0 }
   },
-  {lat:22.5, lon:113.35, time: "07-14 16H", wind: 40},
+  { lat: 14.3, lon: 133.6, time: "07-22 08H", wind: 55 },
+  { lat: 15.3, lon: 131.0, time: "07-22 20H", wind: 65 },
+  { lat: 17.0, lon: 126.1, time: "07-23 20H", wind: 85 },
+  { lat: 19.2, lon: 121.1, time: "07-24 20H", wind: 90 },
+  { lat: 21.8, lon: 116.6, time: "07-25 20H", wind: 130 },
+  { lat: 24.7, lon: 114.4, time: "07-26 20H", wind: 90 }
+];
 
 ];
 
 window.tcInfo = {
-  name: "99W", 
+  name: "92W", 
   wind: forecastPoints[0].wind,
-  pressure: 1000
+  pressure: 1004
 };
 
 //  { lat: 42.5, lon: 149.0, time: "06-09 14H", wind: '-' }, 
