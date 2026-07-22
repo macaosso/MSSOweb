@@ -2,11 +2,11 @@
 <ActualWeatherBrief>
 <System>
 <SysAuthor>DINF</SysAuthor>
-<SysPubdate>2026-07-22 21:55</SysPubdate>
+<SysPubdate>2026-07-22 22:54</SysPubdate>
 <SysLanguage>0</SysLanguage>
 </System>
 <Custom>
-<ValidFor>2026-07-22 22:00</ValidFor>
+<ValidFor>2026-07-22 23:00</ValidFor>
 <Temperature>
 <MeasureUnit>°C</MeasureUnit>
 <Type>3</Type>
@@ -20,14 +20,14 @@
 <WindSpeed>
 <MeasureUnit>km/h</MeasureUnit>
 <Type>3</Type>
-<Value>4</Value>
-<WindSpeedDescription>微風</WindSpeedDescription>
+<Value>7</Value>
+<WindSpeedDescription>二級</WindSpeedDescription>
 </WindSpeed>
 <WindDirection>
 <MeasureUnit>°</MeasureUnit>
 <Type>3</Type>
-<Value>S</Value>
-<WindDescription>南</WindDescription>
+<Value>SE</Value>
+<WindDescription>東南</WindDescription>
 </WindDirection>
 <Temperature>
 <MeasureUnit>°C</MeasureUnit>
