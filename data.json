@@ -1,5 +1,5 @@
 {
-  "datetime": "2026-07-24 03:35",
+  "datetime": "2026-07-24 03:45",
   "pohopolu": {
     "Chinese": "荷蘭園（路邊）",
     "Portuguese": "Conselheiro Ferreira de Almeida (Berma da Estrada)",
@@ -7,11 +7,11 @@
     "DDTT": "2026072403",
     "CODE": "PO",
     "HE_O3": "48.682",
+    "HE_NO2": "8.671",
+    "HE_SO2": "3.768",
     "HE_PM10": "35.000",
     "HE_CO": "0.318",
-    "HE_SO2": "3.768",
-    "HE_PM2_5": "14.000",
-    "HE_NO2": "8.671"
+    "HE_PM2_5": "14.000"
   },
   "khhopolu": {
     "Chinese": "九澳（路邊）",
@@ -20,11 +20,11 @@
     "DDTT": "2026072403",
     "CODE": "KH",
     "HE_O3": null,
+    "HE_NO2": null,
+    "HE_SO2": null,
     "HE_PM10": "28.000",
     "HE_CO": null,
-    "HE_SO2": null,
-    "HE_PM2_5": "8.000",
-    "HE_NO2": null
+    "HE_PM2_5": "8.000"
   },
   "enhopolu": {
     "Chinese": "台山（高密度住宅區）",
@@ -33,11 +33,11 @@
     "DDTT": "2026072403",
     "CODE": "EN",
     "HE_O3": null,
+    "HE_NO2": null,
+    "HE_SO2": null,
     "HE_PM10": "33.000",
     "HE_CO": null,
-    "HE_SO2": null,
-    "HE_PM2_5": "7.000",
-    "HE_NO2": null
+    "HE_PM2_5": "7.000"
   },
   "tchopolu": {
     "Chinese": "氹仔中心區（高密度住宅區）",
@@ -46,11 +46,11 @@
     "DDTT": "2026072403",
     "CODE": "TC",
     "HE_O3": "53.821",
+    "HE_NO2": "6.398",
+    "HE_SO2": "0.162",
     "HE_PM10": "31.000",
     "HE_CO": "0.368",
-    "HE_SO2": "0.162",
-    "HE_PM2_5": "11.000",
-    "HE_NO2": "6.398"
+    "HE_PM2_5": "11.000"
   },
   "tghopolu": {
     "Chinese": "大潭山（一般性）",
@@ -59,11 +59,11 @@
     "DDTT": "2026072403",
     "CODE": "TG",
     "HE_O3": null,
+    "HE_NO2": null,
+    "HE_SO2": null,
     "HE_PM10": "30.000",
     "HE_CO": null,
-    "HE_SO2": null,
-    "HE_PM2_5": "16.000",
-    "HE_NO2": null
+    "HE_PM2_5": "16.000"
   },
   "cdhopolu": {
     "Chinese": "石排灣（一般性）",
@@ -72,10 +72,10 @@
     "DDTT": "2026072403",
     "CODE": "CD",
     "HE_O3": "34.459",
+    "HE_NO2": "5.503",
+    "HE_SO2": "1.824",
     "HE_PM10": "31.000",
     "HE_CO": "0.745",
-    "HE_SO2": "1.824",
-    "HE_PM2_5": "15.000",
-    "HE_NO2": "5.503"
+    "HE_PM2_5": "15.000"
   }
 }
