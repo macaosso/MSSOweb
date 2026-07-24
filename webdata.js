@@ -95,7 +95,7 @@ const forecastPoints = [
   { lat: 24.8, lon: 113.5, time: "07-26 20H", wind: 85 },
   { lat: 28.5, lon: 113.2, time: "07-27 20H", wind: 45 },
   { lat: 30.4, lon: 112.6, time: "07-28 08H", wind: 40 }
-\];
+];
 window.tcInfo = {
   name: "紅霞 (2612）", 
   wind: forecastPoints[0].wind,
