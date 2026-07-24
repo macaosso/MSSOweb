@@ -63,7 +63,7 @@ const forecastInfo = {
   updated: "2026-07-24 20:00 MST"
 };
 
-const pastTrackPoints = [
+const pastPoints = [
   {lat:13.5, lon:136.0, time: "07-22 20H", wind:45},
   {lat:13.6, lon:135.2, time: "07-23 02H", wind:45},
   {lat:13.7, lon:134.0, time: "07-23 08H", wind:45},
