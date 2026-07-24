@@ -1,13 +1,13 @@
 //Tropical Cyclone Warning
 const tcWarnings = [
   {
-    icon:"warn_icon/t1.jpg",
-    text: "注意警報於本地時間07月24日08時20分發出。表示有一熱帶氣旋進入澳門1200公里範圍，未來24-72小時將進入澳門800公里範圍，並對澳門構成較大威脅。「紅霞」將在今日晚間進入本澳800公里範圍。本台將視乎情況在今日晚間至明日凌晨改發戒備警報。"
+    icon:"warn_icon/t2.jpg",
+    text: "戒備警報於本地時間07月24日22時20分發出。表示有一熱帶氣旋進入澳門800公里範圍，未來24-48小時內將逐漸影響澳門。視乎本地風力變化，及「紅霞」強風區與珠江口的距離，考慮是否需要在明日下午改發強風警報。"
   },
   
   {
     icon:"",
-    text: "上午8時，熱帶風暴「紅霞」集結在本澳東南約1150公里，即在北緯18.3度，東經123.8度附近，其中心附近最高持續風速約為每小時85公里，向西北偏西移動，時速28公里，移向呂宋北部。"
+    text: "「紅霞」已增強為強烈熱帶風暴。下午4時，強烈熱帶風暴「紅霞」集結在本澳東南偏東約890公里，即在北緯18.9度，東經121.4度附近，其中心附近最高持續風速約為每小時90公里，向西北偏西移動，時速28公里，移向呂宋北部。"
   },
 ];
 
@@ -116,16 +116,16 @@ window.tcInfo = {
 //2026-07-14  16:40 MST 更新
 
 const TC_WARNING_DATA = {
-  mainTitle: "受熱帶氣旋 99W 可能發佈之警報",
-  updateTimeText: "2026-07-14  16:40 MST 更新",
+  mainTitle: "受熱帶氣旋「紅霞」可能發佈之警報",
+  updateTimeText: "2026-07-24  22:00 MST 更新",
   tableRows: [
-    { signal: "注意警報", period: "07月13日22時20分發出", probability: "" },
-    { signal: "戒備警報", period: "07月14日16時40分取消", probability: "" },
-    { signal: "強風警報", period: "", probability: "" },
-    { signal: "烈風警報", period: "", probability: "" },
+    { signal: "注意警報", period: "07月24日08時20分發出", probability: "" },
+    { signal: "戒備警報", period: "07月24日22時20分發出", probability: "已發出" },
+    { signal: "強風警報", period: "25日下午至黃昏", probability: "偏高至高" },
+    { signal: "烈風警報", period: "26日初時", probability: "中等" },
     { signal: "暴風警報", period: "", probability: "" },
     { signal: "颶風警報", period: "", probability: "" },
-    { signal: "風暴潮觀察警報", period: "", probability: "" },
+    { signal: "風暴潮觀察警報", period: "25日晚上至26日早上", probability: "中等" },
     { signal: "風暴潮戒備警報", period: "", probability: "" },
     { signal: "風暴潮危險警報", period: "", probability: "" },    
   ]
