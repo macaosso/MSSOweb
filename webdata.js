@@ -80,18 +80,17 @@ const pastTrackPoints = [
 ];
 
 
-const hours = [0,12,24,36,48,72,96];
-const radii = [15, 50, 100, 130, 170, 255, 345];
+const hours = [0,12,24,48,72,96];
+const radii = [15, 50, 100, 170, 255, 345];
 const macau = [22.1595, 113.5685];
 
 const forecastPoints = [
   { lat: 19.3, lon: 120.4, time: "07-24 20H", wind: 105,
-    wind41: { ne: 0, nw: 0, sw: 0, se: 0 }, 
-    wind88: { ne: 0, nw: 0, sw: 0, se: 0 }
+    wind41: { ne: 160, nw: 200, sw: 220, se: 180 }, 
+    wind88: { ne: 70, nw: 100, sw: 100, se: 90 }
   },
   { lat: 20.0, lon: 118.2, time: "07-25 08H", wind: 120 },
   { lat: 21.4, lon: 116.1, time: "07-25 20H", wind: 140 },
-  { lat: 23.0, lon: 114.4, time: "07-26 08H", wind: 110 },
   { lat: 24.8, lon: 113.5, time: "07-26 20H", wind: 85 },
   { lat: 28.5, lon: 113.2, time: "07-27 20H", wind: 45 },
   { lat: 30.4, lon: 112.6, time: "07-28 08H", wind: 40 }
