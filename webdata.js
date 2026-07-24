@@ -64,19 +64,19 @@ const forecastInfo = {
 };
 
 const pastTrackPoints = [
-  {lat:13.5, lon:136, wind:45},
-  {lat:13.6, lon:135.2, wind:45},
-  {lat:13.7, lon:134, wind:45},
-  {lat:14.4, lon:133.2, wind:45},
-  {lat:14.8, lon:131.8, wind:50},
-  {lat:15.0, lon:130.2, wind:50},
-  {lat:15.6, lon:129.4, wind:55},
-  {lat:16.8, lon:128.0, wind:55},
-  {lat:17.2, lon:126.5, wind:65},
-  {lat:17.6, lon:125.2, wind:75},
-  {lat:18.3, lon:123.8, wind:85},
-  {lat:18.7, lon:122.3, wind:90},
-  {lat:19.3, lon:120.4, wind:105}
+  {lat:13.5, lon:136.0, time: "07-22 20H", wind:45},
+  {lat:13.6, lon:135.2, time: "07-23 02H", wind:45},
+  {lat:13.7, lon:134.0, time: "07-23 08H", wind:45},
+  {lat:14.4, lon:133.2, time: "07-23 14H", wind:45},
+  {lat:14.8, lon:131.8, time: "07-23 20H", wind:50},
+  {lat:15.0, lon:130.2, time: "07-24 02H", wind:50},
+  {lat:15.6, lon:129.4, time: "07-24 08H", wind:55},
+  {lat:16.8, lon:128.0, time: "07-24 14H", wind:55},
+  {lat:17.2, lon:126.5, time: "07-24 20H", wind:65},
+  {lat:17.6, lon:125.2, time: "07-25 02H", wind:75},
+  {lat:18.3, lon:123.8, time: "07-25 08H", wind:85},
+  {lat:18.7, lon:122.3, time: "07-25 14H", wind:90},
+  {lat:19.3, lon:120.4, time: "07-25 20H", wind:105}
 ];
 
 
