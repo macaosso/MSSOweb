@@ -60,35 +60,46 @@ const temp7dMin = [26,26,27,26,26,26,26];
 
 //Tropical Cyclone Track
 const forecastInfo = {
-  updated: "2026-07-15 00:00 MST"
+  updated: "2026-07-24 20:00 MST"
 };
 
-const pastPoints = [
-  {lat:13.5, lon:136.0, wind: 40},
-  {lat:13.5, lon:136.0, wind: 40}
+const pastTrackPoints = [
+  {lat:13.5, lon:136, wind:45},
+  {lat:13.6, lon:135.2, wind:45},
+  {lat:13.7, lon:134, wind:45},
+  {lat:14.4, lon:133.2, wind:45},
+  {lat:14.8, lon:131.8, wind:50},
+  {lat:15.0, lon:130.2, wind:50},
+  {lat:15.6, lon:129.4, wind:55},
+  {lat:16.8, lon:128.0, wind:55},
+  {lat:17.2, lon:126.5, wind:65},
+  {lat:17.6, lon:125.2, wind:75},
+  {lat:18.3, lon:123.8, wind:85},
+  {lat:18.7, lon:122.3, wind:90},
+  {lat:19.3, lon:120.4, wind:105}
 ];
 
-const hours = [0,12,24,48,72,96,120];
-const radii = [15, 50, 100, 170, 255, 345, 465];
+
+const hours = [0,12,24,36,48,72,96];
+const radii = [15, 50, 100, 130, 170, 255, 345];
 const macau = [22.1595, 113.5685];
 
 const forecastPoints = [
-  { lat: 13.5, lon: 136.0, time: "07-21 20H", wind: 45,
+  { lat: 19.3, lon: 120.4, time: "07-24 20H", wind: 105,
     wind41: { ne: 0, nw: 0, sw: 0, se: 0 }, 
     wind88: { ne: 0, nw: 0, sw: 0, se: 0 }
   },
-  { lat: 14.3, lon: 133.6, time: "07-22 08H", wind: 55 },
-  { lat: 15.3, lon: 131.0, time: "07-22 20H", wind: 65 },
-  { lat: 17.0, lon: 126.1, time: "07-23 20H", wind: 85 },
-  { lat: 19.2, lon: 121.1, time: "07-24 20H", wind: 90 },
-  { lat: 21.8, lon: 116.6, time: "07-25 20H", wind: 130 },
-  { lat: 24.7, lon: 114.4, time: "07-26 20H", wind: 90 }
-];
-
+  { lat: 20.0, lon: 118.2, time: "07-25 08H", wind: 120 },
+  { lat: 21.4, lon: 116.1, time: "07-25 20H", wind: 140 },
+  { lat: 23.0, lon: 114.4, time: "07-26 08H", wind: 110 },
+  { lat: 24.8, lon: 113.5, time: "07-26 20H", wind: 85 },
+  { lat: 28.5, lon: 113.2, time: "07-27 20H", wind: 45 },
+  { lat: 30.4, lon: 112.6, time: "07-28 08H", wind: 40 }
+\];
 window.tcInfo = {
-  name: "92W", 
+  name: "紅霞 (2612）", 
   wind: forecastPoints[0].wind,
-  pressure: 1004
+  pressure: 980
 };
 
 //  { lat: 42.5, lon: 149.0, time: "06-09 14H", wind: '-' }, 
