@@ -1086,7 +1086,25 @@ async function load4DaysForecastXML() {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
 
-        // Helper to query text content from multiple candidate tag names
+        // Helper to extract date across multiple SMG XML formats
+        const getDateVal = (node) => {
+            const selectors = ["ValidDate", "C_ValidDate", "ForecastDate", "C_ForecastDate", "Date", "C_Date", "fdate"];
+            for (const sel of selectors) {
+                const el = node.querySelector(sel);
+                if (el) {
+                    const txt = el.textContent.trim();
+                    if (txt && el.children.length === 0) return txt;
+                }
+            }
+            // Check nested Year/Month/Day tags
+            const y = node.querySelector("Year")?.textContent.trim();
+            const m = node.querySelector("Month")?.textContent.trim();
+            const d = node.querySelector("Day, DayOfMonth")?.textContent.trim();
+            if (m && d) return y ? `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}` : `${m}/${d}`;
+            return "";
+        };
+
+        // Helper to extract text from a single tag
         const getVal = (parent, selectors) => {
             for (const sel of selectors) {
                 const el = parent.querySelector(sel);
@@ -1095,82 +1113,71 @@ async function load4DaysForecastXML() {
             return "";
         };
 
-        // Robust Min/Max extractor for Temperature and Humidity
-        const extractMinMax = (parent, groupSelectors) => {
+        // Strict parser for <Type>1</Type> (Max) and <Type>2</Type> (Min)
+        const parseMinMax = (parent, groupSelectors) => {
             let minVal = null;
             let maxVal = null;
 
-            // Find group node (e.g. <Temperature> or <RelativeHumidity>)
-            let groupNode = null;
+            let group = null;
             for (const sel of groupSelectors) {
                 const el = parent.querySelector(sel);
-                if (el) { groupNode = el; break; }
+                if (el) { group = el; break; }
             }
 
-            if (groupNode) {
-                // Method 1: Check explicitly for Type 1 (Max) & Type 2 (Min)
-                const items = groupNode.querySelectorAll("Item, Data, CustomData, *");
-                items.forEach(item => {
-                    const type = item.querySelector("Type")?.textContent.trim() || item.getAttribute("type");
-                    const val = item.querySelector("Value")?.textContent.trim() || item.textContent.trim();
-                    const num = parseFloat(val);
+            if (!group) return { min: null, max: null };
 
-                    if (!isNaN(num)) {
-                        if (type === "1" || type === "MAX" || type === "Max") maxVal = num;
-                        if (type === "2" || type === "MIN" || type === "Min") minVal = num;
-                    }
-                });
-
-                // Method 2: Smart fallback - extract all numbers inside the group
-                if (minVal === null || maxVal === null) {
-                    const text = groupNode.textContent;
-                    const matches = text.match(/\d+(\.\d+)?/g);
-                    if (matches && matches.length >= 2) {
-                        const nums = matches.map(Number).filter(n => n > 0 && n < 100);
-                        if (nums.length >= 2) {
-                            minVal = Math.min(...nums);
-                            maxVal = Math.max(...nums);
-                        }
+            // Look specifically inside <Item> or <Data> children for <Type> and <Value>
+            const items = group.querySelectorAll("Item, Data, CustomData");
+            items.forEach(item => {
+                const typeEl = item.querySelector("Type");
+                const valEl = item.querySelector("Value");
+                if (typeEl && valEl) {
+                    const type = typeEl.textContent.trim();
+                    const val = parseFloat(valEl.textContent.trim());
+                    if (!isNaN(val)) {
+                        if (type === "1") maxVal = val;
+                        if (type === "2") minVal = val;
                     }
                 }
+            });
+
+            // Fallback for direct tags if <Item> was not used
+            if (maxVal === null) {
+                const maxEl = group.querySelector("Max, MaxTemp, MaxRH, High");
+                if (maxEl) maxVal = parseFloat(maxEl.textContent.trim());
+            }
+            if (minVal === null) {
+                const minEl = group.querySelector("Min, MinTemp, MinRH, Low");
+                if (minEl) minVal = parseFloat(minEl.textContent.trim());
             }
 
             return { min: minVal, max: maxVal };
         };
 
-        // Locate forecast day nodes flexible enough for 4-day or 7-day XML structures
-        let forecastNodes = Array.from(xmlDoc.querySelectorAll("ForecastData, WeatherForecast, Forecast, DayForecast, FourDaysForecast > *, SevenDaysForecast > *"));
-        
+        // Locate forecast day nodes
+        let forecastNodes = Array.from(xmlDoc.querySelectorAll("ForecastData, WeatherForecast, DayForecast"));
         if (forecastNodes.length === 0) {
-            forecastNodes = Array.from(xmlDoc.getElementsByTagName("*")).filter(el => 
-                getVal(el, ["ValidDate", "C_ValidDate", "ForecastDate", "Date"])
-            );
+            forecastNodes = Array.from(xmlDoc.querySelectorAll("FourDaysForecast > *, SevenDaysForecast > *"));
         }
 
         if (forecastNodes.length === 0) throw new Error("未能讀取預報數據");
 
         let html = '';
         forecastNodes.forEach(node => {
-            // Extract Date & Day of Week
-            const date = getVal(node, ["ValidDate", "C_ValidDate", "ForecastDate", "C_ForecastDate", "Date", "C_Date", "fdate"]);
-            const dayOfWeek = getVal(node, ["DayOfWeek", "C_DayOfWeek", "Day", "C_Day"]);
-            
-            // Extract Weather Text & Icon
-            const weather = getVal(node, ["WeatherDescription", "C_WeatherDescription", "WeatherSummary", "C_WeatherSummary", "Weather"]);
+            const date = getDateVal(node);
+            const dayOfWeek = getVal(node, ["C_DayOfWeek", "DayOfWeek", "C_Week", "Week", "C_Day", "Day"]);
+            const weather = getVal(node, ["C_WeatherDescription", "WeatherDescription", "C_WeatherSummary", "WeatherSummary", "Weather"]);
             let iconUrl = getVal(node, ["IconURL", "Icon", "WeatherIcon", "C_Icon"]);
 
-            // Extract Temp Range (<Type>2</Type> min, <Type>1</Type> max)
-            const temp = extractMinMax(node, ["Temperature", "C_Temperature", "Temp"]);
+            // Parse Min/Max values
+            const temp = parseMinMax(node, ["Temperature", "C_Temperature", "Temp"]);
+            const rh = parseMinMax(node, ["RelativeHumidity", "C_RelativeHumidity", "Humidity", "RH"]);
 
-            // Extract Humidity Range (<Type>2</Type> min, <Type>1</Type> max)
-            const rh = extractMinMax(node, ["RelativeHumidity", "C_RelativeHumidity", "Humidity", "RH"]);
-
-            // Skip invalid empty nodes
+            // Ignore top-level metadata nodes
             if (!date && !weather && temp.max === null) return;
 
-            // Fix relative icon path from SMG
+            // Resolve relative icon URLs
             if (iconUrl && !iconUrl.startsWith('http')) {
-                // Handle raw icon numbers like '10' -> 'images/icon10.png'
                 if (/^\d+$/.test(iconUrl)) {
                     iconUrl = `https://www.smg.gov.mo/images/icon${iconUrl}.png`;
                 } else {
@@ -1178,7 +1185,7 @@ async function load4DaysForecastXML() {
                 }
             }
 
-            // Temperature text formatting
+            // Temperature string
             let tempDisplay = '--';
             if (temp.min !== null && temp.max !== null) {
                 tempDisplay = `${temp.min}°C - ${temp.max}°C`;
@@ -1186,7 +1193,7 @@ async function load4DaysForecastXML() {
                 tempDisplay = `${temp.min ?? temp.max}°C`;
             }
 
-            // Humidity text formatting
+            // Humidity string
             let rhDisplay = '--';
             if (rh.min !== null && rh.max !== null) {
                 rhDisplay = `${rh.min}% - ${rh.max}%`;
