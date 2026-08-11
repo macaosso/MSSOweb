@@ -2,18 +2,18 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="icon" type="image/png" href="icons/MSSO.png">
 <title>熱帶氣旋距離計算工具 | 澳門民間氣象台 MSSO</title>
 <style>
-/* ========== 全域深色Dashboard基底 ========== */
+/* ========== 全域基礎樣式 (與 MSSOweb.html 統一) ========== */
 html {
   scroll-behavior: smooth;
 }
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #0f141c;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background-color: #0f172a;
   color: #e2e8f0;
   box-sizing: border-box;
 }
@@ -21,27 +21,49 @@ body {
   box-sizing: border-box;
 }
 
-/* ========== 頁頭Header 全站統一深色儀表頂欄 ========== */
-.header {
-  background: #151d2b;
-  color: #ffffff;
-  padding: 22px 20px;
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #243249;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
-.title {
-  font-size: 20px;
-  font-weight: bold;
-  margin-left: 10px;
-  letter-spacing: 0.5px;
-}
-.logo {
-  height: 40px;
+/* ========== 全站統一玻璃擬態類 ========== */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
 }
 
-/* ========== 頂部導航菜單 深色側欄風格 ========== */
+/* ========== 頁頭Header 標準 MSSO Header ========== */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 2000;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 20px;
+  display: flex;
+  align-items: center;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+.logo {
+  height: 34px;
+}
+.title {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #f8fafc;
+  white-space: nowrap;
+}
+
+/* ========== 頂部導航菜單 ========== */
 .menu-container {
   position: relative;
   z-index: 3000;
@@ -49,61 +71,61 @@ body {
 }
 .menu-toggle {
   display: none;
-  font-size: 26px;
-  padding: 10px 15px;
+  font-size: 20px;
+  padding: 6px 12px;
   cursor: pointer;
-  background: #233752;
+  background: transparent;
   color: white;
-  border-radius: 6px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
 }
 .nav {
-  background: #1a2538;
   display: flex;
+  gap: 6px;
 }
 .nav a {
   color: #cbd5e1;
-  padding: 25px 20px;
-  font-size: 18px;
+  padding: 8px 14px;
+  font-size: 14px;
   text-decoration: none;
-  display: block;
-  transition: 0.25s ease;
+  border-radius: 8px;
+  transition: 0.22s ease;
 }
-.nav a:hover {
-  background: #233752;
-  color: #ffffff;
+.nav a:hover, .nav a.active {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
 }
 
-/* ========== 頁面雙欄佈局 ========== */
+/* ========== 主內容容器 (Header 固定，預留上方間距) ========== */
+.main-container {
+  margin-top: 80px;
+  padding: 24px 35px;
+}
 .calc-wrap{
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap:35px;
-  margin:24px 35px;
 }
 
-/* ========== 深色統一卡片樣式 ========== */
+/* ========== 卡片樣式 統一 glass-panel ========== */
 .calc-card{
-  border:1px solid rgba(255,255,255,0.08);
-  border-radius:16px;
-  background:#142929;
-  box-shadow:0 5px 18px rgba(0,0,0,0.4);
   padding:26px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 .calc-card:hover{
   transform: translateY(-3px);
-  box-shadow:0 8px 24px rgba(0,0,0,0.45);
+  box-shadow:0 10px 28px rgba(0,0,0,0.45);
 }
 .card-title{
   font-size:19px;
   font-weight:bold;
-  color:#7cd1d1;
+  color:#38bdf8;
   margin:0 0 20px 0;
   padding-bottom:10px;
-  border-bottom:1px solid rgba(79,166,166,0.25);
+  border-bottom:1px solid rgba(56,189,248,0.2);
 }
 
-/* ========== 表單輸入區深色風格 ========== */
+/* ========== 表單輸入區 ========== */
 .form-row{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -123,23 +145,23 @@ input, select{
   width:100%;
   box-sizing:border-box;
   padding:11px 12px;
-  border:1px solid rgba(79,166,166,0.3);
+  border:1px solid rgba(56,189,248,0.25);
   border-radius:10px;
   font-size:15px;
-  background:#1a2538;
+  background:#1e293b;
   color:#fff;
   transition:0.2s;
 }
 input:focus, select:focus{
   outline:none;
-  border-color:#4fa6a6;
-  box-shadow:0 0 0 3px rgba(79,166,166,0.18);
+  border-color:#38bdf8;
+  box-shadow:0 0 0 3px rgba(56,189,248,0.15);
 }
 input::placeholder {
   color:#94a3b8;
 }
 
-/* ========== 按鈕樣式 ========== */
+/* ========== 按鈕樣式 MSSO 主色藍 ========== */
 .btn-row{
   display:grid;
   grid-template-columns: 2fr 1fr;
@@ -149,27 +171,26 @@ input::placeholder {
 .calc-btn{
   padding:12px;
   border:none;
-  border-radius:25px;
-  background: linear-gradient(135deg,#4fa6a6,#398888);
-  color:#fff;
+  border-radius:10px;
+  background: #38bdf8;
+  color:#0f172a;
   font-size:16px;
   font-weight:bold;
   cursor:pointer;
-  transition:0.3s;
+  transition:0.25s;
 }
 .calc-btn:hover{
-  opacity:0.92;
-  transform:translateY(-2px);
+  background: #7dd3fc;
 }
 .clear-btn{
   padding:12px;
   border:none;
-  border-radius:25px;
+  border-radius:10px;
   background:#334155;
   color:#e2e8f0;
   font-size:15px;
   cursor:pointer;
-  transition:0.3s;
+  transition:0.25s;
 }
 .clear-btn:hover{
   background:#475569;
@@ -186,8 +207,8 @@ input::placeholder {
 .result-box{
   margin-top:18px;
   padding:14px;
-  background:#1a2538;
-  border-left:5px solid #4fa6a6;
+  background:#1e293b;
+  border-left:5px solid #38bdf8;
   border-radius:8px;
   font-size:15px;
   line-height:1.7;
@@ -195,19 +216,21 @@ input::placeholder {
   white-space: pre-line;
 }
 .result-error{
-  border-left-color:#b94242;
-  background:#291414;
-  color:#fecfcf;
+  border-left-color:#ef4444;
+  background:#271414;
+  color:#fecdd3;
 }
 .result-empty{
   color:#94a3b8;
 }
 
-/* ========== 手機響應式 ========== */
+/* ========== 手機響應式 與主站完全一致 ========== */
 @media(max-width:768px){
+  .main-container {
+    padding: 20px 20px;
+  }
   .calc-wrap{
     grid-template-columns:1fr;
-    margin:20px 20px;
   }
   .menu-toggle{
     display:block;
@@ -217,8 +240,12 @@ input::placeholder {
     flex-direction:column;
     width:100%;
     position:absolute;
-    top:68px;
+    top:60px;
     left:0;
+    background:rgba(15,23,42,0.95);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius:0 0 12px 12px;
   }
   .nav.active{
     display:flex;
@@ -226,36 +253,40 @@ input::placeholder {
   .nav a{
     width:100%;
     padding:14px 18px;
-    border-top:1px solid rgba(255,255,255,0.08);
+    border-top:1px solid rgba(255,255,255,0.06);
+    border-radius:0;
   }
 }
 </style>
 </head>
 <body>
 <!-- Header Nav 與全站統一 -->
-<div class="header">
-<img src="icons/MSSO.png" class="logo">
-<div class="title">澳門民間氣象台 MSSO</div>
-</div>
-<div class="menu-container">
-<div class="menu-toggle" onclick="toggleMenu()">☰</div>
-<div class="nav" id="navMenu">
-<a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
-<a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
-<a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋距離計算工具</a>
-<a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑地圖</a>
-<a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
-<a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
-<a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
-</div>
+<div class="header glass-panel">
+  <a href="#" class="brand">
+    <img src="icons/MSSO.png" class="logo">
+    <div class="title">澳門民間氣象台 MSSO</div>
+  </a>
+  <div class="menu-container">
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+    <div class="nav" id="navMenu">
+      <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
+      <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
+      <a href="https://macaosso.github.io/MSSOweb/cal_dis.html" class="active">熱帶氣旋距離計算工具</a>
+      <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑地圖</a>
+      <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
+      <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+      <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
+    </div>
+  </div>
 </div>
 
 <!-- 主雙欄內容 -->
+<div class="main-container">
 <div class="calc-wrap">
   <!-- 左側：三大計算模塊 -->
   <div class="left-col">
     <!-- 1.熱帶氣旋距離、方位計算 -->
-    <div class="calc-card">
+    <div class="calc-card glass-panel">
       <div class="card-title">熱帶氣旋距離、方位計算</div>
       <div class="form-row">
         <div>
@@ -275,7 +306,7 @@ input::placeholder {
     </div>
 
     <!-- 2.推移定位（已知起點+方位+距離算新座標） -->
-    <div class="calc-card" style="margin-top:35px;">
+    <div class="calc-card glass-panel" style="margin-top:35px;">
       <div class="card-title">推移定位｜已知方位距離求新座標</div>
       <div class="form-row">
         <div>
@@ -305,7 +336,7 @@ input::placeholder {
     </div>
 
     <!--3.掠過最短距離(氣旋路徑與觀測點最近距離) -->
-    <div class="calc-card" style="margin-top:35px;">
+    <div class="calc-card glass-panel" style="margin-top:35px;">
       <div class="card-title">掠過最短距離｜氣旋路徑臨近計算</div>
       <div class="form-row">
         <div>
@@ -341,7 +372,7 @@ input::placeholder {
 
   <!-- 右側：單位換算工具 -->
   <div class="right-col">
-    <div class="calc-card">
+    <div class="calc-card glass-panel">
       <div class="card-title">氣象常用單位換算</div>
   
       <!-- 距離換算 | km ↔ nm ↔ mile -->
@@ -453,6 +484,7 @@ input::placeholder {
       </div>
     </div>
   </div>
+</div>
 </div>
 
 <script>
