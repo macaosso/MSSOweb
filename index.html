@@ -1088,50 +1088,40 @@ async function load4DaysForecastXML() {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
 
-        // Case-insensitive child node finder
-        const findNode = (parent, tagNames) => {
-            const targets = tagNames.map(t => t.toLowerCase());
-            const children = parent.getElementsByTagName("*");
-            for (let i = 0; i < children.length; i++) {
-                if (targets.includes(children[i].nodeName.toLowerCase())) {
-                    return children[i];
-                }
+        // Helper: Extract text from XML nodes (case-insensitive)
+        const getTagText = (parent, tagNames) => {
+            for (const name of tagNames) {
+                const el = parent.querySelector(name) || 
+                           Array.from(parent.getElementsByTagName('*'))
+                                .find(node => node.nodeName.toLowerCase() === name.toLowerCase());
+                if (el && el.textContent.trim()) return el.textContent.trim();
             }
-            return null;
+            return "";
         };
 
-        // Extract text from matched tags
-        const getText = (parent, tagNames) => {
-            const node = findNode(parent, tagNames);
-            return node ? node.textContent.trim() : "";
-        };
+        // Helper: Extract both Min and Max values from nested XML groups
+        const getMinMax = (parent, groupNames) => {
+            let groupNode = null;
+            for (const name of groupNames) {
+                groupNode = parent.querySelector(name) || 
+                            Array.from(parent.getElementsByTagName('*'))
+                                 .find(node => node.nodeName.toLowerCase() === name.toLowerCase());
+                if (groupNode) break;
+            }
 
-        // Bulletproof Temperature/Humidity range parser
-        const parseMinMax = (parent, groupTagNames) => {
-            const groupNode = findNode(parent, groupTagNames);
             if (!groupNode) return { min: null, max: null };
 
-            let values = [];
-
-            // 1. Search for explicit <Value> tags (case-insensitive)
-            const allElements = groupNode.getElementsByTagName("*");
-            for (let i = 0; i < allElements.length; i++) {
-                if (allElements[i].nodeName.toLowerCase() === "value") {
-                    const num = parseFloat(allElements[i].textContent.trim());
+            const values = [];
+            // Extract all <Value> tags within the block
+            const valueNodes = groupNode.querySelectorAll("Value, value");
+            if (valueNodes.length > 0) {
+                valueNodes.forEach(v => {
+                    const num = parseFloat(v.textContent.trim());
                     if (!isNaN(num)) values.push(num);
-                }
-            }
-
-            // 2. Fallback: Strip <Type> tags and extract remaining numbers
-            if (values.length === 0) {
-                const clone = groupNode.cloneNode(true);
-                const cloneElements = clone.getElementsByTagName("*");
-                for (let i = cloneElements.length - 1; i >= 0; i--) {
-                    if (cloneElements[i].nodeName.toLowerCase().includes("type")) {
-                        cloneElements[i].remove();
-                    }
-                }
-                const matches = clone.textContent.match(/\d+(\.\d+)?/g);
+                });
+            } else {
+                // Fallback regex to find all numbers in text content
+                const matches = groupNode.textContent.match(/\d+(\.\d+)?/g);
                 if (matches) {
                     matches.forEach(m => {
                         const num = parseFloat(m);
@@ -1158,35 +1148,37 @@ async function load4DaysForecastXML() {
 
         let html = '';
         forecastNodes.forEach(node => {
-            // Flexible field extraction
-            const date = getText(node, ["ValidDate", "C_ValidDate", "ForecastDate", "C_ForecastDate", "Date"]);
-            const dayOfWeek = getText(node, ["C_DayOfWeek", "DayOfWeek", "C_Week", "Week", "C_Day", "Day"]);
-            const weather = getText(node, ["C_WeatherDescription", "WeatherDescription", "C_WeatherSummary", "WeatherSummary", "Weather"]);
-            let iconUrl = getText(node, ["IconURL", "Icon", "WeatherIcon", "C_Icon"]);
-
-            // Extract Min & Max
-            const temp = parseMinMax(node, ["Temperature", "C_Temperature", "Temp"]);
-            const rh = parseMinMax(node, ["RelativeHumidity", "C_RelativeHumidity", "Humidity", "RH"]);
-
-            // Ignore empty container nodes
-            if (!date && !weather && temp.max === null) return;
-
-            // Fix icon URLs
-            if (iconUrl && !iconUrl.startsWith('http')) {
-                if (/^\d+$/.test(iconUrl)) {
-                    iconUrl = `https://www.smg.gov.mo/images/icon${iconUrl}.png`;
+            // 1. Read <ValidFor> Date
+            const date = getTagText(node, ["ValidFor", "C_ValidFor", "ValidDate", "C_ValidDate", "ForecastDate", "Date"]);
+            const dayOfWeek = getTagText(node, ["C_DayOfWeek", "DayOfWeek", "C_Week", "Week"]);
+            const weather = getTagText(node, ["C_WeatherDescription", "WeatherDescription", "C_WeatherSummary", "Weather"]);
+            
+            // 2. Read Weather Icon (<Icon> tag in SMG XML)
+            const rawIcon = getTagText(node, ["Icon", "C_Icon", "IconURL", "WeatherIcon"]);
+            let iconUrl = "";
+            if (rawIcon) {
+                if (rawIcon.startsWith("http")) {
+                    iconUrl = rawIcon;
+                } else if (/^\d+$/.test(rawIcon)) {
+                    iconUrl = `https://www.smg.gov.mo/images/icon${parseInt(rawIcon, 10)}.png`;
                 } else {
-                    iconUrl = 'https://www.smg.gov.mo/' + iconUrl.replace(/^\//, '');
+                    iconUrl = 'https://www.smg.gov.mo/' + rawIcon.replace(/^\//, '');
                 }
             }
 
-            // Format temperature text
+            // 3. Extract Min & Max for Temperature and Humidity
+            const temp = getMinMax(node, ["Temperature", "C_Temperature", "Temp"]);
+            const rh = getMinMax(node, ["RelativeHumidity", "C_RelativeHumidity", "Humidity", "RH"]);
+
+            if (!date && !weather && temp.max === null) return;
+
+            // Format temperature output
             let tempDisplay = '--';
             if (temp.min !== null && temp.max !== null) {
                 tempDisplay = (temp.min === temp.max) ? `${temp.min}°C` : `${temp.min}°C - ${temp.max}°C`;
             }
 
-            // Format humidity text
+            // Format humidity output
             let rhDisplay = '--';
             if (rh.min !== null && rh.max !== null) {
                 rhDisplay = (rh.min === rh.max) ? `${rh.min}%` : `${rh.min}% - ${rh.max}%`;
