@@ -481,17 +481,17 @@ body {
   border-radius: 4px;
 }
 
-/* Card container: fixed min-width for consistent scrolling */
 .forecast-card-mini {
-  flex: 0 0 165px;
-  min-width: 165px;
+  flex: 0 0 175px;
+  min-width: 175px;
   background: rgba(18, 26, 43, 0.85);
   border: 1px solid var(--card-border);
   border-radius: 12px;
   padding: 14px 12px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  justify-content: space-between;
+  gap: 8px;
   transition: all 0.25s ease;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
@@ -502,56 +502,48 @@ body {
   box-shadow: 0 6px 16px rgba(56, 189, 248, 0.15);
 }
 
+/* Top: Date */
 .card-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-muted);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 8px;
-}
-
-.card-top .card-date {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
   color: #cbd5e1;
-  white-space: nowrap;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12); /* Divider */
 }
 
-.card-top .card-icon {
-  width: 28px;
-  height: 28px;
-  object-fit: contain;
-}
-
-/* Metrics rows (Temperature Range & Humidity Range) */
-.card-metrics {
+/* Middle: Icon, Temp Range, Humid Range */
+.card-middle {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-}
-
-.metric-row {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  font-size: 12px;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 0;
 }
 
-.metric-label {
-  color: var(--text-muted);
-  font-size: 11.5px;
+.card-middle .card-icon-large {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.35));
 }
 
-.metric-value {
-  color: var(--accent-blue);
+.card-middle .temp-range-text {
+  font-size: 14.5px;
   font-weight: 700;
-  font-size: 12px;
+  color: var(--accent-blue);
 }
 
-/* Full Weather Text Description (No clipping / No '...') */
+.card-middle .humid-range-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-teal);
+}
+
+/* Bottom: Weather Description */
 .card-bottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.12); /* Divider */
   padding-top: 8px;
 }
 
@@ -1075,21 +1067,10 @@ function getUVColor(uv) {
     return "#34d399"; // 低 (Green)
 }
 
-// ========== 載入七日天氣預報 XML (配搭圖片風格重新渲染) ==========
-const sevenDayXmlUrl = "https://xml.smg.gov.mo/c_7daysforecast.xml";
-const sevenDayProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(sevenDayXmlUrl)}`;
+const fourDayXmlUrl = "https://xml.smg.gov.mo/c_4daysforecast.xml";
+const fourDayProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(fourDayXmlUrl)}`;
 
-// 數字顏色計算
-function getTempColor(temp) {
-  const val = parseFloat(temp);
-  if (isNaN(val)) return "#34d399";
-  if (val >= 32) return "#ef4444"; // 酷熱 (紅)
-  if (val >= 28) return "#f59e0b"; // 偏熱 (橙)
-  if (val >= 20) return "#34d399"; // 舒適 (綠)
-  return "#38bdf8";                // 涼/冷 (藍)
-}
-
-async function load7DaysForecastXML() {
+async function load4DaysForecastXML() {
     const loadingEl = document.getElementById('7day-xml-loading');
     const errorEl = document.getElementById('7day-xml-error');
     const containerEl = document.getElementById('7day-xml-container');
@@ -1098,14 +1079,14 @@ async function load7DaysForecastXML() {
         if (loadingEl && containerEl.children.length === 0) loadingEl.style.display = 'block';
         if (errorEl) errorEl.style.display = 'none';
 
-        const res = await fetch(sevenDayProxyUrl, { cache: "no-store" });
-        if (!res.ok) throw new Error("7日預報數據請求失敗");
+        const res = await fetch(fourDayProxyUrl, { cache: "no-store" });
+        if (!res.ok) throw new Error("4日預報數據請求失敗");
 
         const xmlText = await res.text();
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
 
-        // Helper to query multiple possible XML tags from SMG
+        // Helper to query basic text tags
         const getVal = (parent, selectors) => {
             for (const sel of selectors) {
                 const el = parent.querySelector(sel);
@@ -1114,74 +1095,89 @@ async function load7DaysForecastXML() {
             return "";
         };
 
-        let forecastNodes = Array.from(xmlDoc.querySelectorAll("WeatherForecast, Forecast, DayForecast, SevenDaysForecast > *"));
+        // Extract Min (<Type>2</Type>) and Max (<Type>1</Type>) from structured node
+        const getTypedRange = (parent, groupSelector, fallbackMin, fallbackMax) => {
+            let minVal = "";
+            let maxVal = "";
+            const group = parent.querySelector(groupSelector);
+
+            if (group) {
+                const items = group.children;
+                for (let item of items) {
+                    const type = item.querySelector("Type")?.textContent.trim();
+                    const val = item.querySelector("Value")?.textContent.trim();
+                    if (type === "2") minVal = val; // Type 2 = MIN
+                    if (type === "1") maxVal = val; // Type 1 = MAX
+                }
+            }
+
+            // Fallback for alternative tag structures
+            if (!minVal) minVal = getVal(parent, fallbackMin);
+            if (!maxVal) maxVal = getVal(parent, fallbackMax);
+
+            return { min: minVal, max: maxVal };
+        };
+
+        let forecastNodes = Array.from(xmlDoc.querySelectorAll("WeatherForecast, Forecast, DayForecast, FourDaysForecast > *, SevenDaysForecast > *"));
         if (forecastNodes.length === 0) {
             forecastNodes = Array.from(xmlDoc.getElementsByTagName("*")).filter(el => 
                 getVal(el, ["ValidDate", "ForecastDate", "Date", "DayOfWeek"])
             );
         }
 
-        if (forecastNodes.length === 0) throw new Error("未能讀取七日預報數據");
+        if (forecastNodes.length === 0) throw new Error("未能讀取預報數據");
 
         let html = '';
         forecastNodes.forEach(node => {
             const date = getVal(node, ["ValidDate", "ForecastDate", "Date"]);
-            const dayOfWeek = getVal(node, ["DayOfWeek", "Day"]);
-            const weather = getVal(node, ["WeatherDescription", "WeatherSummary", "Weather", "WeatherDetail", "C_Weather"]);
-            const maxTemp = getVal(node, ["MaxTemp", "Max_Temp", "Temperature_Max", "HighTemp", "Temperature > Max"]);
-            const minTemp = getVal(node, ["MinTemp", "Min_Temp", "Temperature_Min", "LowTemp", "Temperature > Min"]);
-            const maxRH = getVal(node, ["MaxRH", "Max_RH", "Humidity_Max", "Humidity > Max"]);
-            const minRH = getVal(node, ["MinRH", "Min_RH", "Humidity_Min", "Humidity > Min"]);
-            const windDir = getVal(node, ["WindDirection", "WindDir", "Wind_Direction"]);
-            const windForce = getVal(node, ["WindForce", "WindSpeed", "Wind_Speed"]);
-            let iconUrl = getVal(node, ["IconURL", "Icon", "WeatherIcon", "Icon_URL"]);
+            const dayOfWeek = getVal(node, ["DayOfWeek", "C_DayOfWeek", "Day"]);
+            const weather = getVal(node, ["WeatherDescription", "WeatherSummary", "C_WeatherDescription", "Weather"]);
+            let iconUrl = getVal(node, ["IconURL", "Icon", "WeatherIcon"]);
 
-            if (!date && !weather && !maxTemp) return;
+            // Parse Temperature (<Type>2</Type> min, <Type>1</Type> max)
+            const temp = getTypedRange(node, "Temperature", ["MinTemp", "Min_Temp"], ["MaxTemp", "Max_Temp"]);
+            
+            // Parse Relative Humidity (<Type>2</Type> min, <Type>1</Type> max)
+            const rh = getTypedRange(node, "RelativeHumidity", ["MinRH", "Min_RH"], ["MaxRH", "Max_RH"]);
 
-            // Resolve relative icon URLs from SMG
+            if (!date && !weather && !temp.max) return;
+
+            // Fix relative image URLs from SMG
             if (iconUrl && !iconUrl.startsWith('http')) {
                 iconUrl = 'https://www.smg.gov.mo/' + iconUrl.replace(/^\//, '');
             }
 
-            // Temperature range formatting
-            let tempRange = '--';
-            if (minTemp && maxTemp) {
-                tempRange = `${minTemp}°C ~ ${maxTemp}°C`;
-            } else if (minTemp || maxTemp) {
-                tempRange = `${minTemp || maxTemp}°C`;
+            // Format Temperature Range: min temp - max temp
+            let tempDisplay = '--';
+            if (temp.min && temp.max) {
+                tempDisplay = `${temp.min}°C - ${temp.max}°C`;
+            } else if (temp.min || temp.max) {
+                tempDisplay = `${temp.min || temp.max}°C`;
             }
 
-            // Humidity range formatting
-            let humRange = '--';
-            if (minRH && maxRH) {
-                humRange = `${minRH}% ~ ${maxRH}%`;
-            } else if (minRH || maxRH) {
-                humRange = `${minRH || maxRH}%`;
+            // Format Humidity Range: min humid - max humid
+            let rhDisplay = '--';
+            if (rh.min && rh.max) {
+                rhDisplay = `${rh.min}% - ${rh.max}%`;
+            } else if (rh.min || rh.max) {
+                rhDisplay = `${rh.min || rh.max}%`;
             }
 
             html += `
                 <div class="forecast-card-mini">
+                    <!-- Top: Date -->
                     <div class="card-top">
-                        <span class="card-date">${date} ${dayOfWeek ? `(${dayOfWeek})` : ''}</span>
-                        ${iconUrl ? `<img src="${iconUrl}" class="card-icon" alt="icon" onerror="this.style.display='none'">` : ''}
+                        ${date}${dayOfWeek ? ` (${dayOfWeek})` : ''}
                     </div>
 
-                    <div class="card-metrics">
-                        <div class="metric-row">
-                            <span class="metric-label">🌡️ 氣溫</span>
-                            <span class="metric-value">${tempRange}</span>
-                        </div>
-                        <div class="metric-row">
-                            <span class="metric-label">💧 濕度</span>
-                            <span class="metric-value">${humRange}</span>
-                        </div>
-                        ${(windDir || windForce) ? `
-                        <div class="metric-row">
-                            <span class="metric-label">🌬️ 風力</span>
-                            <span class="metric-value" style="color: var(--text-main); font-weight: 500;">${windDir} ${windForce}</span>
-                        </div>` : ''}
+                    <!-- Middle: Larger Icon, Min - Max Temp, Min - Max Humid -->
+                    <div class="card-middle">
+                        ${iconUrl ? `<img src="${iconUrl}" class="card-icon-large" alt="weather icon" onerror="this.style.display='none'">` : ''}
+                        <div class="temp-range-text">🌡️ ${tempDisplay}</div>
+                        <div class="humid-range-text">💧 ${rhDisplay}</div>
                     </div>
 
+                    <!-- Bottom: Full Weather Description -->
                     <div class="card-bottom">
                         <div class="card-condition">${weather || '無資料'}</div>
                     </div>
@@ -1193,20 +1189,19 @@ async function load7DaysForecastXML() {
         containerEl.innerHTML = html;
 
     } catch (err) {
-        console.error("七日預報XML解析異常：", err);
+        console.error("4日預報XML解析異常：", err);
         if (loadingEl) loadingEl.style.display = 'none';
         if (errorEl && containerEl.children.length === 0) errorEl.style.display = 'block';
     }
 }
 
-window.addEventListener('DOMContentLoaded', async () => {
-    await loadHourlyWeather();
-    loadUVData();
-    load7DaysForecastXML();
+// Call on load & auto refresh every hour
+window.addEventListener('DOMContentLoaded', () => {
+    load4DaysForecastXML();
 });
+setInterval(load4DaysForecastXML, 3600000);
 
-setInterval(loadHourlyWeather, 300000);
-setInterval(load7DaysForecastXML, 3600000); // 每 1 小時 (3600000 ms) 自動更新
+setInterval(loadHourlyWeather, 100000);
 </script>
 </body>
 </html>
