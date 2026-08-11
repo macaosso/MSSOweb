@@ -1088,58 +1088,8 @@ async function load4DaysForecastXML() {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
 
-        // Helper: Extract text from XML nodes (case-insensitive)
-        const getTagText = (parent, tagNames) => {
-            for (const name of tagNames) {
-                const el = parent.querySelector(name) || 
-                           Array.from(parent.getElementsByTagName('*'))
-                                .find(node => node.nodeName.toLowerCase() === name.toLowerCase());
-                if (el && el.textContent.trim()) return el.textContent.trim();
-            }
-            return "";
-        };
-
-        // Helper: Extract both Min and Max values from nested XML groups
-        const getMinMax = (parent, groupNames) => {
-            let groupNode = null;
-            for (const name of groupNames) {
-                groupNode = parent.querySelector(name) || 
-                            Array.from(parent.getElementsByTagName('*'))
-                                 .find(node => node.nodeName.toLowerCase() === name.toLowerCase());
-                if (groupNode) break;
-            }
-
-            if (!groupNode) return { min: null, max: null };
-
-            const values = [];
-            // Extract all <Value> tags within the block
-            const valueNodes = groupNode.querySelectorAll("Value, value");
-            if (valueNodes.length > 0) {
-                valueNodes.forEach(v => {
-                    const num = parseFloat(v.textContent.trim());
-                    if (!isNaN(num)) values.push(num);
-                });
-            } else {
-                // Fallback regex to find all numbers in text content
-                const matches = groupNode.textContent.match(/\d+(\.\d+)?/g);
-                if (matches) {
-                    matches.forEach(m => {
-                        const num = parseFloat(m);
-                        if (!isNaN(num)) values.push(num);
-                    });
-                }
-            }
-
-            if (values.length === 0) return { min: null, max: null };
-
-            return {
-                min: Math.min(...values),
-                max: Math.max(...values)
-            };
-        };
-
         // Locate forecast day nodes
-        let forecastNodes = Array.from(xmlDoc.querySelectorAll("ForecastData, WeatherForecast, DayForecast"));
+        let forecastNodes = Array.from(xmlDoc.querySelectorAll("ForecastData, WeatherForecast, DayForecast, CustomData, Item"));
         if (forecastNodes.length === 0) {
             forecastNodes = Array.from(xmlDoc.querySelectorAll("FourDaysForecast > *, SevenDaysForecast > *"));
         }
@@ -1148,41 +1098,121 @@ async function load4DaysForecastXML() {
 
         let html = '';
         forecastNodes.forEach(node => {
-            // 1. Read <ValidFor> Date
-            const date = getTagText(node, ["ValidFor", "C_ValidFor", "ValidDate", "C_ValidDate", "ForecastDate", "Date"]);
-            const dayOfWeek = getTagText(node, ["C_DayOfWeek", "DayOfWeek", "C_Week", "Week"]);
-            const weather = getTagText(node, ["C_WeatherDescription", "WeatherDescription", "C_WeatherSummary", "Weather"]);
-            
-            // 2. Read Weather Icon (<Icon> tag in SMG XML)
-            const rawIcon = getTagText(node, ["Icon", "C_Icon", "IconURL", "WeatherIcon"]);
+            const allElements = Array.from(node.getElementsByTagName("*"));
+
+            // 1. Extract Date / ValidFor
+            let date = "";
+            for (let el of allElements) {
+                const name = el.nodeName.toLowerCase();
+                if (name.includes("validfor") || name.includes("validdate") || name.includes("forecastdate") || name === "date") {
+                    if (el.children.length === 0 && el.textContent.trim()) {
+                        date = el.textContent.trim();
+                        break;
+                    }
+                }
+            }
+
+            // Day of Week
+            let dayOfWeek = "";
+            for (let el of allElements) {
+                const name = el.nodeName.toLowerCase();
+                if (name.includes("dayofweek") || name.includes("week") || name === "day") {
+                    if (el.children.length === 0 && el.textContent.trim()) {
+                        dayOfWeek = el.textContent.trim();
+                        break;
+                    }
+                }
+            }
+
+            // Weather Description
+            let weather = "";
+            for (let el of allElements) {
+                const name = el.nodeName.toLowerCase();
+                if (name.includes("weatherdescription") || name.includes("weathersummary") || name === "weather") {
+                    if (el.textContent.trim()) {
+                        weather = el.textContent.trim();
+                        break;
+                    }
+                }
+            }
+
+            // 2. Extract Weather Icon
+            let rawIcon = "";
+            for (let el of allElements) {
+                if (el.nodeName.toLowerCase().includes("icon")) {
+                    const txt = el.textContent.trim();
+                    if (txt) { rawIcon = txt; break; }
+                }
+            }
+
             let iconUrl = "";
             if (rawIcon) {
                 if (rawIcon.startsWith("http")) {
                     iconUrl = rawIcon;
-                } else if (/^\d+$/.test(rawIcon)) {
-                    iconUrl = `https://www.smg.gov.mo/images/icon${parseInt(rawIcon, 10)}.png`;
                 } else {
-                    iconUrl = 'https://www.smg.gov.mo/' + rawIcon.replace(/^\//, '');
+                    const numMatch = rawIcon.match(/\d+/);
+                    if (numMatch) {
+                        iconUrl = `https://www.smg.gov.mo/images/icon${numMatch[0]}.png`;
+                    } else {
+                        iconUrl = 'https://www.smg.gov.mo/' + rawIcon.replace(/^\//, '');
+                    }
                 }
             }
 
-            // 3. Extract Min & Max for Temperature and Humidity
-            const temp = getMinMax(node, ["Temperature", "C_Temperature", "Temp"]);
-            const rh = getMinMax(node, ["RelativeHumidity", "C_RelativeHumidity", "Humidity", "RH"]);
+            // 3. Extract Temperature Min & Max (Valid range: 5 to 50 °C)
+            let tempNums = [];
+            for (let el of allElements) {
+                const name = el.nodeName.toLowerCase();
+                if (name.includes("temp") || name.includes("temperature")) {
+                    const matches = el.textContent.match(/\d+(\.\d+)?/g);
+                    if (matches) {
+                        matches.forEach(m => {
+                            const val = parseFloat(m);
+                            if (!isNaN(val) && val >= 5 && val <= 50) {
+                                tempNums.push(val);
+                            }
+                        });
+                    }
+                }
+            }
 
-            if (!date && !weather && temp.max === null) return;
+            tempNums = [...new Set(tempNums)];
+            let tempMin = tempNums.length > 0 ? Math.min(...tempNums) : null;
+            let tempMax = tempNums.length > 0 ? Math.max(...tempNums) : null;
 
-            // Format temperature output
             let tempDisplay = '--';
-            if (temp.min !== null && temp.max !== null) {
-                tempDisplay = (temp.min === temp.max) ? `${temp.min}°C` : `${temp.min}°C - ${temp.max}°C`;
+            if (tempMin !== null && tempMax !== null) {
+                tempDisplay = (tempMin === tempMax) ? `${tempMin}°C` : `${tempMin}°C - ${tempMax}°C`;
             }
 
-            // Format humidity output
-            let rhDisplay = '--';
-            if (rh.min !== null && rh.max !== null) {
-                rhDisplay = (rh.min === rh.max) ? `${rh.min}%` : `${rh.min}% - ${rh.max}%`;
+            // 4. Extract Relative Humidity Min & Max (Valid range: 10 to 100 %)
+            let rhNums = [];
+            for (let el of allElements) {
+                const name = el.nodeName.toLowerCase();
+                if (name.includes("humidity") || name.includes("rh")) {
+                    const matches = el.textContent.match(/\d+(\.\d+)?/g);
+                    if (matches) {
+                        matches.forEach(m => {
+                            const val = parseFloat(m);
+                            if (!isNaN(val) && val >= 10 && val <= 100) {
+                                rhNums.push(val);
+                            }
+                        });
+                    }
+                }
             }
+
+            rhNums = [...new Set(rhNums)];
+            let rhMin = rhNums.length > 0 ? Math.min(...rhNums) : null;
+            let rhMax = rhNums.length > 0 ? Math.max(...rhNums) : null;
+
+            let rhDisplay = '--';
+            if (rhMin !== null && rhMax !== null) {
+                rhDisplay = (rhMin === rhMax) ? `${rhMin}%` : `${rhMin}% - ${rhMax}%`;
+            }
+
+            // Skip empty container nodes
+            if (!date && !weather && tempNums.length === 0) return;
 
             html += `
                 <div class="forecast-card-mini">
@@ -1191,7 +1221,9 @@ async function load4DaysForecastXML() {
                     </div>
 
                     <div class="card-middle">
-                        ${iconUrl ? `<img src="${iconUrl}" class="card-icon-large" alt="weather icon" onerror="this.style.display='none'">` : ''}
+                        ${iconUrl 
+                            ? `<img src="${iconUrl}" class="card-icon-large" alt="weather icon" onerror="this.onerror=null; this.src='https://www.smg.gov.mo/images/icon1.png';">` 
+                            : '<span style="font-size:36px;">⛅</span>'}
                         <div class="temp-range-text">🌡️ ${tempDisplay}</div>
                         <div class="humid-range-text">💧 ${rhDisplay}</div>
                     </div>
