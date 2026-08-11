@@ -499,6 +499,11 @@ html, body {
     </select>
   </div>
 
+  <!-- ===== 新增標籤切換按鈕 ===== -->
+  <button id="toggleLabelBtn" class="tc-select" style="margin-left:8px;" onclick="toggleForecastLabels()">
+    隱藏時間標籤
+  </button>
+
   <div class="menu-container">
     <button class="menu-toggle" onclick="toggleMenu(event)" aria-label="選單">☰</button>
     <div class="nav" id="navMenu">
@@ -573,6 +578,10 @@ let tcLayersGroup = L.layerGroup().addTo(map);
 const tcKeys = ['A', 'B', 'C', 'D', 'E'];
 let loadedTCs = {};
 
+// ===== 新增：預報標籤開關 =====
+let showForecastLabels = true;
+let forecastTooltipMarkers = [];
+
 // 強度配色常量
 const colors = {
   "SuTY":"#A230FF", "STY":"#FF6F6F", "TY":"#F78A31",
@@ -635,6 +644,18 @@ document.addEventListener("click", (e) => {
     toggleBtn.innerHTML = "☰";
   }
 });
+
+function toggleForecastLabels() {
+  showForecastLabels = !showForecastLabels;
+  const btn = document.getElementById("toggleLabelBtn");
+  btn.textContent = showForecastLabels ? "隱藏時間標籤" : "顯示時間標籤";
+
+  forecastTooltipMarkers.forEach(marker => {
+    if(marker._tooltip){
+      marker._tooltip._container.style.display = showForecastLabels ? "" : "none";
+    }
+  });
+}
 
 function getIcon(type, size = 16) {
   return L.icon({
@@ -926,8 +947,16 @@ function drawTCLayers(data) {
     `);
 
     marker.bindTooltip(p.time, {
-      permanent: true, direction: "right", offset: [10, 0], className: "time-label"
+      permanent: true,
+      direction: "right",
+      offset: [10, 0],
+      className: "time-label"
     });
+    forecastTooltipMarkers.push(marker);
+    // 依當前狀態控制顯示
+    if(marker._tooltip){
+      marker._tooltip._container.style.display = showForecastLabels ? "" : "none";
+    }
 
     marker.on('click', function () { this.openPopup(); });
     tcLayersGroup.addLayer(marker);
@@ -952,6 +981,7 @@ function drawTCLayers(data) {
 // ================= 單一氣旋渲染 =================
 function renderTCData(data) {
   tcLayersGroup.clearLayers();
+  forecastTooltipMarkers = [];
   const pts = drawTCLayers(data);
 
   document.getElementById("updateTime").innerHTML = "更新時間: " + (data.forecastInfo ? data.forecastInfo.updated : "--");
@@ -985,6 +1015,7 @@ function renderTCData(data) {
 // ================= Requirement #1: 全部熱帶氣旋同時渲染 =================
 function renderAllTCs() {
   tcLayersGroup.clearLayers();
+  forecastTooltipMarkers = [];
   let allPts = [macauCoords];
   const activeKeys = Object.keys(loadedTCs);
 
