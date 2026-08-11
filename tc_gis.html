@@ -1026,7 +1026,7 @@ async function initTCDropdown() {
       opt.value = item.key;
       // Requirement #2: 自動獲取氣旋名稱
       const tcName = item.data.tcInfo.name || `熱帶氣旋 ${item.key}`;
-      opt.textContent = `${tcName} (tc_${item.key}.csv)`;
+      opt.textContent = `${tcName}`;
       selectEl.appendChild(opt);
     }
   });
