@@ -190,10 +190,10 @@ html, body {
   z-index: 1000;
   right: 20px;
   bottom: 24px;
-  width: 230px;
-  max-height: 55vh;
+  width: 270px; /* Width increased to fit 2 text columns comfortably */
+  max-height: 60vh;
   overflow-y: auto;
-  padding: 16px;
+  padding: 14px 16px;
   border-radius: 14px;
   font-size: 12px;
   color: #cbd5e1;
@@ -202,41 +202,58 @@ html, body {
 .legend b {
   color: #f8fafc;
   display: block;
+  margin-top: 8px;
   margin-bottom: 8px;
   font-size: 13px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  padding-bottom: 4px;
 }
-.legend-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-.legend-grid div, .legend div {
-  display: flex;
-  align-items: center;
-  margin-bottom: 4px;
+.legend b:first-child {
+  margin-top: 0;
 }
 
-/* 圖例標記 */
+/* 2-Column Grid Layout */
+.legend-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px 12px;
+  margin-bottom: 6px;
+}
+.legend-grid div, .legend-list div {
+  display: flex;
+  align-items: center;
+  white-space: nowrap; /* Prevents 4-character Chinese text from wrapping vertically */
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+/* Intensity List */
+.legend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* 圖例標記與圖示 */
 .dot {
   display: inline-block;
   width: 10px;
   height: 10px;
   border-radius: 50%;
   margin-right: 8px;
-  box-shadow: 0 0 6px rgba(0,0,0,0.5);
   flex-shrink: 0;
+  box-shadow: 0 0 4px rgba(0,0,0,0.5);
 }
 .line {
   display: inline-block;
-  width: 20px;
+  width: 18px;
   height: 0;
   margin-right: 8px;
   flex-shrink: 0;
 }
 .line.past {
   border-top: 2.5px solid #ffffff;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 .line.forecast {
   border-top: 2.5px dashed #ffffff;
@@ -245,8 +262,9 @@ html, body {
   display: inline-block;
   width: 12px;
   height: 12px;
-  background: rgba(255,255,255,0.2);
-  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 3px;
   margin-right: 8px;
   flex-shrink: 0;
 }
@@ -258,10 +276,11 @@ html, body {
   border-radius: 2px;
   margin-right: 8px;
   flex-shrink: 0;
+  box-shadow: 0 0 6px rgba(255,255,255,0.8);
 }
 .wind {
   display: inline-block;
-  width: 16px;
+  width: 14px;
   height: 10px;
   margin-right: 8px;
   border-radius: 2px;
@@ -269,11 +288,11 @@ html, body {
 }
 .wind.yellow {
   border: 1.5px solid #FFD700;
-  background: rgba(255, 215, 0, 0.25);
+  background: rgba(255, 215, 0, 0.3);
 }
 .wind.red {
   border: 1.5px solid #FF3B30;
-  background: rgba(255, 59, 48, 0.25);
+  background: rgba(255, 59, 48, 0.3);
 }
 
 /* 更新時間 */
