@@ -8,171 +8,202 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <title>澳門民間氣象台-首頁</title>
 <style>
-/* ========== 1. 全域深色Dashboard基礎 ========== */
+/* ========== 1. 深太空 (Deep Space) 全域主題基礎 ========== */
+:root {
+  --bg-dark: #0b0f19;
+  --card-bg: rgba(22, 30, 46, 0.75);
+  --card-bg-light: rgba(255, 255, 255, 0.03);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  
+  --accent-blue: #38bdf8;
+  --accent-teal: #2dd4bf;
+  --accent-green: #34d399;
+  --accent-yellow: #facc15;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #c084fc;
+
+  --bg-red: rgba(239, 68, 68, 0.12);
+  --border-red: rgba(239, 68, 68, 0.35);
+  --bg-orange: rgba(245, 158, 11, 0.12);
+  --border-orange: rgba(245, 158, 11, 0.35);
+}
+
 html {
   scroll-behavior: smooth;
 }
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #0f141c;
-  color: #e2e8f0;
-}
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  line-height: 1.6;
 }
 
-/* ========== 2. 頁頭Header 深色儀表頂欄 ========== */
-.header {
-  background: #151d2b;
-  color: #ffffff;
-  padding: 22px 20px;
+/* 頁面最大寬度容器 */
+.page-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 15px 40px 15px;
+}
+
+/* ========== 2. 頁頭 Header & 頂欄導航 ========== */
+.header-nav-container {
+  position: sticky;
+  top: 0;
+  z-index: 3000;
+  background: rgba(11, 15, 25, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--card-border);
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #243249;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  margin-bottom: 20px;
 }
-.title {
-  font-size: 20px;
-  font-weight: bold;
-  margin-left: 10px;
-  letter-spacing: 0.5px;
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 .logo {
-  height: 40px;
+  height: 38px;
+  width: auto;
+  filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.3));
+}
+.title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  letter-spacing: 0.5px;
 }
 
-/* ========== 3. 頂部導航菜單 深色側欄風格 ========== */
+/* 導航菜單 */
 .menu-container {
   position: relative;
-  z-index: 3000;
-  margin-left: auto;
 }
 .menu-toggle {
   display: none;
-  font-size: 26px;
-  padding: 10px 15px;
+  font-size: 22px;
+  padding: 6px 12px;
   cursor: pointer;
-  background: #233752;
-  color: #fff;
-  border-radius: 6px;
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.menu-toggle:hover {
+  border-color: var(--accent-blue);
 }
 .nav {
-  background: #1a2538;
   display: flex;
+  gap: 8px;
 }
 .nav a {
-  color: #cbd5e1;
-  padding: 25px 20px;
-  font-size: 18px;
+  color: var(--text-muted);
+  padding: 8px 14px;
+  font-size: 0.92rem;
+  font-weight: 500;
   text-decoration: none;
-  display: block;
-  transition: 0.25s ease;
+  border-radius: 20px;
+  transition: all 0.2s ease;
 }
 .nav a:hover {
-  background: #233752;
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* ========== 3. 首頁快捷鏈接模塊 (深空發光霓虹卡片) ========== */
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 15px 0 25px 0;
+  width: 100%;
+}
+.link-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 10px;
+  border-radius: 14px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--text-main);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  transition: all 0.25s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.link-box.weather {
+  background: linear-gradient(135deg, rgba(20, 83, 116, 0.35), rgba(15, 23, 42, 0.6));
+  border-color: rgba(56, 189, 248, 0.3);
+}
+.link-box.flood {
+  background: linear-gradient(135deg, rgba(13, 110, 110, 0.35), rgba(15, 23, 42, 0.6));
+  border-color: rgba(45, 212, 191, 0.3);
+}
+.link-box.map {
+  background: linear-gradient(135deg, rgba(88, 28, 135, 0.35), rgba(15, 23, 42, 0.6));
+  border-color: rgba(192, 132, 252, 0.3);
+}
+.link-box:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-blue);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.2);
   color: #ffffff;
 }
 
-/* ========== 4. 首頁快捷鏈接模塊 深色霓虹卡片 ========== */
-/* 容器：横向3列网格，强制不换行 */
-.quick-links {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)); /* minmax 解决窄屏挤压换行 */
-  gap: 10px;
-  margin: 15px 20px;
-  width: 100%;       /* 强制占满父宽度 */
-  box-sizing: border-box;
-}
-
-/* 按钮样式：紧凑化，适配横向 */
-.link-box {
-  display: block;
-  padding: 22px 6px;
-  border-radius: 12px;
-  text-align: center;
-  font-size: 13px;
-  font-weight: bold;
-  text-decoration: none;
-  color: white;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
-  transition: all 0.3s ease;
-  border: 1px solid rgba(255,255,255,0.08);
-  white-space: nowrap; /* 文字禁止换行 */
-  overflow: hidden;
-  text-overflow: ellipsis;
-  box-sizing: border-box;
-}
-
-/* 保持渐变配色 */
-.link-box.weather {
-  background: linear-gradient(135deg, #1e4e4e, #1a3850);
-  border-color: rgba(79, 166, 166, 0.3);
-}
-.link-box.flood {
-  background: linear-gradient(135deg, #1d4b66, #0f2b42);
-  border-color: rgba(93, 173, 226, 0.3);
-}
-.link-box.map {
-  background: linear-gradient(135deg, #193c5c, #092742);
-  border-color: rgba(116, 185, 255, 0.3);
-}
-
-/* 交互效果 */
-.link-box:hover {
-  transform: translateY(-3px);
-  opacity: 0.92;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.45);
-}
-
-/* 小屏手机：依旧保持一行3列，只缩小内边距与字号 */
-@media (max-width: 375px) {
-  .quick-links {
-    gap: 6px;
-    margin: 10px 12px;
-    /* 不修改 grid 布局，依旧3列 */
-  }
-  .link-box {
-    padding: 18px 4px;
-    font-size: 10px;
-  }
-}
-
-/* ========== 5. 紅色警告卡片(熱帶氣旋/天氣警告) 深色危險模塊 ========== */
+/* ========== 4. 紅色危險警告卡片 (熱帶氣旋/天氣警告) ========== */
 .warning-card {
-  margin: 20px 35px;
+  margin: 20px 0;
   border-radius: 16px;
-  background: #291414;
-  border: 2px solid #b94242;
-  box-shadow: 0 5px 18px rgba(0,0,0,0.4);
+  background: var(--bg-red);
+  border: 1px solid var(--border-red);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.1);
   overflow: hidden;
 }
 .warning-header {
-  background: #b94242;
-  color: white;
-  padding: 16px;
-  font-size: 18px;
-  font-weight: bold;
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 700;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid var(--border-red);
 }
 .warning-item {
   display: flex;
   gap: 18px;
-  padding: 22px;
-  align-items: flex-start;
+  padding: 20px;
+  align-items: center;
 }
 .icon-box {
-  width: 80px;
-  height: 80px;
-  background: #1a0c0c;
-  border-radius: 10px;
+  width: 70px;
+  height: 70px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  border: 1px solid rgba(255,255,255,0.1);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 8px;
 }
 .icon-box img {
   width: 100%;
@@ -181,263 +212,33 @@ body {
 }
 .text-box {
   flex: 1;
-  font-size: 15px;
+  font-size: 14.5px;
   line-height: 1.7;
   color: #fecfcf;
   text-align: left;
 }
 .divider {
   height: 1px;
-  background: #5c2626;
-  margin: 0 22px;
+  background: rgba(239, 68, 68, 0.2);
+  margin: 0 20px;
 }
 .tc-btn {
-  background: rgba(255,255,255,0.15);
-  color: #fff;
-  padding: 7px 14px;
-  border-radius: 22px;
-  font-size: 14px;
+  background: var(--accent-red);
+  color: #ffffff;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
   text-decoration: none;
-  font-weight: bold;
-  border: 1px solid rgba(255,255,255,0.2);
+  font-weight: 600;
+  transition: all 0.2s;
+  border: none;
 }
 .tc-btn:hover {
-  background: rgba(255,255,255,0.25);
+  background: #dc2626;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
 }
 
-/* ========== 6. 橙色提示框(特別天氣提示、預警提示) 深色警示模塊 ========== */
-.box {
-  margin: 20px 35px;
-  border-radius: 16px;
-  background: #2b2410;
-  border: 2px solid #d88a10;
-  box-shadow: 0 5px 18px rgba(0,0,0,0.4);
-  overflow: hidden;
-}
-.header-orange {
-  background: #d88a10;
-  color: #000;
-  padding: 16px;
-  font-size: 18px;
-  font-weight: bold;
-}
-.content-yellow {
-  background: #1f1a0c;
-  padding: 26px;
-  font-size: 15px;
-  line-height:1.7;
-  color:#ffe7b3;
-}
-
-/* ========== 7. 天氣預報TAB切換模塊 深色數據卡 ========== */
-.forecast-tab-wrap {
-  border-radius:14px;
-  overflow:hidden;
-  border:2px solid #2a6b6b;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.35);
-  background:#142929;
-  margin: 0;
-}
-.tab-header{
-  display:flex;
-  gap:12px;
-  padding:18px;
-  background: #102020;
-}
-.tab-btn{
-  flex:1;
-  border: 2px solid #2a6b6b;
-  border-radius: 28px;
-  background: #142929;
-  color: #7cd1d1;
-  padding:11px;
-  font-size:18px;
-  font-weight:bold;
-  cursor:pointer;
-  transition: all 0.3s;
-}
-.tab-btn.active{
-  background:#2a6b6b;
-  color:#ffffff;
-}
-.tab-btn:hover:not(.active){
-  background: #1b3b3b;
-}
-.tab-content-box{
-  background:#142929;
-  padding:32px;
-}
-.tab-content{
-  display:none;
-  font-size:15px;
-  line-height:1.7;
-  color:#cbd5e1;
-}
-.tab-content.active{
-  display:block;
-}
-.forecast-time {
-  margin: 0 35px;
-  text-align: right;
-  font-size: 16px;
-  color: #94a3b8;
-  font-weight: 500;
-  padding: 8px 0;
-}
-
-/* ========== 8. Chart圖表深色卡片 ========== */
-.chart-wrap{
-  border-radius:14px;
-  overflow:hidden;
-  border:2px solid #2a6b6b;
-  box-shadow: 0 3px 12px rgba(0,0,0,0.35);
-  background:#142929;
-  margin: 0;
-}
-.chart-btn-bar{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:12px;
-  padding:18px;
-  background: #102020;
-}
-/* 隱藏多餘的空白間距組，不需要了 */
-.btn-group{
-  display:contents;
-}
-.chart-date-text{
-  font-size:16px;
-  font-weight:bold;
-  color:#7cd1d1;
-}
-.chart-container {
-  padding:32px;
-  height:320px;
-  box-sizing: border-box;
-  background: #142929;
-}
-.chart-btn {
-  flex: 1;
-  border: 2px solid #2a6b6b;
-  border-radius: 28px;
-  background: #142929;
-  color: #7cd1d1;
-  padding:11px;
-  font-size:18px;
-  font-weight:bold;
-  cursor:pointer;
-  transition: all 0.3s;
-}
-.chart-btn.active{
-  background:#2a6b6b;
-  color:#ffffff;
-}
-.chart-btn:hover:not(.active){
-  background: #1b3b3b;
-}
-
-/* ========== 9. 單標籤天氣模塊（只保留整點天氣）深色面板 ========== */
-.three-tab-weather-wrap {
-  margin: 20px 35px;
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: 0 3px 14px rgba(0,0,0,0.4);
-  border: 1px solid rgba(255,255,255,0.08);
-  background: #12271c;
-}
-.three-tab-header {
-  display: flex;
-  background-color: #287d4e;
-}
-.three-tab-item {
-  flex: 1;
-  padding: 18px 10px;
-  text-align: center;
-  color: #fff;
-  font-size: 17px;
-  font-weight: bold;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: background 0.25s;
-}
-.three-tab-item.active {
-  background-color: #1e663f;
-}
-.three-tab-item:hover {
-  background-color: #1e663f;
-}
-.tab-icon-small {
-  width: 26px;
-  height: 26px;
-}
-.three-tab-content-box {
-  background-color: #0f1f17;
-  padding: 22px;
-  border: 2px solid #2c7c54;
-  border-top: none;
-}
-.region-select {
-  padding: 9px 18px;
-  border: 2px solid #287d4e;
-  border-radius: 8px;
-  font-size: 16px;
-  color: #82e0b0;
-  background: #0f1f17;
-  margin-bottom: 18px;
-}
-.tab-panel {
-  display: none;
-}
-.tab-panel.active {
-  display: block;
-}
-.hourly-weather-table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: center;
-  color: #e2e8f0;
-}
-.hourly-weather-table th,
-.hourly-weather-table td {
-  border: 1px solid #1f4634;
-  padding: 12px;
-}
-.hourly-weather-table th {
-  background-color: #163326;
-  color: #96f0c7;
-}
-
-/* 整點天氣內部元件深色覆蓋 */
-#load-tip, #error-tip {
-  color: #94a3b8;
-}
-#error-tip {
-  color: #f87171;
-}
-.weather-item {
-  background: #163333 !important;
-  border: 1px solid #2a5555 !important;
-}
-.weather-item div:first-child {
-  color: #94a3b8 !important;
-}
-.weather-item div:last-child {
-  color: #ffffff !important;
-}
-#temp-value {
-  color: #fff !important;
-}
-#feels-desc {
-  color: #fdba74 !important;
-}
-.publishing-time {
-  color: #94a3b8 !important;
-}
-
-/* ========== 新增：熱帶氣旋預測警告表格專用樣式（匹配截圖紅白表格深色版） ========== */
+/* 熱帶氣旋預測表格 */
 .tc-forecast-header-row {
   display: flex;
   justify-content: space-between;
@@ -448,13 +249,14 @@ body {
   white-space: nowrap;
 }
 .tc-update-time {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: normal;
-  opacity: 0.9;
+  color: #fca5a5;
+  opacity: 0.85;
   text-align: right;
 }
 .tc-table-wrap {
-  padding: 16px 22px;
+  padding: 16px 20px;
 }
 .tc-warning-table {
   width: 100%;
@@ -463,78 +265,211 @@ body {
 }
 .tc-warning-table th,
 .tc-warning-table td {
-  border: 1px solid #5c2626;
-  padding: 16px 10px;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 12px 10px;
   text-align: center;
-  font-size: 16px;
+  font-size: 14px;
 }
 .tc-warning-table th {
-  background-color: #461c1c;
+  background-color: rgba(239, 68, 68, 0.2);
   color: #ffffff;
-  font-weight: bold;
+  font-weight: 600;
 }
 .tc-warning-table tr:nth-child(even) {
-  background-color: #331818;
-}
-.tc-warning-table tr:nth-child(odd) {
-  background-color: #291414;
-}
-/* 手機自適應表格縮放 */
-@media (max-width:768px) {
-  .tc-warning-table th,
-  .tc-warning-table td {
-    padding: 12px 4px;
-    font-size: 14px;
-  }
-  .tc-update-time {
-    font-size: 12px;
-  }
-  .tc-forecast-header-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-  }
+  background-color: rgba(0, 0, 0, 0.15);
 }
 
-/* 隱藏類：無數據時隱藏整個卡片 */
+/* ========== 5. 橙色提示框 (特別天氣提示、預警提示) ========== */
+.box {
+  margin: 20px 0;
+  border-radius: 16px;
+  background: var(--bg-orange);
+  border: 1px solid var(--border-orange);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.08);
+  overflow: hidden;
+}
+.header-orange {
+  background: rgba(245, 158, 11, 0.25);
+  color: var(--accent-yellow);
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border-orange);
+}
+.content-yellow {
+  padding: 20px;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: #fef08a;
+}
+
+/* ========== 6. 澳門整點實時天氣 (深空面板風格) ========== */
+.three-tab-weather-wrap {
+  margin: 20px 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+}
+.three-tab-header {
+  display: flex;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--card-border);
+}
+.three-tab-item {
+  flex: 1;
+  padding: 16px;
+  text-align: center;
+  color: var(--accent-blue);
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(56, 189, 248, 0.05);
+}
+.tab-icon-small {
+  width: 24px;
+  height: 24px;
+  filter: drop-shadow(0 0 4px var(--accent-blue));
+}
+.three-tab-content-box {
+  padding: 24px;
+}
+.tab-panel {
+  display: none;
+}
+.tab-panel.active {
+  display: block;
+}
+
+/* 整點天氣內部元件 styling */
+#load-tip {
+  color: var(--text-muted);
+}
+#error-tip {
+  color: var(--accent-red);
+}
+.weather-item {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 12px !important;
+  transition: transform 0.2s;
+}
+.weather-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.3) !important;
+}
+.weather-item div:first-child {
+  color: var(--text-muted) !important;
+}
+.weather-item div:last-child {
+  color: var(--text-main) !important;
+}
+#temp-value {
+  color: var(--accent-blue) !important;
+  font-size: 44px !important;
+  font-weight: 800 !important;
+  line-height: 1;
+}
+#feels-desc {
+  color: var(--accent-teal) !important;
+}
+.publishing-time {
+  color: var(--text-muted) !important;
+}
+
+/* ========== 7. 天氣預報 & 圖表並排模塊 ========== */
+.forecast-time {
+  margin: 25px 0 10px 0;
+  text-align: right;
+  font-size: 14px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.forecast-chart-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 10px 0;
+}
+.forecast-tab-wrap, .chart-wrap {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  background: var(--card-bg);
+  display: flex;
+  flex-direction: column;
+}
+.tab-header, .chart-btn-bar {
+  display: flex;
+  gap: 8px;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid var(--card-border);
+  align-items: center;
+}
+.tab-btn, .chart-btn {
+  flex: 1;
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  background: var(--card-bg-light);
+  color: var(--text-muted);
+  padding: 8px 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: center;
+}
+.tab-btn.active, .chart-btn.active {
+  background: var(--accent-blue);
+  color: #0b0f19;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+.tab-btn:hover:not(.active), .chart-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+}
+.tab-content-box {
+  padding: 24px;
+  flex: 1;
+}
+.tab-content {
+  display: none;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--text-main);
+}
+.tab-content.active {
+  display: block;
+}
+.chart-date-text {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--accent-teal);
+  margin-left: auto;
+}
+.chart-container {
+  padding: 20px;
+  height: 280px;
+  box-sizing: border-box;
+  flex: 1;
+}
+
 .hide {
   display: none !important;
 }
 
-/* 手機端適配 */
-@media (max-width:768px) {
-  .three-tab-item {
-    font-size: 14px;
-    padding: 14px 5px;
-  }
-  .tab-icon-small {
-    width: 20px;
-    height: 20px;
-  }
-  .quick-links {
-    grid-template-columns: 1fr;
-    margin: 15px 20px;
-  }
-  .warning-card, .box, .three-tab-weather-wrap {
-    margin: 15px 20px;
-  }
-  .forecast-time {
-    margin: 0 20px;
-  }
-}
-
-/* ========== 桌面端佈局 (螢幕 ≥769px) ========== */
-@media (min-width: 769px) {
-  .forecast-chart-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 24px;
-    margin: 20px 35px;
-  }
-}
-
-/* ========== 手機端導航切換 ========== */
+/* ========== 8. 響應式適配 Responsive ========== */
 @media (max-width: 768px) {
+  .header-nav-container {
+    padding: 0.75rem 1rem;
+  }
   .menu-toggle {
     display: block;
   }
@@ -543,189 +478,221 @@ body {
     flex-direction: column;
     width: 100%;
     position: absolute;
-    top: 68px;
-    left: 0;
+    top: 55px;
+    right: 0;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
   }
   .nav a {
     width: 100%;
-    padding: 14px 18px;
-    border-top: 1px solid rgba(255,255,255,0.08);
+    padding: 10px 14px;
+    border-radius: 8px;
   }
   .nav.active {
-    display:flex;
+    display: flex;
   }
-
   .forecast-chart-row {
-    display: block;
-    margin: 0 20px;
+    grid-template-columns: 1fr;
+  }
+  .quick-links {
+    grid-template-columns: 1fr;
+  }
+  .tc-forecast-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .tc-update-time {
+    text-align: left;
+  }
+}
+
+@media (max-width: 375px) {
+  .link-box {
+    padding: 14px 6px;
+    font-size: 12px;
   }
 }
 </style>
 </head>
 
 <body>
-<div class="header">
-<img src="icons/MSSO.png" class="logo">
-<div class="title">澳門民間氣象台 MSSO</div>
-</div>
 
-<div class="menu-container">
-<div class="menu-toggle" onclick="toggleMenu()">☰</div>
-<div class="nav" id="navMenu">
-<a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
-<a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
-<a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋距離計算工具</a> 
-<a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑地圖</a>  
-<a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
-<a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
-<a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
-</div>
-</div>
-
-<!-- 把这3个按钮放进 .quick-links 容器 -->
-<div class="quick-links">
-  <a href="https://macaosso.github.io/MSSOweb/AQImap.html" class="link-box weather">空氣質量實況</a>
-  <a href="https://macaosso.github.io/MSSOweb/TCtracker.html" class="link-box flood">熱帶氣旋追蹤</a>
-  <a href="map.html" class="link-box weather">綜合氣象實況</a>
-</div>
-
-<div class="warning-card" id="tcCard">
-<div class="warning-header">
-熱帶氣旋
-<a href="https://macaosso.github.io/MSSOweb/tc_gis.html" class="tc-btn">查看路徑</a>
-</div>
-<div id="tcContent"></div>
-</div>
-
-<!-- 【新增】熱帶氣旋可能發佈警告表格卡片，預設不隱藏 -->
-<div class="warning-card" id="tcForecastTableCard">
-  <div class="warning-header tc-forecast-header-row">
-    <div class="tc-forecast-title" id="tableMainTitle"></div>
-    <div class="tc-update-time" id="tableUpdateTime"></div>
-  </div>
-  <div class="tc-table-wrap" id="tcTableContent"></div>
-</div>
-
-<div class="warning-card" id="warnCard">
-<div class="warning-header">天氣警告</div>
-<div id="warnContent"></div>
-</div>
-
-<div id="swtBox" class="box">
-<div class="header-orange">特別天氣提示</div>
-<div id="swtContent" class="content-yellow"></div>
-</div>
-
-<div id="alertBox" class="box">
-<div class="header-orange">預警提示</div>
-<div id="alertContent" class="content-yellow"></div>
-</div>
-
-<!-- ========== 三標籤天氣模塊 → 修改為只保留整點天氣單一標籤 ========== -->
-<div class="three-tab-weather-wrap">
-  <div class="three-tab-header">
-    <div class="three-tab-item active" data-tab="hourly">
-      <img class="tab-icon-small" src="icons/MSSO.png" alt="整點天氣">
-      整點天氣
-    </div>
+<!-- 深太空頂欄頁頭與導航 -->
+<div class="header-nav-container">
+  <div class="header">
+    <img src="icons/MSSO.png" class="logo" alt="MSSO Logo">
+    <div class="title">澳門民間氣象台 MSSO</div>
   </div>
 
-  <div class="three-tab-content-box">
-    <!-- 整點天氣面板（載入SMG實時簡報XML數據） -->
-    <div class="tab-panel active" id="panel-hourly">
-        <div class="hourly-weather-wrap" style="padding: 20px;">
-            <!-- 数据加载提示 -->
-            <div id="load-tip" style="text-align: center; font-size: 16px; padding: 40px 0;">
-                正在載入澳門整點實時天氣數據...
-            </div>
-    
-            <!-- 天气主容器（默认隐藏） -->
-            <div id="weather-main" style="display: none;">
-                <!-- 数据发布时间 -->
-                <div class="publishing-time" style="margin-bottom: 20px; font-size: 15px;">
-                    數據發布時間：<span id="pub-time"></span>
-                </div>
-    
-                <!-- 天气图标 + 核心气温 -->
-                <div style="display: flex; align-items: center; gap: 30px; flex-wrap: wrap; margin-bottom: 25px;">
-                    <div>
-                        <img id="weather-icon" alt="天氣圖標" style="width: 80px; height: 80px; filter: drop-shadow(0 0 8px #7cd1d1);">
-                    </div>
-                    <div>
-                        <div id="temp-value" style="font-size: 48px; font-weight: bold;"></div>
-                        <div id="feels-desc" style="font-size: 18px; margin-top: 8px;"></div>
-                    </div>
-                </div>
-    
-                <!-- 气象指标网格 -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
-                    <div class="weather-item" style="padding: 16px; border-radius: 10px;">
-                        <div style="font-size: 14px;">相對濕度</div>
-                        <div id="hum-value" style="font-size: 20px; font-weight: 600; margin-top: 8px;"></div>
-                    </div>
-                    <div class="weather-item" style="padding: 16px; border-radius: 10px;">
-                        <div style="font-size: 14px;">風速</div>
-                        <div id="wind-speed" style="font-size: 20px; font-weight: 600; margin-top: 8px;"></div>
-                    </div>
-                    <div class="weather-item" style="padding: 16px; border-radius: 10px;">
-                        <div style="font-size: 14px;">風向</div>
-                        <div id="wind-dir" style="font-size: 20px; font-weight: 600; margin-top: 8px;"></div>
-                    </div>
-                    <div class="weather-item" style="padding: 16px; border-radius: 10px;">
-                         <div style="font-size: 14;">紫外線指數</div>
-                         <div id="uv-value" style="font-size: 20px; font-weight: 600; margin-top: 8px;"></div>
-                     </div>
-                </div>
-            </div>
-    
-            <!-- 加载失败提示 -->
-            <div id="error-tip" style="display: none; text-align: center; padding: 40px 0;">
-                數據載入失敗，請稍後重試
-            </div>
-        </div>
+  <div class="menu-container">
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+    <div class="nav" id="navMenu">
+      <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
+      <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
+      <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋距離計算工具</a> 
+      <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑地圖</a>  
+      <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
+      <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+      <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
     </div>
   </div>
 </div>
 
-<div id="forecastTime" class="forecast-time"></div>
+<div class="page-wrapper">
 
-<!-- 預報 & 圖表 並排容器 -->
-<div class="forecast-chart-row">
-  <div class="forecast-tab-wrap">
-    <div class="tab-header">
-      <button class="tab-btn active" data-index="0">天氣概況</button>
-      <button class="tab-btn" data-index="1">今日天氣</button>
-      <button class="tab-btn" data-index="2">明日天氣</button>
-    </div>
-    <div class="tab-content-box">
-      <div class="tab-content active" id="tab0"></div>
-      <div class="tab-content" id="tab1"></div>
-      <div class="tab-content" id="tab2"></div>
-    </div>
+  <!-- 快捷鏈接模塊 -->
+  <div class="quick-links">
+    <a href="https://macaosso.github.io/MSSOweb/AQImap.html" class="link-box weather">空氣質量實況</a>
+    <a href="https://macaosso.github.io/MSSOweb/TCtracker.html" class="link-box flood">熱帶氣旋追蹤</a>
+    <a href="map.html" class="link-box map">綜合氣象實況</a>
   </div>
 
-  <div class="chart-wrap">
-    <div class="chart-btn-bar">
-      <div class="btn-group">
-        <button class="chart-btn active" data-type="24h">24小時天氣預報</button>
-        <button class="chart-btn" data-type="7d">7日天氣預報</button>
+  <!-- 熱帶氣旋卡片 -->
+  <div class="warning-card" id="tcCard">
+    <div class="warning-header">
+      熱帶氣旋
+      <a href="https://macaosso.github.io/MSSOweb/tc_gis.html" class="tc-btn">查看路徑</a>
+    </div>
+    <div id="tcContent"></div>
+  </div>
+
+  <!-- 熱帶氣旋預測警告表格卡片 -->
+  <div class="warning-card" id="tcForecastTableCard">
+    <div class="warning-header tc-forecast-header-row">
+      <div class="tc-forecast-title" id="tableMainTitle"></div>
+      <div class="tc-update-time" id="tableUpdateTime"></div>
+    </div>
+    <div class="tc-table-wrap" id="tcTableContent"></div>
+  </div>
+
+  <!-- 天氣警告卡片 -->
+  <div class="warning-card" id="warnCard">
+    <div class="warning-header">天氣警告</div>
+    <div id="warnContent"></div>
+  </div>
+
+  <!-- 特別天氣提示 -->
+  <div id="swtBox" class="box">
+    <div class="header-orange">特別天氣提示</div>
+    <div id="swtContent" class="content-yellow"></div>
+  </div>
+
+  <!-- 預警提示 -->
+  <div id="alertBox" class="box">
+    <div class="header-orange">預警提示</div>
+    <div id="alertContent" class="content-yellow"></div>
+  </div>
+
+  <!-- 整點天氣單一標籤面板 -->
+  <div class="three-tab-weather-wrap">
+    <div class="three-tab-header">
+      <div class="three-tab-item active" data-tab="hourly">
+        <img class="tab-icon-small" src="icons/MSSO.png" alt="整點天氣">
+        整點天氣
       </div>
-      <div class="chart-date-text" id="chartDate"></div>
     </div>
-    <div class="chart-container">
-      <canvas id="tempChart" ></canvas>
+
+    <div class="three-tab-content-box">
+      <div class="tab-panel active" id="panel-hourly">
+        <div class="hourly-weather-wrap" style="padding: 10px 0;">
+          <!-- 數據載入提示 -->
+          <div id="load-tip" style="text-align: center; font-size: 15px; padding: 30px 0;">
+            正在載入澳門整點實時天氣數據...
+          </div>
+
+          <!-- 天氣主容器 -->
+          <div id="weather-main" style="display: none;">
+            <div class="publishing-time" style="margin-bottom: 20px; font-size: 14px;">
+              數據發布時間：<span id="pub-time"></span>
+            </div>
+
+            <!-- 天氣圖標 + 核心氣溫 -->
+            <div style="display: flex; align-items: center; gap: 25px; flex-wrap: wrap; margin-bottom: 25px;">
+              <div>
+                <img id="weather-icon" alt="天氣圖標" style="width: 76px; height: 76px; filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.4));">
+              </div>
+              <div>
+                <div id="temp-value"></div>
+                <div id="feels-desc" style="font-size: 16px; margin-top: 6px; font-weight: 500;"></div>
+              </div>
+            </div>
+
+            <!-- 氣象指標網格 -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+              <div class="weather-item" style="padding: 16px;">
+                <div style="font-size: 13px;">相對濕度</div>
+                <div id="hum-value" style="font-size: 18px; font-weight: 700; margin-top: 6px;"></div>
+              </div>
+              <div class="weather-item" style="padding: 16px;">
+                <div style="font-size: 13px;">風速</div>
+                <div id="wind-speed" style="font-size: 18px; font-weight: 700; margin-top: 6px;"></div>
+              </div>
+              <div class="weather-item" style="padding: 16px;">
+                <div style="font-size: 13px;">風向</div>
+                <div id="wind-dir" style="font-size: 18px; font-weight: 700; margin-top: 6px;"></div>
+              </div>
+              <div class="weather-item" style="padding: 16px;">
+                <div style="font-size: 13px;">紫外線指數</div>
+                <div id="uv-value" style="font-size: 18px; font-weight: 700; margin-top: 6px;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 載入失敗提示 -->
+          <div id="error-tip" style="display: none; text-align: center; padding: 30px 0;">
+            數據載入失敗，請稍後重試
+          </div>
+        </div>
+      </div>
     </div>
   </div>
+
+  <div id="forecastTime" class="forecast-time"></div>
+
+  <!-- 預報 & 圖表 並排容器 -->
+  <div class="forecast-chart-row">
+    <div class="forecast-tab-wrap">
+      <div class="tab-header">
+        <button class="tab-btn active" data-index="0">天氣概況</button>
+        <button class="tab-btn" data-index="1">今日天氣</button>
+        <button class="tab-btn" data-index="2">明日天氣</button>
+      </div>
+      <div class="tab-content-box">
+        <div class="tab-content active" id="tab0"></div>
+        <div class="tab-content" id="tab1"></div>
+        <div class="tab-content" id="tab2"></div>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <div class="chart-btn-bar">
+        <div class="btn-group">
+          <button class="chart-btn active" data-type="24h">24小時氣溫</button>
+          <button class="chart-btn" data-type="7d">7日氣溫預報</button>
+        </div>
+        <div class="chart-date-text" id="chartDate"></div>
+      </div>
+      <div class="chart-container">
+        <canvas id="tempChart"></canvas>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script src="webdata.js"></script>
 <script>
 // Menu toggle function
 function toggleMenu() {
-const nav = document.getElementById("navMenu");
-const btn = document.querySelector(".menu-toggle");
-nav.classList.toggle("active");
-btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
+  const nav = document.getElementById("navMenu");
+  const btn = document.querySelector(".menu-toggle");
+  nav.classList.toggle("active");
+  btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
 
 // Fill all text content from webdata.js
@@ -774,21 +741,21 @@ window.addEventListener('DOMContentLoaded', function(){
 
 // Render TC & Warning Cards
 function renderWarnings(data, containerId, cardId) {
-const container = document.getElementById(containerId);
-const card = document.getElementById(cardId);
-let html = "";
-data.forEach((item, index) => {
-if ((!item.icon || item.icon.trim()==="") && (!item.text || item.text.trim()==="")) return;
-html += `
+  const container = document.getElementById(containerId);
+  const card = document.getElementById(cardId);
+  let html = "";
+  data.forEach((item, index) => {
+    if ((!item.icon || item.icon.trim()==="") && (!item.text || item.text.trim()==="")) return;
+    html += `
          <div class="warning-item">
            ${item.icon ? `<div class="icon-box"><img src="${item.icon}" alt="Warning Icon"></div>` : ""}
            ${item.text ? `<div class="text-box">${item.text}</div>` : ""}
          </div>
        `;
-if (index < data.length - 1) html += `<div class="divider"></div>`;
-});
-container.innerHTML = html;
-card.style.display = html.trim() ? "block" : "none";
+    if (index < data.length - 1) html += `<div class="divider"></div>`;
+  });
+  container.innerHTML = html;
+  card.style.display = html.trim() ? "block" : "none";
 }
 
 renderWarnings(tcWarnings, "tcContent", "tcCard");
@@ -797,10 +764,10 @@ renderWarnings(warnWarnings, "warnContent", "warnCard");
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-// Chart.js 深色主題配置，圖表自動深色
-Chart.defaults.color = '#cbd5e1';
-Chart.defaults.borderColor = '#2a3a52';
-Chart.defaults.plugins.title.color = '#ffffff';
+// Chart.js 深空主題配色配置
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.08)';
+Chart.defaults.plugins.title.color = '#f1f5f9';
 
 let tempChart;
 const dateDom = document.getElementById("chartDate");
@@ -830,11 +797,12 @@ function render24hChart(ctx){
       datasets:[{
         label:"氣溫(°C)",
         data:temp24h,
-        borderColor:"#ff6b6b",
-        backgroundColor:"rgba(255,107,107,0.12)",
+        borderColor:"#38bdf8",
+        backgroundColor:"rgba(56, 189, 248, 0.12)",
         fill:true,
-        tension:0,
-        pointRadius:4
+        tension:0.3,
+        pointRadius:4,
+        pointBackgroundColor: "#38bdf8"
       }]
     },
     options:{
@@ -849,7 +817,7 @@ function render24hChart(ctx){
   })
 }
 
-//7day use X label from webdata.label7dX
+// 7day use X label from webdata.label7dX
 function render7dChart(ctx){
   const maxArr = temp7dMax;
   const minArr = temp7dMin;
@@ -858,8 +826,8 @@ function render7dChart(ctx){
     data:{
       labels: label7dX,
       datasets:[
-        {label:"最高氣溫",data:maxArr,borderColor:"#ff5555",fill:false,tension:0},
-        {label:"最低氣溫",data:minArr,borderColor:"#38b8b0",fill:false,tension:0}
+        {label:"最高氣溫",data:maxArr,borderColor:"#ef4444",backgroundColor:"#ef4444",fill:false,tension:0.3,pointRadius:4},
+        {label:"最低氣溫",data:minArr,borderColor:"#34d399",backgroundColor:"#34d399",fill:false,tension:0.3,pointRadius:4}
       ]
     },
     options:{
@@ -875,18 +843,10 @@ function render7dChart(ctx){
 }
 
 window.addEventListener('DOMContentLoaded',initChart);
-
-
 </script>
 
 <script>
-// ========== 抓取 SMG 澳門實時簡報XML：https://xml.smg.gov.mo/c_actual_brief.xml ==========
-/**
- * 澳門整點實時天氣 - 跨域請求 XML (corsproxy 代理)
- * 目標接口：https://xml.smg.gov.mo/c_actual_brief.xml
- * 代理地址：https://corsproxy.io/?url=原始地址
- */
-// 全局DOM元素
+// ========== 抓取 SMG 澳門實時簡報XML ==========
 const loadTip = document.getElementById('load-tip');
 const errorTip = document.getElementById('error-tip');
 const weatherMain = document.getElementById('weather-main');
@@ -898,38 +858,32 @@ const humValue = document.getElementById('hum-value');
 const windSpeed = document.getElementById('wind-speed');
 const windDir = document.getElementById('wind-dir');
 const uvValue = document.getElementById('uv-value');
-// UV接口代理地址
+
 const uvXmlUrl = "https://xml.smg.gov.mo/c_actualUVI.xml";
 const uvProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(uvXmlUrl)}`;
-// 全域UV數據變數
 let currentUV = "--";
-// 原始XML地址
+
 const originXmlUrl = "https://xml.smg.gov.mo/c_actual_brief.xml";
-// corsproxy 代理地址（标准格式）
 const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(originXmlUrl)}`;
 
-// 加载整点天气数据
+// 加載整點天氣數據
 async function loadHourlyWeather() {
     try {
-        // 重置页面状态
         loadTip.style.display = 'block';
         errorTip.style.display = 'none';
         weatherMain.style.display = 'none';
 
-        // 发起跨域請求，修正變數 proxy → proxyUrl
         const response = await fetch(proxyUrl, {
             method: 'GET',
-            cache: 'no-cache' // 禁用缓存，获取最新数据
+            cache: 'no-cache'
         });
 
         if (!response.ok) throw new Error('接口請求失敗');
 
-        // 获取XML文本并解析
         const xmlText = await response.text();
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
 
-        // 解析XML节点（对应接口字段）
         const sysPubdate = xmlDoc.querySelector("SysPubdate")?.textContent || "未知時間";
         const temp = xmlDoc.querySelector("Temperature > Value")?.textContent || "--";
         const hum = xmlDoc.querySelector("Humidity > Value")?.textContent || "--";
@@ -939,7 +893,6 @@ async function loadHourlyWeather() {
         const iconUrl = xmlDoc.querySelector("IconURL")?.textContent || "";
         const feelDesc = xmlDoc.querySelector("FeelsLikeDescription")?.textContent || "--";
 
-        // 渲染页面数据
         pubTime.textContent = sysPubdate;
         tempValue.textContent = `${temp} °C`;
         feelsDesc.textContent = feelDesc;
@@ -947,13 +900,11 @@ async function loadHourlyWeather() {
         windSpeed.textContent = `${windSpd} km/h (${windSpdDesc})`;
         windDir.textContent = windDirText;
 
-        // 加载天气图标
         if (iconUrl) {
             weatherIcon.src = iconUrl;
-            weatherIcon.onerror = () => weatherIcon.style.display = 'none'; // 图标加载失败隐藏
+            weatherIcon.onerror = () => weatherIcon.style.display = 'none';
         }
 
-        // 切换页面状态：展示天气面板
         loadTip.style.display = 'none';
         weatherMain.style.display = 'block';
 
@@ -962,7 +913,9 @@ async function loadHourlyWeather() {
         loadTip.style.display = 'none';
         errorTip.style.display = 'block';
     }
-}// 載入紫外線UV數據
+}
+
+// 載入紫外線UV數據
 async function loadUVData() {
     try {
         const res = await fetch(uvProxyUrl, { cache: "no-store" });
@@ -970,12 +923,9 @@ async function loadUVData() {
         const xmlText = await res.text();
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-        // 解析UV-Index Value
         const uvVal = xmlDoc.querySelector("UV-Index > Value")?.textContent || "--";
         currentUV = uvVal;
-        // 渲染UV數值
         uvValue.textContent = currentUV;
-        // 根據UV值設定顏色
         uvValue.style.color = getUVColor(parseFloat(currentUV));
     } catch (err) {
         console.error("UV載入錯誤：", err);
@@ -985,21 +935,19 @@ async function loadUVData() {
 
 // UV指數顏色分級函數
 function getUVColor(uv) {
-    if (isNaN(uv)) return "#cccccc";
-    if (uv >= 11) return "#990099"; // 極高
-    if (uv >= 8) return "#dd2222";  // 很高
-    if (uv >= 6) return "#ff7700";  // 高
-    if (uv >= 3) return "#dddd00";  // 中等
-    return "#22bb22"; // 低
+    if (isNaN(uv)) return "#cbd5e1";
+    if (uv >= 11) return "#c084fc"; // 極高 (Purple)
+    if (uv >= 8) return "#ef4444";  // 很高 (Red)
+    if (uv >= 6) return "#f59e0b";  // 高 (Orange)
+    if (uv >= 3) return "#facc15";  // 中等 (Yellow)
+    return "#34d399"; // 低 (Green)
 }
 
-// 頁面載入完成後首次執行
 window.addEventListener('DOMContentLoaded', async () => {
     await loadHourlyWeather();
     loadUVData();
 });
 
-// 【修復】定時器函數名改為正確的 loadHourlyWeather
 setInterval(loadHourlyWeather, 300000);
 </script>
 </body>
