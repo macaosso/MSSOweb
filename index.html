@@ -461,11 +461,131 @@ body {
   flex: 1;
 }
 
+/* ========== 8. 參考圖片風格的七日天氣預報橫向卡片組 ========== */
+.seven-day-scroll-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 2px 10px 2px;
+  scroll-behavior: smooth;
+}
+.seven-day-scroll-row::-webkit-scrollbar {
+  height: 6px;
+}
+.seven-day-scroll-row::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+.seven-day-scroll-row::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.forecast-card-mini {
+  flex: 1;
+  min-width: 130px;
+  background: rgba(18, 26, 43, 0.85);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.forecast-card-mini:hover {
+  border-color: var(--accent-blue);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(56, 189, 248, 0.15);
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.card-top .card-date {
+  color: #cbd5e1;
+  white-space: nowrap;
+}
+.card-top .card-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+
+.card-hero {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin: 12px 0 6px 0;
+}
+.hero-num {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+.hero-range {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* 溫差指示條 */
+.temp-bar-wrap {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+  position: relative;
+  margin: 6px 0 12px 0;
+  overflow: hidden;
+}
+.temp-bar-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #38bdf8, #34d399, #facc15, #ef4444);
+}
+
+.card-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.card-condition {
+  font-size: 12px;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+}
+.card-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .hide {
   display: none !important;
 }
 
-/* ========== 8. 響應式適配 Responsive ========== */
+/* ========== 9. 響應式適配 Responsive ========== */
 @media (max-width: 768px) {
   .header-nav-container {
     padding: 0.75rem 1rem;
@@ -683,7 +803,7 @@ body {
     </div>
   </div>
 
-  <!-- 新增：七日天氣預報 (XML 數據卡片) -->
+  <!-- 七日天氣預報 (重構為參考圖片樣式卡片) -->
   <div class="three-tab-weather-wrap" style="margin-top: 25px;">
     <div class="three-tab-header">
       <div class="three-tab-item active">
@@ -692,14 +812,14 @@ body {
       </div>
     </div>
 
-    <div class="three-tab-content-box">
-      <div id="7day-xml-loading" style="text-align: center; font-size: 15px; padding: 30px 0; color: var(--text-muted);">
+    <div class="three-tab-content-box" style="padding: 18px 16px;">
+      <div id="7day-xml-loading" style="text-align: center; font-size: 15px; padding: 25px 0; color: var(--text-muted);">
         正在載入七日天氣預報數據...
       </div>
-      <div id="7day-xml-error" style="display: none; text-align: center; padding: 30px 0; color: var(--accent-red);">
+      <div id="7day-xml-error" style="display: none; text-align: center; padding: 25px 0; color: var(--accent-red);">
         七日預報數據載入失敗，請稍後重試
       </div>
-      <div id="7day-xml-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;"></div>
+      <div id="7day-xml-container" class="seven-day-scroll-row"></div>
     </div>
   </div>
 
@@ -963,9 +1083,19 @@ function getUVColor(uv) {
     return "#34d399"; // 低 (Green)
 }
 
-// ========== 載入七日天氣預報 XML (c_7daysforecast.xml) ==========
+// ========== 載入七日天氣預報 XML (配搭圖片風格重新渲染) ==========
 const sevenDayXmlUrl = "https://xml.smg.gov.mo/c_7daysforecast.xml";
 const sevenDayProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(sevenDayXmlUrl)}`;
+
+// 數字顏色計算
+function getTempColor(temp) {
+  const val = parseFloat(temp);
+  if (isNaN(val)) return "#34d399";
+  if (val >= 32) return "#ef4444"; // 酷熱 (紅)
+  if (val >= 28) return "#f59e0b"; // 偏熱 (橙)
+  if (val >= 20) return "#34d399"; // 舒適 (綠)
+  return "#38bdf8";                // 涼/冷 (藍)
+}
 
 async function load7DaysForecastXML() {
     const loadingEl = document.getElementById('7day-xml-loading');
@@ -1012,19 +1142,38 @@ async function load7DaysForecastXML() {
 
             if (!date && !dayOfWeek && !weather) return;
 
+            // 主要顯示的高溫/英雄數字與顏色
+            const heroValue = maxTemp || minTemp || '--';
+            const heroColor = getTempColor(heroValue);
+
+            // 計算溫度範圍條位置 %
+            const minT = parseFloat(minTemp) || 15;
+            const maxT = parseFloat(maxTemp) || 35;
+            const leftPos = Math.max(0, Math.min(80, ((minT - 10) / 30) * 100));
+            const barWidth = Math.max(20, Math.min(100 - leftPos, (((maxT - minT) + 2) / 30) * 100));
+
             html += `
-                <div class="weather-item" style="padding: 16px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 12px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; margin-bottom: 10px;">
-                        <span style="font-weight: 700; color: var(--accent-blue); font-size: 15px;">${date} ${dayOfWeek}</span>
-                        ${iconUrl ? `<img src="${iconUrl}" style="width: 32px; height: 32px;" alt="Weather Icon">` : ''}
+                <div class="forecast-card-mini">
+                    <div class="card-top">
+                        <span class="card-date">${date} ${dayOfWeek ? `(${dayOfWeek})` : ''}</span>
+                        ${iconUrl ? `<img src="${iconUrl}" class="card-icon" alt="icon">` : ''}
                     </div>
-                    <div style="font-size: 14px; color: var(--text-main); margin-bottom: 10px; line-height: 1.5; flex: 1;">
-                        ${weather}
+
+                    <div class="card-hero">
+                        <span class="hero-num" style="color: ${heroColor};">${heroValue}°</span>
+                        <span class="hero-range">(${minTemp ? `${minTemp}-` : ''}${maxTemp ? `${maxTemp}°` : ''})</span>
                     </div>
-                    <div style="font-size: 13px; color: var(--text-muted); display: flex; flex-direction: column; gap: 4px;">
-                        ${(minTemp || maxTemp) ? `<div><strong style="color: var(--accent-orange);">氣溫:</strong> ${minTemp}${minTemp && maxTemp ? ' ~ ' : ''}${maxTemp} °C</div>` : ''}
-                        ${(minRH || maxRH) ? `<div><strong style="color: var(--accent-teal);">相對濕度:</strong> ${minRH}${minRH && maxRH ? ' ~ ' : ''}${maxRH} %</div>` : ''}
-                        ${(windDir || windForce) ? `<div><strong style="color: var(--text-muted);">風向風力:</strong> ${windDir} ${windForce}</div>` : ''}
+
+                    <div class="temp-bar-wrap">
+                        <div class="temp-bar-fill" style="left: ${leftPos}%; width: ${barWidth}%;"></div>
+                    </div>
+
+                    <div class="card-bottom">
+                        <div class="card-condition" title="${weather}">${weather}</div>
+                        <div class="card-sub">
+                            ${(minRH || maxRH) ? `💧 ${minRH}${minRH && maxRH ? '-' : ''}${maxRH}%` : ''}
+                            ${(windDir || windForce) ? ` | 🌬️ ${windDir}${windForce}` : ''}
+                        </div>
                     </div>
                 </div>
             `;
