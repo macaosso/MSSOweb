@@ -943,45 +943,89 @@ forecast,11/18:00,21.5,115.2,120,975,200,180,150,180
 past,11/12:00,20.8,116.1,110,980,,,,
 */
 function parseCSVToTCData(csvText) {
-  const lines = csvText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const lines = csvText.split('\n');
   let forecastPoints = [];
   let pastPoints = [];
+  let hours = [];
   let tcInfo = { name: "未知", wind: "--", pressure: "--" };
   let forecastInfo = { updated: "--" };
 
-  lines.forEach((line, index) => {
-    if (index === 0 && line.startsWith("category")) return; // Skip Header
-    const cols = line.split(',').map(c => c.trim());
-    const category = cols[0];
+  // Base mapping for error cone radius (in km) per forecast hour
+  const defaultRadiiMap = { 0: 15, 12: 50, 24: 100, 48: 170, 72: 255, 96: 345, 120: 465 };
 
+  lines.forEach((line) => {
+    const rawLine = line.trim();
+    if (!rawLine) return; // Skip completely empty lines
+
+    const cols = rawLine.split(',').map(c => c.trim());
+
+    // 1. Skip if all columns in row are empty
+    if (cols.every(c => c === "")) return;
+
+    const category = cols[0].toLowerCase();
+    if (category === "category") return; // Skip Header
+
+    // Parse TC Info
     if (category === "tc_info") {
-      tcInfo.name = cols[1] || "熱帶氣旋";
-      tcInfo.wind = cols[4] || "--";
-      tcInfo.pressure = cols[5] || "--";
-      forecastInfo.updated = cols[2] || "--";
-    } else if (category === "forecast") {
-      forecastPoints.push({
-        time: cols[1],
-        lat: parseFloat(cols[2]),
-        lon: parseFloat(cols[3]),
-        wind: cols[4] ? parseFloat(cols[4]) : null,
-        wind41: cols[6] ? { ne: +cols[6], se: +cols[7], sw: +cols[8], nw: +cols[9] } : null
-      });
-    } else if (category === "past") {
+      tcInfo.name = cols[2] || cols[1] || "熱帶氣旋";
+      tcInfo.wind = cols[5] || cols[4] || "--";
+      tcInfo.pressure = cols[6] || cols[5] || "--";
+      forecastInfo.updated = cols[3] || cols[2] || "--";
+    } 
+    // Parse Forecast Points
+    else if (category === "forecast") {
+      const lat = parseFloat(cols[3]);
+      const lon = parseFloat(cols[4]);
+
+      // 2. Skip row if lat or lon is missing/empty
+      if (isNaN(lat) || isNaN(lon)) return;
+
+      // Extract numeric hour from string (e.g., "12H" -> 12, "24H" -> 24)
+      const hourStr = cols[1] || "0";
+      const hourVal = parseInt(hourStr.replace(/[^0-9]/g, ""), 10) || 0;
+
+      const time = cols[2];
+      const wind = cols[5] ? parseFloat(cols[5]) : null;
+
+      // Parse wind radii if available (NE, SE, SW, NW)
+      let wind41 = null;
+      if (cols[7] && cols[8] && cols[9] && cols[10]) {
+        wind41 = {
+          ne: parseFloat(cols[7]) || 0,
+          se: parseFloat(cols[8]) || 0,
+          sw: parseFloat(cols[9]) || 0,
+          nw: parseFloat(cols[10]) || 0
+        };
+      }
+
+      forecastPoints.push({ time, lat, lon, wind, wind41, hour: hourVal });
+      hours.push(hourVal);
+    } 
+    // Parse Past Points
+    else if (category === "past") {
+      const lat = parseFloat(cols[3]);
+      const lon = parseFloat(cols[4]);
+
+      // Skip row if lat or lon is missing/empty
+      if (isNaN(lat) || isNaN(lon)) return;
+
       pastPoints.push({
-        time: cols[1],
-        lat: parseFloat(cols[2]),
-        lon: parseFloat(cols[3]),
-        wind: cols[4] ? parseFloat(cols[4]) : null
+        time: cols[2],
+        lat: lat,
+        lon: lon,
+        wind: cols[5] ? parseFloat(cols[5]) : null
       });
     }
   });
 
+  // Calculate corresponding radii for populated hours
+  const radii = hours.map(h => defaultRadiiMap[h] !== undefined ? defaultRadiiMap[h] : Math.round(h * 3.33));
+
   return {
     forecastPoints,
     pastPoints,
-    hours: [0, 12, 24,  48, 72, 96, 120],
-    radii: [0, 15, 100, 170, 255, 345, 465],
+    hours: hours.length > 0 ? hours : [0, 12, 24, 48, 72, 96, 120],
+    radii: radii.length > 0 ? radii : [15, 50, 100, 170, 255, 345, 465],
     tcInfo,
     forecastInfo
   };
