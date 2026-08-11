@@ -484,6 +484,13 @@ html, body {
 
 <body>
 
+<style>
+  /* Toggle visibility of forecast hour labels when .hide-time-labels is active on #map */
+  #map.hide-time-labels .time-label {
+    display: none !important;
+  }
+</style>
+
 <!-- Header Top Bar -->
 <div class="header glass-panel">
   <a href="#" class="brand">
@@ -499,7 +506,7 @@ html, body {
     </select>
   </div>
 
-  <!-- ===== 新增標籤切換按鈕 ===== -->
+  <!-- 時間標籤切換按鈕 -->
   <button id="toggleLabelBtn" class="tc-select" style="margin-left:8px;" onclick="toggleForecastLabels()">
     隱藏時間標籤
   </button>
@@ -578,9 +585,8 @@ let tcLayersGroup = L.layerGroup().addTo(map);
 const tcKeys = ['A', 'B', 'C', 'D', 'E'];
 let loadedTCs = {};
 
-// ===== 新增：預報標籤開關 =====
+// 預報標籤開關狀態
 let showForecastLabels = true;
-let forecastTooltipMarkers = [];
 
 // 強度配色常量
 const colors = {
@@ -645,16 +651,14 @@ document.addEventListener("click", (e) => {
   }
 });
 
+// 安全切換標籤顯示（修復 TypeError 及切換氣旋重置問題）
 function toggleForecastLabels() {
   showForecastLabels = !showForecastLabels;
+  const mapElement = document.getElementById("map");
   const btn = document.getElementById("toggleLabelBtn");
-  btn.textContent = showForecastLabels ? "隱藏時間標籤" : "顯示時間標籤";
 
-  forecastTooltipMarkers.forEach(marker => {
-    if(marker._tooltip){
-      marker._tooltip._container.style.display = showForecastLabels ? "" : "none";
-    }
-  });
+  btn.textContent = showForecastLabels ? "隱藏時間標籤" : "顯示時間標籤";
+  mapElement.classList.toggle("hide-time-labels", !showForecastLabels);
 }
 
 function getIcon(type, size = 16) {
@@ -736,7 +740,6 @@ function createWindRadii(lat, lon, radii) {
   return turf.polygon([coords]);
 }
 
-// 1. Corrected Catmull-Rom Interpolation
 function smoothPoints(points, segments = 20) {
   let newPts = [];
   for (let i = 0; i < points.length - 1; i++) {
@@ -745,13 +748,11 @@ function smoothPoints(points, segments = 20) {
     let p2 = points[i + 1];
     let p3 = points[i + 2] || p2;
 
-    // Exclude j = segments for all but the last segment to avoid duplicate junction points
     let maxJ = (i === points.length - 2) ? segments : segments - 1;
 
     for (let j = 0; j <= maxJ; j++) {
       let t = j / segments;
       let lat = 0.5 * ((2 * p1.lat) + (-p0.lat + p2.lat) * t + (2 * p0.lat - 5 * p1.lat + 4 * p2.lat - p3.lat) * t * t + (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * t * t * t);
-      // Fixed typo: Changed -p0.lat to -p0.lon in the cubic term
       let lon = 0.5 * ((2 * p1.lon) + (-p0.lon + p2.lon) * t + (2 * p0.lon - 5 * p1.lon + 4 * p2.lon - p3.lon) * t * t + (-p0.lon + 3 * p1.lon - 3 * p2.lon + p3.lon) * t * t * t);
       newPts.push({ lat, lon });
     }
@@ -759,7 +760,6 @@ function smoothPoints(points, segments = 20) {
   return newPts;
 }
 
-// 2. Segment-Aware Time Interpolation (Handles non-uniform time steps like 12h, 24h, 48h)
 function smoothPointsWithTime(points, hoursArr, segments = 20) {
   let newPts = [];
   for (let i = 0; i < points.length - 1; i++) {
@@ -785,7 +785,6 @@ function smoothPointsWithTime(points, hoursArr, segments = 20) {
   return newPts;
 }
 
-// 3. Linear Radius Lookup
 function getRadius(hour, hoursArr, radiiArr) {
   if (!hoursArr || hoursArr.length === 0) return 0;
   if (hour <= hoursArr[0]) return radiiArr[0] || 0;
@@ -800,7 +799,6 @@ function getRadius(hour, hoursArr, radiiArr) {
   return radiiArr[radiiArr.length - 1] || 0;
 }
 
-// 4. Catmull-Rom to SVG Bezier Curve Generator
 function catmullRom2bezier(points) {
   if (!points || points.length === 0) return [];
   let path = ["M", [points[0].lat, points[0].lon]];
@@ -816,6 +814,25 @@ function catmullRom2bezier(points) {
     path.push("C", cp1, cp2, [p2.lat, p2.lon]);
   }
   return path;
+}
+
+// Turf相容性包裝
+function safeUnion(p1, p2) {
+  if (!p1) return p2;
+  if (!p2) return p1;
+  try {
+    return turf.union(turf.featureCollection([p1, p2]));
+  } catch (e) {
+    try { return turf.union(p1, p2); } catch (err) { return p1; }
+  }
+}
+
+function safeDifference(p1, p2) {
+  try {
+    return turf.difference(turf.featureCollection([p1, p2]));
+  } catch (e) {
+    try { return turf.difference(p1, p2); } catch (err) { return p1; }
+  }
 }
 
 function makeSplitCone(points, hoursArr, radiiArr) {
@@ -838,32 +855,26 @@ function makeSplitCone(points, hoursArr, radiiArr) {
 
   let cone1 = null, cone2 = null;
 
-  // 1. Build primary cone (0H - 72H)
   if (circles1.length > 0) {
     cone1 = circles1[0];
     for (let i = 1; i < circles1.length; i++) {
-      try { cone1 = turf.union(cone1, circles1[i]); } catch (e) {}
+      cone1 = safeUnion(cone1, circles1[i]);
     }
   }
 
-  // 2. Build extended cone (>72H - 120H)
   if (circles2.length > 0) {
     cone2 = circles2[0];
     for (let i = 1; i < circles2.length; i++) {
-      try { cone2 = turf.union(cone2, circles2[i]); } catch (e) {}
+      cone2 = safeUnion(cone2, circles2[i]);
     }
   }
 
-  // 3. Subtract cone1 from cone2 to eliminate opacity stacking at 72H
   if (cone1 && cone2) {
     try {
-      // turf.buffer(..., 0) repairs self-intersections before calculating difference
       const cleanCone1 = turf.buffer(cone1, 0);
       const cleanCone2 = turf.buffer(cone2, 0);
-      const diff = turf.difference(cleanCone2, cleanCone1);
-      if (diff) {
-        cone2 = diff;
-      }
+      const diff = safeDifference(cleanCone2, cleanCone1);
+      if (diff) cone2 = diff;
     } catch (e) {
       console.warn("Cone difference calculation skipped:", e);
     }
@@ -871,6 +882,7 @@ function makeSplitCone(points, hoursArr, radiiArr) {
 
   return { first: cone1, second: cone2 };
 }
+
 // ================= 氣旋圖層繪製 =================
 function drawTCLayers(data) {
   const { forecastPoints, pastPoints, hours, radii } = data;
@@ -952,11 +964,6 @@ function drawTCLayers(data) {
       offset: [10, 0],
       className: "time-label"
     });
-    forecastTooltipMarkers.push(marker);
-    // 依當前狀態控制顯示
-    if(marker._tooltip){
-      marker._tooltip._container.style.display = showForecastLabels ? "" : "none";
-    }
 
     marker.on('click', function () { this.openPopup(); });
     tcLayersGroup.addLayer(marker);
@@ -981,7 +988,6 @@ function drawTCLayers(data) {
 // ================= 單一氣旋渲染 =================
 function renderTCData(data) {
   tcLayersGroup.clearLayers();
-  forecastTooltipMarkers = [];
   const pts = drawTCLayers(data);
 
   document.getElementById("updateTime").innerHTML = "更新時間: " + (data.forecastInfo ? data.forecastInfo.updated : "--");
@@ -1015,7 +1021,6 @@ function renderTCData(data) {
 // ================= Requirement #1: 全部熱帶氣旋同時渲染 =================
 function renderAllTCs() {
   tcLayersGroup.clearLayers();
-  forecastTooltipMarkers = [];
   let allPts = [macauCoords];
   const activeKeys = Object.keys(loadedTCs);
 
@@ -1065,7 +1070,6 @@ async function initTCDropdown() {
   const selectEl = document.getElementById("tcSelect");
   selectEl.innerHTML = '<option value="all">全部熱帶氣旋</option>';
 
-  // 平行讀取 A ~ E CSV 檔案
   const fetchPromises = tcKeys.map(async (key) => {
     try {
       const response = await fetch(`tc_${key}.csv`, { cache: "no-cache" });
@@ -1074,7 +1078,6 @@ async function initTCDropdown() {
       const text = await response.text();
       const parsed = parseCSVToTCData(text);
 
-      // Requirement #3: 無資料則排除
       if (parsed && (parsed.forecastPoints.length > 0 || parsed.pastPoints.length > 0)) {
         return { key, data: parsed };
       }
@@ -1091,14 +1094,12 @@ async function initTCDropdown() {
       loadedTCs[item.key] = item.data;
       const opt = document.createElement("option");
       opt.value = item.key;
-      // Requirement #2: 自動獲取氣旋名稱
       const tcName = item.data.tcInfo.name || `熱帶氣旋 ${item.key}`;
       opt.textContent = `${tcName}`;
       selectEl.appendChild(opt);
     }
   });
 
-  // 若沒讀到 CSV，備用 webdata.js 的舊結構
   if (Object.keys(loadedTCs).length === 0 && window.forecastPoints) {
     loadedTCs['default'] = { forecastPoints, pastPoints, hours, radii, tcInfo, forecastInfo };
     const opt = document.createElement("option");
@@ -1107,7 +1108,6 @@ async function initTCDropdown() {
     selectEl.appendChild(opt);
   }
 
-  // 預設選擇 "全部熱帶氣旋" 展現全圖路徑
   onTCChange("all");
 }
 
@@ -1120,12 +1120,9 @@ function parseCSVToTCData(csvText) {
   let forecastInfo = { updated: "--" };
 
   lines.forEach((line) => {
-    // Skip table header
     if (line.toLowerCase().startsWith("category")) return;
 
     const cols = line.split(',').map(c => c.trim());
-
-    // Ignore empty or invalid rows
     if (!cols[0] || cols.every(c => c === "")) return;
 
     const category = cols[0].toLowerCase();
@@ -1142,14 +1139,11 @@ function parseCSVToTCData(csvText) {
       const lat = parseFloat(cols[3]);
       const lon = parseFloat(cols[4]);
 
-      // Ignore row if latitude or longitude is invalid or missing
       if (isNaN(lat) || isNaN(lon)) return;
 
-      // Extract number from "12H", "24H" -> 12, 24
       const hourNum = parseInt(leadStr.replace(/[^0-9]/g, ''), 10) || 0;
       hours.push(hourNum);
 
-      // Label formatting e.g. "08/12 06:00 (12H)" or "08/12 06:00"
       const displayLabel = leadStr ? `${timeStr} (${leadStr})` : timeStr;
 
       forecastPoints.push({
@@ -1167,7 +1161,6 @@ function parseCSVToTCData(csvText) {
       const lat = parseFloat(cols[3]);
       const lon = parseFloat(cols[4]);
 
-      // Ignore row if latitude or longitude is invalid or missing
       if (isNaN(lat) || isNaN(lon)) return;
 
       pastPoints.push({
@@ -1179,20 +1172,25 @@ function parseCSVToTCData(csvText) {
     }
   });
 
-  // Radii array mapped to standard error cone distances
+  // 動態擴充 radii 陣列長度以預防超出界線 (Out-of-bounds Fix)
   const defaultRadii = [15, 50, 100, 135, 170, 255, 345, 465];
+  const reqLen = hours.length > 0 ? hours.length : 8;
+
+  let radii = [...defaultRadii];
+  while (radii.length < reqLen) {
+    radii.push((radii[radii.length - 1] || 100) + 100);
+  }
 
   return {
     forecastPoints,
     pastPoints,
     hours: hours.length > 0 ? hours : [0, 12, 24, 36, 48, 72, 96, 120],
-    radii: defaultRadii.slice(0, hours.length > 0 ? hours.length : 8),
+    radii: radii.slice(0, reqLen),
     tcInfo,
     forecastInfo
   };
 }
 
-// 切換下拉選單觸發器
 function onTCChange(val) {
   if (val === "all") {
     renderAllTCs();
@@ -1201,11 +1199,11 @@ function onTCChange(val) {
   }
 }
 
-// 初始化
 window.addEventListener("DOMContentLoaded", () => {
   initTCDropdown();
 });
 </script>
 
 </body>
+  
 </html>
