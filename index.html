@@ -563,22 +563,24 @@ body {
   gap: 4px;
 }
 .card-condition {
-  font-size: 12px;
+  font-size: 11.5px;
   color: var(--text-main);
-  white-space: nowrap;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Allow 2 lines of text */
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  font-weight: 500;
+  white-space: normal; /* Allow text wrapping */
+  min-height: 31px;
 }
+
 .card-sub {
   font-size: 11px;
   color: var(--text-muted);
   display: flex;
-  align-items: center;
+  flex-wrap: wrap;
   gap: 4px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal; /* Allow text wrapping */
 }
 
 .hide {
@@ -1113,15 +1115,20 @@ async function load7DaysForecastXML() {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
 
-        let forecastNodes = xmlDoc.querySelectorAll("WeatherForecast, Forecast, DayForecast");
-        if (!forecastNodes || forecastNodes.length === 0) {
-            forecastNodes = xmlDoc.querySelectorAll("SevenDaysForecast > *");
-        }
+        // Helper to check multiple possible SMG XML tag variations
+        const getVal = (parent, selectors) => {
+            for (const sel of selectors) {
+                const el = parent.querySelector(sel);
+                if (el && el.textContent.trim()) return el.textContent.trim();
+            }
+            return "";
+        };
 
+        // Locate forecast day nodes
+        let forecastNodes = Array.from(xmlDoc.querySelectorAll("WeatherForecast, Forecast, DayForecast, SevenDaysForecast > *"));
         if (forecastNodes.length === 0) {
-            const allElements = xmlDoc.getElementsByTagName("*");
-            forecastNodes = Array.from(allElements).filter(el => 
-                el.querySelector("ValidDate, ForecastDate, Date, DayOfWeek, MaxTemp, MinTemp")
+            forecastNodes = Array.from(xmlDoc.getElementsByTagName("*")).filter(el => 
+                getVal(el, ["ValidDate", "ForecastDate", "Date", "DayOfWeek"])
             );
         }
 
@@ -1129,24 +1136,27 @@ async function load7DaysForecastXML() {
 
         let html = '';
         forecastNodes.forEach(node => {
-            const date = node.querySelector("ValidDate, ForecastDate, Date")?.textContent || "";
-            const dayOfWeek = node.querySelector("DayOfWeek, Day")?.textContent || "";
-            const weather = node.querySelector("WeatherDescription, WeatherSummary, Weather")?.textContent || "";
-            const maxTemp = node.querySelector("MaxTemp, Temperature > Max, HighTemp")?.textContent || "";
-            const minTemp = node.querySelector("MinTemp, Temperature > Min, LowTemp")?.textContent || "";
-            const maxRH = node.querySelector("MaxRH, Humidity > Max")?.textContent || "";
-            const minRH = node.querySelector("MinRH, Humidity > Min")?.textContent || "";
-            const windDir = node.querySelector("WindDirection, WindDir")?.textContent || "";
-            const windForce = node.querySelector("WindForce, WindSpeed")?.textContent || "";
-            const iconUrl = node.querySelector("IconURL, Icon")?.textContent || "";
+            const date = getVal(node, ["ValidDate", "ForecastDate", "Date"]);
+            const dayOfWeek = getVal(node, ["DayOfWeek", "Day"]);
+            const weather = getVal(node, ["WeatherDescription", "WeatherSummary", "Weather", "WeatherDetail", "C_Weather"]);
+            const maxTemp = getVal(node, ["MaxTemp", "Max_Temp", "Temperature_Max", "HighTemp", "Temperature > Max"]);
+            const minTemp = getVal(node, ["MinTemp", "Min_Temp", "Temperature_Min", "LowTemp", "Temperature > Min"]);
+            const maxRH = getVal(node, ["MaxRH", "Max_RH", "Humidity_Max", "Humidity > Max"]);
+            const minRH = getVal(node, ["MinRH", "Min_RH", "Humidity_Min", "Humidity > Min"]);
+            const windDir = getVal(node, ["WindDirection", "WindDir", "Wind_Direction"]);
+            const windForce = getVal(node, ["WindForce", "WindSpeed", "Wind_Speed"]);
+            let iconUrl = getVal(node, ["IconURL", "Icon", "WeatherIcon", "Icon_URL"]);
 
-            if (!date && !dayOfWeek && !weather) return;
+            if (!date && !weather && !maxTemp) return;
 
-            // 主要顯示的高溫/英雄數字與顏色
+            // Prepend domain for relative icon URLs
+            if (iconUrl && !iconUrl.startsWith('http')) {
+                iconUrl = 'https://www.smg.gov.mo/' + iconUrl.replace(/^\//, '');
+            }
+
             const heroValue = maxTemp || minTemp || '--';
             const heroColor = getTempColor(heroValue);
 
-            // 計算溫度範圍條位置 %
             const minT = parseFloat(minTemp) || 15;
             const maxT = parseFloat(maxTemp) || 35;
             const leftPos = Math.max(0, Math.min(80, ((minT - 10) / 30) * 100));
@@ -1156,12 +1166,12 @@ async function load7DaysForecastXML() {
                 <div class="forecast-card-mini">
                     <div class="card-top">
                         <span class="card-date">${date} ${dayOfWeek ? `(${dayOfWeek})` : ''}</span>
-                        ${iconUrl ? `<img src="${iconUrl}" class="card-icon" alt="icon">` : ''}
+                        ${iconUrl ? `<img src="${iconUrl}" class="card-icon" alt="icon" onerror="this.style.display='none'">` : ''}
                     </div>
 
                     <div class="card-hero">
                         <span class="hero-num" style="color: ${heroColor};">${heroValue}°</span>
-                        <span class="hero-range">(${minTemp ? `${minTemp}-` : ''}${maxTemp ? `${maxTemp}°` : ''})</span>
+                        <span class="hero-range">(${minTemp ? `${minTemp}` : '--'} - ${maxTemp ? `${maxTemp}°` : '--'})</span>
                     </div>
 
                     <div class="temp-bar-wrap">
