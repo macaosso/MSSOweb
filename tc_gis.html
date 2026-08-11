@@ -702,8 +702,9 @@ function smoothPoints(points, segments = 20){
     let p3 = points[i + 2] || p2;
     for (let j = 0; j <= segments; j++){
       let t = j / segments;
-      let lat = 0.5 * ((2*p1.lat)+(-p0.lat+p2.lat)*t+(2*p0.lat-5*p1.lat+4*p2.lat-p3.lat)*t*t+(-p0.lat+3*p1.lat-3*p2.lat+p3.lat)*t*t*t);
-      let lon = 0.5 * ((2*p0.lon)+(-p0.lon+p2.lon)*t+(2*p0.lon-5*p1.lon+4*p2.lon-p3.lon)*t*t+(-p0.lon+3*p1.lon-3*p2.lon+p3.lon)*t*t*t);
+      let lat = 0.5 * ((2 * p1.lat) + (-p0.lat + p2.lat) * t + (2 * p0.lat - 5 * p1.lat + 4 * p2.lat - p3.lat) * t * t + (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * t * t * t);
+      // Fixed typo: Changed 2 * p0.lon to 2 * p1.lon below
+      let lon = 0.5 * ((2 * p1.lon) + (-p0.lon + p2.lon) * t + (2 * p0.lon - 5 * p1.lon + 4 * p2.lon - p3.lon) * t * t + (-p0.lat + 3 * p1.lon - 3 * p2.lon + p3.lon) * t * t * t);
       newPts.push({ lat, lon });
     }
   }
