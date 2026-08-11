@@ -775,7 +775,6 @@ function catmullRom2bezier(points) {
   return path;
 }
 
-// 5. Safe Split Cone Generator (Prevents Turf Inversion Bugs)
 function makeSplitCone(points, hoursArr, radiiArr) {
   if (!points || points.length < 2) return { first: null, second: null };
 
@@ -796,7 +795,7 @@ function makeSplitCone(points, hoursArr, radiiArr) {
 
   let cone1 = null, cone2 = null;
 
-  // Build primary cone (0H - 72H)
+  // 1. Build primary cone (0H - 72H)
   if (circles1.length > 0) {
     cone1 = circles1[0];
     for (let i = 1; i < circles1.length; i++) {
@@ -804,11 +803,26 @@ function makeSplitCone(points, hoursArr, radiiArr) {
     }
   }
 
-  // Build extended cone (72H - 120H)
+  // 2. Build extended cone (>72H - 120H)
   if (circles2.length > 0) {
     cone2 = circles2[0];
     for (let i = 1; i < circles2.length; i++) {
       try { cone2 = turf.union(cone2, circles2[i]); } catch (e) {}
+    }
+  }
+
+  // 3. Subtract cone1 from cone2 to eliminate opacity stacking at 72H
+  if (cone1 && cone2) {
+    try {
+      // turf.buffer(..., 0) repairs self-intersections before calculating difference
+      const cleanCone1 = turf.buffer(cone1, 0);
+      const cleanCone2 = turf.buffer(cone2, 0);
+      const diff = turf.difference(cleanCone2, cleanCone1);
+      if (diff) {
+        cone2 = diff;
+      }
+    } catch (e) {
+      console.warn("Cone difference calculation skipped:", e);
     }
   }
 
