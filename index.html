@@ -1086,7 +1086,7 @@ async function load4DaysForecastXML() {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
 
-        // Helper to query basic text tags
+        // Helper to query text content from multiple candidate tag names
         const getVal = (parent, selectors) => {
             for (const sel of selectors) {
                 const el = parent.querySelector(sel);
@@ -1095,33 +1095,55 @@ async function load4DaysForecastXML() {
             return "";
         };
 
-        // Extract Min (<Type>2</Type>) and Max (<Type>1</Type>) from structured node
-        const getTypedRange = (parent, groupSelector, fallbackMin, fallbackMax) => {
-            let minVal = "";
-            let maxVal = "";
-            const group = parent.querySelector(groupSelector);
+        // Robust Min/Max extractor for Temperature and Humidity
+        const extractMinMax = (parent, groupSelectors) => {
+            let minVal = null;
+            let maxVal = null;
 
-            if (group) {
-                const items = group.children;
-                for (let item of items) {
-                    const type = item.querySelector("Type")?.textContent.trim();
-                    const val = item.querySelector("Value")?.textContent.trim();
-                    if (type === "2") minVal = val; // Type 2 = MIN
-                    if (type === "1") maxVal = val; // Type 1 = MAX
-                }
+            // Find group node (e.g. <Temperature> or <RelativeHumidity>)
+            let groupNode = null;
+            for (const sel of groupSelectors) {
+                const el = parent.querySelector(sel);
+                if (el) { groupNode = el; break; }
             }
 
-            // Fallback for alternative tag structures
-            if (!minVal) minVal = getVal(parent, fallbackMin);
-            if (!maxVal) maxVal = getVal(parent, fallbackMax);
+            if (groupNode) {
+                // Method 1: Check explicitly for Type 1 (Max) & Type 2 (Min)
+                const items = groupNode.querySelectorAll("Item, Data, CustomData, *");
+                items.forEach(item => {
+                    const type = item.querySelector("Type")?.textContent.trim() || item.getAttribute("type");
+                    const val = item.querySelector("Value")?.textContent.trim() || item.textContent.trim();
+                    const num = parseFloat(val);
+
+                    if (!isNaN(num)) {
+                        if (type === "1" || type === "MAX" || type === "Max") maxVal = num;
+                        if (type === "2" || type === "MIN" || type === "Min") minVal = num;
+                    }
+                });
+
+                // Method 2: Smart fallback - extract all numbers inside the group
+                if (minVal === null || maxVal === null) {
+                    const text = groupNode.textContent;
+                    const matches = text.match(/\d+(\.\d+)?/g);
+                    if (matches && matches.length >= 2) {
+                        const nums = matches.map(Number).filter(n => n > 0 && n < 100);
+                        if (nums.length >= 2) {
+                            minVal = Math.min(...nums);
+                            maxVal = Math.max(...nums);
+                        }
+                    }
+                }
+            }
 
             return { min: minVal, max: maxVal };
         };
 
-        let forecastNodes = Array.from(xmlDoc.querySelectorAll("WeatherForecast, Forecast, DayForecast, FourDaysForecast > *, SevenDaysForecast > *"));
+        // Locate forecast day nodes flexible enough for 4-day or 7-day XML structures
+        let forecastNodes = Array.from(xmlDoc.querySelectorAll("ForecastData, WeatherForecast, Forecast, DayForecast, FourDaysForecast > *, SevenDaysForecast > *"));
+        
         if (forecastNodes.length === 0) {
             forecastNodes = Array.from(xmlDoc.getElementsByTagName("*")).filter(el => 
-                getVal(el, ["ValidDate", "ForecastDate", "Date", "DayOfWeek"])
+                getVal(el, ["ValidDate", "C_ValidDate", "ForecastDate", "Date"])
             );
         }
 
@@ -1129,45 +1151,54 @@ async function load4DaysForecastXML() {
 
         let html = '';
         forecastNodes.forEach(node => {
-            const date = getVal(node, ["ValidDate", "ForecastDate", "Date"]);
-            const dayOfWeek = getVal(node, ["DayOfWeek", "C_DayOfWeek", "Day"]);
-            const weather = getVal(node, ["WeatherDescription", "WeatherSummary", "C_WeatherDescription", "Weather"]);
-            let iconUrl = getVal(node, ["IconURL", "Icon", "WeatherIcon"]);
-
-            // Parse Temperature (<Type>2</Type> min, <Type>1</Type> max)
-            const temp = getTypedRange(node, "Temperature", ["MinTemp", "Min_Temp"], ["MaxTemp", "Max_Temp"]);
+            // Extract Date & Day of Week
+            const date = getVal(node, ["ValidDate", "C_ValidDate", "ForecastDate", "C_ForecastDate", "Date", "C_Date", "fdate"]);
+            const dayOfWeek = getVal(node, ["DayOfWeek", "C_DayOfWeek", "Day", "C_Day"]);
             
-            // Parse Relative Humidity (<Type>2</Type> min, <Type>1</Type> max)
-            const rh = getTypedRange(node, "RelativeHumidity", ["MinRH", "Min_RH"], ["MaxRH", "Max_RH"]);
+            // Extract Weather Text & Icon
+            const weather = getVal(node, ["WeatherDescription", "C_WeatherDescription", "WeatherSummary", "C_WeatherSummary", "Weather"]);
+            let iconUrl = getVal(node, ["IconURL", "Icon", "WeatherIcon", "C_Icon"]);
 
-            if (!date && !weather && !temp.max) return;
+            // Extract Temp Range (<Type>2</Type> min, <Type>1</Type> max)
+            const temp = extractMinMax(node, ["Temperature", "C_Temperature", "Temp"]);
 
-            // Fix relative image URLs from SMG
+            // Extract Humidity Range (<Type>2</Type> min, <Type>1</Type> max)
+            const rh = extractMinMax(node, ["RelativeHumidity", "C_RelativeHumidity", "Humidity", "RH"]);
+
+            // Skip invalid empty nodes
+            if (!date && !weather && temp.max === null) return;
+
+            // Fix relative icon path from SMG
             if (iconUrl && !iconUrl.startsWith('http')) {
-                iconUrl = 'https://www.smg.gov.mo/' + iconUrl.replace(/^\//, '');
+                // Handle raw icon numbers like '10' -> 'images/icon10.png'
+                if (/^\d+$/.test(iconUrl)) {
+                    iconUrl = `https://www.smg.gov.mo/images/icon${iconUrl}.png`;
+                } else {
+                    iconUrl = 'https://www.smg.gov.mo/' + iconUrl.replace(/^\//, '');
+                }
             }
 
-            // Format Temperature Range: min temp - max temp
+            // Temperature text formatting
             let tempDisplay = '--';
-            if (temp.min && temp.max) {
+            if (temp.min !== null && temp.max !== null) {
                 tempDisplay = `${temp.min}°C - ${temp.max}°C`;
-            } else if (temp.min || temp.max) {
-                tempDisplay = `${temp.min || temp.max}°C`;
+            } else if (temp.min !== null || temp.max !== null) {
+                tempDisplay = `${temp.min ?? temp.max}°C`;
             }
 
-            // Format Humidity Range: min humid - max humid
+            // Humidity text formatting
             let rhDisplay = '--';
-            if (rh.min && rh.max) {
+            if (rh.min !== null && rh.max !== null) {
                 rhDisplay = `${rh.min}% - ${rh.max}%`;
-            } else if (rh.min || rh.max) {
-                rhDisplay = `${rh.min || rh.max}%`;
+            } else if (rh.min !== null || rh.max !== null) {
+                rhDisplay = `${rh.min ?? rh.max}%`;
             }
 
             html += `
                 <div class="forecast-card-mini">
                     <!-- Top: Date -->
                     <div class="card-top">
-                        ${date}${dayOfWeek ? ` (${dayOfWeek})` : ''}
+                        ${date || '預報'}${dayOfWeek ? ` (${dayOfWeek})` : ''}
                     </div>
 
                     <!-- Middle: Larger Icon, Min - Max Temp, Min - Max Humid -->
