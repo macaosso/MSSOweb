@@ -52,59 +52,6 @@ const label7dX = [15,16,17,18,19,20,21];
 const temp7dMax = [31,31,32,32,32,32,31];
 const temp7dMin = [26,26,27,26,26,26,26];
 
-//Tropical Cyclone Track
-const forecastInfo = {
-  updated: "2026-07-24 20:00 MST"
-};
-
-const pastPoints = [
-  {lat:13.5, lon:136.0, time: "07-22 20H", wind:45},
-  {lat:13.6, lon:135.2, time: "07-23 02H", wind:45},
-  {lat:13.7, lon:134.0, time: "07-23 08H", wind:45},
-  {lat:14.4, lon:133.2, time: "07-23 14H", wind:45},
-  {lat:14.8, lon:131.8, time: "07-23 20H", wind:50},
-  {lat:15.0, lon:130.2, time: "07-24 02H", wind:50},
-  {lat:15.6, lon:129.4, time: "07-24 08H", wind:55},
-  {lat:16.8, lon:128.0, time: "07-24 14H", wind:55},
-  {lat:17.2, lon:126.5, time: "07-24 20H", wind:65},
-  {lat:17.6, lon:125.2, time: "07-25 02H", wind:75},
-  {lat:18.3, lon:123.8, time: "07-25 08H", wind:85},
-  {lat:18.7, lon:122.3, time: "07-25 14H", wind:90},
-  {lat:19.3, lon:120.4, time: "07-25 20H", wind:105}
-];
-
-
-const hours = [0,12,24,48,72,96];
-const radii = [15, 50, 100, 170, 255, 345];
-const macau = [22.1595, 113.5685];
-
-const forecastPoints = [
-  { lat: 19.3, lon: 120.4, time: "07-24 20H", wind: 105,
-    wind41: { ne: 160, nw: 200, sw: 220, se: 180 }, 
-    wind88: { ne: 70, nw: 100, sw: 100, se: 90 }
-  },
-  { lat: 20.0, lon: 118.2, time: "07-25 08H", wind: 120 },
-  { lat: 21.4, lon: 116.1, time: "07-25 20H", wind: 140 },
-  { lat: 24.8, lon: 113.5, time: "07-26 20H", wind: 85 },
-  { lat: 28.5, lon: 113.2, time: "07-27 20H", wind: 45 },
-  { lat: 30.4, lon: 112.6, time: "07-28 08H", wind: 40 }
-];
-window.tcInfo = {
-  name: "紅霞 (2612）", 
-  wind: forecastPoints[0].wind,
-  pressure: 980
-};
-
-//  { lat: 42.5, lon: 149.0, time: "06-09 14H", wind: '-' }, 
-
-
-
-//{lat:19.5, lon:118.6, time: "06-04 17H", wind: 45,
-  
-    //wind41: { ne: 0, se: 0, sw: 0, nw: 0 }, 
-    //wind88: { ne: 0, se: 0, sw: 0,  nw: 0 } 
- // }，
-
 //受熱帶氣旋 99W 可能發佈之警報
 //2026-07-14  16:40 MST 更新
 
