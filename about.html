@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>澳門民間氣象台-關於我們 </title>
+<title>澳門民間氣象台-關於我們</title>
 <link rel="icon" type="image/png" href="icons/MSSO.png">
 
 <style>
-/* ========== 全域深色Dashboard基底 ========== */
+/* ========== 全域深色 Dashboard 基底 ========== */
 html {
   scroll-behavior: smooth;
 }
@@ -22,28 +22,28 @@ body {
   box-sizing: border-box;
 }
 
-/* ========== 頁頭Header 深色儀表頂欄 ========== */
+/* ========== 頁頭 Header 深色儀表頂欄 ========== */
 .header {
   background: #151d2b;
   color: #ffffff;
   padding: 22px 20px;
-  display:flex;
-  align-items:center;
+  display: flex;
+  align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid #243249;
   box-shadow: 0 2px 10px rgba(0,0,0,0.3);
 }
-.header-left{
-  display:flex;
-  align-items:center;
+.header-left {
+  display: flex;
+  align-items: center;
 }
 .title { 
   font-size: 20px; 
   font-weight: bold; 
-  margin-left:10px;
+  margin-left: 10px;
   letter-spacing: 0.5px;
 }
-.logo { height:40px; }
+.logo { height: 40px; }
 
 /* ========== 頂部導航菜單 深色側欄風格 ========== */
 .menu-container {
@@ -58,7 +58,9 @@ body {
   cursor: pointer;
   background: #233752;
   color: white;
+  border: none;
   border-radius: 6px;
+  line-height: 1;
 }
 
 .nav {
@@ -72,8 +74,8 @@ body {
   text-decoration: none;
   display: block;
   transition: 0.25s ease;
-  border-radius:6px;
-  margin:0 3px;
+  border-radius: 6px;
+  margin: 0 3px;
 }
 
 .nav a:hover {
@@ -82,7 +84,7 @@ body {
 }
 
 /* ✅ 手機導航菜單 */
-@media (max-width:992px) {
+@media (max-width: 992px) {
   .menu-toggle { display: block; }
 
   .nav {
@@ -92,9 +94,9 @@ body {
     position: absolute;
     top: 64px;
     left: 0;
-    background:#1a2538;
-    border-radius:0 0 12px 12px;
-    box-shadow:0 8px 16px rgba(0,0,0,0.35);
+    background: #1a2538;
+    border-radius: 0 0 12px 12px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.35);
   }
 
   .nav.active {
@@ -104,8 +106,8 @@ body {
   .nav a {
     border-top: 1px solid rgba(255,255,255,0.08);
     padding: 14px 18px;
-    border-radius:0;
-    margin:0;
+    border-radius: 0;
+    margin: 0;
   }
 }
 
@@ -119,7 +121,7 @@ body {
   padding-left: 12px;
 }
 
-/* ========== 深色資訊卡片模塊（Dashboard卡片） ========== */
+/* ========== 深色資訊卡片模組（Dashboard 卡片） ========== */
 .info-box {
   margin: 20px 35px;
   border-radius: 16px;
@@ -153,7 +155,7 @@ body {
 }
 
 /* 底部版權卡片特殊樣式 */
-.info-box:last-child .info-title {
+footer.info-box .info-title {
   text-align: center;
   background: #102020;
   color: #94a3b8;
@@ -162,7 +164,7 @@ body {
 }
 
 /* ✅ 手機頁面邊距適配 */
-@media (max-width:768px) {
+@media (max-width: 768px) {
   .page-title {
     margin: 20px 20px 8px;
   }
@@ -176,15 +178,15 @@ body {
 <body>
 
 <!-- HEADER -->
-<div class="header">
+<header class="header">
   <div class="header-left">
-    <img src="icons/MSSO.png" class="logo">
+    <img src="icons/MSSO.png" alt="澳門民間氣象台 Logo" class="logo">
     <div class="title">澳門民間氣象台 MSSO</div>
   </div>
   <div class="menu-container">
-    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+    <button class="menu-toggle" id="menuBtn" aria-label="切換選單" aria-expanded="false" onclick="toggleMenu()">☰</button>
 
-    <div class="nav" id="navMenu">
+    <nav class="nav" id="navMenu">
       <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
       <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
       <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋距離計算工具</a> 
@@ -192,68 +194,84 @@ body {
       <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
       <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
       <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
+    </nav>
+  </div>
+</header>
+
+<!-- MAIN CONTENT -->
+<main>
+  <h1 class="page-title">關於我們</h1>
+
+  <section class="info-box">
+    <div class="info-title">📌 基本資料</div>
+    <div class="info-content">
+      澳門民間氣象台（MSSO）成立於2020年06月12日，是由氣象愛好者自發建立的氣象資訊平台，
+      致力為公眾提供即時及清晰的天氣資訊。
     </div>
-  </div>
-</div>
+  </section>
 
-<!-- ✅ ABOUT 主內容 -->
-<div class="page-title">關於我們</div>
+  <section class="info-box">
+    <div class="info-title">🎯 宗旨</div>
+    <div class="info-content">
+      • 秉承<b>「與澳門人風雨同路」</b>的精神 <br>
+      • 提供更多天氣資訊給市民<br>
+      • 令市民能夠更快地獲得最新天氣資訊<br>
+    </div>
+  </section>
 
-<div class="info-box">
-  <div class="info-title">📌 基本資料</div>
-  <div class="info-content">
-    澳門民間氣象台（MSSO）成立於2020年06月12日，是由氣象愛好者自發建立的氣象資訊平台，
-    致力為公眾提供即時及清晰的天氣資訊。
-  </div>
-</div>
+  <section class="info-box">
+    <div class="info-title">🌦️ 服務內容</div>
+    <div class="info-content">
+      • 每日/特殊天氣預報<br>
+      • 重要天氣提示及風險評估<br>
+      • 熱帶氣旋分析及路徑預測<br>
+      • 氣象資訊及科普
+    </div>
+  </section>
 
-<div class="info-box">
-  <div class="info-title">🎯 宗旨</div>
-  <div class="info-content">
-    • 秉承<b>「與澳門人風雨同路」</b>的精神 <br>
-    • 提供更多天氣資訊給市民<br>
-    • 令市民能夠更快地獲得最新天氣資訊<br>
-  </div>
-</div>
+  <section class="info-box">
+    <div class="info-title">⚠️ 聲明</div>
+    <div class="info-content">
+      本平台提供之所有氣象資訊僅作參考用途，請以澳門地球物理氣象局（SMG）發佈為準。
+    </div>
+  </section>
 
-<div class="info-box">
-  <div class="info-title">🌦️ 服務內容</div>
-  <div class="info-content">
-    • 每日/特殊天氣預報<br>
-    • 重要天氣提示及風險評估<br>
-    • 熱帶氣旋分析及路徑預測<br>
-    • 氣象資訊及科普
-  </div>
-</div>
+  <section class="info-box">
+    <div class="info-title">📞 聯絡我們</div>
+    <div class="info-content">
+      Instagram：@macaosso<br>
+      Telegram：澳門民間氣象台 MSSO<br>
+    </div>
+  </section>
+</main>
 
-<div class="info-box">
-  <div class="info-title">⚠️ 聲明</div>
-  <div class="info-content">
-    本平台提供之所有氣象資訊僅作參考用途，請以澳門地球物理氣象局（SMG）發佈為準。
-  </div>
-</div>
-
-<div class="info-box">
-  <div class="info-title">📞 聯絡我們</div>
-  <div class="info-content">
-    Instagram：@macaosso<br>
-    Telegram：澳門民間氣象台 MSSO<br>
-  </div>
-</div>
-
-<div class="info-box">
+<!-- FOOTER -->
+<footer class="info-box">
   <div class="info-title"> ©2026 澳門民間氣象台 MSSO </div>
-</div>
+</footer>
 
-<!-- 菜單切換JS -->
+<!-- JavaScript 選單邏輯 -->
 <script>
 function toggleMenu() {
   const nav = document.getElementById("navMenu");
-  const btn = document.querySelector(".menu-toggle");
+  const btn = document.getElementById("menuBtn");
+  const isActive = nav.classList.toggle("active");
 
-  nav.classList.toggle("active");
-  btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
+  btn.innerHTML = isActive ? "✕" : "☰";
+  btn.setAttribute("aria-expanded", isActive);
 }
+
+// 點擊選單外部區域自動收合選單
+document.addEventListener("click", function(event) {
+  const nav = document.getElementById("navMenu");
+  const btn = document.getElementById("menuBtn");
+
+  if (!nav.contains(event.target) && !btn.contains(event.target) && nav.classList.contains("active")) {
+    nav.classList.remove("active");
+    btn.innerHTML = "☰";
+    btn.setAttribute("aria-expanded", "false");
+  }
+});
 </script>
 
 </body>
