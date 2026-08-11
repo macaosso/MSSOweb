@@ -3,91 +3,69 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HKO 網格雨量預報動圖</title>
+  <title>HKO 網格雨量預報</title>
 
-  <!-- Leaflet CSS & JS -->
+  <!-- Leaflet Map CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <!-- PapaParse for CSV parsing -->
+  <!-- CSV Parser -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body, html { width: 100%; height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; overflow: hidden; }
+    body, html { width: 100%; height: 100%; font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; overflow: hidden; }
 
     #map { width: 100vw; height: 100vh; background: #1a202c; }
 
-    /* Glassmorphism Control Panel */
-    .glass-panel {
-      background: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+    .glass-card {
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 12px;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
       color: #fff;
     }
 
-    .top-bar {
+    .top-info {
       position: absolute;
       top: 16px;
       left: 16px;
       z-index: 1000;
-      padding: 12px 20px;
-      max-width: calc(100vw - 32px);
+      padding: 12px 18px;
     }
 
-    .title { font-size: 16px; font-weight: 700; color: #38bdf8; }
-    .subtitle { font-size: 12px; color: #94a3b8; margin-top: 2px; }
-
-    /* Animation Control Bar */
     .controls-bar {
       position: absolute;
       bottom: 24px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 1000;
-      padding: 12px 20px;
+      padding: 10px 18px;
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
       width: 90%;
-      max-width: 600px;
+      max-width: 550px;
     }
 
     .btn {
       background: #0284c7;
       color: white;
       border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
+      padding: 8px 14px;
+      border-radius: 6px;
       cursor: pointer;
       font-weight: 600;
       font-size: 13px;
-      transition: background 0.2s;
     }
     .btn:hover { background: #0369a1; }
 
     .slider { flex: 1; accent-color: #38bdf8; cursor: pointer; }
 
-    /* Legend Box */
-    .legend-box {
-      position: absolute;
-      bottom: 90px;
-      right: 16px;
-      z-index: 1000;
-      padding: 12px 16px;
-      font-size: 11px;
-    }
-    .legend-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 6px; }
-    .legend-item { display: flex; align-items: center; gap: 6px; }
-    .color-box { width: 14px; height: 14px; border-radius: 3px; border: 1px solid rgba(255,255,255,0.2); }
-
-    /* Map Tooltip & Peak Marker Custom Classes */
     .grid-label {
       background: transparent;
       border: none;
-      box-shadow: none;
       font-weight: 800;
       font-size: 11px;
       text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
@@ -99,43 +77,29 @@
       background-color: #ff2222;
       border: 1.5px solid #ffffff;
       border-radius: 50%;
-      box-shadow: 0 0 8px #ff2222;
     }
   </style>
 </head>
 <body>
 
-  <!-- Top Info Panel -->
-  <div class="top-bar glass-panel">
-    <div class="title">HKO 網格雨量預報 (Nowcast)</div>
-    <div id="timeStatus" class="subtitle">正在載入數據...</div>
+  <div class="top-info glass-card">
+    <div style="font-weight: bold; color: #38bdf8; font-size: 15px;">HKO 網格雨量預報 (Nowcast)</div>
+    <div id="status" style="font-size: 12px; color: #94a3b8; margin-top: 2px;">直接讀取 HKO API 數據中...</div>
   </div>
 
-  <!-- Animation Player Controls -->
-  <div class="controls-bar glass-panel">
+  <div class="controls-bar glass-card">
     <button id="playBtn" class="btn" onclick="togglePlay()">播放 ▶</button>
-    <input type="range" id="frameSlider" class="slider" min="0" max="0" value="0" oninput="onSliderChange(this.value)">
-  </div>
-
-  <!-- Rainfall Legend -->
-  <div class="legend-box glass-panel">
-    <b style="color:#e2e8f0;">雨量等級 (mm)</b>
-    <div class="legend-grid" id="legendContainer"></div>
+    <input type="range" id="slider" class="slider" min="0" max="0" value="0" oninput="onSlider(this.value)">
   </div>
 
   <div id="map"></div>
 
 <script>
-  // Center & Boundary settings matching Python script
-  const MACAU_LAT = 22.1595;
-  const MACAU_LON = 113.5685;
-  const KM_PER_DEG = 111.32;
+  const CSV_URL = "https://data.weather.gov.hk/weatherAPI/hko_data/F3/Gridded_rainfall_nowcast_tc.csv";
+  const MACAU_LAT = 22.1595, MACAU_LON = 113.5685, KM_PER_DEG = 111.32;
 
-  // HKO Color Palette & Rainfall Thresholds
-  const levels = [0.1, 1, 5, 10, 20, 50, 80, 100];
   const colors = ["#15438e", "#2fdbeb", "#0F9C5D", "#52ee27", "#ffdd00", "#ff0000", "#4a4747", "#6C074E"];
-
-  function getRainColor(val) {
+  function getColor(val) {
     if (val >= 100) return colors[7];
     if (val >= 80)  return colors[6];
     if (val >= 50)  return colors[5];
@@ -147,92 +111,51 @@
     return "transparent";
   }
 
-  // Initialize Map with Dark Mode Canvas Renderer
+  // Initialize Map
   const map = L.map('map', { zoomControl: false, preferCanvas: true }).setView([22.15, 113.6], 10);
   L.control.zoom({ position: 'topright' }).addTo(map);
 
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OpenStreetMap &copy; CARTO',
-    maxZoom: 18
-  }).addTo(map);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 18 }).addTo(map);
 
-  // Add Macau Radar Distance Circles (10km, 25km, 50km, 100km)
+  // Macau Distance Rings
   [10, 25, 50, 100].forEach(km => {
-    const radiusDeg = km / KM_PER_DEG;
     L.circle([MACAU_LAT, MACAU_LON], {
-      radius: km * 1000,
-      color: '#949494',
-      weight: 1,
-      dashArray: '4,6',
-      fill: false,
-      opacity: 0.5
-    }).addTo(map);
-
-    L.marker([MACAU_LAT - radiusDeg, MACAU_LON], {
-      icon: L.divIcon({
-        className: 'grid-label',
-        html: `<span style="color:#94a3b8; font-size:10px;">${km} km</span>`,
-        iconAnchor: [15, 0]
-      })
+      radius: km * 1000, color: '#949494', weight: 1, dashArray: '4,6', fill: false, opacity: 0.5
     }).addTo(map);
   });
-
-  // Macau Center Marker
   L.circleMarker([MACAU_LAT, MACAU_LON], { radius: 4, color: '#fff', fillColor: '#fff', fillOpacity: 1 }).addTo(map);
 
-  // Global State Variables
   let timeFrames = [];
-  let frameDataMap = {};
-  let currentFrameIdx = 0;
-  let isPlaying = false;
-  let playTimer = null;
-  let dynamicLayerGroup = L.layerGroup().addTo(map);
+  let frameMap = {};
+  let currentIdx = 0;
+  let timer = null;
+  let layerGroup = L.layerGroup().addTo(map);
 
-  // Build Legend UI
-  const legendContainer = document.getElementById('legendContainer');
-  const labelsText = ["0.1-1", "1-5", "5-10", "10-20", "20-50", "50-80", "80-100", ">100"];
-  colors.forEach((clr, i) => {
-    legendContainer.innerHTML += `
-      <div class="legend-item">
-        <div class="color-box" style="background:${clr};"></div>
-        <span>${labelsText[i]}</span>
-      </div>`;
-  });
-
-  // Load and Parse HKO CSV Data
-  async function loadData() {
-    const csvUrl = 'https://data.weather.gov.hk/weatherAPI/hko_data/F3/Gridded_rainfall_nowcast_tc.csv';
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(csvUrl)}`;
-
+  // Fetch CSV directly
+  async function loadHKOData() {
     try {
-      let response = await fetch(csvUrl);
-      if (!response.ok) response = await fetch(proxyUrl);
-      const text = await response.text();
-
+      const res = await fetch(CSV_URL);
+      const text = await res.text();
+      
       Papa.parse(text, {
         header: true,
         skipEmptyLines: true,
-        complete: function(results) {
-          processCSV(results.data);
-        }
+        complete: (res) => processData(res.data)
       });
     } catch (err) {
-      document.getElementById('timeStatus').textContent = "載入數據失敗，請檢查網絡。";
-      console.error(err);
+      document.getElementById('status').textContent = "讀取數據失敗：" + err.message;
     }
   }
 
-  function processCSV(rows) {
+  function processData(rows) {
     if (!rows.length) return;
 
-    // Detect column names dynamically
     const sample = rows[0];
-    const latCol = Object.keys(sample).find(k => k.includes('緯度') || k.includes('Latitude'));
-    const lonCol = Object.keys(sample).find(k => k.includes('經度') || k.includes('Longitude'));
-    const rainCol = Object.keys(sample).find(k => k.includes('雨量') || k.includes('Rainfall'));
-    const timeCol = Object.keys(sample).find(k => k.includes('時間') && (k.includes('完結') || k.includes('結束') || k.includes('Time')));
+    const latCol = Object.keys(sample).find(k => k.includes('緯度'));
+    const lonCol = Object.keys(sample).find(k => k.includes('經度'));
+    const rainCol = Object.keys(sample).find(k => k.includes('雨量'));
+    const timeCol = Object.keys(sample).find(k => k.includes('時間') && (k.includes('完結') || k.includes('結束')));
 
-    // Group rows by timestamp
     rows.forEach(r => {
       const time = r[timeCol]?.trim();
       const lat = parseFloat(r[latCol]);
@@ -241,155 +164,75 @@
 
       if (!time || isNaN(lat) || isNaN(lon) || isNaN(rain)) return;
 
-      if (!frameDataMap[time]) frameDataMap[time] = [];
-      if (rain >= 0.1) {
-        frameDataMap[time].push({ lat, lon, rain });
-      }
+      if (!frameMap[time]) frameMap[time] = [];
+      if (rain >= 0.1) frameMap[time].push({ lat, lon, rain });
     });
 
-    timeFrames = Object.keys(frameDataMap).sort().slice(0, 4); // Limit to first 4 frames as in script
-
-    if (timeFrames.length === 0) {
-      document.getElementById('timeStatus').textContent = "無可用的預報數據。";
-      return;
-    }
-
-    const slider = document.getElementById('frameSlider');
+    timeFrames = Object.keys(frameMap).sort().slice(0, 4);
+    const slider = document.getElementById('slider');
     slider.max = timeFrames.length - 1;
-    slider.value = 0;
 
     renderFrame(0);
   }
 
-  // Render a specific frame onto the map
   function renderFrame(idx) {
-    currentFrameIdx = idx;
-    document.getElementById('frameSlider').value = idx;
-    dynamicLayerGroup.clearLayers();
+    currentIdx = idx;
+    document.getElementById('slider').value = idx;
+    layerGroup.clearLayers();
 
     const timestamp = timeFrames[idx];
-    const pts = frameDataMap[timestamp] || [];
+    const pts = frameMap[timestamp] || [];
 
-    // Format Title Timestamp (YYYYMMDDHHMM -> YYYY-MM-DD HH:MM)
     if (timestamp && timestamp.length === 12) {
-      const formattedTime = `${timestamp.slice(0,4)}-${timestamp.slice(4,6)}-${timestamp.slice(6,8)} ${timestamp.slice(8,10)}:${timestamp.slice(10,12)}`;
-      document.getElementById('timeStatus').textContent = `預報有效時間: ${formattedTime}`;
+      document.getElementById('status').textContent = 
+        `預報時間: ${timestamp.slice(0,4)}-${timestamp.slice(4,6)}-${timestamp.slice(6,8)} ${timestamp.slice(8,10)}:${timestamp.slice(10,12)}`;
     }
 
-    if (pts.length === 0) return;
-
-    // 1. Draw Grid Points / Cells
+    // Grid rendering
     pts.forEach(p => {
-      const color = getRainColor(p.rain);
-      L.rectangle([
-        [p.lat - 0.006, p.lon - 0.006],
-        [p.lat + 0.006, p.lon + 0.006]
-      ], {
-        color: 'transparent',
-        fillColor: color,
-        fillOpacity: 0.65,
-        interactive: false
-      }).addTo(dynamicLayerGroup);
+      L.rectangle([[p.lat - 0.006, p.lon - 0.006], [p.lat + 0.006, p.lon + 0.006]], {
+        color: 'transparent', fillColor: getColor(p.rain), fillOpacity: 0.65, interactive: false
+      }).addTo(layerGroup);
     });
 
-    // 2. Sample points to prevent text overlap (min distance 0.02 deg, min rain 2.0 mm)
-    const sampled = sampleValidPoints(pts, 0.02, 2.0);
-    sampled.forEach(p => {
-      const rainVal = Math.round(p.rain);
-      const txtColor = getRainColor(p.rain);
+    // Sample points for numbers
+    samplePoints(pts, 0.02, 2.0).forEach(p => {
       L.marker([p.lat, p.lon], {
-        icon: L.divIcon({
-          className: 'grid-label',
-          html: `<span style="color:${txtColor}">${rainVal}</span>`,
-          iconAnchor: [0, 0]
-        })
-      }).addTo(dynamicLayerGroup);
-    });
-
-    // 3. Peak Detection (Rainfall >= 10mm local maxima)
-    const peaks = findPeaks(pts, 10.0);
-    peaks.forEach(pk => {
-      const rainVal = Math.round(pk.rain);
-      const txtColor = getRainColor(pk.rain);
-
-      // Red Peak Marker Dot
-      L.marker([pk.lat, pk.lon], {
-        icon: L.divIcon({ className: 'peak-dot', iconSize: [8, 8], iconAnchor: [4, 4] })
-      }).addTo(dynamicLayerGroup);
-
-      // Peak Label Text
-      L.marker([pk.lat + 0.003, pk.lon + 0.003], {
-        icon: L.divIcon({
-          className: 'grid-label',
-          html: `<span style="color:${txtColor}; font-size:12px;">${rainVal}</span>`,
-          iconAnchor: [0, 0]
-        })
-      }).addTo(dynamicLayerGroup);
+        icon: L.divIcon({ className: 'grid-label', html: `<span style="color:${getColor(p.rain)}">${Math.round(p.rain)}</span>` })
+      }).addTo(layerGroup);
     });
   }
 
-  // Thin out point density to avoid text label clutter
-  function sampleValidPoints(points, minDistDeg, minRain) {
-    const filtered = points.filter(p => p.rain >= minRain);
+  function samplePoints(pts, minDist, minRain) {
     const selected = [];
-
-    for (let p of filtered) {
-      let tooClose = false;
-      for (let s of selected) {
-        const dist = Math.sqrt(Math.pow(p.lon - s.lon, 2) + Math.pow(p.lat - s.lat, 2));
-        if (dist < minDistDeg) {
-          tooClose = true;
-          break;
-        }
+    pts.filter(p => p.rain >= minRain).forEach(p => {
+      if (!selected.some(s => Math.hypot(p.lon - s.lon, p.lat - s.lat) < minDist)) {
+        selected.push(p);
       }
-      if (!tooClose) selected.push(p);
-    }
+    });
     return selected;
   }
 
-  // Find peak rainfall locations
-  function findPeaks(points, minThreshold) {
-    const sorted = [...points].sort((a, b) => b.rain - a.rain);
-    const peaks = [];
-
-    for (let p of sorted) {
-      if (p.rain < minThreshold) break;
-      let isLocalMax = true;
-      for (let pk of peaks) {
-        const dist = Math.sqrt(Math.pow(p.lon - pk.lon, 2) + Math.pow(p.lat - pk.lat, 2));
-        if (dist < 0.04) {
-          isLocalMax = false;
-          break;
-        }
-      }
-      if (isLocalMax) peaks.push(p);
-    }
-    return peaks;
-  }
-
-  // Animation Playback Logic
   function togglePlay() {
-    isPlaying = !isPlaying;
     const btn = document.getElementById('playBtn');
-    if (isPlaying) {
-      btn.textContent = "暫停 ❚❚";
-      playTimer = setInterval(() => {
-        let nextIdx = (currentFrameIdx + 1) % timeFrames.length;
-        renderFrame(nextIdx);
-      }, 800);
-    } else {
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
       btn.textContent = "播放 ▶";
-      clearInterval(playTimer);
+    } else {
+      btn.textContent = "暫停 ❚❚";
+      timer = setInterval(() => {
+        renderFrame((currentIdx + 1) % timeFrames.length);
+      }, 800);
     }
   }
 
-  function onSliderChange(val) {
-    if (isPlaying) togglePlay();
-    renderFrame(parseInt(val));
+  function onSlider(v) {
+    if (timer) togglePlay();
+    renderFrame(parseInt(v));
   }
 
-  // Start Application
-  loadData();
+  loadHKOData();
 </script>
 </body>
 </html>
