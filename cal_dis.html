@@ -63,7 +63,7 @@ body {
   white-space: nowrap;
 }
 
-/* ========== 頂部導航菜單 ========== */
+/* ========== 頂部導航菜單【已修復】 ========== */
 .menu-container {
   position: relative;
   z-index: 3000;
@@ -78,7 +78,16 @@ body {
   color: white;
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,0.12);
+  transition: 0.2s;
 }
+.menu-toggle.active {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.12);
+}
+.menu-toggle:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
 .nav {
   display: flex;
   gap: 6px;
@@ -224,7 +233,7 @@ input::placeholder {
   color:#94a3b8;
 }
 
-/* ========== 手機響應式 與主站完全一致 ========== */
+/* ========== 手機響應式 與主站完全一致【菜單修復核心】 ========== */
 @media(max-width:768px){
   .main-container {
     padding: 20px 20px;
@@ -238,14 +247,16 @@ input::placeholder {
   .nav{
     display:none;
     flex-direction:column;
-    width:100%;
+    width: calc(100vw - 40px);
     position:absolute;
-    top:60px;
-    left:0;
+    top: calc(100% + 8px);
+    right:0;
+    left:auto;
     background:rgba(15,23,42,0.95);
     backdrop-filter: blur(12px);
     border: 1px solid rgba(255,255,255,0.08);
-    border-radius:0 0 12px 12px;
+    border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.4);
   }
   .nav.active{
     display:flex;
@@ -256,7 +267,25 @@ input::placeholder {
     border-top:1px solid rgba(255,255,255,0.06);
     border-radius:0;
   }
+  .nav a:first-child{
+    border-top:none;
+    border-radius:12px 12px 0 0;
+  }
+  .nav a:last-child{
+    border-radius:0 0 12px 12px;
+  }
 }
+
+/* 視窗放大自動還原桌面導航，解決縮放殘留active bug */
+@media(min-width:769px){
+  .nav{
+    display:flex !important;
+  }
+  .menu-toggle{
+    display:none !important;
+  }
+}
+
 </style>
 </head>
 <body>
