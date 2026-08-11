@@ -1003,51 +1003,78 @@ function parseCSVToTCData(csvText) {
   const lines = csvText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
   let forecastPoints = [];
   let pastPoints = [];
+  let hours = [];
   let tcInfo = { name: "未知", wind: "--", pressure: "--" };
   let forecastInfo = { updated: "--" };
 
   lines.forEach((line) => {
+    // Skip table header
     if (line.toLowerCase().startsWith("category")) return;
+
     const cols = line.split(',').map(c => c.trim());
-    const category = cols[0] ? cols[0].toLowerCase() : "";
+
+    // Ignore empty or invalid rows
+    if (!cols[0] || cols.every(c => c === "")) return;
+
+    const category = cols[0].toLowerCase();
 
     if (category === "tc_info") {
-      tcInfo.name = cols[1] || cols[2] || "熱帶氣旋";
-      tcInfo.wind = cols[4] || cols[5] || "--";
-      tcInfo.pressure = cols[5] || cols[6] || "--";
-      forecastInfo.updated = cols[2] || cols[3] || "--";
+      tcInfo.name = cols[2] || "熱帶氣旋";
+      forecastInfo.updated = cols[3] || "--";
+      tcInfo.wind = cols[5] || "--";
+      tcInfo.pressure = cols[6] || "--";
+
     } else if (category === "forecast") {
-      const lat = parseFloat(cols[2]);
-      const lon = parseFloat(cols[3]);
-      if (!isNaN(lat) && !isNaN(lon)) {
-        forecastPoints.push({
-          time: cols[1],
-          lat: lat,
-          lon: lon,
-          wind: cols[4] ? parseFloat(cols[4]) : null,
-          wind41: cols[6] && cols[6] !== "" ? { ne: +cols[6], se: +cols[7], sw: +cols[8], nw: +cols[9] } : null,
-          wind88: cols[10] && cols[10] !== "" ? { ne: +cols[10], se: +cols[11], sw: +cols[12], nw: +cols[13] } : null
-        });
-      }
+      const leadStr = cols[1] || "";
+      const timeStr = cols[2] || "";
+      const lat = parseFloat(cols[3]);
+      const lon = parseFloat(cols[4]);
+
+      // Ignore row if latitude or longitude is invalid or missing
+      if (isNaN(lat) || isNaN(lon)) return;
+
+      // Extract number from "12H", "24H" -> 12, 24
+      const hourNum = parseInt(leadStr.replace(/[^0-9]/g, ''), 10) || 0;
+      hours.push(hourNum);
+
+      // Label formatting e.g. "08/12 06:00 (12H)" or "08/12 06:00"
+      const displayLabel = leadStr ? `${timeStr} (${leadStr})` : timeStr;
+
+      forecastPoints.push({
+        leadTime: leadStr,
+        time: displayLabel,
+        lat: lat,
+        lon: lon,
+        wind: cols[5] && cols[5] !== "" ? parseFloat(cols[5]) : null,
+        wind41: cols[7] && cols[7] !== "" ? { ne: +cols[7], se: +cols[8], sw: +cols[9], nw: +cols[10] } : null,
+        wind88: cols[11] && cols[11] !== "" ? { ne: +cols[11], se: +cols[12], sw: +cols[13], nw: +cols[14] } : null
+      });
+
     } else if (category === "past") {
-      const lat = parseFloat(cols[2]);
-      const lon = parseFloat(cols[3]);
-      if (!isNaN(lat) && !isNaN(lon)) {
-        pastPoints.push({
-          time: cols[1],
-          lat: lat,
-          lon: lon,
-          wind: cols[4] ? parseFloat(cols[4]) : null
-        });
-      }
+      const timeStr = cols[2] || "";
+      const lat = parseFloat(cols[3]);
+      const lon = parseFloat(cols[4]);
+
+      // Ignore row if latitude or longitude is invalid or missing
+      if (isNaN(lat) || isNaN(lon)) return;
+
+      pastPoints.push({
+        time: timeStr,
+        lat: lat,
+        lon: lon,
+        wind: cols[5] && cols[5] !== "" ? parseFloat(cols[5]) : null
+      });
     }
   });
+
+  // Radii array mapped to standard error cone distances
+  const defaultRadii = [15, 50, 100, 170, 255, 345, 465];
 
   return {
     forecastPoints,
     pastPoints,
-    hours: [0, 12, 24, 36, 48, 72, 96, 120],
-    radii: [15, 50, 100, 170, 255, 345, 465],
+    hours: hours.length > 0 ? hours : [0, 12, 24, 48, 72, 96, 120],
+    radii: defaultRadii.slice(0, hours.length > 0 ? hours.length : 8),
     tcInfo,
     forecastInfo
   };
