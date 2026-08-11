@@ -54,7 +54,7 @@ body {
   padding: 0 15px 40px 15px;
 }
 
-/* ========== 2. 頁頭 Header & 頂欄導航 ========== */
+/* ========== 2. 頁頭 Header & 頂欄導航【菜單重點修復區域】 ========== */
 .header-nav-container {
   position: sticky;
   top: 0;
@@ -85,7 +85,7 @@ body {
   letter-spacing: 0.5px;
 }
 
-/* 導航菜單 */
+/* 導航菜單容器：新增 relative 作為彈窗定位錨點 */
 .menu-container {
   position: relative;
 }
@@ -103,6 +103,12 @@ body {
 .menu-toggle:hover {
   border-color: var(--accent-blue);
 }
+/* 點擊激活樣式 */
+.menu-toggle.active{
+  border-color: var(--accent-blue);
+  background:rgba(56, 189, 248, 0.12);
+}
+
 .nav {
   display: flex;
   gap: 8px;
@@ -569,7 +575,7 @@ body {
   display: none !important;
 }
 
-/* ========== 9. 響應式適配 Responsive ========== */
+/* ========== 9. 響應式適配 Responsive【菜單核心修正】 ========== */
 @media (max-width: 768px) {
   .header-nav-container {
     padding: 0.75rem 1rem;
@@ -578,11 +584,12 @@ body {
     display: block;
   }
   .nav {
+    /* 手機：預設隱藏 */
     display: none;
     flex-direction: column;
-    width: 100%;
+    width: 220px; /* 固定寬度，防止溢出 */
     position: absolute;
-    top: 55px;
+    top: calc(100% + 8px);
     right: 0;
     background: rgba(15, 23, 42, 0.95);
     backdrop-filter: blur(16px);
@@ -599,6 +606,7 @@ body {
   .nav.active {
     display: flex;
   }
+
   .forecast-chart-row {
     grid-template-columns: 1fr;
   }
@@ -615,10 +623,23 @@ body {
   }
 }
 
+/* 視窗放大自動清除 mobile active 狀態，避免桌面仍顯示彈窗 */
+@media (min-width: 769px) {
+  .nav {
+    display: flex !important;
+  }
+  .menu-toggle {
+    display: none !important;
+  }
+}
+
 @media (max-width: 375px) {
   .link-box {
     padding: 14px 6px;
     font-size: 12px;
+  }
+  .nav{
+    width: calc(100vw - 30px);
   }
 }
 </style>
