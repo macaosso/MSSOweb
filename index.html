@@ -722,6 +722,7 @@ body {
               </div>
               <div>
                 <div id="temp-value"></div>
+                <!-- 已修改：增加「體感溫度：」文字 -->
                 <div id="feels-desc" style="font-size: 16px; margin-top: 6px; font-weight: 500;"></div>
               </div>
             </div>
@@ -1015,11 +1016,12 @@ async function loadHourlyWeather() {
         const windSpdDesc = xmlDoc.querySelector("WindSpeedDescription")?.textContent || "";
         const windDirText = xmlDoc.querySelector("WindDirection > WindDescription")?.textContent || "--";
         const iconUrl = xmlDoc.querySelector("IconURL")?.textContent || "";
-        const feelDesc = xmlDoc.querySelector("FeelsLikeDescription")?.textContent || "--";
+        const feelDescRaw = xmlDoc.querySelector("FeelsLikeDescription")?.textContent || "--";
 
         pubTime.textContent = sysPubdate;
         tempValue.textContent = `${temp} °C`;
-        feelsDesc.textContent = feelDesc;
+        // 修正3：增加「體感溫度：」前綴
+        feelsDesc.textContent = `體感溫度：${feelDescRaw}`;
         humValue.textContent = `${hum} %`;
         windSpeed.textContent = `${windSpd} km/h (${windSpdDesc})`;
         windDir.textContent = windDirText;
@@ -1061,7 +1063,7 @@ async function loadUVData() {
 function getUVColor(uv) {
     if (isNaN(uv)) return "#cbd5e1";
     if (uv >= 11) return "#c084fc"; // 極高 (Purple)
-    if (uv >= 8) return "#ef4444";  // 很高 (Red)
+    if (uv >= 8) return "#ef4444";  // 甚高 (Red)
     if (uv >= 6) return "#f59e0b";  // 高 (Orange)
     if (uv >= 3) return "#facc15";  // 中等 (Yellow)
     return "#34d399"; // 低 (Green)
@@ -1070,6 +1072,7 @@ function getUVColor(uv) {
 const fourDayXmlUrl = "https://xml.smg.gov.mo/c_4daysforecast.xml";
 const fourDayProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(fourDayXmlUrl)}`;
 
+// 修正1：重寫七日預報XML解析，適配SMG c_4daysforecast真實結構
 async function load4DaysForecastXML() {
     const loadingEl = document.getElementById('7day-xml-loading');
     const errorEl = document.getElementById('7day-xml-error');
@@ -1086,138 +1089,54 @@ async function load4DaysForecastXML() {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
 
-        // Helper to extract date across multiple SMG XML formats
-        const getDateVal = (node) => {
-            const selectors = ["ValidDate", "C_ValidDate", "ForecastDate", "C_ForecastDate", "Date", "C_Date", "fdate"];
-            for (const sel of selectors) {
-                const el = node.querySelector(sel);
-                if (el) {
-                    const txt = el.textContent.trim();
-                    if (txt && el.children.length === 0) return txt;
-                }
-            }
-            // Check nested Year/Month/Day tags
-            const y = node.querySelector("Year")?.textContent.trim();
-            const m = node.querySelector("Month")?.textContent.trim();
-            const d = node.querySelector("Day, DayOfMonth")?.textContent.trim();
-            if (m && d) return y ? `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}` : `${m}/${d}`;
-            return "";
-        };
-
-        // Helper to extract text from a single tag
-        const getVal = (parent, selectors) => {
-            for (const sel of selectors) {
-                const el = parent.querySelector(sel);
-                if (el && el.textContent.trim()) return el.textContent.trim();
-            }
-            return "";
-        };
-
-        // Strict parser for <Type>1</Type> (Max) and <Type>2</Type> (Min)
-        const parseMinMax = (parent, groupSelectors) => {
-            let minVal = null;
-            let maxVal = null;
-
-            let group = null;
-            for (const sel of groupSelectors) {
-                const el = parent.querySelector(sel);
-                if (el) { group = el; break; }
-            }
-
-            if (!group) return { min: null, max: null };
-
-            // Look specifically inside <Item> or <Data> children for <Type> and <Value>
-            const items = group.querySelectorAll("Item, Data, CustomData");
-            items.forEach(item => {
-                const typeEl = item.querySelector("Type");
-                const valEl = item.querySelector("Value");
-                if (typeEl && valEl) {
-                    const type = typeEl.textContent.trim();
-                    const val = parseFloat(valEl.textContent.trim());
-                    if (!isNaN(val)) {
-                        if (type === "1") maxVal = val;
-                        if (type === "2") minVal = val;
-                    }
-                }
-            });
-
-            // Fallback for direct tags if <Item> was not used
-            if (maxVal === null) {
-                const maxEl = group.querySelector("Max, MaxTemp, MaxRH, High");
-                if (maxEl) maxVal = parseFloat(maxEl.textContent.trim());
-            }
-            if (minVal === null) {
-                const minEl = group.querySelector("Min, MinTemp, MinRH, Low");
-                if (minEl) minVal = parseFloat(minEl.textContent.trim());
-            }
-
-            return { min: minVal, max: maxVal };
-        };
-
-        // Locate forecast day nodes
-        let forecastNodes = Array.from(xmlDoc.querySelectorAll("ForecastData, WeatherForecast, DayForecast"));
-        if (forecastNodes.length === 0) {
-            forecastNodes = Array.from(xmlDoc.querySelectorAll("FourDaysForecast > *, SevenDaysForecast > *"));
-        }
-
+        // SMG c_4daysforecast.xml 標準節點：<Forecast>
+        const forecastNodes = Array.from(xmlDoc.querySelectorAll("Forecast"));
         if (forecastNodes.length === 0) throw new Error("未能讀取預報數據");
 
         let html = '';
         forecastNodes.forEach(node => {
-            const date = getDateVal(node);
-            const dayOfWeek = getVal(node, ["C_DayOfWeek", "DayOfWeek", "C_Week", "Week", "C_Day", "Day"]);
-            const weather = getVal(node, ["C_WeatherDescription", "WeatherDescription", "C_WeatherSummary", "WeatherSummary", "Weather"]);
-            let iconUrl = getVal(node, ["IconURL", "Icon", "WeatherIcon", "C_Icon"]);
+            const validDate = node.querySelector("ValidDate")?.textContent.trim() || "";
+            const dayOfWeek = node.querySelector("DayOfWeek")?.textContent.trim() || "";
+            const weatherDesc = node.querySelector("WeatherDescription")?.textContent.trim() || "";
+            const iconUrl = node.querySelector("IconURL")?.textContent.trim() || "";
 
-            // Parse Min/Max values
-            const temp = parseMinMax(node, ["Temperature", "C_Temperature", "Temp"]);
-            const rh = parseMinMax(node, ["RelativeHumidity", "C_RelativeHumidity", "Humidity", "RH"]);
+            // 直接讀取高低溫（真實XML結構：TemperatureMax / TemperatureMin）
+            const tempMax = node.querySelector("TemperatureMax")?.textContent.trim();
+            const tempMin = node.querySelector("TemperatureMin")?.textContent.trim();
+            // 高低濕度
+            const rhMax = node.querySelector("RelativeHumidityMax")?.textContent.trim();
+            const rhMin = node.querySelector("RelativeHumidityMin")?.textContent.trim();
 
-            // Ignore top-level metadata nodes
-            if (!date && !weather && temp.max === null) return;
-
-            // Resolve relative icon URLs
-            if (iconUrl && !iconUrl.startsWith('http')) {
-                if (/^\d+$/.test(iconUrl)) {
-                    iconUrl = `https://www.smg.gov.mo/images/icon${iconUrl}.png`;
-                } else {
-                    iconUrl = 'https://www.smg.gov.mo/' + iconUrl.replace(/^\//, '');
-                }
-            }
-
-            // Temperature string
+            // 組合溫度文字
             let tempDisplay = '--';
-            if (temp.min !== null && temp.max !== null) {
-                tempDisplay = `${temp.min}°C - ${temp.max}°C`;
-            } else if (temp.min !== null || temp.max !== null) {
-                tempDisplay = `${temp.min ?? temp.max}°C`;
-            }
+            if(tempMin && tempMax) tempDisplay = `${tempMin}°C - ${tempMax}°C`;
+            else if(tempMax) tempDisplay = `${tempMax}°C`;
+            else if(tempMin) tempDisplay = `${tempMin}°C`;
 
-            // Humidity string
+            // 組合濕度文字
             let rhDisplay = '--';
-            if (rh.min !== null && rh.max !== null) {
-                rhDisplay = `${rh.min}% - ${rh.max}%`;
-            } else if (rh.min !== null || rh.max !== null) {
-                rhDisplay = `${rh.min ?? rh.max}%`;
+            if(rhMin && rhMax) rhDisplay = `${rhMin}% - ${rhMax}%`;
+            else if(rhMax) rhDisplay = `${rhMax}%`;
+            else if(rhMin) rhDisplay = `${rhMin}%`;
+
+            // 補全圖片完整網址
+            let fullIcon = iconUrl;
+            if(iconUrl && !iconUrl.startsWith('http')){
+                fullIcon = `https://www.smg.gov.mo/${iconUrl.replace(/^\//,'')}`;
             }
 
             html += `
                 <div class="forecast-card-mini">
-                    <!-- Top: Date -->
                     <div class="card-top">
-                        ${date || '預報'}${dayOfWeek ? ` (${dayOfWeek})` : ''}
+                        ${validDate || '預報'}${dayOfWeek ? ` (${dayOfWeek})` : ''}
                     </div>
-
-                    <!-- Middle: Larger Icon, Min - Max Temp, Min - Max Humid -->
                     <div class="card-middle">
-                        ${iconUrl ? `<img src="${iconUrl}" class="card-icon-large" alt="weather icon" onerror="this.style.display='none'">` : ''}
+                        ${fullIcon ? `<img src="${fullIcon}" class="card-icon-large" alt="weather icon" onerror="this.style.display='none'">` : ''}
                         <div class="temp-range-text">🌡️ ${tempDisplay}</div>
                         <div class="humid-range-text">💧 ${rhDisplay}</div>
                     </div>
-
-                    <!-- Bottom: Full Weather Description -->
                     <div class="card-bottom">
-                        <div class="card-condition">${weather || '無資料'}</div>
+                        <div class="card-condition">${weatherDesc || '無資料'}</div>
                     </div>
                 </div>
             `;
@@ -1233,16 +1152,17 @@ async function load4DaysForecastXML() {
     }
 }
 
-// Call on load & auto refresh every hour
-window.addEventListener('DOMContentLoaded', () => {
-    load4DaysForecastXML();
-});
-setInterval(load4DaysForecastXML, 3600000);
-
+// DOM載入完成同時呼叫 UV + 整點天氣 + 七日預報（修正2：UV同時載入）
 window.addEventListener('DOMContentLoaded', () => {
     loadHourlyWeather();
+    loadUVData();
+    load4DaysForecastXML();
 });
+
+// 自動刷新
 setInterval(loadHourlyWeather, 100000);
+setInterval(loadUVData, 120000);
+setInterval(load4DaysForecastXML, 3600000);
 </script>
 </body>
 </html>
