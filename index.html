@@ -1239,6 +1239,9 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 setInterval(load4DaysForecastXML, 3600000);
 
+window.addEventListener('DOMContentLoaded', () => {
+    loadHourlyWeather();
+});
 setInterval(loadHourlyWeather, 100000);
 </script>
 </body>
