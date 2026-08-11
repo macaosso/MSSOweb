@@ -1081,105 +1081,129 @@ async function load4DaysForecastXML() {
         if (loadingEl && containerEl.children.length === 0) loadingEl.style.display = 'block';
         if (errorEl) errorEl.style.display = 'none';
 
-        // 1. Fetch real SMG XML data via proxy
         const res = await fetch(fourDayProxyUrl, { cache: "no-store" });
-        if (!res.ok) throw new Error(`HTTP 錯誤: ${res.status}`);
+        if (!res.ok) throw new Error("4日預報數據請求失敗");
 
         const xmlText = await res.text();
-        if (!xmlText || !xmlText.trim()) throw new Error("XML 返回內容為空");
-
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
 
-        const parseError = xmlDoc.querySelector("parsererror");
-        if (parseError) throw new Error("XML 格式非法");
-
-        // Helpers to extract data flexibly from SMG tags
-        const getVal = (parent, selectors) => {
-            for (const sel of selectors) {
-                const el = parent.querySelector(sel);
-                if (el && el.textContent.trim()) return el.textContent.trim();
+        // Case-insensitive child node finder
+        const findNode = (parent, tagNames) => {
+            const targets = tagNames.map(t => t.toLowerCase());
+            const children = parent.getElementsByTagName("*");
+            for (let i = 0; i < children.length; i++) {
+                if (targets.includes(children[i].nodeName.toLowerCase())) {
+                    return children[i];
+                }
             }
-            return "";
+            return null;
         };
 
-        const parseMinMax = (parent, groupSelectors) => {
-            let minVal = null, maxVal = null;
-            let group = null;
-            for (const sel of groupSelectors) {
-                const el = parent.querySelector(sel);
-                if (el) { group = el; break; }
-            }
-            if (!group) return { min: null, max: null };
+        // Extract text from matched tags
+        const getText = (parent, tagNames) => {
+            const node = findNode(parent, tagNames);
+            return node ? node.textContent.trim() : "";
+        };
 
-            const items = group.querySelectorAll("Item, Data, CustomData");
-            items.forEach(item => {
-                const typeEl = item.querySelector("Type");
-                const valEl = item.querySelector("Value");
-                if (typeEl && valEl) {
-                    const type = typeEl.textContent.trim();
-                    const val = parseFloat(valEl.textContent.trim());
-                    if (!isNaN(val)) {
-                        if (type === "1") maxVal = val;
-                        if (type === "2") minVal = val;
+        // Bulletproof Temperature/Humidity range parser
+        const parseMinMax = (parent, groupTagNames) => {
+            const groupNode = findNode(parent, groupTagNames);
+            if (!groupNode) return { min: null, max: null };
+
+            let values = [];
+
+            // 1. Search for explicit <Value> tags (case-insensitive)
+            const allElements = groupNode.getElementsByTagName("*");
+            for (let i = 0; i < allElements.length; i++) {
+                if (allElements[i].nodeName.toLowerCase() === "value") {
+                    const num = parseFloat(allElements[i].textContent.trim());
+                    if (!isNaN(num)) values.push(num);
+                }
+            }
+
+            // 2. Fallback: Strip <Type> tags and extract remaining numbers
+            if (values.length === 0) {
+                const clone = groupNode.cloneNode(true);
+                const cloneElements = clone.getElementsByTagName("*");
+                for (let i = cloneElements.length - 1; i >= 0; i--) {
+                    if (cloneElements[i].nodeName.toLowerCase().includes("type")) {
+                        cloneElements[i].remove();
                     }
                 }
-            });
-            return { min: minVal, max: maxVal };
+                const matches = clone.textContent.match(/\d+(\.\d+)?/g);
+                if (matches) {
+                    matches.forEach(m => {
+                        const num = parseFloat(m);
+                        if (!isNaN(num)) values.push(num);
+                    });
+                }
+            }
+
+            if (values.length === 0) return { min: null, max: null };
+
+            return {
+                min: Math.min(...values),
+                max: Math.max(...values)
+            };
         };
 
-        const getDateVal = (node) => {
-            const dateStr = getVal(node, ["ValidDate", "C_ValidDate", "ForecastDate", "C_ForecastDate", "Date"]);
-            if (dateStr) return dateStr;
-            const m = node.querySelector("Month")?.textContent.trim();
-            const d = node.querySelector("Day, DayOfMonth")?.textContent.trim();
-            return (m && d) ? `${m}/${d}` : "";
-        };
-
-        // Find forecast day items
+        // Locate forecast day nodes
         let forecastNodes = Array.from(xmlDoc.querySelectorAll("ForecastData, WeatherForecast, DayForecast"));
         if (forecastNodes.length === 0) {
             forecastNodes = Array.from(xmlDoc.querySelectorAll("FourDaysForecast > *, SevenDaysForecast > *"));
         }
 
-        if (forecastNodes.length === 0) throw new Error("XML 找不到預報節點");
+        if (forecastNodes.length === 0) throw new Error("未能讀取預報數據");
 
         let html = '';
         forecastNodes.forEach(node => {
-            const date = getDateVal(node);
-            const dayOfWeek = getVal(node, ["C_DayOfWeek", "DayOfWeek", "C_Week", "Week"]);
-            const weather = getVal(node, ["C_WeatherDescription", "WeatherDescription", "C_WeatherSummary", "Weather"]);
-            let iconUrl = getVal(node, ["IconURL", "Icon", "WeatherIcon", "C_Icon"]);
+            // Flexible field extraction
+            const date = getText(node, ["ValidDate", "C_ValidDate", "ForecastDate", "C_ForecastDate", "Date"]);
+            const dayOfWeek = getText(node, ["C_DayOfWeek", "DayOfWeek", "C_Week", "Week", "C_Day", "Day"]);
+            const weather = getText(node, ["C_WeatherDescription", "WeatherDescription", "C_WeatherSummary", "WeatherSummary", "Weather"]);
+            let iconUrl = getText(node, ["IconURL", "Icon", "WeatherIcon", "C_Icon"]);
 
+            // Extract Min & Max
             const temp = parseMinMax(node, ["Temperature", "C_Temperature", "Temp"]);
             const rh = parseMinMax(node, ["RelativeHumidity", "C_RelativeHumidity", "Humidity", "RH"]);
 
+            // Ignore empty container nodes
             if (!date && !weather && temp.max === null) return;
 
+            // Fix icon URLs
             if (iconUrl && !iconUrl.startsWith('http')) {
-                iconUrl = /^\d+$/.test(iconUrl) 
-                    ? `https://www.smg.gov.mo/images/icon${iconUrl}.png`
-                    : 'https://www.smg.gov.mo/' + iconUrl.replace(/^\//, '');
+                if (/^\d+$/.test(iconUrl)) {
+                    iconUrl = `https://www.smg.gov.mo/images/icon${iconUrl}.png`;
+                } else {
+                    iconUrl = 'https://www.smg.gov.mo/' + iconUrl.replace(/^\//, '');
+                }
             }
 
-            const tempDisplay = (temp.min !== null && temp.max !== null) 
-                ? `${temp.min}°C - ${temp.max}°C` 
-                : '--';
+            // Format temperature text
+            let tempDisplay = '--';
+            if (temp.min !== null && temp.max !== null) {
+                tempDisplay = (temp.min === temp.max) ? `${temp.min}°C` : `${temp.min}°C - ${temp.max}°C`;
+            }
 
-            const rhDisplay = (rh.min !== null && rh.max !== null) 
-                ? `${rh.min}% - ${rh.max}%` 
-                : '--';
+            // Format humidity text
+            let rhDisplay = '--';
+            if (rh.min !== null && rh.max !== null) {
+                rhDisplay = (rh.min === rh.max) ? `${rh.min}%` : `${rh.min}% - ${rh.max}%`;
+            }
 
             html += `
                 <div class="forecast-card-mini">
                     <div class="card-top">
                         ${date || '預報'}${dayOfWeek ? ` (${dayOfWeek})` : ''}
                     </div>
+
                     <div class="card-middle">
                         ${iconUrl ? `<img src="${iconUrl}" class="card-icon-large" alt="weather icon" onerror="this.style.display='none'">` : ''}
                         <div class="temp-range-text">🌡️ ${tempDisplay}</div>
                         <div class="humid-range-text">💧 ${rhDisplay}</div>
                     </div>
+
                     <div class="card-bottom">
                         <div class="card-condition">${weather || '無資料'}</div>
                     </div>
@@ -1193,7 +1217,7 @@ async function load4DaysForecastXML() {
     } catch (err) {
         console.error("4日預報XML解析異常：", err);
         if (loadingEl) loadingEl.style.display = 'none';
-        if (errorEl) errorEl.style.display = 'block';
+        if (errorEl && containerEl.children.length === 0) errorEl.style.display = 'block';
     }
 }
 
