@@ -1068,12 +1068,12 @@ function parseCSVToTCData(csvText) {
   });
 
   // Radii array mapped to standard error cone distances
-  const defaultRadii = [15, 50, 100, 170, 255, 345, 465];
+  const defaultRadii = [15, 50, 100, 135, 170, 255, 345, 465];
 
   return {
     forecastPoints,
     pastPoints,
-    hours: hours.length > 0 ? hours : [0, 12, 24, 48, 72, 96, 120],
+    hours: hours.length > 0 ? hours : [0, 12, 24, 36, 48, 72, 96, 120],
     radii: defaultRadii.slice(0, hours.length > 0 ? hours.length : 8),
     tcInfo,
     forecastInfo
