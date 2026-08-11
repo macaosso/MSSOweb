@@ -693,56 +693,81 @@ function createWindRadii(lat, lon, radii) {
   return turf.polygon([coords]);
 }
 
-function smoothPoints(points, segments = 20){
+// 1. Corrected Catmull-Rom Interpolation
+function smoothPoints(points, segments = 20) {
   let newPts = [];
-  for (let i = 0; i < points.length - 1; i++){
+  for (let i = 0; i < points.length - 1; i++) {
     let p0 = points[i - 1] || points[i];
     let p1 = points[i];
     let p2 = points[i + 1];
     let p3 = points[i + 2] || p2;
-    for (let j = 0; j <= segments; j++){
+
+    // Exclude j = segments for all but the last segment to avoid duplicate junction points
+    let maxJ = (i === points.length - 2) ? segments : segments - 1;
+
+    for (let j = 0; j <= maxJ; j++) {
       let t = j / segments;
       let lat = 0.5 * ((2 * p1.lat) + (-p0.lat + p2.lat) * t + (2 * p0.lat - 5 * p1.lat + 4 * p2.lat - p3.lat) * t * t + (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * t * t * t);
-      // Fixed typo: Changed 2 * p0.lon to 2 * p1.lon below
-      let lon = 0.5 * ((2 * p1.lon) + (-p0.lon + p2.lon) * t + (2 * p0.lon - 5 * p1.lon + 4 * p2.lon - p3.lon) * t * t + (-p0.lat + 3 * p1.lon - 3 * p2.lon + p3.lon) * t * t * t);
+      // Fixed typo: Changed -p0.lat to -p0.lon in the cubic term
+      let lon = 0.5 * ((2 * p1.lon) + (-p0.lon + p2.lon) * t + (2 * p0.lon - 5 * p1.lon + 4 * p2.lon - p3.lon) * t * t + (-p0.lon + 3 * p1.lon - 3 * p2.lon + p3.lon) * t * t * t);
       newPts.push({ lat, lon });
     }
   }
   return newPts;
 }
 
-function smoothPointsWithTime(points, hoursArr, segments = 20){
-  let base = smoothPoints(points, segments);
+// 2. Segment-Aware Time Interpolation (Handles non-uniform time steps like 12h, 24h, 48h)
+function smoothPointsWithTime(points, hoursArr, segments = 20) {
   let newPts = [];
-  for (let i = 0; i < base.length; i++){
-    let t = i / (base.length - 1);
-    newPts.push({
-      lat: base[i].lat,
-      lon: base[i].lon,
-      hour: hoursArr[0] + t * (hoursArr[hoursArr.length - 1] - hoursArr[0])
-    });
-  }
-  return newPts;
-}
-
-function getRadius(hour, hoursArr, radiiArr){
-  for(let i=0; i<hoursArr.length-1; i++){
-    if(hour >= hoursArr[i] && hour <= hoursArr[i+1]){
-      let t = (hour - hoursArr[i]) / (hoursArr[i+1] - hoursArr[i]);
-      return radiiArr[i] + t * (radiiArr[i+1] - radiiArr[i]);
-    }
-  }
-  return radiiArr[radiiArr.length-1];
-}
-
-function catmullRom2bezier(points){
-  let path = [];
-  path.push("M", [points[0].lat, points[0].lon]);
-  for (let i = 0; i < points.length - 1; i++){
+  for (let i = 0; i < points.length - 1; i++) {
     let p0 = points[i - 1] || points[i];
     let p1 = points[i];
     let p2 = points[i + 1];
     let p3 = points[i + 2] || p2;
+
+    let hStart = hoursArr[i] !== undefined ? hoursArr[i] : 0;
+    let hEnd = hoursArr[i + 1] !== undefined ? hoursArr[i + 1] : hStart + 12;
+
+    let maxJ = (i === points.length - 2) ? segments : segments - 1;
+
+    for (let j = 0; j <= maxJ; j++) {
+      let t = j / segments;
+      let lat = 0.5 * ((2 * p1.lat) + (-p0.lat + p2.lat) * t + (2 * p0.lat - 5 * p1.lat + 4 * p2.lat - p3.lat) * t * t + (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * t * t * t);
+      let lon = 0.5 * ((2 * p1.lon) + (-p0.lon + p2.lon) * t + (2 * p0.lon - 5 * p1.lon + 4 * p2.lon - p3.lon) * t * t + (-p0.lon + 3 * p1.lon - 3 * p2.lon + p3.lon) * t * t * t);
+      let hour = hStart + t * (hEnd - hStart);
+
+      newPts.push({ lat, lon, hour });
+    }
+  }
+  return newPts;
+}
+
+// 3. Linear Radius Lookup
+function getRadius(hour, hoursArr, radiiArr) {
+  if (!hoursArr || hoursArr.length === 0) return 0;
+  if (hour <= hoursArr[0]) return radiiArr[0] || 0;
+  if (hour >= hoursArr[hoursArr.length - 1]) return radiiArr[radiiArr.length - 1] || 0;
+
+  for (let i = 0; i < hoursArr.length - 1; i++) {
+    if (hour >= hoursArr[i] && hour <= hoursArr[i + 1]) {
+      let t = (hour - hoursArr[i]) / (hoursArr[i + 1] - hoursArr[i]);
+      return radiiArr[i] + t * (radiiArr[i + 1] - radiiArr[i]);
+    }
+  }
+  return radiiArr[radiiArr.length - 1] || 0;
+}
+
+// 4. Catmull-Rom to SVG Bezier Curve Generator
+function catmullRom2bezier(points) {
+  if (!points || points.length === 0) return [];
+  let path = ["M", [points[0].lat, points[0].lon]];
+
+  for (let i = 0; i < points.length - 1; i++) {
+    let p0 = points[i - 1] || points[i];
+    let p1 = points[i];
+    let p2 = points[i + 1];
+    let p3 = points[i + 2] || p2;
+
     let cp1 = [p1.lat + (p2.lat - p0.lat) / 6, p1.lon + (p2.lon - p0.lon) / 6];
     let cp2 = [p2.lat - (p3.lat - p1.lat) / 6, p2.lon - (p3.lon - p1.lon) / 6];
     path.push("C", cp1, cp2, [p2.lat, p2.lon]);
@@ -750,26 +775,45 @@ function catmullRom2bezier(points){
   return path;
 }
 
-function makeSplitCone(points, hoursArr, radiiArr){
-  const smoothPts = smoothPointsWithTime(points, hoursArr, 20);
-  let segment1 = [], segment2 = [];
-  for (let p of smoothPts){
-    const r = getRadius(p.hour, hoursArr, radiiArr);
-    const circle = turf.buffer(turf.point([p.lon, p.lat]), r, {units: "kilometers", steps: 128});
-    if (p.hour <= 80) segment1.push(circle);
-    else segment2.push(circle);
-  }
-  let cone1 = null, cone2 = null;
-  segment1.forEach(c => cone1 = cone1 ? turf.union(cone1, c) : c);
-  segment2.forEach(c => cone2 = cone2 ? turf.union(cone2, c) : c);
-  let p72 = smoothPts.reduce((a,b)=> Math.abs(a.hour-72) < Math.abs(b.hour-72) ? a : b);
-  const r72 = getRadius(p72.hour, hoursArr, radiiArr);
-  const circle72 = turf.buffer(turf.point([p72.lon, p72.lat]), r72, {units:"kilometers"});
-  if (cone2) try {cone2 = turf.difference(cone2, circle72);} catch(e){}
-  if (cone1 && cone2) try {cone2 = turf.difference(cone2, cone1);} catch(e){}
-  return {first: cone1, second: cone2};
-}
+// 5. Safe Split Cone Generator (Prevents Turf Inversion Bugs)
+function makeSplitCone(points, hoursArr, radiiArr) {
+  if (!points || points.length < 2) return { first: null, second: null };
 
+  const smoothPts = smoothPointsWithTime(points, hoursArr, 20);
+  let circles1 = [], circles2 = [];
+
+  for (let p of smoothPts) {
+    const r = getRadius(p.hour, hoursArr, radiiArr);
+    if (r > 0) {
+      const circle = turf.buffer(turf.point([p.lon, p.lat]), r, { units: "kilometers", steps: 64 });
+      if (p.hour <= 72) {
+        circles1.push(circle);
+      } else {
+        circles2.push(circle);
+      }
+    }
+  }
+
+  let cone1 = null, cone2 = null;
+
+  // Build primary cone (0H - 72H)
+  if (circles1.length > 0) {
+    cone1 = circles1[0];
+    for (let i = 1; i < circles1.length; i++) {
+      try { cone1 = turf.union(cone1, circles1[i]); } catch (e) {}
+    }
+  }
+
+  // Build extended cone (72H - 120H)
+  if (circles2.length > 0) {
+    cone2 = circles2[0];
+    for (let i = 1; i < circles2.length; i++) {
+      try { cone2 = turf.union(cone2, circles2[i]); } catch (e) {}
+    }
+  }
+
+  return { first: cone1, second: cone2 };
+}
 // ================= 氣旋圖層繪製 =================
 function drawTCLayers(data) {
   const { forecastPoints, pastPoints, hours, radii } = data;
