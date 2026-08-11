@@ -3,100 +3,130 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>澳門民間氣象台-關於我們</title>
+<title>澳門民間氣象台 - 關於我們</title>
 <link rel="icon" type="image/png" href="icons/MSSO.png">
 
 <style>
-/* ========== 全域深色 Dashboard 基底 ========== */
+/* ========== 全域樣式與變數設定 ========== */
+:root {
+  --bg-color: #0b0f19;
+  --header-bg: #111827;
+  --card-bg: #162032;
+  --card-border: rgba(255, 255, 255, 0.08);
+  --accent-cyan: #06b6d4;
+  --accent-teal: #14b8a6;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-highlight: #38bdf8;
+}
+
 html {
   scroll-behavior: smooth;
 }
+
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #0f141c;
-  color: #e2e8f0;
-  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  line-height: 1.6;
 }
+
 * {
   box-sizing: border-box;
 }
 
-/* ========== 頁頭 Header 深色儀表頂欄 ========== */
+/* ========== 頁頭 Header ========== */
 .header {
-  background: #151d2b;
-  color: #ffffff;
-  padding: 22px 20px;
+  background: var(--header-bg);
+  padding: 16px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #243249;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  border-bottom: 1px solid var(--card-border);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  backdrop-filter: blur(10px);
 }
+
 .header-left {
   display: flex;
   align-items: center;
+  gap: 12px;
 }
-.title { 
-  font-size: 20px; 
-  font-weight: bold; 
-  margin-left: 10px;
+
+.logo {
+  height: 38px;
+  width: auto;
+}
+
+.title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
   letter-spacing: 0.5px;
 }
-.logo { height: 40px; }
 
-/* ========== 頂部導航菜單 深色側欄風格 ========== */
+/* ========== 導航選單 ========== */
 .menu-container {
   position: relative;
-  z-index: 3000;
 }
 
 .menu-toggle {
   display: none;
-  font-size: 26px;
-  padding: 10px 15px;
+  font-size: 22px;
+  padding: 8px 14px;
   cursor: pointer;
-  background: #233752;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  line-height: 1;
+  background: #1f293d;
+  color: #ffffff;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.menu-toggle:hover {
+  background: #2b3954;
 }
 
 .nav {
   display: flex;
+  gap: 6px;
 }
 
 .nav a {
-  color: #cbd5e1;
-  padding: 12px 16px;
-  font-size: 16px;
+  color: var(--text-secondary);
+  padding: 10px 14px;
+  font-size: 0.95rem;
   text-decoration: none;
-  display: block;
-  transition: 0.25s ease;
-  border-radius: 6px;
-  margin: 0 3px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
-.nav a:hover {
-  background: #233752;
-  color: #ffffff;
+.nav a:hover, .nav a.active {
+  background: rgba(6, 182, 212, 0.15);
+  color: var(--accent-cyan);
 }
 
-/* ✅ 手機導航菜單 */
 @media (max-width: 992px) {
-  .menu-toggle { display: block; }
+  .menu-toggle {
+    display: block;
+  }
 
   .nav {
     display: none;
     flex-direction: column;
-    width: 100%;
     position: absolute;
-    top: 64px;
-    left: 0;
-    background: #1a2538;
-    border-radius: 0 0 12px 12px;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.35);
+    top: 50px;
+    right: 0;
+    width: 260px;
+    background: #162032;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 8px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
   }
 
   .nav.active {
@@ -104,73 +134,167 @@ body {
   }
 
   .nav a {
-    border-top: 1px solid rgba(255,255,255,0.08);
-    padding: 14px 18px;
-    border-radius: 0;
-    margin: 0;
+    padding: 12px 16px;
   }
 }
 
-/* ========== 頁面標題 ========== */
-.page-title {
-  font-size: 24px;
-  margin: 24px 35px 10px;
-  font-weight: bold;
-  color: #ffffff;
-  border-left: 4px solid #4fa6a6;
-  padding-left: 12px;
+/* ========== 頁面主容器 ========== */
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 30px 20px;
 }
 
-/* ========== 深色資訊卡片模組（Dashboard 卡片） ========== */
-.info-box {
-  margin: 20px 35px;
-  border-radius: 16px;
-  overflow: hidden;
-  background: #142929;
-  box-shadow: 0 5px 18px rgba(0,0,0,0.4);
-  border: 1px solid rgba(255,255,255,0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
 }
+
+.page-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #ffffff;
+  border-left: 4px solid var(--accent-cyan);
+  padding-left: 12px;
+  margin: 0;
+}
+
+/* ========== 橫幅簡介卡片 (Hero Card) ========== */
+.hero-box {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 16px;
+  padding: 28px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.hero-box h2 {
+  margin: 0 0 12px 0;
+  color: var(--accent-cyan);
+  font-size: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hero-box p {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 1.05rem;
+  line-height: 1.8;
+}
+
+/* ========== 網格卡片佈局 ========== */
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.info-box {
+  background: var(--card-bg);
+  border-radius: 16px;
+  border: 1px solid var(--card-border);
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+  transition: transform 0.25s ease, border-color 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+
 .info-box:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  border-color: rgba(6, 182, 212, 0.3);
 }
 
 .info-title {
-  background: #2a6b6b;
-  color: white;
+  background: #1e293b;
+  color: #ffffff;
   padding: 16px 20px;
-  font-size: 18px;
-  font-weight: bold;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .info-content {
-  padding: 26px;
-  font-size: 15px;
-  line-height: 1.7;
+  padding: 20px;
+  font-size: 0.95rem;
   color: #cbd5e1;
+  flex-grow: 1;
 }
+
+.info-content ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.info-content li {
+  margin-bottom: 8px;
+}
+
+.info-content li:last-child {
+  margin-bottom: 0;
+}
+
 .info-content b {
-  color: #7cd1d1;
+  color: var(--text-highlight);
 }
 
-/* 底部版權卡片特殊樣式 */
-footer.info-box .info-title {
+/* 聲明卡片警示風格 */
+.info-box.disclaimer-box {
+  border-color: rgba(245, 158, 11, 0.3);
+}
+
+.info-box.disclaimer-box .info-title {
+  background: #2a1f10;
+  color: #f59e0b;
+}
+
+/* 聯絡我們連結按鈕 */
+.contact-links {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.contact-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  background: #1e293b;
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.contact-btn:hover {
+  background: rgba(6, 182, 212, 0.15);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+/* ========== 頁尾 ========== */
+footer {
   text-align: center;
-  background: #102020;
-  color: #94a3b8;
-  font-weight: normal;
-  font-size: 15px;
-}
-
-/* ✅ 手機頁面邊距適配 */
-@media (max-width: 768px) {
-  .page-title {
-    margin: 20px 20px 8px;
-  }
-  .info-box {
-    margin: 18px 20px;
-  }
+  padding: 24px;
+  margin-top: 40px;
+  background: #0d121f;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  border-top: 1px solid var(--card-border);
 }
 </style>
 </head>
@@ -183,71 +307,96 @@ footer.info-box .info-title {
     <img src="icons/MSSO.png" alt="澳門民間氣象台 Logo" class="logo">
     <div class="title">澳門民間氣象台 MSSO</div>
   </div>
+
   <div class="menu-container">
-    <button class="menu-toggle" id="menuBtn" aria-label="切換選單" aria-expanded="false" onclick="toggleMenu()">☰</button>
+    <button class="menu-toggle" id="menuBtn" aria-label="切換導航選單" aria-expanded="false" onclick="toggleMenu()">☰</button>
 
     <nav class="nav" id="navMenu">
       <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
       <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
-      <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋距離計算工具</a> 
-      <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑地圖</a>  
-      <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
-      <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+      <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">距離計算</a>
+      <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">路徑地圖</a>
+      <a href="https://macaosso.github.io/MSSOweb/tc.html">氣旋資訊</a>
+      <a href="https://macaosso.github.io/MSSOweb/about.html" class="active">關於我們</a>
       <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
     </nav>
   </div>
 </header>
 
-<!-- MAIN CONTENT -->
-<main>
-  <h1 class="page-title">關於我們</h1>
+<!-- MAIN CONTAINER -->
+<main class="container">
 
-  <section class="info-box">
-    <div class="info-title">📌 基本資料</div>
-    <div class="info-content">
-      澳門民間氣象台（MSSO）成立於2020年06月12日，是由氣象愛好者自發建立的氣象資訊平台，
-      致力為公眾提供即時及清晰的天氣資訊。
-    </div>
+  <div class="page-header">
+    <h1 class="page-title">關於我們</h1>
+  </div>
+
+  <!-- 簡介 Hero Card -->
+  <section class="hero-box">
+    <h2>📌 基本資料</h2>
+    <p>
+      澳門民間氣象台（MSSO）成立於 <b>2020年6月12日</b>，是由氣象愛好者自發建立的氣象資訊平台，致力為公眾提供即時、專業且清晰的天氣資訊與分析數據。
+    </p>
   </section>
 
-  <section class="info-box">
-    <div class="info-title">🎯 宗旨</div>
-    <div class="info-content">
-      • 秉承<b>「與澳門人風雨同路」</b>的精神 <br>
-      • 提供更多天氣資訊給市民<br>
-      • 令市民能夠更快地獲得最新天氣資訊<br>
-    </div>
-  </section>
+  <!-- 網格資訊區域 -->
+  <div class="about-grid">
 
-  <section class="info-box">
-    <div class="info-title">🌦️ 服務內容</div>
-    <div class="info-content">
-      • 每日/特殊天氣預報<br>
-      • 重要天氣提示及風險評估<br>
-      • 熱帶氣旋分析及路徑預測<br>
-      • 氣象資訊及科普
-    </div>
-  </section>
+    <!-- 宗旨 -->
+    <section class="info-box">
+      <div class="info-title">🎯 平台宗旨</div>
+      <div class="info-content">
+        <ul>
+          <li>秉承 <b>「與澳門人風雨同路」</b> 的精神</li>
+          <li>提供多元化及深入的天氣動態與分析給市民</li>
+          <li>即時推送最新消息，令市民能更迅速應對天氣變化</li>
+        </ul>
+      </div>
+    </section>
 
-  <section class="info-box">
-    <div class="info-title">⚠️ 聲明</div>
-    <div class="info-content">
-      本平台提供之所有氣象資訊僅作參考用途，請以澳門地球物理氣象局（SMG）發佈為準。
-    </div>
-  </section>
+    <!-- 服務內容 -->
+    <section class="info-box">
+      <div class="info-title">🌦️ 服務內容</div>
+      <div class="info-content">
+        <ul>
+          <li>每日天氣預報與特殊天氣提醒</li>
+          <li>重要天氣提示及風險評估分析</li>
+          <li>熱帶氣旋追蹤、路徑預測與影響評估</li>
+          <li>氣象科普知識與生活氣象指數應用</li>
+        </ul>
+      </div>
+    </section>
 
-  <section class="info-box">
-    <div class="info-title">📞 聯絡我們</div>
-    <div class="info-content">
-      Instagram：@macaosso<br>
-      Telegram：澳門民間氣象台 MSSO<br>
-    </div>
-  </section>
+    <!-- 免責聲明 -->
+    <section class="info-box disclaimer-box">
+      <div class="info-title">⚠️ 免責聲明</div>
+      <div class="info-content">
+        本平台提供之所有氣象資訊、預測及圖表僅供參考與學術交流用途。任何官方預警與停班停課資訊，請務必以 <b>澳門地球物理氣象局（SMG）</b> 發佈之最新訊息為準。
+      </div>
+    </section>
+
+    <!-- 聯絡我們 -->
+    <section class="info-box">
+      <div class="info-title">📞 聯絡我們</div>
+      <div class="info-content">
+        歡迎透過以下社交平台追蹤我們的最新動態或進行氣象交流：
+        <div class="contact-links">
+          <a href="https://instagram.com/macaosso" target="_blank" rel="noopener noreferrer" class="contact-btn">
+            📷 Instagram：@macaosso
+          </a>
+          <a href="https://t.me/macaosso" target="_blank" rel="noopener noreferrer" class="contact-btn">
+            ✈️ Telegram：澳門民間氣象台 MSSO
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
 </main>
 
 <!-- FOOTER -->
-<footer class="info-box">
-  <div class="info-title"> ©2026 澳門民間氣象台 MSSO </div>
+<footer>
+  ©2026 澳門民間氣象台 MSSO. All rights reserved.
 </footer>
 
 <!-- JavaScript 選單邏輯 -->
