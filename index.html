@@ -683,6 +683,26 @@ body {
     </div>
   </div>
 
+  <!-- 新增：七日天氣預報 (XML 數據卡片) -->
+  <div class="three-tab-weather-wrap" style="margin-top: 25px;">
+    <div class="three-tab-header">
+      <div class="three-tab-item active">
+        <img class="tab-icon-small" src="icons/MSSO.png" alt="七日天氣預報">
+        七日天氣預報 (SMG XML)
+      </div>
+    </div>
+
+    <div class="three-tab-content-box">
+      <div id="7day-xml-loading" style="text-align: center; font-size: 15px; padding: 30px 0; color: var(--text-muted);">
+        正在載入七日天氣預報數據...
+      </div>
+      <div id="7day-xml-error" style="display: none; text-align: center; padding: 30px 0; color: var(--accent-red);">
+        七日預報數據載入失敗，請稍後重試
+      </div>
+      <div id="7day-xml-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px;"></div>
+    </div>
+  </div>
+
 </div>
 
 <script src="webdata.js"></script>
@@ -943,12 +963,91 @@ function getUVColor(uv) {
     return "#34d399"; // 低 (Green)
 }
 
+// ========== 載入七日天氣預報 XML (c_7daysforecast.xml) ==========
+const sevenDayXmlUrl = "https://xml.smg.gov.mo/c_7daysforecast.xml";
+const sevenDayProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(sevenDayXmlUrl)}`;
+
+async function load7DaysForecastXML() {
+    const loadingEl = document.getElementById('7day-xml-loading');
+    const errorEl = document.getElementById('7day-xml-error');
+    const containerEl = document.getElementById('7day-xml-container');
+
+    try {
+        if (loadingEl && containerEl.children.length === 0) loadingEl.style.display = 'block';
+        if (errorEl) errorEl.style.display = 'none';
+
+        const res = await fetch(sevenDayProxyUrl, { cache: "no-store" });
+        if (!res.ok) throw new Error("7日預報數據請求失敗");
+
+        const xmlText = await res.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+        let forecastNodes = xmlDoc.querySelectorAll("WeatherForecast, Forecast, DayForecast");
+        if (!forecastNodes || forecastNodes.length === 0) {
+            forecastNodes = xmlDoc.querySelectorAll("SevenDaysForecast > *");
+        }
+
+        if (forecastNodes.length === 0) {
+            const allElements = xmlDoc.getElementsByTagName("*");
+            forecastNodes = Array.from(allElements).filter(el => 
+                el.querySelector("ValidDate, ForecastDate, Date, DayOfWeek, MaxTemp, MinTemp")
+            );
+        }
+
+        if (forecastNodes.length === 0) throw new Error("未能讀取七日預報數據");
+
+        let html = '';
+        forecastNodes.forEach(node => {
+            const date = node.querySelector("ValidDate, ForecastDate, Date")?.textContent || "";
+            const dayOfWeek = node.querySelector("DayOfWeek, Day")?.textContent || "";
+            const weather = node.querySelector("WeatherDescription, WeatherSummary, Weather")?.textContent || "";
+            const maxTemp = node.querySelector("MaxTemp, Temperature > Max, HighTemp")?.textContent || "";
+            const minTemp = node.querySelector("MinTemp, Temperature > Min, LowTemp")?.textContent || "";
+            const maxRH = node.querySelector("MaxRH, Humidity > Max")?.textContent || "";
+            const minRH = node.querySelector("MinRH, Humidity > Min")?.textContent || "";
+            const windDir = node.querySelector("WindDirection, WindDir")?.textContent || "";
+            const windForce = node.querySelector("WindForce, WindSpeed")?.textContent || "";
+            const iconUrl = node.querySelector("IconURL, Icon")?.textContent || "";
+
+            if (!date && !dayOfWeek && !weather) return;
+
+            html += `
+                <div class="weather-item" style="padding: 16px; display: flex; flex-direction: column; justify-content: space-between; border-radius: 12px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; margin-bottom: 10px;">
+                        <span style="font-weight: 700; color: var(--accent-blue); font-size: 15px;">${date} ${dayOfWeek}</span>
+                        ${iconUrl ? `<img src="${iconUrl}" style="width: 32px; height: 32px;" alt="Weather Icon">` : ''}
+                    </div>
+                    <div style="font-size: 14px; color: var(--text-main); margin-bottom: 10px; line-height: 1.5; flex: 1;">
+                        ${weather}
+                    </div>
+                    <div style="font-size: 13px; color: var(--text-muted); display: flex; flex-direction: column; gap: 4px;">
+                        ${(minTemp || maxTemp) ? `<div><strong style="color: var(--accent-orange);">氣溫:</strong> ${minTemp}${minTemp && maxTemp ? ' ~ ' : ''}${maxTemp} °C</div>` : ''}
+                        ${(minRH || maxRH) ? `<div><strong style="color: var(--accent-teal);">相對濕度:</strong> ${minRH}${minRH && maxRH ? ' ~ ' : ''}${maxRH} %</div>` : ''}
+                        ${(windDir || windForce) ? `<div><strong style="color: var(--text-muted);">風向風力:</strong> ${windDir} ${windForce}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+
+        if (loadingEl) loadingEl.style.display = 'none';
+        containerEl.innerHTML = html;
+
+    } catch (err) {
+        console.error("七日預報XML解析異常：", err);
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (errorEl && containerEl.children.length === 0) errorEl.style.display = 'block';
+    }
+}
+
 window.addEventListener('DOMContentLoaded', async () => {
     await loadHourlyWeather();
     loadUVData();
+    load7DaysForecastXML();
 });
 
 setInterval(loadHourlyWeather, 300000);
+setInterval(load7DaysForecastXML, 3600000); // 每 1 小時 (3600000 ms) 自動更新
 </script>
 </body>
 </html>
