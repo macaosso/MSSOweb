@@ -1100,7 +1100,7 @@ async function load4DaysForecastXML() {
         forecastNodes.forEach(node => {
             const allElements = Array.from(node.getElementsByTagName("*"));
 
-            // 1. Extract Date / ValidFor
+            // 1. Extract ValidFor Date
             let date = "";
             for (let el of allElements) {
                 const name = el.nodeName.toLowerCase();
@@ -1136,30 +1136,29 @@ async function load4DaysForecastXML() {
                 }
             }
 
-            // 2. Extract Weather Icon
-            let rawIcon = "";
+            // 2. Target strictly <IconURL> / <C_IconURL>
+            let rawIconUrl = "";
             for (let el of allElements) {
-                if (el.nodeName.toLowerCase().includes("icon")) {
+                const name = el.nodeName.toLowerCase();
+                if (name === "iconurl" || name === "c_iconurl") {
                     const txt = el.textContent.trim();
-                    if (txt) { rawIcon = txt; break; }
+                    if (txt) { rawIconUrl = txt; break; }
                 }
             }
 
+            // Format IconURL path correctly
             let iconUrl = "";
-            if (rawIcon) {
-                if (rawIcon.startsWith("http")) {
-                    iconUrl = rawIcon;
+            if (rawIconUrl) {
+                if (rawIconUrl.startsWith("http://") || rawIconUrl.startsWith("https://")) {
+                    iconUrl = rawIconUrl;
+                } else if (rawIconUrl.startsWith("/")) {
+                    iconUrl = `https://www.smg.gov.mo${rawIconUrl}`;
                 } else {
-                    const numMatch = rawIcon.match(/\d+/);
-                    if (numMatch) {
-                        iconUrl = `https://www.smg.gov.mo/images/icon${numMatch[0]}.png`;
-                    } else {
-                        iconUrl = 'https://www.smg.gov.mo/' + rawIcon.replace(/^\//, '');
-                    }
+                    iconUrl = `https://www.smg.gov.mo/${rawIconUrl}`;
                 }
             }
 
-            // 3. Extract Temperature Min & Max (Valid range: 5 to 50 °C)
+            // 3. Temperature Min & Max
             let tempNums = [];
             for (let el of allElements) {
                 const name = el.nodeName.toLowerCase();
@@ -1168,24 +1167,19 @@ async function load4DaysForecastXML() {
                     if (matches) {
                         matches.forEach(m => {
                             const val = parseFloat(m);
-                            if (!isNaN(val) && val >= 5 && val <= 50) {
-                                tempNums.push(val);
-                            }
+                            if (!isNaN(val) && val >= 5 && val <= 50) tempNums.push(val);
                         });
                     }
                 }
             }
-
             tempNums = [...new Set(tempNums)];
             let tempMin = tempNums.length > 0 ? Math.min(...tempNums) : null;
             let tempMax = tempNums.length > 0 ? Math.max(...tempNums) : null;
+            let tempDisplay = (tempMin !== null && tempMax !== null)
+                ? (tempMin === tempMax ? `${tempMin}°C` : `${tempMin}°C - ${tempMax}°C`)
+                : '--';
 
-            let tempDisplay = '--';
-            if (tempMin !== null && tempMax !== null) {
-                tempDisplay = (tempMin === tempMax) ? `${tempMin}°C` : `${tempMin}°C - ${tempMax}°C`;
-            }
-
-            // 4. Extract Relative Humidity Min & Max (Valid range: 10 to 100 %)
+            // 4. Relative Humidity Min & Max
             let rhNums = [];
             for (let el of allElements) {
                 const name = el.nodeName.toLowerCase();
@@ -1194,24 +1188,18 @@ async function load4DaysForecastXML() {
                     if (matches) {
                         matches.forEach(m => {
                             const val = parseFloat(m);
-                            if (!isNaN(val) && val >= 10 && val <= 100) {
-                                rhNums.push(val);
-                            }
+                            if (!isNaN(val) && val >= 10 && val <= 100) rhNums.push(val);
                         });
                     }
                 }
             }
-
             rhNums = [...new Set(rhNums)];
             let rhMin = rhNums.length > 0 ? Math.min(...rhNums) : null;
             let rhMax = rhNums.length > 0 ? Math.max(...rhNums) : null;
+            let rhDisplay = (rhMin !== null && rhMax !== null)
+                ? (rhMin === rhMax ? `${rhMin}%` : `${rhMin}% - ${rhMax}%`)
+                : '--';
 
-            let rhDisplay = '--';
-            if (rhMin !== null && rhMax !== null) {
-                rhDisplay = (rhMin === rhMax) ? `${rhMin}%` : `${rhMin}% - ${rhMax}%`;
-            }
-
-            // Skip empty container nodes
             if (!date && !weather && tempNums.length === 0) return;
 
             html += `
@@ -1222,8 +1210,8 @@ async function load4DaysForecastXML() {
 
                     <div class="card-middle">
                         ${iconUrl 
-                            ? `<img src="${iconUrl}" class="card-icon-large" alt="weather icon" onerror="this.onerror=null; this.src='https://www.smg.gov.mo/images/icon1.png';">` 
-                            : '<span style="font-size:36px;">⛅</span>'}
+                            ? `<img src="${iconUrl}" class="card-icon-large" alt="weather icon" referrerpolicy="no-referrer" onerror="this.style.display='none'">` 
+                            : ''}
                         <div class="temp-range-text">🌡️ ${tempDisplay}</div>
                         <div class="humid-range-text">💧 ${rhDisplay}</div>
                     </div>
