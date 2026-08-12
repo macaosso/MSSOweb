@@ -88,7 +88,6 @@ body {
   gap: 10px;
   flex-wrap: wrap;
 }
-/* 標題旁即時時鐘樣式 */
 .header-clock {
   font-size: 0.88rem;
   font-weight: 500;
@@ -97,7 +96,6 @@ body {
   opacity: 0.9;
 }
 
-/* 導航菜單容器 */
 .menu-container {
   position: relative;
 }
@@ -184,7 +182,7 @@ body {
   color: #ffffff;
 }
 
-/* ========== 4. 警告卡片 (熱帶氣旋/天氣警告) ========== */
+/* ========== 4. 警告卡片 ========== */
 .warning-card {
   margin: 20px 0;
   border-radius: 16px;
@@ -391,14 +389,15 @@ body {
   color: var(--text-muted) !important;
 }
 
-/* ========== 7. 天氣預報 & 圖表並排模塊 ========== */
+/* ========== 7. 天氣預報 & 圖表並排模塊 (固定高度與相應對齊) ========== */
 .forecast-chart-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
   margin: 10px 0;
+  align-items: stretch;
 }
-.forecast-tab-wrap, .chart-wrap {
+.forecast-tab-wrap {
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid var(--card-border);
@@ -406,6 +405,17 @@ body {
   background: var(--card-bg);
   display: flex;
   flex-direction: column;
+  height: 100%;
+}
+.chart-wrap {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  background: var(--card-bg);
+  display: flex;
+  flex-direction: column;
+  height: 460px; /* 固定右側圖表高度 */
 }
 .tab-header, .chart-btn-bar {
   display: flex;
@@ -443,19 +453,19 @@ body {
   flex: 1;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  overflow-y: auto;
 }
 .tab-content {
   display: none;
   font-size: 14.5px;
   line-height: 1.7;
   color: var(--text-main);
-  flex: 1;
 }
 .tab-content.active {
   display: block;
 }
 
-/* 顯示發佈時間在右下角 */
 .forecast-time-bottom {
   text-align: right;
   font-size: 13px;
@@ -485,11 +495,11 @@ body {
 }
 .chart-container {
   position: relative;
-  height: 380px;
   width: 100%;
-  padding: 15px;
-  box-sizing: border-box;
   flex: 1;
+  min-height: 0;
+  padding: 15px 20px 20px 20px;
+  box-sizing: border-box;
 }
 
 /* ========== 8. 七日天氣預報橫向卡片組 ========== */
@@ -618,6 +628,9 @@ body {
   .forecast-chart-row {
     grid-template-columns: 1fr;
   }
+  .chart-wrap {
+    height: 380px;
+  }
   .quick-links {
     grid-template-columns: 1fr;
   }
@@ -654,7 +667,6 @@ body {
 
 <body>
 
-<!-- 深太空頂欄頁頭與導航 -->
 <div class="header-nav-container">
   <div class="header">
     <img src="icons/MSSO.png" class="logo" alt="MSSO Logo">
@@ -680,7 +692,6 @@ body {
 
 <div class="page-wrapper">
 
-  <!-- 快捷鏈接模塊 -->
   <div class="quick-links">
     <a href="https://macaosso.github.io/MSSOweb/AQImap.html" class="link-box weather">空氣質量實況</a>
     <a href="https://macaosso.github.io/MSSOweb/TCtracker.html" class="link-box flood">熱帶氣旋追蹤</a>
@@ -688,7 +699,6 @@ body {
     <a href="https://macaosso.github.io/MSSOweb/moweather.html" class="link-box map">天氣實況及預報</a>
   </div>
 
-  <!-- 熱帶氣旋卡片 -->
   <div class="warning-card" id="tcCard">
     <div class="warning-header">
       熱帶氣旋
@@ -697,7 +707,6 @@ body {
     <div id="tcContent"></div>
   </div>
 
-  <!-- 熱帶氣旋預測警告表格卡片 -->
   <div class="warning-card" id="tcForecastTableCard">
     <div class="warning-header tc-forecast-header-row">
       <div class="tc-forecast-title" id="tableMainTitle"></div>
@@ -706,25 +715,21 @@ body {
     <div class="tc-table-wrap" id="tcTableContent"></div>
   </div>
 
-  <!-- 天氣警告卡片 -->
   <div class="warning-card" id="warnCard">
     <div class="warning-header">天氣警告</div>
     <div id="warnContent"></div>
   </div>
 
-  <!-- 特別天氣提示 -->
   <div id="swtBox" class="box">
     <div class="header-orange">特別天氣提示</div>
     <div id="swtContent" class="content-yellow"></div>
   </div>
 
-  <!-- 預警提示 -->
   <div id="alertBox" class="box">
     <div class="header-orange">預警提示</div>
     <div id="alertContent" class="content-yellow"></div>
   </div>
 
-  <!-- 整點天氣面板 -->
   <div class="three-tab-weather-wrap">
     <div class="three-tab-header">
       <div class="three-tab-item active" data-tab="hourly">
@@ -791,11 +796,12 @@ body {
         <button class="tab-btn" data-index="2">明日天氣</button>
       </div>
       <div class="tab-content-box">
-        <div class="tab-content active" id="tab0"></div>
-        <div class="tab-content" id="tab1"></div>
-        <div class="tab-content" id="tab2"></div>
+        <div>
+          <div class="tab-content active" id="tab0"></div>
+          <div class="tab-content" id="tab1"></div>
+          <div class="tab-content" id="tab2"></div>
+        </div>
         
-        <!-- 發佈時間顯示在右下角 -->
         <div id="forecastTime" class="forecast-time-bottom">發佈時間：2026-08-12 21:00</div>
       </div>
     </div>
@@ -814,7 +820,6 @@ body {
     </div>
   </div>
 
-  <!-- 七日天氣預報卡片 -->
   <div class="three-tab-weather-wrap" style="margin-top: 25px;">
     <div class="three-tab-header">
       <div class="three-tab-item active">
@@ -837,20 +842,16 @@ body {
 
 <script src="webdata.js"></script>
 <script>
-// 全局存放 24 小時與 7 日圖表獨立的更新時間
 let chart24hUpdateTime = "";
 let chart7dUpdateTime = "";
 
-// 全局存放從 Open-Meteo 解析的 24 小時數據
 let openMeteo24hX = [];
 let openMeteo24hTemp = [];
 
-// 全局存放從 XML 解析出的 7 日氣溫預報數據
 let dynamic7dLabels = [];
 let dynamic7dMax = [];
 let dynamic7dMin = [];
 
-// Menu toggle function
 function toggleMenu() {
   const nav = document.getElementById("navMenu");
   const btn = document.querySelector(".menu-toggle");
@@ -858,7 +859,6 @@ function toggleMenu() {
   btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
 
-// 實時時鐘更新函數 (包含年月日及時間)
 function updateHeaderClock() {
   const clockEl = document.getElementById('headerClock');
   if (clockEl) {
@@ -873,11 +873,9 @@ function updateHeaderClock() {
   }
 }
 
-// 預報 XML 請求地址與代理 (c_forecast.xml)
 const forecastXmlUrl = "https://xml.smg.gov.mo/c_forecast.xml";
 const forecastProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(forecastXmlUrl)}`;
 
-// 動態讀取 天氣概況 / 今日天氣 / 明日天氣 XML
 async function loadForecastXML() {
   try {
     const res = await fetch(forecastProxyUrl, { cache: "no-store" });
@@ -892,15 +890,12 @@ async function loadForecastXML() {
     
     const wfNodes = xmlDoc.querySelectorAll("WeatherForecast");
     
-    // 今日天氣：擷取 ValidFor & WeatherDescription
     const todayValid = wfNodes[0]?.querySelector("ValidFor")?.textContent.trim() || "";
     const todayDesc = wfNodes[0]?.querySelector("WeatherDescription")?.textContent.trim() || "暫無資料";
 
-    // 明日天氣：擷取 ValidFor & WeatherDescription
     const tomorrowValid = wfNodes[1]?.querySelector("ValidFor")?.textContent.trim() || "";
     const tomorrowDesc = wfNodes[1]?.querySelector("WeatherDescription")?.textContent.trim() || "暫無資料";
 
-    // 更新右下角發佈時間
     if (pubDate) {
       document.getElementById("forecastTime").innerText = `發佈時間：${pubDate}`;
     }
@@ -909,7 +904,6 @@ async function loadForecastXML() {
       document.getElementById("tab0").innerHTML = situation.replaceAll("\n", "<br>");
     }
 
-    // 今日天氣：移除「有效時間：」，將時間放置於第一行，說明內容置於下一行
     if (todayDesc) {
       let cleanTodayValid = todayValid.replace(/有效時間[：:]\s*/g, "").trim();
       let todayHtml = "";
@@ -920,7 +914,6 @@ async function loadForecastXML() {
       document.getElementById("tab1").innerHTML = todayHtml;
     }
 
-    // 明日天氣：移除「有效時間：」，將時間放置於第一行，說明內容置於下一行
     if (tomorrowDesc) {
       let cleanTomorrowValid = tomorrowValid.replace(/有效時間[：:]\s*/g, "").trim();
       let tomorrowHtml = "";
@@ -935,13 +928,10 @@ async function loadForecastXML() {
   }
 }
 
-// 頁面加載完成初始化
 window.addEventListener('DOMContentLoaded', function(){
-    // 啓動即時時鐘
     updateHeaderClock();
     setInterval(updateHeaderClock, 1000);
 
-    // Alertips box
     const alertBox = document.getElementById('alertBox');
     const alertContent = document.getElementById('alertContent');
     if(typeof alertipsText !== 'undefined' && alertipsText.trim()){
@@ -949,7 +939,6 @@ window.addEventListener('DOMContentLoaded', function(){
         alertContent.innerText = alertipsText;
     } else alertBox.style.display = 'none';
 
-    // SWT box
     const swtBox = document.getElementById('swtBox');
     const swtContent = document.getElementById('swtContent');
     if(typeof swtText !== 'undefined' && swtText.trim()){
@@ -957,7 +946,6 @@ window.addEventListener('DOMContentLoaded', function(){
         swtContent.innerText = swtText;
     } else swtBox.style.display = 'none';
 
-    // Tab 切換點擊綁定
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabItems = document.querySelectorAll('.tab-content');
     tabBtns.forEach(btn => {
@@ -970,11 +958,9 @@ window.addEventListener('DOMContentLoaded', function(){
       }
     });
 
-    // 載入動態預報
     loadForecastXML();
 });
 
-// Render TC & Warning Cards
 function renderWarnings(data, containerId, cardId) {
   const container = document.getElementById(containerId);
   const card = document.getElementById(cardId);
@@ -999,13 +985,11 @@ if (typeof tcWarnings !== 'undefined') renderWarnings(tcWarnings, "tcContent", "
 if (typeof warnWarnings !== 'undefined') renderWarnings(warnWarnings, "warnContent", "warnCard");
 </script>
 
-<!-- 使用完整的 Chart.js UMD CDN 連結以防止 Chart is not defined 錯誤 -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
 let tempChart;
 const dateDom = document.getElementById("chartDate");
 
-// 從 Open-Meteo API 獲取 24 小時氣溫數據
 async function fetchOpenMeteo24h() {
   try {
     const url = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=temperature_2m&timezone=Asia%2FSingapore&forecast_days=1";
@@ -1029,10 +1013,7 @@ async function fetchOpenMeteo24h() {
 }
 
 async function initChart(){
-  if (typeof Chart === 'undefined') {
-    console.error("Chart.js 未成功載入。");
-    return;
-  }
+  if (typeof Chart === 'undefined') return;
 
   Chart.defaults.color = '#94a3b8';
   Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.08)';
@@ -1070,7 +1051,7 @@ function render24hChart(ctx){
   const labels = openMeteo24hX.length > 0 ? openMeteo24hX : (typeof label24hX !== 'undefined' ? label24hX : []);
   const temps = openMeteo24hTemp.length > 0 ? openMeteo24hTemp : (typeof temp24h !== 'undefined' ? temp24h : []);
 
-  // Calculate dynamic range for Y-axis
+  // 計算動態 Y 軸區間
   const minTemp = temps.length ? Math.floor(Math.min(...temps) - 2) : 20;
   const maxTemp = temps.length ? Math.ceil(Math.max(...temps) + 2) : 38;
 
@@ -1105,7 +1086,7 @@ function render24hChart(ctx){
     }
   });
 }
-  
+
 function render7dChart(ctx){
   if (typeof Chart === 'undefined') return;
 
@@ -1115,7 +1096,7 @@ function render7dChart(ctx){
   const maxArr = dynamic7dMax.length > 0 ? dynamic7dMax : (typeof temp7dMax !== 'undefined' ? temp7dMax : []);
   const minArr = dynamic7dMin.length > 0 ? dynamic7dMin : (typeof temp7dMin !== 'undefined' ? temp7dMin : []);
 
-  // Calculate dynamic range for Y-axis
+  // 計算動態 Y 軸區間
   const allTemps = [...maxArr, ...minArr];
   const minTemp = allTemps.length ? Math.floor(Math.min(...allTemps) - 2) : 15;
   const maxTemp = allTemps.length ? Math.ceil(Math.max(...allTemps) + 2) : 38;
@@ -1150,7 +1131,6 @@ window.addEventListener('DOMContentLoaded', initChart);
 </script>
 
 <script>
-// ========== 抓取 SMG 澳門實時數據 ==========
 const loadTip = document.getElementById('load-tip');
 const errorTip = document.getElementById('error-tip');
 const weatherMain = document.getElementById('weather-main');
@@ -1170,7 +1150,6 @@ let currentUV = "--";
 const originXmlUrl = "https://xml.smg.gov.mo/c_actual_brief.xml";
 const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(originXmlUrl)}`;
 
-// 加載整點天氣數據
 async function loadHourlyWeather() {
     try {
         loadTip.style.display = 'block';
@@ -1215,7 +1194,6 @@ async function loadHourlyWeather() {
     }
 }
 
-// 載入紫外線 UV 數據
 async function loadUVData() {
     try {
         const res = await fetch(uvProxyUrl, { cache: "no-store" });
@@ -1242,11 +1220,9 @@ function getUVColor(uv) {
     return "#34d399";
 }
 
-// 7日預報數據 XML (c_7daysforecast.xml)
 const fourDayXmlUrl = "https://xml.smg.gov.mo/c_7daysforecast.xml";
 const fourDayProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(fourDayXmlUrl)}`;
 
-// 讀取 c_7daysforecast.xml：同步生成下方卡片與圖表動態數據
 async function load4DaysForecastXML() {
     const loadingEl = document.getElementById('7day-xml-loading');
     const errorEl = document.getElementById('7day-xml-error');
@@ -1429,14 +1405,12 @@ async function load4DaysForecastXML() {
     }
 }
 
-// 頁面加載完成調用 API
 window.addEventListener('DOMContentLoaded', () => {
     loadHourlyWeather();
     loadUVData();
     load4DaysForecastXML();
 });
 
-// 自動刷新定時器
 setInterval(loadHourlyWeather, 100000);
 setInterval(loadUVData, 120000);
 setInterval(loadForecastXML, 1800000);
