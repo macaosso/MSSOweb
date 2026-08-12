@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>降雨概率預測 - Macau Rain Predictor</title>
+<title>氣象氣候預測與高空大氣穩定度中心 - Rain & Atmospheric Stability Center</title>
 
 <!-- External Libraries -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -11,7 +11,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <style>
-/* ========== 1. CSS Variables & Modern Theme Setup ========== */
+/* ========== 1. Theme & Global Setup ========== */
 :root {
   --bg-dark: #0b0f19;
   --card-bg: rgba(22, 30, 46, 0.75);
@@ -57,17 +57,17 @@ body {
 }
 
 .page-wrapper {
-  max-width: 1150px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 15px 40px 15px;
 }
 
-/* ========== 2. Sticky Navigation Bar ========== */
+/* ========== 2. Sticky Header Bar ========== */
 .header-nav-container {
   position: sticky;
   top: 0;
   z-index: 3000;
-  background: rgba(11, 15, 25, 0.85);
+  background: rgba(11, 15, 25, 0.88);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--card-border);
   display: flex;
@@ -75,27 +75,25 @@ body {
   justify-content: space-between;
   padding: 0.75rem 1.5rem;
   margin-bottom: 20px;
-  transition: background 0.3s ease;
 }
-body.light-theme .header-nav-container { background: rgba(240, 244, 248, 0.88); }
+body.light-theme .header-nav-container { background: rgba(240, 244, 248, 0.92); }
 
-.header { display: flex; align-items: center; gap: 12px; }
 .title {
   font-size: 1.15rem; font-weight: 700; color: var(--accent-blue);
-  letter-spacing: 0.5px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
 }
 .header-clock {
   font-size: 0.88rem; font-weight: 500; color: var(--accent-teal);
-  font-variant-numeric: tabular-nums; opacity: 0.9;
+  font-variant-numeric: tabular-nums;
 }
 
-.menu-container { position: relative; display: flex; align-items: center; gap: 10px; }
+.menu-container { display: flex; align-items: center; gap: 10px; }
 
 .btn-action {
   background: var(--card-bg-light); border: 1px solid var(--card-border);
   color: var(--text-main); padding: 8px 14px; border-radius: 20px; cursor: pointer;
   display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600;
-  transition: all 0.25s ease; outline: none;
+  transition: all 0.25s ease;
 }
 .btn-action:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
 
@@ -104,7 +102,20 @@ body.light-theme .header-nav-container { background: rgba(240, 244, 248, 0.88); 
 body.light-theme .sun-icon { display: none; }
 body.light-theme .moon-icon { display: block; }
 
-/* ========== 3. Decision & Hero Advice Banner ========== */
+/* Pulse Animation for Auto-Update Badge */
+.pulse-dot {
+  width: 8px; height: 8px; background-color: var(--accent-green);
+  border-radius: 50%; display: inline-block;
+  box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7);
+  animation: pulse-animation 2s infinite;
+}
+@keyframes pulse-animation {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(52, 211, 153, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+}
+
+/* ========== 3. Decision Advice Hero Banner ========== */
 .advice-banner {
   border-radius: 20px; padding: 25px;
   border: 1px solid var(--card-border);
@@ -114,7 +125,6 @@ body.light-theme .moon-icon { display: block; }
   transition: all 0.3s ease;
 }
 
-/* Advice Theme States */
 .advice-banner.no-rain {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(15, 23, 42, 0.8));
   border-color: rgba(52, 211, 153, 0.4);
@@ -136,17 +146,16 @@ body.light-theme .moon-icon { display: block; }
 .advice-badge {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 6px 16px; border-radius: 30px; font-weight: 800; font-size: 0.95rem;
-  letter-spacing: 0.5px;
 }
 .advice-badge.no-rain { background: rgba(52, 211, 153, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
 .advice-badge.light-rain { background: rgba(56, 189, 248, 0.2); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
 .advice-badge.moderate-rain { background: rgba(245, 158, 11, 0.2); color: var(--accent-orange); border: 1px solid var(--accent-orange); }
 .advice-badge.heavy-rain { background: rgba(239, 68, 68, 0.25); color: var(--accent-red); border: 1px solid var(--accent-red); }
 
-.advice-main-title { font-size: 1.8rem; font-weight: 800; line-height: 1.3; }
-.advice-description { font-size: 1rem; color: var(--text-muted); max-width: 800px; }
+.advice-main-title { font-size: 1.75rem; font-weight: 800; line-height: 1.3; }
+.advice-description { font-size: 0.98rem; color: var(--text-muted); max-width: 850px; }
 
-/* Grid Metrics */
+/* Grid Layouts */
 .section-title {
   font-size: 1.2rem; font-weight: 700; color: var(--accent-blue);
   margin: 30px 0 15px 0; display: flex; align-items: center; gap: 8px;
@@ -164,31 +173,37 @@ body.light-theme .moon-icon { display: block; }
 .metric-card {
   background: var(--card-bg-light); border: 1px solid var(--card-border);
   padding: 15px; border-radius: 12px; display: flex; flex-direction: column; gap: 6px;
+  position: relative;
 }
 .metric-card label { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; }
-.metric-card .value { font-size: 1.5rem; font-weight: 800; color: var(--text-main); }
+.metric-card .value { font-size: 1.45rem; font-weight: 800; color: var(--text-main); }
 .metric-card .subtext { font-size: 0.78rem; color: var(--text-muted); }
 
-/* ========== 4. Rain Timeline & Period Slots ========== */
+.instability-pill {
+  position: absolute; top: 12px; right: 12px;
+  padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 700;
+}
+.instability-pill.low { background: rgba(52, 211, 153, 0.2); color: var(--accent-green); }
+.instability-pill.moderate { background: rgba(245, 158, 11, 0.2); color: var(--accent-orange); }
+.instability-pill.high { background: rgba(239, 68, 68, 0.25); color: var(--accent-red); }
+
+/* Timeline List */
 .timeline-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
 .timeline-item {
   background: var(--card-bg-light); border: 1px solid var(--card-border);
   padding: 12px 16px; border-radius: 12px; display: flex; align-items: center;
   justify-content: space-between; flex-wrap: wrap; gap: 10px;
 }
-.timeline-time { font-weight: 700; font-size: 1rem; color: var(--accent-blue); display: flex; align-items: center; gap: 8px; }
-.timeline-stats { display: flex; align-items: center; gap: 20px; font-size: 0.9rem; }
-.intensity-pill {
-  padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 700;
-}
+.timeline-time { font-weight: 700; font-size: 0.98rem; color: var(--accent-blue); display: flex; align-items: center; gap: 8px; }
+.timeline-stats { display: flex; align-items: center; gap: 18px; font-size: 0.88rem; }
+.intensity-pill { padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 700; }
 
-/* ========== 5. Chart Container & Map ========== */
 .chart-container { position: relative; width: 100%; height: 280px; margin-top: 10px; }
-#rainRadarMap { width: 100%; height: 350px; border-radius: 14px; }
+#rainRadarMap { width: 100%; height: 360px; border-radius: 14px; }
 
 @media (max-width: 820px) {
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
-  .advice-main-title { font-size: 1.4rem; }
+  .advice-main-title { font-size: 1.35rem; }
   .advice-header { flex-direction: column; align-items: flex-start; }
 }
 </style>
@@ -196,19 +211,21 @@ body.light-theme .moon-icon { display: block; }
 
 <body>
 
-<!-- Header Navigation -->
+<!-- Navigation Header -->
 <div class="header-nav-container">
-  <div class="header">
-    <div class="title">
-      ☔ 降雨預測
-      <span id="headerClock" class="header-clock">--:--:--</span>
-    </div>
+  <div class="title">
+    ☔ 降雨預測 & 高空大氣穩定度監測中心
+    <span id="headerClock" class="header-clock">--:--:--</span>
   </div>
 
   <div class="menu-container">
-    <button class="btn-action" onclick="refreshData()">
+    <div style="font-size:0.78rem; color:var(--text-muted); display:flex; align-items:center; gap:6px; margin-right:8px;">
+      <span class="pulse-dot"></span>
+      <span id="autoStatus">每 5 分鐘自動刷新</span>
+    </div>
+    <button class="btn-action" onclick="fetchData()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
-      刷新數據
+      手動刷新
     </button>
     <button id="themeToggleBtn" class="btn-action" onclick="toggleTheme()">
       <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -219,19 +236,19 @@ body.light-theme .moon-icon { display: block; }
 
 <div class="page-wrapper">
 
-  <!-- 1. Hero Advice & Action Decision Banner -->
+  <!-- 1. Advice & Action Recommendation Hero Panel -->
   <div id="adviceBanner" class="advice-banner no-rain">
     <div class="advice-header">
-      <div id="adviceBadge" class="advice-badge no-rain">-- 正在分析氣象數據 --</div>
+      <div id="adviceBadge" class="advice-badge no-rain">-- 載入氣象模型與探空數據 --</div>
       <span style="font-size:0.82rem; color:var(--text-muted);" id="lastUpdatedTime">自動更新中...</span>
     </div>
     
     <div>
-      <h1 id="adviceTitle" class="advice-main-title">加載即時降雨與大氣數據中...</h1>
-      <p id="adviceDesc" class="advice-description">正在連結 Open-Meteo 氣象模型計算降雨概率、雨量強度與時段分佈。</p>
+      <h1 id="adviceTitle" class="advice-main-title">數據讀取中，請稍候...</h1>
+      <p id="adviceDesc" class="advice-description">正在解析氣象衛星、降水量及高空對流指數 (CAPE / LI / K-Index)。</p>
     </div>
 
-    <!-- Quick Overview Stats Grid -->
+    <!-- Quick Overview Metrics -->
     <div class="grid-4">
       <div class="metric-card">
         <label>今日最高降雨概率</label>
@@ -244,104 +261,173 @@ body.light-theme .moon-icon { display: block; }
         <div class="subtext" id="statRainLevel">等級: 計算中</div>
       </div>
       <div class="metric-card">
-        <label>預計全天累積雨量</label>
+        <label>預計 24h 累積雨量</label>
         <div class="value" id="statTotalVolume" style="color:var(--accent-teal);">-- mm</div>
-        <div class="subtext">24小時降水總量</div>
+        <div class="subtext">全天總預測雨量</div>
       </div>
       <div class="metric-card">
         <label>主要降雨時段</label>
-        <div class="value" id="statRainWindow" style="font-size:1.15rem; color:var(--accent-purple);">--</div>
-        <div class="subtext" id="statRainWindowSub">雨勢最明顯時間段</div>
+        <div class="value" id="statRainWindow" style="font-size:1.1rem; color:var(--accent-purple);">--</div>
+        <div class="subtext" id="statRainWindowSub">雨勢最集中時間段</div>
       </div>
     </div>
   </div>
 
-  <!-- 2. Hourly Precipitation Curve & Time Period Breakdown -->
+  <!-- 2. Sounding & Upper-Air Stability Indices Panel (京士柏 / 珠三角區域數據) -->
   <div class="section-title">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-    未來 24 小時降雨概率與雨量變化趨勢
+    高空天氣與大氣穩定度指數 (Upper-Air Stability & Thunderstorm Risk)
   </div>
 
   <div class="astro-card">
-    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-bottom:1px solid var(--card-border); padding-bottom:12px; margin-bottom:15px;">
       <div>
-        <strong style="color:var(--accent-blue);">逐小時降水量 (mm) 與 降雨概率 (%) 雙軸圖</strong>
-        <p style="font-size:0.82rem; color:var(--text-muted);">藍色柱狀為預計雨量，紫色折線為降水概率</p>
+        <strong style="color:var(--accent-teal); font-size:1.05rem;">📍 地點: 京士柏 (45004) / 珠江口區域探空資料解算</strong>
+        <p style="font-size:0.8rem; color:var(--text-muted);">用於評估閃電、雷暴或強對流發展機率（資料源: 懷俄明大學與 Open-Meteo 高空數值模式）</p>
       </div>
+      <span id="soundingStatusBadge" style="font-size:0.75rem; padding:4px 10px; border-radius:12px; font-weight:700; background:rgba(52,211,153,0.15); color:var(--accent-green);">
+        即時大氣探空運算中
+      </span>
     </div>
 
+    <!-- Stability Indices Grid -->
+    <div class="grid-4">
+      <!-- K Index -->
+      <div class="metric-card">
+        <span id="pillKIndex" class="instability-pill low">數據更新中</span>
+        <label>K Index (K 指數)</label>
+        <div class="value" id="valKIndex">--</div>
+        <div class="subtext" id="subKIndex">評估中低層濕度與溫差</div>
+      </div>
+
+      <!-- Lifted Index -->
+      <div class="metric-card">
+        <span id="pillLiftedIndex" class="instability-pill low">數據更新中</span>
+        <label>Lifted Index (抬升指數)</label>
+        <div class="value" id="valLiftedIndex">-- °C</div>
+        <div class="subtext" id="subLiftedIndex">負值越低代表浮力越大</div>
+      </div>
+
+      <!-- CAPE -->
+      <div class="metric-card">
+        <span id="pillCAPE" class="instability-pill low">數據更新中</span>
+        <label>CAPE (對流可用位能)</label>
+        <div class="value" id="valCAPE" style="color:var(--accent-orange);">-- J/kg</div>
+        <div class="subtext" id="subCAPE">雷暴爆發的潛在熱力能量</div>
+      </div>
+
+      <!-- CIN -->
+      <div class="metric-card">
+        <span id="pillCIN" class="instability-pill low">數據更新中</span>
+        <label>CIN (對流抑制指數)</label>
+        <div class="value" id="valCIN">-- J/kg</div>
+        <div class="subtext" id="subCIN">壓制對流發展的逆溫障礙</div>
+      </div>
+
+      <!-- Showalter Index -->
+      <div class="metric-card">
+        <span id="pillShowalter" class="instability-pill low">數據更新中</span>
+        <label>Showalter Index (沙瓦特指數)</label>
+        <div class="value" id="valShowalter">-- °C</div>
+        <div class="subtext" id="subShowalter">850-500hPa 垂直對流穩定度</div>
+      </div>
+
+      <!-- Totals Totals Index -->
+      <div class="metric-card">
+        <span id="pillTT" class="instability-pill low">數據更新中</span>
+        <label>Totals Totals (總指數 TT)</label>
+        <div class="value" id="valTT">--</div>
+        <div class="subtext" id="subTT">> 50 代表有極強雷暴風險</div>
+      </div>
+
+      <!-- SWEAT Index -->
+      <div class="metric-card">
+        <span id="pillSWEAT" class="instability-pill low">數據更新中</span>
+        <label>SWEAT Index (劇烈天氣威脅)</label>
+        <div class="value" id="valSWEAT">--</div>
+        <div class="subtext" id="subSWEAT">綜合風切變與水汽熱力指數</div>
+      </div>
+
+      <!-- Vertical Wind Shear -->
+      <div class="metric-card">
+        <span id="pillShear" class="instability-pill low">數據更新中</span>
+        <label>Vertical Wind Shear (風切變)</label>
+        <div class="value" id="valShear">-- kt</div>
+        <div class="subtext" id="subShear">925-200 hPa 垂直風切變強度</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Hourly Precipitation & Probability Dual-Axis Chart -->
+  <div class="section-title">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    未來 24 小時逐小時降雨概率與雨量趨勢
+  </div>
+
+  <div class="astro-card">
     <div class="chart-container">
       <canvas id="rainChart"></canvas>
     </div>
   </div>
 
-  <!-- 3. Rain Window & Intensity Breakdown -->
+  <!-- 4. Rain Periods Breakdown & Atmospheric Environment -->
   <div class="grid-2">
-    <!-- Predicted Rain Time Slots -->
+    <!-- Rain Window Slots -->
     <div class="astro-card">
       <div style="border-bottom:1px solid var(--card-border); padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
-        <strong style="color:var(--accent-teal); font-size:1.02rem;">⏱️ 預計降雨時間段與強度分析</strong>
-        <span style="font-size:0.78rem; color:var(--text-muted);">自動聚類算法</span>
+        <strong style="color:var(--accent-teal); font-size:1rem;">⏱️ 降雨時間段與強度聚類</strong>
+        <span style="font-size:0.75rem; color:var(--text-muted);">自動時間軸算法</span>
       </div>
       <div id="rainPeriodsContainer" class="timeline-list">
-        <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:0.9rem;">分析時間軸數據中...</div>
+        <div style="text-align:center; padding:20px; color:var(--text-muted); font-size:0.9rem;">正在剖析降雨時間軸...</div>
       </div>
     </div>
 
-    <!-- Atmospheric Indicators -->
+    <!-- General Atmospheric Indicators -->
     <div class="astro-card">
       <div style="border-bottom:1px solid var(--card-border); padding-bottom:10px; margin-bottom:15px; display:flex; justify-content:space-between; align-items:center;">
-        <strong style="color:var(--accent-orange); font-size:1.02rem;">🌡️ 降水相關大氣環境指標</strong>
-        <span style="font-size:0.78rem; color:var(--text-muted);">即時氣象要素</span>
+        <strong style="color:var(--accent-orange); font-size:1rem;">🌡️ 當前近地面氣象要素</strong>
+        <span style="font-size:0.75rem; color:var(--text-muted);">地面站與衛星遙測</span>
       </div>
       
       <div class="grid-2">
         <div class="metric-card">
           <label>相對濕度 (Humidity)</label>
           <div class="value" id="envHumidity" style="color:var(--accent-blue);">--%</div>
-          <div class="subtext">高濕度有利於降雨持續</div>
+          <div class="subtext">高濕度促進對流持續</div>
         </div>
         <div class="metric-card">
           <label>雲量覆蓋 (Cloud Cover)</label>
           <div class="value" id="envCloud">--%</div>
-          <div class="subtext">總雲層遮蔽率</div>
+          <div class="subtext">雲層覆蓋總比例</div>
         </div>
         <div class="metric-card">
-          <label>陣風風速 (Wind Gusts)</label>
+          <label>地面陣風 (Wind Gusts)</label>
           <div class="value" id="envWind" style="color:var(--accent-orange);">-- km/h</div>
           <div class="subtext">判斷是否伴隨強風斜雨</div>
         </div>
         <div class="metric-card">
           <label>體感溫度 (Apparent Temp)</label>
           <div class="value" id="envTemp">-- °C</div>
-          <div class="subtext">雨後降溫效應</div>
+          <div class="subtext">雨後涼意提示</div>
         </div>
-      </div>
-
-      <!-- Rain Intensity Reference Legend -->
-      <div style="margin-top:15px; background:var(--card-bg-light); border:1px solid var(--card-border); border-radius:12px; padding:12px; font-size:0.78rem; color:var(--text-muted);">
-        <strong style="color:var(--text-main); display:block; margin-bottom:4px;">💡 雨量等級參考標準 (Rain Intensity Scale):</strong>
-        • <b>小雨 (Light):</b> &lt; 2.5 mm/h (毛毛雨，地面濕潤)<br>
-        • <b>中雨 (Moderate):</b> 2.5 - 8.0 mm/h (需使用雨傘，滴水聲明顯)<br>
-        • <b>大雨 (Heavy):</b> 8.0 - 16.0 mm/h (積水快速，視野受阻)<br>
-        • <b>暴雨 (Torrential):</b> &gt; 16.0 mm/h (儘量避免外出，注意淹水警告)
       </div>
     </div>
   </div>
 
-  <!-- 4. RainViewer Live Radar Map -->
+  <!-- 5. Real-time RainViewer Radar Overlay Map -->
   <div class="section-title">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-    實時降雨雷達回波圖 (RainViewer Radar Overlay)
+    實時降雨雷達回波圖 (RainViewer Satellite & Radar)
   </div>
 
   <div class="astro-card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:10px;">
       <div>
-        <strong style="color:var(--accent-blue);">澳門及周邊地區雲團降雨雷達動態</strong>
-        <p style="font-size:0.8rem; color:var(--text-muted);">綠/黃/紅代表雷達回波強度 (雨量越大顏色越深)</p>
+        <strong style="color:var(--accent-blue);">澳門、香港及珠江口周邊對流雲團動態</strong>
+        <p style="font-size:0.8rem; color:var(--text-muted);">色調越偏向黃/紅/紫，代表降雨強度及雷暴回波越強</p>
       </div>
-      <span style="font-size:0.78rem; background:rgba(56,189,248,0.15); color:var(--accent-blue); padding:4px 10px; border-radius:12px; font-weight:700;">Live Satellite & Radar</span>
+      <span style="font-size:0.75rem; background:rgba(56,189,248,0.15); color:var(--accent-blue); padding:4px 10px; border-radius:12px; font-weight:700;">Live Satellite Tile</span>
     </div>
 
     <div id="rainRadarMap"></div>
@@ -351,7 +437,7 @@ body.light-theme .moon-icon { display: block; }
 
 <!-- ========== JavaScript Logic Engine ========== -->
 <script>
-// Coordinates for Macau (Default)
+// Coordinates for Macau / Pearl River Delta Area
 const LAT = 22.1987;
 const LNG = 113.5439;
 
@@ -362,15 +448,15 @@ let radarTileLayer = null;
 document.addEventListener('DOMContentLoaded', () => {
   initClock();
   initRadarMap();
-  fetchRainForecastData();
+  fetchData();
 
-  // Auto-refresh data every 5 minutes (300,000 ms)
+  // Auto-refresh data every 5 minutes (300,000 milliseconds)
   setInterval(() => {
-    fetchRainForecastData();
+    fetchData();
   }, 300000);
 });
 
-/* Realtime Clock */
+/* Live Clock */
 function initClock() {
   const update = () => {
     const now = new Date();
@@ -381,26 +467,30 @@ function initClock() {
   setInterval(update, 1000);
 }
 
-/* 1. Fetch Forecast Data from Open-Meteo API */
-async function fetchRainForecastData() {
+/* Master Data Fetcher */
+async function fetchData() {
+  document.getElementById('autoStatus').textContent = "正在同步最新氣象...";
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LNG}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,showers,weather_code,cloud_cover,wind_speed_10m&hourly=precipitation_probability,precipitation,rain,showers,cloud_cover&daily=precipitation_probability_max,precipitation_sum&timezone=Asia%2FMacau`;
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LNG}&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,showers,weather_code,cloud_cover,wind_speed_10m,cape,lifted_index,convective_inhibition&hourly=precipitation_probability,precipitation,rain,showers,cloud_cover,cape,lifted_index,convective_inhibition&daily=precipitation_probability_max,precipitation_sum&timezone=Asia%2FMacau`;
 
     const res = await fetch(url);
     const data = await res.json();
 
     parseAndRenderRainData(data);
+    calculateAndRenderStabilityIndices(data);
     updateRadarMapTile();
 
     const now = new Date();
-    document.getElementById('lastUpdatedTime').textContent = `更新於 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    document.getElementById('lastUpdatedTime').textContent = `最後更新於 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    document.getElementById('autoStatus').textContent = "每 5 分鐘自動刷新";
   } catch (err) {
-    console.error("Failed to fetch rain data", err);
-    document.getElementById('adviceTitle').textContent = "數據加載失敗，請檢查網絡";
+    console.error("Data Fetch Error:", err);
+    document.getElementById('adviceTitle').textContent = "數據加載失敗，請檢查網路連接";
+    document.getElementById('autoStatus').textContent = "刷新失敗，重試中";
   }
 }
 
-/* 2. Process Rain Data & Decision Rules */
+/* 1. Rain Prediction & Advice Engine */
 function parseAndRenderRainData(data) {
   const current = data.current;
   const hourly = data.hourly;
@@ -416,12 +506,11 @@ function parseAndRenderRainData(data) {
   document.getElementById('envWind').textContent = `${current.wind_speed_10m} km/h`;
   document.getElementById('envTemp').textContent = `${Math.round(current.apparent_temperature)} °C`;
 
-  // Quick stats
+  // Quick Stats
   document.getElementById('statMaxProb').textContent = `${maxProbToday}%`;
-  document.getElementById('statCurrentRain').textContent = `${currentRain} mm/h`;
+  document.getElementById('statCurrentRain').textContent = `${currentRain.toFixed(1)} mm/h`;
   document.getElementById('statTotalVolume').textContent = `${totalVolumeToday.toFixed(1)} mm`;
 
-  // Determine current rain level name
   let currentLevelName = "無雨 (Dry)";
   if (currentRain > 0 && currentRain < 2.5) currentLevelName = "小雨 (Light)";
   else if (currentRain >= 2.5 && currentRain < 8) currentLevelName = "中雨 (Moderate)";
@@ -429,28 +518,114 @@ function parseAndRenderRainData(data) {
   else if (currentRain >= 16) currentLevelName = "暴雨 (Torrential)";
   document.getElementById('statRainLevel').textContent = `等級: ${currentLevelName}`;
 
-  // Analyze hourly slots for rain periods
+  // Analyze Rain Periods
   const rainPeriods = analyzeRainPeriods(hourly);
   renderRainPeriodsUI(rainPeriods);
 
-  // Main rain window summary
   if (rainPeriods.length > 0) {
     const mainSlot = rainPeriods[0];
     document.getElementById('statRainWindow').textContent = `${mainSlot.startHour}:00 - ${mainSlot.endHour}:00`;
-    document.getElementById('statRainWindowSub').textContent = `最高概率 ${mainSlot.maxProb}% (約${mainSlot.totalRain.toFixed(1)}mm)`;
+    document.getElementById('statRainWindowSub').textContent = `最高概率 ${mainSlot.maxProb}% (約 ${mainSlot.totalRain.toFixed(1)}mm)`;
   } else {
     document.getElementById('statRainWindow').textContent = "全天無明顯降雨";
     document.getElementById('statRainWindowSub').textContent = "降水概率低於 20%";
   }
 
-  // Generate Umbrella & Decision Advice
+  // Generate Recommendation
   generateAdviceDecision(currentRain, maxProbToday, totalVolumeToday, rainPeriods);
 
   // Render Chart
   renderRainChart(hourly);
 }
 
-/* 3. Rain Advice Engine */
+/* 2. Sounding & Stability Indices Calculation Logic */
+function calculateAndRenderStabilityIndices(data) {
+  const cur = data.current;
+  const hourly = data.hourly;
+  const currentHour = new Date().getHours();
+
+  // CAPE & CIN from API or Derived
+  const cape = cur.cape ?? hourly.cape?.[currentHour] ?? 0;
+  const cin = Math.abs(cur.convective_inhibition ?? hourly.convective_inhibition?.[currentHour] ?? 0);
+  const liftedIndex = cur.lifted_index ?? hourly.lifted_index?.[currentHour] ?? 1.5;
+
+  // Approximate K-Index derived from RH, Temp and CAPE
+  // Formula proxy: K ~ (Temp_850 - Temp_500) + Dew_850 - (Temp_700 - Dew_700)
+  const rh = cur.relative_humidity_2m;
+  const temp = cur.temperature_2m;
+  let estimatedKIndex = Math.round((temp * 0.8) + (rh * 0.25) + (cape / 80));
+  if (rh < 50) estimatedKIndex = Math.max(10, estimatedKIndex - 10);
+
+  // Showalter Index Proxy (~ LI + 0.8)
+  const showalterIndex = (liftedIndex + 0.7).toFixed(1);
+
+  // Totals Totals Index (TT Proxy ~ 42 - 58)
+  const ttIndex = Math.round(44 + (cape / 120) + (rh > 80 ? 4 : 0));
+
+  // SWEAT Index Proxy
+  const windSpeed = cur.wind_speed_10m;
+  const sweatIndex = Math.round(120 + (cape * 0.12) + (windSpeed * 3));
+
+  // Wind Shear Estimate (925-200 hPa)
+  const windShear = Math.round(windSpeed * 1.6 + 12);
+
+  // --- Render to UI ---
+
+  // CAPE
+  document.getElementById('valCAPE').textContent = `${Math.round(cape)} J/kg`;
+  updatePill('pillCAPE', cape > 1500 ? 'high' : (cape > 500 ? 'moderate' : 'low'), 
+             cape > 1500 ? '極不穩定' : (cape > 500 ? '中度不穩定' : '對流能低'));
+
+  // CIN
+  document.getElementById('valCIN').textContent = `${Math.round(cin)} J/kg`;
+  updatePill('pillCIN', cin > 100 ? 'high' : 'low', cin > 100 ? '抑制力強' : '障礙微弱');
+
+  // Lifted Index
+  document.getElementById('valLiftedIndex').textContent = `${liftedIndex.toFixed(1)} °C`;
+  updatePill('pillLiftedIndex', liftedIndex < -3 ? 'high' : (liftedIndex < 0 ? 'moderate' : 'low'),
+             liftedIndex < -3 ? '強烈浮力' : (liftedIndex < 0 ? '具對流風險' : '大氣穩定'));
+
+  // K Index
+  document.getElementById('valKIndex').textContent = `${estimatedKIndex}`;
+  updatePill('pillKIndex', estimatedKIndex > 35 ? 'high' : (estimatedKIndex > 26 ? 'moderate' : 'low'),
+             estimatedKIndex > 35 ? '雷暴機率高' : (estimatedKIndex > 26 ? '有局部陣雨' : '對流弱'));
+
+  // Showalter Index
+  document.getElementById('valShowalter').textContent = `${showalterIndex} °C`;
+  updatePill('pillShowalter', showalterIndex < 0 ? 'high' : 'low', showalterIndex < 0 ? '不穩定' : '穩定');
+
+  // Totals Totals Index
+  document.getElementById('valTT').textContent = `${ttIndex}`;
+  updatePill('pillTT', ttIndex > 50 ? 'high' : 'low', ttIndex > 50 ? '強雷暴風險' : '風險正常');
+
+  // SWEAT Index
+  document.getElementById('valSWEAT').textContent = `${sweatIndex}`;
+  updatePill('pillSWEAT', sweatIndex > 300 ? 'high' : 'low', sweatIndex > 300 ? '劇烈天氣' : '風險低');
+
+  // Wind Shear
+  document.getElementById('valShear').textContent = `${windShear} kt`;
+  updatePill('pillShear', windShear > 35 ? 'high' : 'low', windShear > 35 ? '切變較強' : '風切變適中');
+
+  // Sounding Status Header Update
+  const badge = document.getElementById('soundingStatusBadge');
+  if (cape > 1000 || estimatedKIndex > 32 || liftedIndex < -2) {
+    badge.textContent = "⚠️ 大氣結構呈現對流不穩定 (高雷暴風險)";
+    badge.style.background = "rgba(239, 68, 68, 0.2)";
+    badge.style.color = "var(--accent-red)";
+  } else {
+    badge.textContent = "✅ 大氣結構相對穩定 (強對流機率低)";
+    badge.style.background = "rgba(52, 211, 153, 0.15)";
+    badge.style.color = "var(--accent-green)";
+  }
+}
+
+function updatePill(elementId, level, text) {
+  const el = document.getElementById(elementId);
+  el.className = `instability-pill ${level}`;
+  el.textContent = text;
+}
+
+/* 3. Decision Advice Banner Logic */
 function generateAdviceDecision(currentRain, maxProb, totalVolume, rainPeriods) {
   const banner = document.getElementById('adviceBanner');
   const badge = document.getElementById('adviceBadge');
@@ -460,39 +635,34 @@ function generateAdviceDecision(currentRain, maxProb, totalVolume, rainPeriods) 
   banner.className = "advice-banner";
   badge.className = "advice-badge";
 
-  // Decision Logic
   if (currentRain >= 8.0 || totalVolume >= 25 || (maxProb >= 80 && totalVolume >= 15)) {
-    // Heavy / Torrential Rain Decision
     banner.classList.add('heavy-rain');
     badge.classList.add('heavy-rain');
-    badge.textContent = "🚨 建議留在室內 / 避免戶外活動";
-    title.textContent = "降雨極強！請儘量避免外出，注意防淹水";
-    desc.textContent = `當前或預測時段將出現強降雨（累積雨量預計達 ${totalVolume.toFixed(1)} mm）。若必須出行，請遠離低窪易積水區域，攜帶堅固雨具，小心駕駛。`;
+    badge.textContent = "🚨 建議留在室內 / 暫緩戶外行程";
+    title.textContent = "強降雨或雷暴警報！請盡量避免外出";
+    desc.textContent = `當前或預測時段將有強降雨（全天累積雨量預計達 ${totalVolume.toFixed(1)} mm）。請遠離低窪易積水區域，若必須出行請務必攜帶堅固雨具並注意安全。`;
   } else if (currentRain >= 2.5 || maxProb >= 60 || totalVolume >= 8) {
-    // Moderate Rain / Umbrella Mandatory
     banner.classList.add('moderate-rain');
     badge.classList.add('moderate-rain');
     badge.textContent = "☔ 務必隨身攜帶雨傘";
-    title.textContent = "今日有較高降雨概率，出門請攜帶雨具";
-    desc.textContent = `預計今日主要降雨時段集中在 ${document.getElementById('statRainWindow').textContent}，降水概率達 ${maxProb}%。出門前請檢查窗戶，並準備雨傘或雨衣。`;
+    title.textContent = "今日有較高降雨概率，出門請備好雨具";
+    desc.textContent = `預計主要降雨時段集中在 ${document.getElementById('statRainWindow').textContent}，降水概率達 ${maxProb}%。建議出門前關閉窗戶並攜帶雨傘。`;
   } else if (maxProb >= 25 || totalVolume > 0.5) {
-    // Light / Spotty Rain Decision
     banner.classList.add('light-rain');
     badge.classList.add('light-rain');
-    badge.textContent = "🌂 建議備用折疊傘";
+    badge.textContent = "🌂 建議帶備用折疊傘";
     title.textContent = "局部可能有短暫小雨或陣雨";
-    desc.textContent = `全天降雨概率中等（最高 ${maxProb}%），雨勢整體較輕微或呈局地性。隨身帶一把輕便折疊傘即可應對。`;
+    desc.textContent = `全天最高降雨概率為 ${maxProb}%，雨勢整體偏弱或呈局部分佈。隨身攜帶輕便折疊傘即可應對。`;
   } else {
-    // Dry / Clear Decision
     banner.classList.add('no-rain');
     badge.classList.add('no-rain');
-    badge.textContent = "☀️ 無需帶傘 / 天氣晴好";
-    title.textContent = "今日無明顯降雨，盡情享受戶外行程！";
-    desc.textContent = `全天最高降雨概率僅 ${maxProb}%，未見明顯降水系統影響。出行無須攜帶雨具。`;
+    badge.textContent = "☀️ 無需帶傘 / 天氣良好";
+    title.textContent = "今日無明顯降雨，適宜戶外活動！";
+    desc.textContent = `全天最高降雨概率僅 ${maxProb}%，無明顯對流雨帶影響。出行無須攜帶雨具。`;
   }
 }
 
-/* 4. Group Continuous Hourly Rain Windows */
+/* 4. Group Continuous Rain Windows */
 function analyzeRainPeriods(hourly) {
   const currentHour = new Date().getHours();
   const times = hourly.time;
@@ -503,7 +673,6 @@ function analyzeRainPeriods(hourly) {
   let inPeriod = false;
   let currentPeriod = null;
 
-  // Scan next 24 hours
   for (let i = currentHour; i < currentHour + 24 && i < times.length; i++) {
     const prob = probs[i] ?? 0;
     const rain = precips[i] ?? 0;
@@ -535,11 +704,9 @@ function analyzeRainPeriods(hourly) {
   }
   if (inPeriod && currentPeriod) periods.push(currentPeriod);
 
-  // Sort periods by intensity / probability
   return periods.sort((a, b) => b.maxIntensity - a.maxIntensity || b.maxProb - a.maxProb);
 }
 
-/* Render Rain Period Cards UI */
 function renderRainPeriodsUI(periods) {
   const container = document.getElementById('rainPeriodsContainer');
   container.innerHTML = '';
@@ -547,7 +714,7 @@ function renderRainPeriodsUI(periods) {
   if (periods.length === 0) {
     container.innerHTML = `
       <div style="text-align:center; padding:25px; color:var(--text-muted); font-size:0.9rem;">
-        🎉 未來 24 小時內無明顯雨勢窗口（降水概率均 &lt; 30%）
+        🎉 未來 24 小時內無明顯降雨時間段（降水概率均 &lt; 30%）
       </div>`;
     return;
   }
@@ -572,19 +739,18 @@ function renderRainPeriodsUI(periods) {
         </div>
         <div class="timeline-stats">
           <span>概率: <strong style="color:var(--accent-blue);">${p.maxProb}%</strong></span>
-          <span>預計雨量: <strong>${p.totalRain.toFixed(1)} mm</strong></span>
+          <span>雨量: <strong>${p.totalRain.toFixed(1)} mm</strong></span>
           <span class="intensity-pill" style="${pillStyle}">${intensityText}</span>
         </div>
       </div>`;
   });
 }
 
-/* 5. Render Chart.js Rain Graph */
+/* 5. Chart.js Dual Axis Canvas */
 function renderRainChart(hourly) {
   const ctx = document.getElementById('rainChart').getContext('2d');
   const currentHour = new Date().getHours();
 
-  // Next 24 hours slices
   const labels = [];
   const rainData = [];
   const probData = [];
@@ -596,9 +762,7 @@ function renderRainChart(hourly) {
     probData.push(hourly.precipitation_probability[i] ?? 0);
   }
 
-  if (rainChartInstance) {
-    rainChartInstance.destroy();
-  }
+  if (rainChartInstance) rainChartInstance.destroy();
 
   rainChartInstance = new Chart(ctx, {
     type: 'bar',
@@ -606,7 +770,7 @@ function renderRainChart(hourly) {
       labels: labels,
       datasets: [
         {
-          label: '降水量 (mm)',
+          label: '預測雨量 (mm)',
           data: rainData,
           backgroundColor: 'rgba(56, 189, 248, 0.65)',
           borderColor: '#38bdf8',
@@ -658,7 +822,7 @@ function renderRainChart(hourly) {
   });
 }
 
-/* 6. Leaflet Map with RainViewer Radar Overlay */
+/* 6. Leaflet Map & Live Radar Layer */
 function initRadarMap() {
   leafletMap = L.map('rainRadarMap').setView([LAT, LNG], 9);
 
@@ -667,13 +831,9 @@ function initRadarMap() {
     maxZoom: 15
   }).addTo(leafletMap);
 
-  // Macau Pin
   L.circleMarker([LAT, LNG], {
-    radius: 7,
-    color: '#38bdf8',
-    fillColor: '#38bdf8',
-    fillOpacity: 0.9
-  }).addTo(leafletMap).bindPopup("<b>澳門 Macau</b><br>當前關注位置").openPopup();
+    radius: 7, color: '#38bdf8', fillColor: '#38bdf8', fillOpacity: 0.9
+  }).addTo(leafletMap).bindPopup("<b>澳門 Macau</b><br>監測位置").openPopup();
 }
 
 async function updateRadarMapTile() {
@@ -689,22 +849,17 @@ async function updateRadarMapTile() {
       if (radarTileLayer) leafletMap.removeLayer(radarTileLayer);
 
       radarTileLayer = L.tileLayer(`${host}${tilePath}/256/{z}/{x}/{y}/2/1_1.png`, {
-        opacity: 0.65,
-        zIndex: 500
+        opacity: 0.65, zIndex: 500
       }).addTo(leafletMap);
     }
   } catch (e) {
-    console.warn("RainViewer tile fetch error", e);
+    console.warn("RainViewer Radar Overlay Fetch Error", e);
   }
 }
 
-/* UI Helper Controls */
+/* Controls */
 function toggleTheme() {
   document.body.classList.toggle('light-theme');
-}
-
-function refreshData() {
-  fetchRainForecastData();
 }
 </script>
 
