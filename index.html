@@ -845,10 +845,19 @@ function updateHeaderClock() {
   const clockEl = document.getElementById('headerClock');
   if (clockEl) {
     const now = new Date();
+    
+    // 取得年月日並自動補零（例如：08 月 05 日）
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const date = String(now.getDate()).padStart(2, '0');
+    
+    // 取得時分秒
     const hrs = String(now.getHours()).padStart(2, '0');
     const mins = String(now.getMinutes()).padStart(2, '0');
     const secs = String(now.getSeconds()).padStart(2, '0');
-    clockEl.textContent = `${hrs}:${mins}:${secs}`;
+    
+    // 組合日期與時間
+    clockEl.textContent = `${year}年 ${month} 月 ${date} 日 ${hrs}:${mins}:${secs}`;
   }
 }
 
