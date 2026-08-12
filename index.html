@@ -840,23 +840,17 @@ function toggleMenu() {
   btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
 
-// 實時時鐘更新函數
+// 實時時鐘更新函數 (包含年月日及時間)
 function updateHeaderClock() {
   const clockEl = document.getElementById('headerClock');
   if (clockEl) {
     const now = new Date();
-    
-    // 取得年月日並自動補零（例如：08 月 05 日）
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const date = String(now.getDate()).padStart(2, '0');
-    
-    // 取得時分秒
     const hrs = String(now.getHours()).padStart(2, '0');
     const mins = String(now.getMinutes()).padStart(2, '0');
     const secs = String(now.getSeconds()).padStart(2, '0');
-    
-    // 組合日期與時間
     clockEl.textContent = `${year}年 ${month} 月 ${date} 日 ${hrs}:${mins}:${secs}`;
   }
 }
@@ -983,17 +977,24 @@ if (typeof tcWarnings !== 'undefined') renderWarnings(tcWarnings, "tcContent", "
 if (typeof warnWarnings !== 'undefined') renderWarnings(warnWarnings, "warnContent", "warnCard");
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/Chart.js"></script>
+<!-- 使用完整的 Chart.js UMD CDN 連結以防止 Chart is not defined 錯誤 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
-// Chart.js 深空主題配色配置
-Chart.defaults.color = '#94a3b8';
-Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.08)';
-Chart.defaults.plugins.title.color = '#f1f5f9';
-
 let tempChart;
 const dateDom = document.getElementById("chartDate");
 
 function initChart(){
+  // 安全檢查：確保 Chart 已成功載入
+  if (typeof Chart === 'undefined') {
+    console.error("Chart.js 未成功載入。");
+    return;
+  }
+
+  // 設定 Chart.js 全局樣式
+  Chart.defaults.color = '#94a3b8';
+  Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.08)';
+  Chart.defaults.plugins.title.color = '#f1f5f9';
+
   if (typeof chartRightDate !== 'undefined') {
     dateDom.innerText = chartRightDate;
   }
@@ -1008,10 +1009,11 @@ function initChart(){
       const type = this.dataset.type;
       type === '24h' ? render24hChart(ctx) : render7dChart(ctx);
     }
-  })
+  });
 }
 
 function render24hChart(ctx){
+  if (typeof Chart === 'undefined') return;
   tempChart = new Chart(ctx,{
     type:"line",
     data:{
@@ -1036,11 +1038,12 @@ function render24hChart(ctx){
         y:{display:true,title:{display:true,text:"溫度℃"}}
       }
     }
-  })
+  });
 }
 
-// 修改後的 7 日氣溫預報：優先使用從 https://xml.smg.gov.mo/c_7daysforecast.xml 動態解析的數據
+// 7 日氣溫預報：優先使用動態讀取 xml 的數據
 function render7dChart(ctx){
+  if (typeof Chart === 'undefined') return;
   const labels = dynamic7dLabels.length > 0 ? dynamic7dLabels : (typeof label7dX !== 'undefined' ? label7dX : []);
   const maxArr = dynamic7dMax.length > 0 ? dynamic7dMax : (typeof temp7dMax !== 'undefined' ? temp7dMax : []);
   const minArr = dynamic7dMin.length > 0 ? dynamic7dMin : (typeof temp7dMin !== 'undefined' ? temp7dMin : []);
@@ -1063,7 +1066,7 @@ function render7dChart(ctx){
         y:{display:true,title:{display:true,text:"溫度℃"}}
       }
     }
-  })
+  });
 }
 
 window.addEventListener('DOMContentLoaded', initChart);
