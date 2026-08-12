@@ -188,6 +188,7 @@ body.light-theme .moon-icon {
 .nav {
   display: flex;
   gap: 8px;
+  align-items: center;
 }
 .nav a {
   color: var(--text-muted);
@@ -197,6 +198,7 @@ body.light-theme .moon-icon {
   text-decoration: none;
   border-radius: 20px;
   transition: all 0.2s ease;
+  display: block;
 }
 .nav a:hover {
   color: var(--text-main);
@@ -204,6 +206,79 @@ body.light-theme .moon-icon {
 }
 body.light-theme .nav a:hover {
   background: rgba(0, 0, 0, 0.05);
+}
+
+/* ========== 下拉選單樣式 (Dropdown Style) ========== */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px 14px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  font-family: inherit;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dropdown-btn .arrow {
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+
+.dropdown:hover .dropdown-btn,
+.dropdown.active .dropdown-btn {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+body.light-theme .dropdown:hover .dropdown-btn,
+body.light-theme .dropdown.active .dropdown-btn {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.dropdown:hover .arrow,
+.dropdown.active .arrow {
+  transform: rotate(180deg);
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 190px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  z-index: 3100;
+  margin-top: 4px;
+}
+body.light-theme .dropdown-content {
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.dropdown:hover .dropdown-content,
+.dropdown.active .dropdown-content {
+  display: block;
+}
+
+.dropdown-content a {
+  padding: 8px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+  font-size: 0.88rem;
 }
 
 /* ========== 3. 首頁快捷鏈接模塊 ========== */
@@ -521,7 +596,7 @@ body.light-theme .weather-item {
   gap: 6px;
 }
 
-/* ========== 7. 天氣預報 & 圖表並排模塊 (固定高度與相應對齊) ========== */
+/* ========== 7. 天氣預報 & 圖表並排模塊 ========== */
 .forecast-chart-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -547,7 +622,7 @@ body.light-theme .weather-item {
   background: var(--card-bg);
   display: flex;
   flex-direction: column;
-  height: 460px; /* 固定右側圖表高度 */
+  height: 460px;
 }
 .tab-header, .chart-btn-bar {
   display: flex;
@@ -768,7 +843,7 @@ body.light-theme .card-bottom {
   .nav {
     display: none;
     flex-direction: column;
-    width: 220px;
+    width: 230px;
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
@@ -778,6 +853,7 @@ body.light-theme .card-bottom {
     border-radius: 12px;
     padding: 10px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    align-items: stretch;
   }
   body.light-theme .nav {
     background: rgba(255, 255, 255, 0.98);
@@ -789,6 +865,30 @@ body.light-theme .card-bottom {
   }
   .nav.active {
     display: flex;
+  }
+
+  /* 行動端下拉選單調整 */
+  .dropdown {
+    width: 100%;
+  }
+  .dropdown-btn {
+    width: 100%;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: 8px;
+  }
+  .dropdown-content {
+    position: static;
+    box-shadow: none;
+    border: none;
+    background: rgba(255, 255, 255, 0.03);
+    margin-top: 4px;
+    padding-left: 10px;
+    border-left: 2px solid var(--accent-blue);
+    border-radius: 0 8px 8px 0;
+  }
+  body.light-theme .dropdown-content {
+    background: rgba(0, 0, 0, 0.03);
   }
 
   .forecast-chart-row {
@@ -852,12 +952,37 @@ body.light-theme .card-bottom {
     <div class="menu-toggle" onclick="toggleMenu()">☰</div>
     <div class="nav" id="navMenu">
       <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
-      <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
-      <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋距離計算工具</a> 
-      <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑地圖</a>  
-      <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
-      <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
-      <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
+
+      <!-- 天氣 下拉選單 -->
+      <div class="dropdown">
+        <button class="dropdown-btn">天氣 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/Apparent_Temperature/">溫度計算</a>
+          <a href="map.html">澳門綜合氣象實況</a>
+          <a href="https://macaosso.github.io/MSSOweb/moweather.html">澳門天氣實況及預報</a>
+          <a href="https://macaosso.github.io/MSSOweb/AQImap.html">澳門空氣質量實況</a>
+        </div>
+      </div>
+
+      <!-- 熱帶氣旋 下拉選單 -->
+      <div class="dropdown">
+        <button class="dropdown-btn">熱帶氣旋 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
+          <a href="https://macaosso.github.io/MSSOweb/TCtracker.html">熱帶氣旋襲澳追蹤</a>
+          <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋計算工具</a>
+          <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑GIS地圖</a>
+        </div>
+      </div>
+
+      <!-- 其他 下拉選單 -->
+      <div class="dropdown">
+        <button class="dropdown-btn">其他 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+          <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1086,6 +1211,31 @@ function toggleMenu() {
   nav.classList.toggle("active");
   btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
+
+/* ========== 下拉選單點擊事件處理（相容行動端與觸控） ========== */
+document.addEventListener('DOMContentLoaded', () => {
+  const dropdownBtns = document.querySelectorAll('.dropdown-btn');
+  
+  dropdownBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const currentDropdown = btn.parentElement;
+      
+      // 關閉其他已打開的下拉選單
+      document.querySelectorAll('.dropdown').forEach(d => {
+        if (d !== currentDropdown) d.classList.remove('active');
+      });
+
+      // 切換當前選單狀態
+      currentDropdown.classList.toggle('active');
+    });
+  });
+
+  // 點擊頁面其他區域時自動收起下拉選單
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('active'));
+  });
+});
 
 function updateHeaderClock() {
   const clockEl = document.getElementById('headerClock');
