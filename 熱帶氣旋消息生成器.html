@@ -2,150 +2,392 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<title>熱帶氣旋消息生成器</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>熱帶氣旋消息自動生成器</title>
 <style>
+  :root {
+    --bg-dark: #0b0f19;
+    --card-bg: rgba(22, 30, 46, 0.85);
+    --card-border: rgba(255, 255, 255, 0.1);
+    --accent-blue: #38bdf8;
+    --accent-teal: #2dd4bf;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+  }
+  
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    background: #0b0f19;
-    color: #f1f5f9;
+    background: var(--bg-dark);
+    color: var(--text-main);
     padding: 20px;
-    max-width: 800px;
+    max-width: 900px;
     margin: 0 auto;
+    line-height: 1.6;
   }
+
+  h2 {
+    color: var(--accent-blue);
+    margin-bottom: 20px;
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
   .form-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 15px;
-    background: rgba(22, 30, 46, 0.75);
-    padding: 20px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--card-bg);
+    padding: 22px;
+    border-radius: 14px;
+    border: 1px solid var(--card-border);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
   }
+
   .field-group {
     display: flex;
     flex-direction: column;
     gap: 6px;
   }
+
   label {
     font-size: 0.85rem;
-    color: #38bdf8;
+    color: var(--accent-teal);
     font-weight: 600;
   }
-  input {
-    background: rgba(255, 255, 255, 0.05);
+
+  input, select {
+    background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.15);
     color: #fff;
-    padding: 8px 12px;
-    border-radius: 6px;
+    padding: 10px 12px;
+    border-radius: 8px;
     font-size: 0.95rem;
-  }
-  input:focus {
     outline: none;
-    border-color: #38bdf8;
+    transition: all 0.2s ease;
   }
-  .result-box {
-    margin-top: 20px;
+
+  input:focus, select:focus {
+    border-color: var(--accent-blue);
     background: rgba(56, 189, 248, 0.08);
-    border: 1px solid #38bdf8;
-    border-radius: 12px;
+  }
+
+  select option {
+    background: #161e2e;
+    color: #fff;
+  }
+
+  .full-width {
+    grid-column: 1 / -1;
+  }
+
+  .result-card {
+    margin-top: 20px;
+    background: rgba(56, 189, 248, 0.06);
+    border: 1px solid var(--accent-blue);
+    border-radius: 14px;
     padding: 20px;
   }
-  .result-text {
-    font-size: 1.05rem;
-    line-height: 1.8;
-    min-height: 60px;
-    white-space: pre-wrap;
+
+  .result-title {
+    font-size: 0.9rem;
+    color: var(--accent-blue);
+    font-weight: 700;
+    margin-bottom: 10px;
   }
-  button {
+
+  .result-text {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #ffffff;
+    min-height: 70px;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+
+  .btn-group {
     margin-top: 15px;
-    background: #38bdf8;
+    display: flex;
+    gap: 10px;
+  }
+
+  button {
+    background: var(--accent-blue);
     color: #0b0f19;
     border: none;
-    padding: 10px 20px;
+    padding: 10px 22px;
     border-radius: 20px;
     font-weight: 700;
     cursor: pointer;
-    transition: 0.2s;
+    font-size: 0.92rem;
+    transition: all 0.2s ease;
   }
+
   button:hover {
     background: #7dd3fc;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+  }
+
+  button.secondary {
+    background: rgba(255,255,255,0.1);
+    color: var(--text-main);
+  }
+
+  button.secondary:hover {
+    background: rgba(255,255,255,0.2);
   }
 </style>
 </head>
 <body>
 
-<h2>🌀 熱帶氣旋消息生成器</h2>
+<h2>🌀 熱帶氣旋消息自動生成器</h2>
 
 <div class="form-grid">
+  <!-- 1. 時間 -->
   <div class="field-group">
-    <label>時間</label>
-    <input type="text" id="time" placeholder="20:00" oninput="generateText()">
+    <label>發佈時間 (HH:MM)</label>
+    <input type="text" id="time" placeholder="例如：20:00" oninput="generateText()">
   </div>
+
+  <!-- 2. 強度簡寫 -->
   <div class="field-group">
-    <label>氣旋名稱 / 強度</label>
-    <input type="text" id="tcName" placeholder="強烈熱帶風暴「瑪莉亞」" oninput="generateText()">
+    <label>強度簡寫 (Intensity)</label>
+    <select id="intensity" onchange="generateText()">
+      <option value="">-- 請選擇強度 --</option>
+      <option value="LPA">LPA (低壓區)</option>
+      <option value="TD">TD (熱帶低氣壓)</option>
+      <option value="TS">TS (熱帶風暴)</option>
+      <option value="STS">STS (強烈熱帶風暴)</option>
+      <option value="TY">TY (颱風)</option>
+      <option value="STY">STY (強颱風)</option>
+      <option value="SuTY">SuTY (超強颱風)</option>
+      <option value="Ex">Ex (溫帶氣旋)</option>
+    </select>
   </div>
+
+  <!-- 3. 氣旋名稱 -->
   <div class="field-group">
-    <label>方位</label>
-    <input type="text" id="direction" placeholder="東南偏南" oninput="generateText()">
+    <label>氣旋名稱 (140官方名單/可自訂)</label>
+    <input type="text" id="tcName" list="tcNameList" placeholder="輸入或選擇名稱（如：瑪莉亞）" oninput="generateText()">
+    <datalist id="tcNameList"></datalist>
   </div>
+
+  <!-- 4. 方位 -->
   <div class="field-group">
-    <label>距離 (公里)</label>
-    <input type="text" id="distance" placeholder="380" oninput="generateText()">
+    <label>相對澳門方位 (Direction)</label>
+    <select id="direction" onchange="generateText()">
+      <option value="">-- 請選擇方位 --</option>
+      <option value="N">N (北)</option>
+      <option value="NNE">NNE (東北偏北)</option>
+      <option value="NE">NE (東北)</option>
+      <option value="ENE">ENE (東北偏東)</option>
+      <option value="E">E (東)</option>
+      <option value="ESE">ESE (東南偏東)</option>
+      <option value="SE">SE (東南)</option>
+      <option value="SSE">SSE (東南偏南)</option>
+      <option value="S">S (南)</option>
+      <option value="SSW">SSW (西南偏南)</option>
+      <option value="SW">SW (西南)</option>
+      <option value="WSW">WSW (西南偏西)</option>
+      <option value="W">W (西)</option>
+      <option value="WNW">WNW (西北偏西)</option>
+      <option value="NW">NW (西北)</option>
+      <option value="NNW">NNW (西北偏北)</option>
+    </select>
   </div>
+
+  <!-- 5. 距離 -->
   <div class="field-group">
-    <label>北緯 (度)</label>
-    <input type="text" id="lat" placeholder="19.5" oninput="generateText()">
+    <label>距離澳門 (公里)</label>
+    <input type="number" id="distance" placeholder="例如：380" oninput="generateText()">
   </div>
+
+  <!-- 6. 緯度 -->
   <div class="field-group">
-    <label>東經 (度)</label>
-    <input type="text" id="lng" placeholder="114.2" oninput="generateText()">
+    <label>北緯 (°N)</label>
+    <input type="text" id="lat" placeholder="例如：19.5" oninput="generateText()">
   </div>
+
+  <!-- 7. 經度 -->
   <div class="field-group">
-    <label>最高風速 (km/h)</label>
-    <input type="text" id="windSpeed" placeholder="105" oninput="generateText()">
+    <label>東經 (°E)</label>
+    <input type="text" id="lng" placeholder="例如：114.2" oninput="generateText()">
   </div>
+
+  <!-- 8. 中心風速 -->
   <div class="field-group">
-    <label>移動方向</label>
-    <input type="text" id="moveDir" placeholder="西北偏西" oninput="generateText()">
+    <label>中心最高風速 (km/h)</label>
+    <input type="number" id="windSpeed" placeholder="例如：105" oninput="generateText()">
   </div>
+
+  <!-- 9. 移動方向 -->
+  <div class="field-group">
+    <label>移動方向 (Moving Dir)</label>
+    <select id="moveDir" onchange="generateText()">
+      <option value="">-- 請選擇移動方向 --</option>
+      <option value="N">N (向北)</option>
+      <option value="NNE">NNE (向東北偏北)</option>
+      <option value="NE">NE (向東北)</option>
+      <option value="ENE">ENE (向東北偏東)</option>
+      <option value="E">E (向東)</option>
+      <option value="ESE">ESE (向東南偏東)</option>
+      <option value="SE">SE (向東南)</option>
+      <option value="SSE">SSE (向東南偏南)</option>
+      <option value="S">S (向南)</option>
+      <option value="SSW">SSW (向西南偏南)</option>
+      <option value="SW">SW (向西南)</option>
+      <option value="WSW">WSW (向西南偏西)</option>
+      <option value="W">W (向西)</option>
+      <option value="WNW">WNW (向西北偏西)</option>
+      <option value="NW">NW (向西北)</option>
+      <option value="NNW">NNW (向西北偏北)</option>
+    </select>
+  </div>
+
+  <!-- 10. 移動時速 -->
   <div class="field-group">
     <label>移動時速 (km/h)</label>
-    <input type="text" id="moveSpeed" placeholder="18" oninput="generateText()">
+    <input type="number" id="moveSpeed" placeholder="例如：18" oninput="generateText()">
   </div>
-  <div class="field-group" style="grid-column: 1 / -1;">
+
+  <!-- 11. 備註動向 -->
+  <div class="field-group full-width">
     <label>動向 / 趨勢備註</label>
-    <input type="text" id="remark" placeholder="大致趨向廣東西部沿岸" oninput="generateText()">
+    <input type="text" id="remark" placeholder="例如：大致趨向廣東西部沿岸 / 滯留不動" oninput="generateText()">
   </div>
 </div>
 
-<div class="result-box">
-  <div class="result-text" id="output">填寫上方表格以生成內文...</div>
-  <button onclick="copyToClipboard()">複製文字</button>
+<div class="result-card">
+  <div class="result-title">📋 預覽內文 (即時生成)：</div>
+  <div class="result-text" id="outputText">填寫上方數據即可自動生成...</div>
+  
+  <div class="btn-group">
+    <button onclick="copyResult()">複製內文</button>
+    <button class="secondary" onclick="resetForm()">重置表格</button>
+  </div>
 </div>
 
 <script>
-function generateText() {
-  const time = document.getElementById('time').value || '____';
-  const name = document.getElementById('tcName').value || '________';
-  const dir = document.getElementById('direction').value || '____';
-  const dist = document.getElementById('distance').value || '____';
-  const lat = document.getElementById('lat').value || '____';
-  const lng = document.getElementById('lng').value || '____';
-  const wind = document.getElementById('windSpeed').value || '____';
-  const moveDir = document.getElementById('moveDir').value || '____';
-  const moveSpeed = document.getElementById('moveSpeed').value || '____';
-  const remark = document.getElementById('remark').value || '____';
+// 1. 方位映射表 (英 -> 中)
+const dirMap = {
+  'N': '北',
+  'NNE': '東北偏北',
+  'NE': '東北',
+  'ENE': '東北偏東',
+  'E': '東',
+  'ESE': '東南偏東',
+  'SE': '東南',
+  'SSE': '東南偏南',
+  'S': '南',
+  'SSW': '西南偏南',
+  'SW': '西南',
+  'WSW': '西南偏西',
+  'W': '西',
+  'WNW': '西北偏西',
+  'NW': '西北',
+  'NNW': '西北偏北'
+};
 
-  const text = `在 ${time} 時，${name}集結在澳門${dir}約 ${dist} 公里，即在北緯 ${lat} 度，東經 ${lng} 度附近，其中心附近最高持續風速約為每小時 ${wind} 公里，向 ${moveDir} 移動，時速 ${moveSpeed} 公里，${remark}。`;
+// 2. 強度映射表 (簡寫 -> 中文名稱)
+const intensityMap = {
+  'LPA': '低壓區',
+  'TD': '熱帶低氣壓',
+  'TS': '熱帶風暴',
+  'STS': '強烈熱帶風暴',
+  'TY': '颱風',
+  'STY': '強颱風',
+  'SuTY': '超強颱風',
+  'Ex': '溫帶氣旋'
+};
 
-  document.getElementById('output').innerText = text;
+// 3. 官方 140 個熱帶氣旋名稱名單
+const officialTcNames = [
+  "達維", "高基", "娜基莉", "科羅旺", "翠絲", "天馬", "銀杏", "風神", "杜鵑", "木蘭",
+  "鴻雁", "簡古維", "海鷗", "舒力基", "米雷", "鴛鴦", "點心", "鳳凰", "彩雲", "青馬",
+  "小犬", "希比", "天琴", "小熊", "蝎虎", "布拉萬", "帕布", "洛鞍", "薔琵", "坡鹿",
+  "三巴", "蝴蝶", "西望洋", "煙花", "梅花", "杰拉華", "聖帕", "鸚鵡", "查帕卡", "苗柏",
+  "蒂魯", "木恩", "森拉克", "尼伯特", "南瑪都", "馬力斯", "丹娜絲", "黑格比", "盧碧", "塔拉斯",
+  "格美", "百合", "薔薇", "銀河", "核桃", "派比安", "韋帕", "米克拉", "妮妲", "玫瑰",
+  "瑪莉亞", "範斯高", "海高斯", "奧麥斯", "洛克", "山神", "竹節草", "巴威", "浮蓮", "桑卡",
+  "安比", "羅莎", "美殺克", "燦都", "納沙", "悟空", "白鹿", "海神", "電母", "海棠",
+  "雲雀", "楊柳", "紅霞", "蒲公英", "蜻蜓", "珊珊", "玲玲", "白海豚", "獅子山", "榕樹",
+  "船尾", "劍魚", "鯨魚", "道璣", "山貓", "麗琵", "藍湖", "燦鴻", "南川", "帕卡",
+  "貝碧嘉", "琵琶", "琵鷺", "瑪瑙", "珊瑚", "普拉桑", "塔巴", "浪卡", "妮亞圖", "瑪娃",
+  "蘇力", "米娜", "沙德爾", "沙布爾", "古超", "西馬侖", "樺加沙", "紫檀", "阿穆丘", "泰利",
+  "娜尼", "浣熊", "簡拉維", "古莎莉", "布里", "布拉帕", "博羅依", "艾莎尼", "暹芭", "卡努",
+  "百里嘉", "麥德姆", "艾濤", "艾利", "蘭恩", "花斑", "夏浪", "班朗", "桑達", "海星"
+];
+
+// 初始化加載 140 個名字到 datalist 下拉提示
+window.addEventListener('DOMContentLoaded', () => {
+  const dataList = document.getElementById('tcNameList');
+  officialTcNames.forEach(name => {
+    const opt = document.createElement('option');
+    opt.value = name;
+    dataList.appendChild(opt);
+  });
+});
+
+// 自動組合氣旋全名 (例如: 強烈熱帶風暴「瑪莉亞」 或 熱帶低氣壓)
+function getCombinedTcName(intensityKey, rawName) {
+  const intensityZh = intensityMap[intensityKey] || "";
+  const cleanName = rawName.trim();
+
+  if (!intensityZh && !cleanName) return "________";
+  
+  // 如果沒有名稱，或屬於熱帶低氣壓/低壓區，通常不帶名字
+  if (!cleanName || intensityKey === 'TD' || intensityKey === 'LPA') {
+    return intensityZh || cleanName;
+  }
+  
+  // 有名稱 + 有強度
+  return `${intensityZh}「${cleanName}」`;
 }
 
-function copyToClipboard() {
-  const text = document.getElementById('output').innerText;
-  navigator.clipboard.writeText(text);
-  alert('已成功複製到剪貼簿！');
+// 主生成邏輯
+function generateText() {
+  const time = document.getElementById('time').value.trim() || "____";
+  const intensityKey = document.getElementById('intensity').value;
+  const rawName = document.getElementById('tcName').value;
+  const dirKey = document.getElementById('direction').value;
+  const dist = document.getElementById('distance').value.trim() || "____";
+  const lat = document.getElementById('lat').value.trim() || "____";
+  const lng = document.getElementById('lng').value.trim() || "____";
+  const wind = document.getElementById('windSpeed').value.trim() || "____";
+  const moveDirKey = document.getElementById('moveDir').value;
+  const moveSpeed = document.getElementById('moveSpeed').value.trim() || "____";
+  const remark = document.getElementById('remark').value.trim() || "____";
+
+  // 轉換方位英數 -> 中文
+  const dirZh = dirMap[dirKey] || "____";
+  const moveDirZh = dirMap[moveDirKey] || "____";
+
+  // 轉換氣旋中文稱呼
+  const combinedName = getCombinedTcName(intensityKey, rawName);
+
+  // 套用模板
+  const fullSentence = `在 ${time} 時，${combinedName}集結在澳門${dirZh}約 ${dist} 公里，即在北緯 ${lat} 度，東經 ${lng} 度附近，其中心附近最高持續風速約為每小時 ${wind} 公里，向 ${moveDirZh} 移動，時速 ${moveSpeed} 公里，${remark}。`;
+
+  document.getElementById('outputText').innerText = fullSentence;
+}
+
+// 複製文本
+function copyResult() {
+  const text = document.getElementById('outputText').innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('已成功複製內文到剪貼簿！');
+  }).catch(err => {
+    alert('複製失敗，請手動選取複製。');
+  });
+}
+
+// 重置表格
+function resetForm() {
+  document.querySelectorAll('input').forEach(i => i.value = '');
+  document.querySelectorAll('select').forEach(s => s.selectedIndex = 0);
+  generateText();
 }
 </script>
 
