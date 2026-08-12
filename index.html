@@ -897,7 +897,7 @@ async function loadForecastXML() {
     if (todayDesc) {
       let todayHtml = "";
       if (todayValid) {
-        todayHtml += `<div class="valid-for-tag">有效時間：${todayValid}</div>`;
+        todayHtml += `<div class="valid-for-tag">${todayValid}</div>`;
       }
       todayHtml += todayDesc.replaceAll("\n", "<br>");
       document.getElementById("tab1").innerHTML = todayHtml;
@@ -907,7 +907,7 @@ async function loadForecastXML() {
     if (tomorrowDesc) {
       let tomorrowHtml = "";
       if (tomorrowValid) {
-        tomorrowHtml += `<div class="valid-for-tag">有效時間：${tomorrowValid}</div>`;
+        tomorrowHtml += `<div class="valid-for-tag">${tomorrowValid}</div>`;
       }
       tomorrowHtml += tomorrowDesc.replaceAll("\n", "<br>");
       document.getElementById("tab2").innerHTML = tomorrowHtml;
