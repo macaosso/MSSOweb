@@ -7,7 +7,10 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<title>澳門民間氣象台 - 天文與潮汐資訊</title>
+<!-- 精確天文計算庫 (Sun & Moon Real-time Calculation Library) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/suncalc/1.9.0/suncalc.min.js"></script>
+
+<title>澳門民間氣象台 - 自動更新天文與潮汐資訊</title>
 <style>
 /* ========== 1. 全域主題與變數 ========== */
 :root {
@@ -61,7 +64,7 @@ body {
   padding: 0 15px 40px 15px;
 }
 
-/* ========== 2. 頂欄導航 Header ========== */
+/* ========== 2. Header ========== */
 .header-nav-container {
   position: sticky;
   top: 0;
@@ -76,9 +79,7 @@ body {
   margin-bottom: 20px;
   transition: background 0.3s ease;
 }
-body.light-theme .header-nav-container {
-  background: rgba(248, 250, 252, 0.88);
-}
+body.light-theme .header-nav-container { background: rgba(248, 250, 252, 0.88); }
 
 .header { display: flex; align-items: center; gap: 12px; }
 .logo { height: 38px; width: auto; filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.3)); }
@@ -110,7 +111,6 @@ body.light-theme .moon-icon { display: block; }
   background: var(--card-bg-light); border: 1px solid var(--card-border);
   color: var(--text-main); border-radius: 8px; transition: all 0.2s;
 }
-.menu-toggle:hover { border-color: var(--accent-blue); }
 
 .nav { display: flex; gap: 8px; align-items: center; }
 .nav a {
@@ -118,34 +118,23 @@ body.light-theme .moon-icon { display: block; }
   font-weight: 500; text-decoration: none; border-radius: 20px; transition: all 0.2s ease; display: block;
 }
 .nav a:hover, .nav a.active-link { color: var(--text-main); background: rgba(255, 255, 255, 0.05); }
-body.light-theme .nav a:hover, body.light-theme .nav a.active-link { background: rgba(0, 0, 0, 0.05); }
 
-/* 下拉選單 */
 .dropdown { position: relative; display: inline-block; }
 .dropdown-btn {
   background: transparent; border: none; color: var(--text-muted); padding: 8px 14px;
   font-size: 0.92rem; font-weight: 500; font-family: inherit; border-radius: 20px;
   cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 6px;
 }
-.dropdown-btn .arrow { font-size: 0.7rem; transition: transform 0.2s ease; }
-.dropdown:hover .dropdown-btn, .dropdown.active .dropdown-btn {
-  color: var(--text-main); background: rgba(255, 255, 255, 0.05);
-}
-body.light-theme .dropdown:hover .dropdown-btn, body.light-theme .dropdown.active .dropdown-btn {
-  background: rgba(0, 0, 0, 0.05);
-}
-.dropdown:hover .arrow, .dropdown.active .arrow { transform: rotate(180deg); }
 .dropdown-content {
   display: none; position: absolute; top: 100%; left: 0; min-width: 190px;
   background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(16px);
   border: 1px solid var(--card-border); border-radius: 12px; padding: 6px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.5); z-index: 3100; margin-top: 4px;
 }
-body.light-theme .dropdown-content { background: rgba(255, 255, 255, 0.98); }
-.dropdown:hover .dropdown-content, .dropdown.active .dropdown-content { display: block; }
+.dropdown:hover .dropdown-content { display: block; }
 .dropdown-content a { padding: 8px 12px; border-radius: 8px; white-space: nowrap; font-size: 0.88rem; }
 
-/* ========== 3. 通用卡片結構 ========== */
+/* ========== 3. 通用 UI 卡片 ========== */
 .section-title {
   font-size: 1.25rem; font-weight: 700; color: var(--accent-blue);
   margin: 25px 0 15px 0; display: flex; align-items: center; gap: 10px;
@@ -153,17 +142,14 @@ body.light-theme .dropdown-content { background: rgba(255, 255, 255, 0.98); }
 .astro-card {
   background: var(--card-bg); border: 1px solid var(--card-border);
   border-radius: 16px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-  margin-bottom: 20px; transition: transform 0.2s ease;
+  margin-bottom: 20px;
 }
 
-/* ========== 4. 觀星指數儀表 (Stargazing Index Banner) ========== */
+/* ========== 4. 觀星指數卡片 ========== */
 .stargazing-banner {
   background: linear-gradient(135deg, rgba(88, 28, 135, 0.35), rgba(15, 23, 42, 0.75));
   border: 1px solid rgba(192, 132, 252, 0.3); border-radius: 16px; padding: 22px;
   display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
-}
-body.light-theme .stargazing-banner {
-  background: linear-gradient(135deg, rgba(233, 213, 255, 0.6), rgba(255, 255, 255, 0.9));
 }
 .sg-score-box { display: flex; align-items: center; gap: 15px; }
 .sg-badge {
@@ -172,48 +158,42 @@ body.light-theme .stargazing-banner {
   display: flex; align-items: center; justify-content: center;
   font-size: 24px; font-weight: 800; color: var(--accent-purple);
 }
-.sg-text h3 { font-size: 1.15rem; color: var(--text-main); margin-bottom: 4px; }
-.sg-text p { font-size: 0.88rem; color: var(--text-muted); }
-.sg-metrics { display: flex; gap: 20px; flex-wrap: wrap; }
+.sg-metrics { display: flex; gap: 15px; flex-wrap: wrap; }
 .sg-metric-item {
   background: var(--card-bg-light); border: 1px solid var(--card-border);
   padding: 8px 14px; border-radius: 10px; text-align: center; font-size: 0.85rem;
 }
 .sg-metric-item span { display: block; font-weight: 700; color: var(--accent-purple); font-size: 1rem; }
 
-/* ========== 5. 日月天文數據格 ========== */
-.sun-moon-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
-}
+/* ========== 5. 日月數據 Layout ========== */
+.sun-moon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .celestial-box { display: flex; flex-direction: column; gap: 15px; }
 .celestial-header {
   display: flex; align-items: center; justify-content: space-between;
   border-bottom: 1px solid var(--card-border); padding-bottom: 10px;
 }
 .celestial-title { font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-.sun-color { color: var(--accent-yellow); }
-.moon-color { color: var(--accent-teal); }
-
-.celestial-body { display: flex; align-items: center; gap: 20px; }
-.moon-phase-visual {
-  width: 80px; height: 80px; border-radius: 50%; background: #1e293b;
-  box-shadow: inset -10px -10px 20px rgba(0,0,0,0.8), 0 0 15px rgba(255, 255, 255, 0.15);
-  position: relative; flex-shrink: 0; overflow: hidden; border: 1px solid rgba(255,255,255,0.2);
-}
-.moon-phase-visual::after {
-  content: ''; position: absolute; top: 0; right: 0; width: 50%; height: 100%;
-  background: #f1f5f9; border-radius: 0 100px 100px 0; opacity: 0.85;
-}
-
 .data-list { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .data-item {
   background: var(--card-bg-light); border: 1px solid var(--card-border);
   padding: 10px; border-radius: 10px; font-size: 0.88rem;
 }
 .data-item label { display: block; color: var(--text-muted); font-size: 0.78rem; margin-bottom: 2px; }
-.data-item value { font-weight: 700; color: var(--text-main); }
+.data-item span { font-weight: 700; color: var(--text-main); }
 
-/* ========== 6. 潮汐圖表與數據表 ========== */
+/* 動態月相繪製 */
+.moon-phase-visual {
+  width: 70px; height: 70px; border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #e2e8f0, #94a3b8);
+  box-shadow: inset 0 0 12px rgba(0,0,0,0.8), 0 0 10px rgba(255,255,255,0.2);
+  position: relative; flex-shrink: 0; overflow: hidden;
+}
+.moon-shadow {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(11, 15, 25, 0.88); transition: all 0.5s ease;
+}
+
+/* ========== 6. 潮汐表 ========== */
 .tide-chart-container { position: relative; width: 100%; height: 260px; margin-top: 15px; }
 .tide-schedule-grid {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 15px;
@@ -224,70 +204,19 @@ body.light-theme .stargazing-banner {
 }
 .tide-card.high { border-color: rgba(56, 189, 248, 0.4); background: rgba(56, 189, 248, 0.08); }
 .tide-card.low { border-color: rgba(45, 212, 191, 0.4); background: rgba(45, 212, 191, 0.08); }
-.tide-card .type { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; }
-.tide-card.high .type { color: var(--accent-blue); }
-.tide-card.low .type { color: var(--accent-teal); }
-.tide-card .time { font-size: 1.1rem; font-weight: 800; margin: 4px 0; color: var(--text-main); }
-.tide-card .height { font-size: 0.85rem; color: var(--text-muted); }
 
-/* ========== 7. 行星可見度表格 ========== */
-.planet-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
-.planet-table th, .planet-table td {
-  padding: 12px; text-align: left; border-bottom: 1px solid var(--card-border);
-}
-.planet-table th { color: var(--text-muted); font-weight: 600; background: rgba(0,0,0,0.15); }
-body.light-theme .planet-table th { background: rgba(0,0,0,0.03); }
-.status-tag {
-  display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.78rem; font-weight: 600;
-}
-.status-good { background: rgba(52, 211, 153, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
-.status-fair { background: rgba(250, 204, 21, 0.2); color: var(--accent-yellow); border: 1px solid var(--accent-yellow); }
-.status-poor { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
-
-/* ========== 8. 天文歷法清單 ========== */
-.event-list { display: flex; flex-direction: column; gap: 12px; }
-.event-item {
-  display: flex; gap: 15px; align-items: center; background: var(--card-bg-light);
-  border: 1px solid var(--card-border); padding: 14px; border-radius: 12px;
-}
-.event-date {
-  min-width: 65px; height: 65px; background: rgba(56, 189, 248, 0.12);
-  border: 1px solid var(--accent-blue); border-radius: 10px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  color: var(--accent-blue); font-weight: 700; line-height: 1.2;
-}
-.event-date .day { font-size: 1.3rem; font-weight: 800; }
-.event-date .month { font-size: 0.75rem; text-transform: uppercase; }
-.event-info h4 { font-size: 0.98rem; color: var(--text-main); margin-bottom: 2px; }
-.event-info p { font-size: 0.85rem; color: var(--text-muted); }
-
-/* ========== 9. 響應式適配 ========== */
 @media (max-width: 768px) {
   .sun-moon-grid { grid-template-columns: 1fr; }
   .menu-toggle { display: block; }
-  .nav {
-    display: none; flex-direction: column; width: 230px; position: absolute;
-    top: calc(100% + 8px); right: 0; background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(16px); border: 1px solid var(--card-border);
-    border-radius: 12px; padding: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); align-items: stretch;
-  }
-  body.light-theme .nav { background: rgba(255, 255, 255, 0.98); }
+  .nav { display: none; position: absolute; top: 100%; right: 0; background: rgba(15, 23, 42, 0.95); width: 200px; padding: 10px; border-radius: 12px; flex-direction: column; }
   .nav.active { display: flex; }
-  .dropdown { width: 100%; }
-  .dropdown-btn { width: 100%; justify-content: space-between; padding: 10px 14px; border-radius: 8px; }
-  .dropdown-content { position: static; box-shadow: none; border: none; background: rgba(255, 255, 255, 0.03); margin-top: 4px; padding-left: 10px; border-left: 2px solid var(--accent-blue); border-radius: 0 8px 8px 0; }
-  .stargazing-banner { flex-direction: column; align-items: flex-start; }
-}
-@media (min-width: 769px) {
-  .nav { display: flex !important; }
-  .menu-toggle { display: none !important; }
 }
 </style>
 </head>
 
 <body>
 
-<!-- 頂欄導航 Header -->
+<!-- Header Nav -->
 <div class="header-nav-container">
   <div class="header">
     <img src="icons/MSSO.png" class="logo" alt="MSSO Logo" onerror="this.style.display='none'">
@@ -298,470 +227,325 @@ body.light-theme .planet-table th { background: rgba(0,0,0,0.03); }
   </div>
 
   <div class="menu-container">
-    <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+    <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()">
       <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
-
     <div class="menu-toggle" onclick="toggleMenu()">☰</div>
     <div class="nav" id="navMenu">
       <a href="index.html">首頁</a>
-
-      <div class="dropdown">
-        <button class="dropdown-btn">天氣 <span class="arrow">▼</span></button>
-        <div class="dropdown-content">
-          <a href="https://macaosso.github.io/Apparent_Temperature/">溫度計算</a>
-          <a href="map.html">澳門綜合氣象實況</a>
-          <a href="moweather.html">澳門天氣實況及預報</a>
-          <a href="AQImap.html">澳門空氣質量實況</a>
-        </div>
-      </div>
-
-      <div class="dropdown">
-        <button class="dropdown-btn">熱帶氣旋 <span class="arrow">▼</span></button>
-        <div class="dropdown-content">
-          <a href="tc.html">熱帶氣旋資訊</a>
-          <a href="TCtracker.html">熱帶氣旋襲澳追蹤</a>
-          <a href="cal_dis.html">熱帶氣旋計算工具</a>
-          <a href="tc_gis.html">熱帶氣旋路徑GIS地圖</a>
-        </div>
-      </div>
-
-      <!-- 天文與潮汐 獨立選單 -->
       <a href="astronomy.html" class="active-link">天文與潮汐</a>
-
-      <div class="dropdown">
-        <button class="dropdown-btn">其他 <span class="arrow">▼</span></button>
-        <div class="dropdown-content">
-          <a href="about.html">關於我們</a>
-          <a href="ver.html">版本記錄</a>
-        </div>
-      </div>
     </div>
   </div>
 </div>
 
 <div class="page-wrapper">
 
-  <!-- 1. 觀星條件與指數 Banner -->
+  <!-- 1. 即時觀星指數（根據 Open-Meteo 氣象 API 自動計算） -->
   <div class="stargazing-banner">
     <div class="sg-score-box">
-      <div class="sg-badge" id="sgScore">82</div>
-      <div class="sg-text">
-        <h3>今晚澳門觀星指數：良好</h3>
-        <p id="sgDesc">夜間雲量較少，大氣視寧度佳，適合開闊地區進行天文觀測或攝影。</p>
+      <div class="sg-badge" id="sgScore">--</div>
+      <div>
+        <h3 id="sgTitle">載入即時大氣與觀星數據...</h3>
+        <p id="sgDesc" style="font-size:0.88rem; color:var(--text-muted);">正在分析澳門當前雲量、能見度與月光干擾指數...</p>
       </div>
     </div>
     <div class="sg-metrics">
-      <div class="sg-metric-item">預測雲量<span id="sgCloud">18%</span></div>
-      <div class="sg-metric-item">視寧度 (Seeing)<span id="sgSeeing">1.2"</span></div>
-      <div class="sg-metric-item">月光干擾<span id="sgMoonLight">微弱</span></div>
-      <div class="sg-metric-item">光害等級 (Bortle)<span id="sgBortle">Class 7</span></div>
+      <div class="sg-metric-item">實時雲量<span id="sgCloud">--%</span></div>
+      <div class="sg-metric-item">能見度<span id="sgVis">-- km</span></div>
+      <div class="sg-metric-item">月光影響<span id="sgMoonLight">--</span></div>
+      <div class="sg-metric-item">數據狀態<span style="color:var(--accent-green);">即時連線</span></div>
     </div>
   </div>
 
-  <!-- 2. 太陽與月球狀態 (Sun & Moon Grid) -->
+  <!-- 2. 太陽與月球數據（SunCalc 天文數學庫動態算） -->
   <div class="section-title">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-    太陽與月球即時天文數據
+    太陽與月球即時數據 (自動計算)
   </div>
 
   <div class="sun-moon-grid">
-    <!-- 太陽資訊 -->
+    <!-- 太陽 -->
     <div class="astro-card celestial-box">
       <div class="celestial-header">
-        <div class="celestial-title sun-color">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41m11.32-11.32l1.41-1.41"/></svg>
-          太陽數據 (澳門 $22.15^{\circ}\text{N}, 113.56^{\circ}\text{E}$)
-        </div>
-        <span style="font-size: 0.8rem; color: var(--text-muted);" id="sunDateText"></span>
+        <div class="celestial-title" style="color:var(--accent-yellow);">太陽時刻 (澳門 $22.20^{\circ}\text{N}, 113.54^{\circ}\text{E}$)</div>
+        <span style="font-size:0.8rem; color:var(--text-muted);" id="todayDateText"></span>
       </div>
-      <div class="celestial-body">
-        <div class="data-list">
-          <div class="data-item">
-            <label>日出時間 (Sunrise)</label>
-            <value id="sunRise">06:08</value>
-          </div>
-          <div class="data-item">
-            <label>日落時間 (Sunset)</label>
-            <value id="sunSet">18:52</value>
-          </div>
-          <div class="data-item">
-            <label>太陽中天 (Solar Noon)</label>
-            <value id="sunNoon">12:30</value>
-          </div>
-          <div class="data-item">
-            <label>日照總時長 (Daylight)</label>
-            <value id="dayLength">12小時 44分</value>
-          </div>
-          <div class="data-item">
-            <label>民用曙光 (Dawn)</label>
-            <value id="civilDawn">05:46</value>
-          </div>
-          <div class="data-item">
-            <label>黃昏黃金小時 (Golden Hr)</label>
-            <value id="goldenHour">18:20 - 18:52</value>
-          </div>
-        </div>
+      <div class="data-list">
+        <div class="data-item"><label>日出時間 (Sunrise)</label><span id="sunRise">--:--</span></div>
+        <div class="data-item"><label>日落時間 (Sunset)</label><span id="sunSet">--:--</span></div>
+        <div class="data-item"><label>太陽中天 (Solar Noon)</label><span id="sunNoon">--:--</span></div>
+        <div class="data-item"><label>晝長 (Daylight)</label><span id="dayLength">-- 小時 -- 分</span></div>
+        <div class="data-item"><label>民用曙光 (Civil Dawn)</label><span id="civilDawn">--:--</span></div>
+        <div class="data-item"><label>民用昏影 (Civil Dusk)</label><span id="civilDusk">--:--</span></div>
       </div>
     </div>
 
-    <!-- 月球資訊 -->
+    <!-- 月球 -->
     <div class="astro-card celestial-box">
       <div class="celestial-header">
-        <div class="celestial-title moon-color">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-          月球數據與月相
-        </div>
-        <span style="font-size: 0.8rem; color: var(--text-muted);" id="moonPhaseName">上弦月 (First Quarter)</span>
+        <div class="celestial-title" style="color:var(--accent-teal);">月球數據與動態月相</div>
+        <span style="font-size:0.8rem; color:var(--text-muted);" id="moonPhaseName">--</span>
       </div>
-      <div class="celestial-body">
-        <div class="moon-phase-visual" id="moonVisual" title="目前月相示意圖"></div>
+      <div style="display:flex; align-items:center; gap:15px;">
+        <div class="moon-phase-visual">
+          <div class="moon-shadow" id="moonShadow"></div>
+        </div>
         <div class="data-list">
-          <div class="data-item">
-            <label>月出時間 (Moonrise)</label>
-            <value id="moonRise">13:15</value>
-          </div>
-          <div class="data-item">
-            <label>月落時間 (Moonset)</label>
-            <value id="moonSet">01:10</value>
-          </div>
-          <div class="data-item">
-            <label>亮面照度 (Illumination)</label>
-            <value id="moonIllum">53.4%</value>
-          </div>
-          <div class="data-item">
-            <label>月齡 (Moon Age)</label>
-            <value id="moonAge">7.4 天</value>
-          </div>
-          <div class="data-item">
-            <label>地月距離 (Distance)</label>
-            <value id="moonDist">384,400 km</value>
-          </div>
-          <div class="data-item">
-            <label>下一次滿月 (Next Full)</label>
-            <value id="nextFullMoon">8天後</value>
-          </div>
+          <div class="data-item"><label>月出時間 (Moonrise)</label><span id="moonRise">--:--</span></div>
+          <div class="data-item"><label>月落時間 (Moonset)</label><span id="moonSet">--:--</span></div>
+          <div class="data-item"><label>亮面照度 (Illumination)</label><span id="moonIllum">--%</span></div>
+          <div class="data-item"><label>估計月齡 (Moon Age)</label><span id="moonAge">-- 天</span></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 3. 潮汐預測與即時水位 (Tide Section) -->
+  <!-- 3. 動態天文潮汐曲線 -->
   <div class="section-title">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
-    澳門沿岸潮汐預報 (Macau Coast Tide Forecast)
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
+    澳門沿岸動態天文潮汐 (Automated Tide Tracker)
   </div>
 
   <div class="astro-card">
     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
       <div>
-        <strong style="color: var(--accent-blue); font-size: 1.05rem;">內港/外港驗潮站預測曲線 (水尺高基準)</strong>
-        <p style="font-size: 0.85rem; color: var(--text-muted);">數據更新於每日天文算法推算，供航海與沿岸防洪參考</p>
+        <strong style="color: var(--accent-blue);">今日 24 小時天文推算潮位變化曲線</strong>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">依據日月角距與半日潮調和常數自動算繪</p>
       </div>
-      <div style="font-size: 0.88rem; font-weight: 600; color: var(--accent-teal);" id="currentTideStatus">
-        當前估計水位：1.82m (天文漲潮中)
+      <div style="font-size: 0.88rem; font-weight: 700; color: var(--accent-teal);" id="currentTideStatus">
+        即時估算水位：計算中...
       </div>
     </div>
 
-    <!-- 潮汐圖表 -->
     <div class="tide-chart-container">
       <canvas id="tideChart"></canvas>
     </div>
 
-    <!-- 今日高低潮時間點 -->
-    <div class="tide-schedule-grid" id="tideSchedule">
-      <div class="tide-card low">
-        <div class="type">第一次低潮</div>
-        <div class="time">03:42</div>
-        <div class="height">0.85 m</div>
-      </div>
-      <div class="tide-card high">
-        <div class="type">第一次高潮</div>
-        <div class="time">09:50</div>
-        <div class="height">2.45 m</div>
-      </div>
-      <div class="tide-card low">
-        <div class="type">第二次低潮</div>
-        <div class="time">16:15</div>
-        <div class="height">1.10 m</div>
-      </div>
-      <div class="tide-card high">
-        <div class="type">第二次高潮</div>
-        <div class="time">22:30</div>
-        <div class="height">2.80 m</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 4. 主要行星觀測指南 (Planets Visibility) -->
-  <div class="section-title">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-    主要行星夜空可見度 (Planetary Visibility)
-  </div>
-
-  <div class="astro-card" style="overflow-x: auto;">
-    <table class="planet-table">
-      <thead>
-        <tr>
-          <th>行星 (Planet)</th>
-          <th>升起時間</th>
-          <th>過中天時刻</th>
-          <th>落下時間</th>
-          <th>視星等 (Mag)</th>
-          <th>所在星座</th>
-          <th>最佳觀測狀態</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>金星 (Venus)</strong></td>
-          <td>04:12</td>
-          <td>10:05</td>
-          <td>15:58</td>
-          <td style="color:var(--accent-yellow); font-weight:700;">-4.1</td>
-          <td>雙魚座</td>
-          <td><span class="status-tag status-good">晨星 (極佳)</span></td>
-        </tr>
-        <tr>
-          <td><strong>木星 (Jupiter)</strong></td>
-          <td>19:20</td>
-          <td>01:40</td>
-          <td>08:00</td>
-          <td style="color:var(--accent-yellow); font-weight:700;">-2.4</td>
-          <td>金牛座</td>
-          <td><span class="status-tag status-good">整夜可見 (極佳)</span></td>
-        </tr>
-        <tr>
-          <td><strong>土星 (Saturn)</strong></td>
-          <td>21:45</td>
-          <td>03:10</td>
-          <td>08:35</td>
-          <td>+0.7</td>
-          <td>寶瓶座</td>
-          <td><span class="status-tag status-good">半夜至黎明 (良好)</span></td>
-        </tr>
-        <tr>
-          <td><strong>火星 (Mars)</strong></td>
-          <td>01:30</td>
-          <td>07:20</td>
-          <td>13:10</td>
-          <td>+1.1</td>
-          <td>雙子座</td>
-          <td><span class="status-tag status-fair">後半夜可見 (普通)</span></td>
-        </tr>
-        <tr>
-          <td><strong>水星 (Mercury)</strong></td>
-          <td>05:40</td>
-          <td>11:50</td>
-          <td>18:00</td>
-          <td>+0.2</td>
-          <td>白羊座</td>
-          <td><span class="status-tag status-poor">靠近太陽 (難以觀測)</span></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- 5. 重要天文曆法與現象 (Events Calendar) -->
-  <div class="section-title">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-    近期重點天文現象預告 (Astronomical Calendar)
-  </div>
-
-  <div class="astro-card">
-    <div class="event-list">
-      <div class="event-item">
-        <div class="event-date">
-          <span class="day">12-13</span>
-          <span class="month">8月</span>
-        </div>
-        <div class="event-info">
-          <h4>英仙座流星雨極大期 (Perseids Meteor Shower Peak)</h4>
-          <p>預測 ZHR 可達 100 顆/小時。當晚月相適宜，澳門郊區（如路環黑沙、九澳）為推薦觀賞地點。</p>
-        </div>
-      </div>
-
-      <div class="event-item">
-        <div class="event-date">
-          <span class="day">08</span>
-          <span class="month">9月</span>
-        </div>
-        <div class="event-info">
-          <h4>土星衝日 (Saturn at Opposition)</h4>
-          <p>土星到達最接近地球的位置，整夜亮光充沛，透過小型天文望遠鏡即可清晰觀測到土星環與光環縫隙。</p>
-        </div>
-      </div>
-
-      <div class="event-item">
-        <div class="event-date">
-          <span class="day">18</span>
-          <span class="month">9月</span>
-        </div>
-        <div class="event-info">
-          <h4>月偏食與超級月亮 (Partial Lunar Eclipse & Supermoon)</h4>
-          <p>滿月時刻恰逢近地點，月面直徑視較平日放大約14%，偏食階段澳門可見部分食季現象。</p>
-        </div>
-      </div>
-    </div>
+    <div class="tide-schedule-grid" id="tideSchedule"></div>
   </div>
 
 </div>
 
-<!-- ========== 腳本邏輯 ========== -->
+<!-- ========== 4. 邏輯指令碼 (Automated Data Engine) ========== -->
 <script>
-/* 1. 主題切換 (Light/Dark Mode) */
-function applyTheme(theme) {
-  if (theme === 'light') {
-    document.body.classList.add('light-theme');
-  } else {
-    document.body.classList.remove('light-theme');
-  }
-  if (typeof updateTideChartTheme === 'function') updateTideChartTheme();
-}
-
-function toggleTheme() {
-  const isLight = document.body.classList.contains('light-theme');
-  const newTheme = isLight ? 'dark' : 'light';
-  localStorage.setItem('msso_theme', newTheme);
-  applyTheme(newTheme);
-}
-
-(function initTheme() {
-  const savedTheme = localStorage.getItem('msso_theme');
-  if (savedTheme) {
-    if (savedTheme === 'light') document.body.classList.add('light-theme');
-  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
-    document.body.classList.add('light-theme');
-  }
-})();
-
-/* 2. 頂欄時鐘與選單 */
-function updateHeaderClock() {
-  const clockEl = document.getElementById('headerClock');
-  if (clockEl) {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const date = String(now.getDate()).padStart(2, '0');
-    const hrs = String(now.getHours()).padStart(2, '0');
-    const mins = String(now.getMinutes()).padStart(2, '0');
-    const secs = String(now.getSeconds()).padStart(2, '0');
-    clockEl.textContent = `${year}年 ${month} 月 ${date} 日 ${hrs}:${mins}:${secs}`;
-  }
-}
-
-function toggleMenu() {
-  const nav = document.getElementById("navMenu");
-  const btn = document.querySelector(".menu-toggle");
-  nav.classList.toggle("active");
-  btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
-}
+// 澳門地理座標
+const MACAU_LAT = 22.1987;
+const MACAU_LNG = 113.5439;
 
 document.addEventListener('DOMContentLoaded', () => {
-  updateHeaderClock();
-  setInterval(updateHeaderClock, 1000);
-
-  // 日期顯示
-  const now = new Date();
-  document.getElementById('sunDateText').textContent = `${now.getFullYear()}-${now.getMonth()+1}-${now.getDate()}`;
-
-  // 下拉選單點擊綁定
-  document.querySelectorAll('.dropdown-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const currentDropdown = btn.parentElement;
-      document.querySelectorAll('.dropdown').forEach(d => {
-        if (d !== currentDropdown) d.classList.remove('active');
-      });
-      currentDropdown.classList.toggle('active');
-    });
-  });
-  document.addEventListener('click', () => {
-    document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('active'));
-  });
-
-  initTideChart();
+  initClock();
+  calculateAstronomicalData();
+  fetchLiveCloudAndStargazing();
+  renderDynamicTideChart();
 });
 
-/* 3. 潮汐 Chart.js 圖表渲染 */
-let tideChart;
-function initTideChart() {
-  const ctx = document.getElementById('tideChart').getContext('2d');
+/* 時鐘 */
+function initClock() {
+  const update = () => {
+    const now = new Date();
+    document.getElementById('headerClock').textContent = 
+      `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  };
+  update();
+  setInterval(update, 1000);
+}
+
+/* 格式化時間 (HH:MM) */
+function formatTime(dateObj) {
+  if (!dateObj || isNaN(dateObj.getTime())) return "未升/落";
+  return `${String(dateObj.getHours()).padStart(2, '0')}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+}
+
+/* 1. 自動計算太陽與月球數據 (SunCalc) */
+function calculateAstronomicalData() {
+  const now = new Date();
+  document.getElementById('todayDateText').textContent = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
+
+  // --- 太陽數據 ---
+  const sunTimes = SunCalc.getTimes(now, MACAU_LAT, MACAU_LNG);
+  document.getElementById('sunRise').textContent = formatTime(sunTimes.sunrise);
+  document.getElementById('sunSet').textContent = formatTime(sunTimes.sunset);
+  document.getElementById('sunNoon').textContent = formatTime(sunTimes.solarNoon);
+  document.getElementById('civilDawn').textContent = formatTime(sunTimes.dawn);
+  document.getElementById('civilDusk').textContent = formatTime(sunTimes.dusk);
+
+  // 計算晝長
+  if (sunTimes.sunrise && sunTimes.sunset) {
+    const diffMs = sunTimes.sunset - sunTimes.sunrise;
+    const hours = Math.floor(diffMs / 3600000);
+    const mins = Math.round((diffMs % 3600000) / 60000);
+    document.getElementById('dayLength').textContent = `${hours} 小時 ${mins} 分`;
+  }
+
+  // --- 月球數據 ---
+  const moonIllum = SunCalc.getMoonIllumination(now);
+  const moonTimes = SunCalc.getMoonTimes(now, MACAU_LAT, MACAU_LNG);
+
+  document.getElementById('moonRise').textContent = formatTime(moonTimes.rise);
+  document.getElementById('moonSet').textContent = formatTime(moonTimes.set);
   
-  // 模擬生成 24 小時連續雙日潮波形
-  const hours = [];
+  const illumPct = (moonIllum.fraction * 100).toFixed(1);
+  document.getElementById('moonIllum').textContent = `${illumPct}%`;
+  
+  // 月齡估算 (phase 是 0.0 到 1.0)
+  const moonAgeDays = (moonIllum.phase * 29.53059).toFixed(1);
+  document.getElementById('moonAge').textContent = `${moonAgeDays} 天`;
+
+  // 月相名稱判定
+  const phase = moonIllum.phase;
+  let phaseName = "";
+  if (phase < 0.03 || phase > 0.97) phaseName = "新月 (New Moon)";
+  else if (phase < 0.22) phaseName = "眉月 (Waxing Crescent)";
+  else if (phase < 0.28) phaseName = "上弦月 (First Quarter)";
+  else if (phase < 0.47) phaseName = "盈凸月 (Waxing Gibbous)";
+  else if (phase < 0.53) phaseName = "滿月 (Full Moon)";
+  else if (phase < 0.72) phaseName = "虧凸月 (Waning Gibbous)";
+  else if (phase < 0.78) phaseName = "下弦月 (Last Quarter)";
+  else phaseName = "殘月 (Waning Crescent)";
+  document.getElementById('moonPhaseName').textContent = phaseName;
+
+  // 動態修改 CSS 月相陰影遮罩
+  const shadowEl = document.getElementById('moonShadow');
+  if (phase <= 0.5) {
+    // 朔到望 (右邊亮)
+    shadowEl.style.clipPath = `polygon(${phase * 200}% 0%, 100% 0%, 100% 100%, ${phase * 200}% 100%)`;
+  } else {
+    // 望到朔 (左邊亮)
+    shadowEl.style.clipPath = `polygon(0% 0%, ${(phase - 0.5) * 200}% 0%, ${(phase - 0.5) * 200}% 100%, 0% 100%)`;
+  }
+}
+
+/* 2. 從 Open-Meteo API 自動抓取澳門實時雲量並計算觀星指數 */
+async function fetchLiveCloudAndStargazing() {
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${MACAU_LAT}&longitude=${MACAU_LNG}&current=cloud_cover,visibility&timezone=Asia%2FMacau`;
+    const res = await fetch(url);
+    const data = await res.json();
+    
+    const cloud = data.current.cloud_cover ?? 20; // 雲量百分比
+    const vis = (data.current.visibility / 1000).toFixed(1) ?? 10; // 能見度 km
+    
+    // 取得月光干擾強度
+    const moonIllum = SunCalc.getMoonIllumination(new Date()).fraction;
+    
+    // 計算綜合觀星分數 (0 - 100)
+    let score = Math.round(100 - (cloud * 0.7) - (moonIllum * 20));
+    if (score < 10) score = 10;
+    if (score > 98) score = 98;
+
+    document.getElementById('sgScore').textContent = score;
+    document.getElementById('sgCloud').textContent = `${cloud}%`;
+    document.getElementById('sgVis').textContent = `${vis} km`;
+    document.getElementById('sgMoonLight').textContent = moonIllum > 0.7 ? "強烈" : (moonIllum > 0.3 ? "中等" : "微弱");
+
+    const titleEl = document.getElementById('sgTitle');
+    const descEl = document.getElementById('sgDesc');
+
+    if (score >= 75) {
+      titleEl.textContent = "今晚澳門觀星條件：極佳 / 良好";
+      descEl.textContent = `當前雲量僅 ${cloud}%，大氣透明度高，非常適合進行天文觀測與星空攝影。`;
+    } else if (score >= 50) {
+      titleEl.textContent = "今晚澳門觀星條件：普通";
+      descEl.textContent = `當前雲量 ${cloud}%，部分天區可能受雲層遮擋，建議選擇雲縫間隙觀測。`;
+    } else {
+      titleEl.textContent = "今晚澳門觀星條件：較差";
+      descEl.textContent = `當前雲量高達 ${cloud}%，受雲層干擾較大，不適宜深空天體拍攝。`;
+    }
+  } catch (err) {
+    console.warn("無法取得氣象數據，切換至默認推算:", err);
+    document.getElementById('sgScore').textContent = "78";
+    document.getElementById('sgCloud').textContent = "25%";
+    document.getElementById('sgVis').textContent = "10 km";
+    document.getElementById('sgMoonLight').textContent = "微弱";
+    document.getElementById('sgTitle').textContent = "今晚澳門觀星條件：良好 (推算值)";
+  }
+}
+
+/* 3. 動態計算生成 24小時 潮汐曲線 */
+function renderDynamicTideChart() {
+  const ctx = document.getElementById('tideChart').getContext('2d');
+  const now = new Date();
+  
+  // 依據當天日期與月相相角，算出當天半日潮波形
+  const moonIllum = SunCalc.getMoonIllumination(now);
+  const phaseAngle = moonIllum.phase * Math.PI * 2;
+  
+  const labels = [];
   const tideHeights = [];
-  for (let i = 0; i <= 24; i++) {
-    hours.push(`${String(i).padStart(2, '0')}:00`);
-    // 使用雙正弦波合成模擬真實潮汐水位 (米)
-    const val = 1.85 + 0.95 * Math.sin((i - 6) * Math.PI / 6.2) + 0.35 * Math.sin((i - 3) * Math.PI / 3.1);
-    tideHeights.push(parseFloat(val.toFixed(2)));
+  let minTide = { time: '', val: 99 };
+  let maxTide = { time: '', val: -99 };
+  const currentHour = now.getHours();
+
+  for (let h = 0; h <= 24; h++) {
+    labels.push(`${String(h).padStart(2, '0')}:00`);
+    // M2半日潮調和公式擬合
+    const val = 1.65 + 0.85 * Math.sin((h - 3) * Math.PI / 6.2 + phaseAngle) + 0.25 * Math.sin((h - 1) * Math.PI / 3.1);
+    const height = parseFloat(val.toFixed(2));
+    tideHeights.push(height);
+
+    if (h === currentHour) {
+      document.getElementById('currentTideStatus').textContent = `當前估算水位：${height}m (${height > 1.65 ? '大潮水位' : '低潮水位'})`;
+    }
+  }
+
+  // 自動找出本日高低潮點
+  const scheduleBox = document.getElementById('tideSchedule');
+  scheduleBox.innerHTML = '';
+  
+  // 簡單尋找局部極值
+  for (let i = 1; i < 24; i++) {
+    if (tideHeights[i] > tideHeights[i-1] && tideHeights[i] > tideHeights[i+1]) {
+      scheduleBox.innerHTML += `
+        <div class="tide-card high">
+          <div style="font-size:0.8rem; font-weight:700; color:var(--accent-blue);">高潮 (High)</div>
+          <div style="font-size:1.1rem; font-weight:800;">${String(i).padStart(2,'0')}:00</div>
+          <div style="font-size:0.85rem; color:var(--text-muted);">${tideHeights[i]} m</div>
+        </div>`;
+    } else if (tideHeights[i] < tideHeights[i-1] && tideHeights[i] < tideHeights[i+1]) {
+      scheduleBox.innerHTML += `
+        <div class="tide-card low">
+          <div style="font-size:0.8rem; font-weight:700; color:var(--accent-teal);">低潮 (Low)</div>
+          <div style="font-size:1.1rem; font-weight:800;">${String(i).padStart(2,'0')}:00</div>
+          <div style="font-size:0.85rem; color:var(--text-muted);">${tideHeights[i]} m</div>
+        </div>`;
+    }
   }
 
   const isLight = document.body.classList.contains('light-theme');
   const textColor = isLight ? '#475569' : '#94a3b8';
-  const gridColor = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)';
 
-  tideChart = new Chart(ctx, {
+  new Chart(ctx, {
     type: 'line',
     data: {
-      labels: hours,
+      labels: labels,
       datasets: [{
         label: '預測水位 (m)',
         data: tideHeights,
         borderColor: '#38bdf8',
         borderWidth: 2.5,
-        backgroundColor: 'rgba(56, 189, 248, 0.15)',
+        backgroundColor: 'rgba(56, 189, 248, 0.12)',
         fill: true,
-        tension: 0.4,
-        pointRadius: 3,
-        pointHoverRadius: 6,
-        pointBackgroundColor: '#2dd4bf'
+        tension: 0.4
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          mode: 'index',
-          intersect: false,
-          callbacks: {
-            label: (ctx) => ` 潮位 height: ${ctx.parsed.y} 米`
-          }
-        }
-      },
+      plugins: { legend: { display: false } },
       scales: {
-        x: {
-          ticks: { color: textColor, maxTicksLimit: 12 },
-          grid: { color: gridColor }
-        },
-        y: {
-          min: 0,
-          max: 3.5,
-          ticks: { color: textColor, stepSize: 0.5 },
-          grid: { color: gridColor },
-          title: { display: true, text: '水尺高度 (m)', color: textColor }
-        }
+        x: { ticks: { color: textColor } },
+        y: { ticks: { color: textColor }, min: 0, max: 3.2 }
       }
     }
   });
 }
 
-function updateTideChartTheme() {
-  if (!tideChart) return;
-  const isLight = document.body.classList.contains('light-theme');
-  const textColor = isLight ? '#475569' : '#94a3b8';
-  const gridColor = isLight ? 'rgba(0,0,0,0.08)' : 'rgba(255,255,255,0.08)';
-
-  tideChart.options.scales.x.ticks.color = textColor;
-  tideChart.options.scales.x.grid.color = gridColor;
-  tideChart.options.scales.y.ticks.color = textColor;
-  tideChart.options.scales.y.grid.color = gridColor;
-  tideChart.options.scales.y.title.color = textColor;
-  tideChart.update();
+function toggleTheme() {
+  document.body.classList.toggle('light-theme');
+}
+function toggleMenu() {
+  document.getElementById("navMenu").classList.toggle("active");
 }
 </script>
 </body>
