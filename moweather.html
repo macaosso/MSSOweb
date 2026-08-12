@@ -4,7 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="icons/MSSO.png">
-<title>澳門天氣 - 實況與氣象預報</title>
+<title>澳門天氣 - 實況、圖表與預報</title>
+
+<!-- Chart.js 圖表庫 -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
 <style>
 /* ========== 1. 深太空 (Deep Space) 主題基礎 ========== */
 :root {
@@ -40,7 +44,6 @@ body {
   line-height: 1.6;
 }
 
-/* 頁面最大寬度容器 */
 .page-wrapper {
   max-width: 1100px;
   margin: 0 auto;
@@ -125,7 +128,7 @@ body {
   background: rgba(255, 255, 255, 0.08);
 }
 
-/* ========== 3. 通用卡片容器 ========== */
+/* ========== 3. 卡片容器 ========== */
 .section-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -151,7 +154,7 @@ body {
   font-weight: normal;
 }
 
-/* ========== 4. 實況天氣網格 ========== */
+/* ========== 4. 實況天氣面板 ========== */
 .current-main-row {
   display: flex;
   align-items: center;
@@ -197,7 +200,7 @@ body {
   color: var(--text-main);
 }
 
-/* ========== 5. 控制面板 (天數 & 變量選擇) ========== */
+/* ========== 5. 控制選項面板 ========== */
 .control-panel {
   background: rgba(0,0,0,0.25);
   border: 1px solid var(--card-border);
@@ -282,12 +285,24 @@ body {
   text-decoration: underline;
 }
 
-/* ========== 6. 預報表格樣式 ========== */
+/* ========== 6. 圖表容器 (高度 380px) ========== */
+.chart-box {
+  position: relative;
+  height: 380px;
+  width: 100%;
+  margin-bottom: 20px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+}
+
+/* ========== 7. 預報表格樣式 ========== */
 .table-wrapper {
   overflow-x: auto;
   border: 1px solid var(--card-border);
   border-radius: 12px;
-  max-height: 600px;
+  max-height: 480px;
   overflow-y: auto;
 }
 .forecast-table {
@@ -345,6 +360,7 @@ body {
     padding: 10px;
   }
   .nav.active { display: flex; }
+  .chart-box { height: 300px; }
 }
 @media (min-width: 769px) {
   .nav { display: flex !important; }
@@ -354,7 +370,7 @@ body {
 </head>
 <body>
 
-<!-- 頂欄頁頭與導航 -->
+<!-- 頁頭與導航 -->
 <div class="header-nav-container">
   <div class="header">
     <img src="icons/MSSO.png" class="logo" alt="MSSO Logo">
@@ -378,7 +394,7 @@ body {
 
 <div class="page-wrapper">
 
-  <!-- 1. 實況天氣區塊 -->
+  <!-- 1. 實況天氣 -->
   <div class="section-card">
     <div class="section-title">
       澳門即時天氣實況 (Open-Meteo)
@@ -402,16 +418,16 @@ body {
     </div>
   </div>
 
-  <!-- 2. 逐時預報與自訂數據表格區塊 -->
+  <!-- 2. 預報控制、圖表與數據列表 -->
   <div class="section-card">
     <div class="section-title">
-      逐時天氣預報與變量分析 (最高14天)
+      氣象趨勢圖與逐時數據預報 (最高14天)
       <span class="update-tag" id="forecastUpdateTime">更新中...</span>
     </div>
 
-    <!-- 控制選項面板 -->
+    <!-- 控制面板 -->
     <div class="control-panel">
-      <!-- 選擇預報天數 -->
+      <!-- 選擇顯示天數 -->
       <div class="control-group">
         <div class="control-label">預報顯示天數</div>
         <div class="days-select-bar" id="daysBar">
@@ -426,7 +442,7 @@ body {
       <!-- 選擇顯示變量 -->
       <div class="control-group" style="margin-top: 16px;">
         <div class="control-label">
-          選擇顯示變量
+          選擇顯示與繪圖變量
           <div class="quick-action-btns">
             <button class="text-btn" onclick="selectAllVars(true)">全選</button>
             <button class="text-btn" onclick="selectAllVars(false)">重置</button>
@@ -436,7 +452,12 @@ body {
       </div>
     </div>
 
-    <!-- 數據表格 -->
+    <!-- 天氣趨勢圖表 Plot Graph -->
+    <div class="chart-box">
+      <canvas id="forecastChart"></canvas>
+    </div>
+
+    <!-- 預報數據表格 -->
     <div class="table-wrapper">
       <table class="forecast-table">
         <thead>
@@ -471,34 +492,34 @@ function getWmoText(code) {
   return wmoCodes[code] || `未知 (${code})`;
 }
 
-// ========== 2. 可選變量定義對照表 ==========
+// ========== 2. 變量列表與專屬圖表配色 ==========
 const availableVariables = [
-  { key: "temperature_2m", label: "氣溫 (°C)", default: true },
-  { key: "apparent_temperature", label: "體感溫度 (°C)", default: true },
-  { key: "dew_point_2m", label: "露點 (°C)", default: false },
-  { key: "relative_humidity_2m", label: "相對濕度 (%)", default: true },
-  { key: "precipitation_probability", label: "降水機率 (%)", default: true },
-  { key: "precipitation", label: "降水量 (mm)", default: true },
-  { key: "weather_code", label: "天氣狀況", default: true },
-  { key: "wind_speed_10m", label: "風速 (km/h)", default: true },
-  { key: "wind_direction_10m", label: "風向 (°)", default: false },
-  { key: "wind_gusts_10m", label: "陣風 (km/h)", default: false },
-  { key: "pressure_msl", label: "海平面氣壓 (hPa)", default: false },
-  { key: "surface_pressure", label: "地面氣壓 (hPa)", default: false },
-  { key: "cloud_cover", label: "總雲量 (%)", default: false },
-  { key: "cloud_cover_high", label: "高雲量 (%)", default: false },
-  { key: "cloud_cover_mid", label: "中雲量 (%)", default: false },
-  { key: "cloud_cover_low", label: "低雲量 (%)", default: false },
-  { key: "visibility", label: "能見度 (m)", default: false }
+  { key: "temperature_2m", label: "氣溫 (°C)", default: true, color: "#38bdf8" },
+  { key: "apparent_temperature", label: "體感溫度 (°C)", default: true, color: "#2dd4bf" },
+  { key: "relative_humidity_2m", label: "相對濕度 (%)", default: true, color: "#34d399" },
+  { key: "precipitation_probability", label: "降水機率 (%)", default: true, color: "#c084fc" },
+  { key: "precipitation", label: "降水量 (mm)", default: true, color: "#facc15" },
+  { key: "wind_speed_10m", label: "風速 (km/h)", default: false, color: "#f59e0b" },
+  { key: "wind_gusts_10m", label: "陣風 (km/h)", default: false, color: "#ef4444" },
+  { key: "dew_point_2m", label: "露點 (°C)", default: false, color: "#a7f3d0" },
+  { key: "weather_code", label: "天氣狀況", default: true, color: null }, // 不繪製折線
+  { key: "pressure_msl", label: "海平面氣壓 (hPa)", default: false, color: "#cbd5e1" },
+  { key: "surface_pressure", label: "地面氣壓 (hPa)", default: false, color: "#94a3b8" },
+  { key: "cloud_cover", label: "總雲量 (%)", default: false, color: "#818cf8" },
+  { key: "cloud_cover_high", label: "高雲量 (%)", default: false, color: "#a5b4fc" },
+  { key: "cloud_cover_mid", label: "中雲量 (%)", default: false, color: "#c7d2fe" },
+  { key: "cloud_cover_low", label: "低雲量 (%)", default: false, color: "#e0e7ff" },
+  { key: "visibility", label: "能見度 (m)", default: false, color: "#f472b6" },
+  { key: "wind_direction_10m", label: "風向 (°)", default: false, color: "#fb923c" }
 ];
 
 let selectedDays = 7;
 let forecastRawData = null;
+let chartInstance = null;
 
-// ========== 3. UI 初始化與導航控制 ==========
+// ========== 3. UI 導航與時鐘 ==========
 function toggleMenu() {
-  const nav = document.getElementById("navMenu");
-  nav.classList.toggle("active");
+  document.getElementById("navMenu").classList.toggle("active");
 }
 
 function updateHeaderClock() {
@@ -509,7 +530,6 @@ function updateHeaderClock() {
   }
 }
 
-// 初始化勾選框列表
 function initVariableCheckboxes() {
   const container = document.getElementById("varCheckboxContainer");
   container.innerHTML = "";
@@ -517,7 +537,7 @@ function initVariableCheckboxes() {
     const label = document.createElement("label");
     label.className = "var-checkbox-item";
     label.innerHTML = `
-      <input type="checkbox" value="${v.key}" ${v.default ? "checked" : ""} onchange="renderForecastTable()">
+      <input type="checkbox" value="${v.key}" ${v.default ? "checked" : ""} onchange="updateView()">
       ${v.label}
     `;
     container.appendChild(label);
@@ -527,10 +547,10 @@ function initVariableCheckboxes() {
 function selectAllVars(select) {
   const checkboxes = document.querySelectorAll("#varCheckboxContainer input");
   checkboxes.forEach(cb => cb.checked = select);
-  renderForecastTable();
+  updateView();
 }
 
-// ========== 4. 抓取 API 數據 ==========
+// ========== 4. API 請求 ==========
 const CURRENT_API = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,showers,weather_code,pressure_msl,surface_pressure,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=Asia%2FSingapore";
 const FORECAST_API = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,pressure_msl,surface_pressure,cloud_cover,visibility,cloud_cover_high,cloud_cover_mid,cloud_cover_low,wind_gusts_10m,wind_direction_10m,wind_speed_10m,apparent_temperature,dew_point_2m&timezone=Asia%2FSingapore&forecast_days=14";
 
@@ -568,27 +588,114 @@ async function fetchForecastData() {
 
     const now = new Date();
     document.getElementById("forecastUpdateTime").textContent = `更新時間：${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-    renderForecastTable();
+    updateView();
   } catch (err) {
     console.error(err);
     document.getElementById("tableBody").innerHTML = `<tr><td colspan="10" style="color:var(--accent-red); padding: 30px 0;">預報數據加載失敗，請刷新重試。</td></tr>`;
   }
 }
 
-// ========== 5. 動態渲染預報表格 ==========
+// 統一更新圖表與表格
+function updateView() {
+  renderForecastChart();
+  renderForecastTable();
+}
+
+// ========== 5. 繪製氣象圖表 (Plot Graph) ==========
+function renderForecastChart() {
+  if (!forecastRawData || !forecastRawData.hourly) return;
+
+  const hourly = forecastRawData.hourly;
+  const times = hourly.time;
+  const maxPoints = Math.min(times.length, selectedDays * 24);
+
+  // 時間 X 軸標籤 (簡化格式: MM/DD HH:00)
+  const labels = times.slice(0, maxPoints).map(t => {
+    const parts = t.split("T");
+    const dateParts = parts[0].split("-");
+    return `${dateParts[1]}/${dateParts[2]} ${parts[1]}`;
+  });
+
+  // 取得勾選且有配置費用的數值變量
+  const checkedBoxes = Array.from(document.querySelectorAll("#varCheckboxContainer input:checked"));
+  const activeNumericVars = checkedBoxes
+    .map(cb => availableVariables.find(v => v.key === cb.value))
+    .filter(v => v && v.color !== null); // 過濾掉 weather_code
+
+  // 構建 Chart.js Datasets
+  const datasets = activeNumericVars.map(v => {
+    return {
+      label: v.label,
+      data: hourly[v.key].slice(0, maxPoints),
+      borderColor: v.color,
+      backgroundColor: v.color + "20",
+      borderWidth: 2,
+      pointRadius: maxPoints > 72 ? 0 : 2, // 數據過多時隱藏點標記
+      tension: 0.35,
+      fill: false
+    };
+  });
+
+  const ctx = document.getElementById("forecastChart").getContext("2d");
+
+  if (chartInstance) {
+    chartInstance.destroy();
+  }
+
+  Chart.defaults.color = "#94a3b8";
+  Chart.defaults.borderColor = "rgba(255, 255, 255, 0.08)";
+
+  chartInstance = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: {
+        mode: "index",
+        intersect: false
+      },
+      plugins: {
+        legend: {
+          position: "top",
+          labels: { color: "#f1f5f9", font: { size: 12 } }
+        },
+        tooltip: {
+          backgroundColor: "rgba(15, 23, 42, 0.9)",
+          titleColor: "#38bdf8",
+          borderColor: "rgba(255, 255, 255, 0.1)",
+          borderWidth: 1
+        }
+      },
+      scales: {
+        x: {
+          ticks: {
+            maxTicksLimit: selectedDays <= 3 ? 12 : (selectedDays <= 7 ? 14 : 16)
+          },
+          grid: { color: "rgba(255, 255, 255, 0.05)" }
+        },
+        y: {
+          grid: { color: "rgba(255, 255, 255, 0.05)" }
+        }
+      }
+    }
+  });
+}
+
+// ========== 6. 渲染預報表格 ==========
 function renderForecastTable() {
   if (!forecastRawData || !forecastRawData.hourly) return;
 
   const hourly = forecastRawData.hourly;
   const times = hourly.time;
 
-  // 取得當前已勾選的變量
   const checkedBoxes = Array.from(document.querySelectorAll("#varCheckboxContainer input:checked"));
-  const activeVars = checkedBoxes.map(cb => {
-    return availableVariables.find(v => v.key === cb.value);
-  });
+  const activeVars = checkedBoxes.map(cb => availableVariables.find(v => v.key === cb.value));
 
-  // 1. 構建表頭 Header
+  // 表頭
   const headerRow = document.getElementById("tableHeaderRow");
   headerRow.innerHTML = `<th class="time-col">時間</th>`;
   activeVars.forEach(v => {
@@ -597,24 +704,19 @@ function renderForecastTable() {
     headerRow.appendChild(th);
   });
 
-  // 2. 計算顯示的數據點數量 (天數 * 24小時)
   const maxPoints = Math.min(times.length, selectedDays * 24);
-
-  // 3. 構建表格數據 Body
   const tbody = document.getElementById("tableBody");
   tbody.innerHTML = "";
 
   for (let i = 0; i < maxPoints; i++) {
     const tr = document.createElement("tr");
 
-    // 時間欄 (格式: MM-DD HH:mm)
     const timeStr = times[i].replace("T", " ");
     const tdTime = document.createElement("td");
     tdTime.className = "time-col";
     tdTime.textContent = timeStr;
     tr.appendChild(tdTime);
 
-    // 動態變量欄
     activeVars.forEach(v => {
       const td = document.createElement("td");
       let val = hourly[v.key][i];
@@ -631,7 +733,7 @@ function renderForecastTable() {
   }
 }
 
-// ========== 6. 事件綁定與初始化 ==========
+// ========== 7. 初始化加載 ==========
 window.addEventListener("DOMContentLoaded", () => {
   updateHeaderClock();
   setInterval(updateHeaderClock, 1000);
@@ -640,13 +742,13 @@ window.addEventListener("DOMContentLoaded", () => {
   fetchCurrentWeather();
   fetchForecastData();
 
-  // 天數切換按鈕事件
+  // 天數切換事件
   document.querySelectorAll("#daysBar .day-btn").forEach(btn => {
     btn.addEventListener("click", function() {
       document.querySelectorAll("#daysBar .day-btn").forEach(b => b.classList.remove("active"));
       this.classList.add("active");
       selectedDays = parseInt(this.dataset.days);
-      renderForecastTable();
+      updateView();
     });
   });
 });
