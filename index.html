@@ -54,7 +54,7 @@ body {
   padding: 0 15px 40px 15px;
 }
 
-/* ========== 2. 頁頭 Header & 頂欄導航【菜單重點修復區域】 ========== */
+/* ========== 2. 頁頭 Header & 頂欄導航 ========== */
 .header-nav-container {
   position: sticky;
   top: 0;
@@ -83,9 +83,21 @@ body {
   font-weight: 700;
   color: var(--accent-blue);
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+/* 標題旁即時時鐘樣式 */
+.header-clock {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--accent-teal);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.9;
 }
 
-/* 導航菜單容器：新增 relative 作為彈窗定位錨點 */
+/* 導航菜單容器 */
 .menu-container {
   position: relative;
 }
@@ -103,10 +115,9 @@ body {
 .menu-toggle:hover {
   border-color: var(--accent-blue);
 }
-/* 點擊激活樣式 */
-.menu-toggle.active{
+.menu-toggle.active {
   border-color: var(--accent-blue);
-  background:rgba(56, 189, 248, 0.12);
+  background: rgba(56, 189, 248, 0.12);
 }
 
 .nav {
@@ -127,7 +138,7 @@ body {
   background: rgba(255, 255, 255, 0.05);
 }
 
-/* ========== 3. 首頁快捷鏈接模塊 (深空發光霓虹卡片) ========== */
+/* ========== 3. 首頁快捷鏈接模塊 ========== */
 .quick-links {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -173,7 +184,7 @@ body {
   color: #ffffff;
 }
 
-/* ========== 4. 紅色危險警告卡片 (熱帶氣旋/天氣警告) ========== */
+/* ========== 4. 警告卡片 (熱帶氣旋/天氣警告) ========== */
 .warning-card {
   margin: 20px 0;
   border-radius: 16px;
@@ -244,7 +255,6 @@ body {
   box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
 }
 
-/* 熱帶氣旋預測表格 */
 .tc-forecast-header-row {
   display: flex;
   justify-content: space-between;
@@ -285,7 +295,7 @@ body {
   background-color: rgba(0, 0, 0, 0.15);
 }
 
-/* ========== 5. 橙色提示框 (特別天氣提示、預警提示) ========== */
+/* ========== 5. 橙色提示框 ========== */
 .box {
   margin: 20px 0;
   border-radius: 16px;
@@ -309,7 +319,7 @@ body {
   color: #fef08a;
 }
 
-/* ========== 6. 澳門整點實時天氣 (深空面板風格) ========== */
+/* ========== 6. 澳門整點實時天氣 ========== */
 .three-tab-weather-wrap {
   margin: 20px 0;
   border-radius: 16px;
@@ -336,11 +346,6 @@ body {
   gap: 10px;
   background: rgba(56, 189, 248, 0.05);
 }
-.tab-icon-small {
-  width: 24px;
-  height: 24px;
-  filter: drop-shadow(0 0 4px var(--accent-blue));
-}
 .three-tab-content-box {
   padding: 24px;
 }
@@ -351,7 +356,6 @@ body {
   display: block;
 }
 
-/* 整點天氣內部元件 styling */
 #load-tip {
   color: var(--text-muted);
 }
@@ -467,7 +471,7 @@ body {
   flex: 1;
 }
 
-/* ========== 8. 參考圖片風格的七日天氣預報橫向卡片組 ========== */
+/* ========== 8. 七日天氣預報橫向卡片組 ========== */
 .seven-day-scroll-row {
   display: flex;
   gap: 10px;
@@ -508,17 +512,15 @@ body {
   box-shadow: 0 6px 16px rgba(56, 189, 248, 0.15);
 }
 
-/* Top: Date */
 .card-top {
   text-align: center;
   font-size: 13px;
   font-weight: 700;
   color: #cbd5e1;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12); /* Divider */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-/* Middle: Icon, Temp Range, Humid Range */
 .card-middle {
   display: flex;
   flex-direction: column;
@@ -547,9 +549,8 @@ body {
   color: var(--accent-teal);
 }
 
-/* Bottom: Weather Description */
 .card-bottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.12); /* Divider */
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
   padding-top: 8px;
 }
 
@@ -561,21 +562,8 @@ body {
   word-break: break-word;
   overflow: visible;
 }
-  
-.card-sub {
-  font-size: 11px;
-  color: var(--text-muted);
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  white-space: normal; /* Allow text wrapping */
-}
 
-.hide {
-  display: none !important;
-}
-
-/* ========== 9. 響應式適配 Responsive【菜單核心修正】 ========== */
+/* ========== 9. 響應式適配 ========== */
 @media (max-width: 768px) {
   .header-nav-container {
     padding: 0.75rem 1rem;
@@ -584,10 +572,9 @@ body {
     display: block;
   }
   .nav {
-    /* 手機：預設隱藏 */
     display: none;
     flex-direction: column;
-    width: 220px; /* 固定寬度，防止溢出 */
+    width: 220px;
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
@@ -623,7 +610,6 @@ body {
   }
 }
 
-/* 視窗放大自動清除 mobile active 狀態，避免桌面仍顯示彈窗 */
 @media (min-width: 769px) {
   .nav {
     display: flex !important;
@@ -638,7 +624,7 @@ body {
     padding: 14px 6px;
     font-size: 12px;
   }
-  .nav{
+  .nav {
     width: calc(100vw - 30px);
   }
 }
@@ -651,7 +637,10 @@ body {
 <div class="header-nav-container">
   <div class="header">
     <img src="icons/MSSO.png" class="logo" alt="MSSO Logo">
-    <div class="title">澳門民間氣象台 MSSO</div>
+    <div class="title">
+      澳門民間氣象台 MSSO
+      <span id="headerClock" class="header-clock"></span>
+    </div>
   </div>
 
   <div class="menu-container">
@@ -713,7 +702,7 @@ body {
     <div id="alertContent" class="content-yellow"></div>
   </div>
 
-  <!-- 整點天氣單一標籤面板 -->
+  <!-- 整點天氣面板 -->
   <div class="three-tab-weather-wrap">
     <div class="three-tab-header">
       <div class="three-tab-item active" data-tab="hourly">
@@ -724,30 +713,25 @@ body {
     <div class="three-tab-content-box">
       <div class="tab-panel active" id="panel-hourly">
         <div class="hourly-weather-wrap" style="padding: 10px 0;">
-          <!-- 數據載入提示 -->
           <div id="load-tip" style="text-align: center; font-size: 15px; padding: 30px 0;">
             正在載入澳門整點實時天氣數據...
           </div>
 
-          <!-- 天氣主容器 -->
           <div id="weather-main" style="display: none;">
             <div class="publishing-time" style="margin-bottom: 20px; font-size: 14px;">
               數據發布時間：<span id="pub-time"></span>
             </div>
 
-            <!-- 天氣圖標 + 核心氣溫 -->
             <div style="display: flex; align-items: center; gap: 25px; flex-wrap: wrap; margin-bottom: 25px;">
               <div>
                 <img id="weather-icon" alt="天氣圖標" style="width: 76px; height: 76px; filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.4));">
               </div>
               <div>
                 <div id="temp-value"></div>
-                <!-- 已修改：增加「體感溫度：」文字 -->
                 <div id="feels-desc" style="font-size: 16px; margin-top: 6px; font-weight: 500;"></div>
               </div>
             </div>
 
-            <!-- 氣象指標網格 -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
               <div class="weather-item" style="padding: 16px;">
                 <div style="font-size: 13px;">相對濕度</div>
@@ -768,7 +752,6 @@ body {
             </div>
           </div>
 
-          <!-- 載入失敗提示 -->
           <div id="error-tip" style="display: none; text-align: center; padding: 30px 0;">
             數據載入失敗，請稍後重試
           </div>
@@ -808,7 +791,7 @@ body {
     </div>
   </div>
 
-  <!-- 七日天氣預報 (重構為參考圖片樣式卡片) -->
+  <!-- 七日天氣預報卡片 -->
   <div class="three-tab-weather-wrap" style="margin-top: 25px;">
     <div class="three-tab-header">
       <div class="three-tab-item active">
@@ -839,54 +822,101 @@ function toggleMenu() {
   btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
 
-// Fill all text content from webdata.js
+// 實時時鐘更新函數
+function updateHeaderClock() {
+  const clockEl = document.getElementById('headerClock');
+  if (clockEl) {
+    const now = new Date();
+    const hrs = String(now.getHours()).padStart(2, '0');
+    const mins = String(now.getMinutes()).padStart(2, '0');
+    const secs = String(now.getSeconds()).padStart(2, '0');
+    clockEl.textContent = `${hrs}:${mins}:${secs}`;
+  }
+}
+
+// 預報 XML 請求地址與代理 (c_forecast.xml)
+const forecastXmlUrl = "https://xml.smg.gov.mo/c_forecast.xml";
+const forecastProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(forecastXmlUrl)}`;
+
+// 動態讀取 天氣概況 / 今日天氣 / 明日天氣 XML
+async function loadForecastXML() {
+  try {
+    const res = await fetch(forecastProxyUrl, { cache: "no-store" });
+    if (!res.ok) throw new Error("預報數據請求失敗");
+
+    const xmlText = await res.text();
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+    const pubDate = xmlDoc.querySelector("SysPubdate")?.textContent.trim() || "";
+    const situation = xmlDoc.querySelector("TodaySituation")?.textContent.trim() || "";
+    
+    const wfNodes = xmlDoc.querySelectorAll("WeatherForecast");
+    const todayDesc = wfNodes[0]?.querySelector("WeatherDescription")?.textContent.trim() || "暫無資料";
+    const tomorrowDesc = wfNodes[1]?.querySelector("WeatherDescription")?.textContent.trim() || "暫無資料";
+
+    if (pubDate) {
+      document.getElementById("forecastTime").innerText = `發佈時間：${pubDate}`;
+    }
+    if (situation) {
+      document.getElementById("tab0").innerHTML = situation.replaceAll("\n", "<br>");
+    }
+    if (todayDesc) {
+      document.getElementById("tab1").innerHTML = todayDesc.replaceAll("\n", "<br>");
+    }
+    if (tomorrowDesc) {
+      document.getElementById("tab2").innerHTML = tomorrowDesc.replaceAll("\n", "<br>");
+    }
+  } catch (err) {
+    console.error("天氣預報 XML 解析異常：", err);
+  }
+}
+
+// 頁面加載完成初始化
 window.addEventListener('DOMContentLoaded', function(){
+    // 啓動即時時鐘
+    updateHeaderClock();
+    setInterval(updateHeaderClock, 1000);
+
     // Alertips box
     const alertBox = document.getElementById('alertBox');
     const alertContent = document.getElementById('alertContent');
-    if(alertipsText.trim()){
+    if(typeof alertipsText !== 'undefined' && alertipsText.trim()){
         alertBox.style.display = 'block';
         alertContent.innerText = alertipsText;
-    }else alertBox.style.display = 'none';
+    } else alertBox.style.display = 'none';
 
     // SWT box
     const swtBox = document.getElementById('swtBox');
     const swtContent = document.getElementById('swtContent');
-    if(swtText.trim()){
+    if(typeof swtText !== 'undefined' && swtText.trim()){
         swtBox.style.display = 'block';
         swtContent.innerText = swtText;
-    }else swtBox.style.display = 'none';
+    } else swtBox.style.display = 'none';
 
-    // Forecast split
-    const parts = forecastRaw.split(/\n\n/);
-    let overviewText = parts[0] ?? "";
-    let todayText = parts[1] ?? "";
-    let tomorrowText = parts[2] ?? "";
-    let updateTimeStr = parts[3] ?? "";
-
-    document.getElementById("forecastTime").innerText = updateTimeStr;
-    document.getElementById("tab0").innerHTML = overviewText.replaceAll("\n","<br>");
-    document.getElementById("tab1").innerHTML = todayText.replaceAll("\n","<br>");
-    document.getElementById("tab2").innerHTML = tomorrowText.replaceAll("\n","<br>");
-
-    // Tab切換點擊
+    // Tab 切換點擊綁定
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabItems = document.querySelectorAll('.tab-content');
-    tabBtns.forEach(btn=>{
+    tabBtns.forEach(btn => {
       btn.onclick = function(){
-        tabBtns.forEach(b=>b.classList.remove('active'));
-        tabItems.forEach(c=>c.classList.remove('active'));
+        tabBtns.forEach(b => b.classList.remove('active'));
+        tabItems.forEach(c => c.classList.remove('active'));
         this.classList.add('active');
         let idx = this.dataset.index;
-        document.getElementById('tab'+idx).classList.add('active');
+        document.getElementById('tab' + idx).classList.add('active');
       }
     });
+
+    // 載入動態預報
+    loadForecastXML();
 });
 
 // Render TC & Warning Cards
 function renderWarnings(data, containerId, cardId) {
   const container = document.getElementById(containerId);
   const card = document.getElementById(cardId);
+  if (!container || !card || !Array.isArray(data)) return;
+  
   let html = "";
   data.forEach((item, index) => {
     if ((!item.icon || item.icon.trim()==="") && (!item.text || item.text.trim()==="")) return;
@@ -902,8 +932,8 @@ function renderWarnings(data, containerId, cardId) {
   card.style.display = html.trim() ? "block" : "none";
 }
 
-renderWarnings(tcWarnings, "tcContent", "tcCard");
-renderWarnings(warnWarnings, "warnContent", "warnCard");
+if (typeof tcWarnings !== 'undefined') renderWarnings(tcWarnings, "tcContent", "tcCard");
+if (typeof warnWarnings !== 'undefined') renderWarnings(warnWarnings, "warnContent", "warnCard");
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -932,7 +962,6 @@ function initChart(){
   })
 }
 
-// 24h use X label from webdata.label24hX
 function render24hChart(ctx){
   tempChart = new Chart(ctx,{
     type:"line",
@@ -961,7 +990,6 @@ function render24hChart(ctx){
   })
 }
 
-// 7day use X label from webdata.label7dX
 function render7dChart(ctx){
   const maxArr = temp7dMax;
   const minArr = temp7dMin;
@@ -986,11 +1014,11 @@ function render7dChart(ctx){
   })
 }
 
-window.addEventListener('DOMContentLoaded',initChart);
+window.addEventListener('DOMContentLoaded', initChart);
 </script>
 
 <script>
-// ========== 抓取 SMG 澳門實時簡報XML ==========
+// ========== 抓取 SMG 澳門實時數據 ==========
 const loadTip = document.getElementById('load-tip');
 const errorTip = document.getElementById('error-tip');
 const weatherMain = document.getElementById('weather-main');
@@ -1017,11 +1045,7 @@ async function loadHourlyWeather() {
         errorTip.style.display = 'none';
         weatherMain.style.display = 'none';
 
-        const response = await fetch(proxyUrl, {
-            method: 'GET',
-            cache: 'no-cache'
-        });
-
+        const response = await fetch(proxyUrl, { method: 'GET', cache: 'no-cache' });
         if (!response.ok) throw new Error('接口請求失敗');
 
         const xmlText = await response.text();
@@ -1039,7 +1063,6 @@ async function loadHourlyWeather() {
 
         pubTime.textContent = sysPubdate;
         tempValue.textContent = `${temp} °C`;
-        // 修正3：增加「體感溫度：」前綴
         feelsDesc.textContent = `體感溫度：${feelDescRaw}`;
         humValue.textContent = `${hum} %`;
         windSpeed.textContent = `${windSpd} km/h (${windSpdDesc})`;
@@ -1060,7 +1083,7 @@ async function loadHourlyWeather() {
     }
 }
 
-// 載入紫外線UV數據
+// 載入紫外線 UV 數據
 async function loadUVData() {
     try {
         const res = await fetch(uvProxyUrl, { cache: "no-store" });
@@ -1078,14 +1101,13 @@ async function loadUVData() {
     }
 }
 
-// UV指數顏色分級函數
 function getUVColor(uv) {
     if (isNaN(uv)) return "#cbd5e1";
-    if (uv >= 11) return "#c084fc"; // 極高 (Purple)
-    if (uv >= 8) return "#ef4444";  // 甚高 (Red)
-    if (uv >= 6) return "#f59e0b";  // 高 (Orange)
-    if (uv >= 3) return "#facc15";  // 中等 (Yellow)
-    return "#34d399"; // 低 (Green)
+    if (uv >= 11) return "#c084fc";
+    if (uv >= 8) return "#ef4444";
+    if (uv >= 6) return "#f59e0b";
+    if (uv >= 3) return "#facc15";
+    return "#34d399";
 }
 
 const fourDayXmlUrl = "https://xml.smg.gov.mo/c_7daysforecast.xml";
@@ -1107,7 +1129,6 @@ async function load4DaysForecastXML() {
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
 
-        // Locate forecast day nodes
         let forecastNodes = Array.from(xmlDoc.querySelectorAll("ForecastData, WeatherForecast, DayForecast, CustomData, Item"));
         if (forecastNodes.length === 0) {
             forecastNodes = Array.from(xmlDoc.querySelectorAll("FourDaysForecast > *, SevenDaysForecast > *"));
@@ -1119,7 +1140,6 @@ async function load4DaysForecastXML() {
         forecastNodes.forEach(node => {
             const allElements = Array.from(node.getElementsByTagName("*"));
 
-            // 1. Extract ValidFor Date
             let date = "";
             for (let el of allElements) {
                 const name = el.nodeName.toLowerCase();
@@ -1131,7 +1151,6 @@ async function load4DaysForecastXML() {
                 }
             }
 
-            // Day of Week
             let dayOfWeek = "";
             for (let el of allElements) {
                 const name = el.nodeName.toLowerCase();
@@ -1143,7 +1162,6 @@ async function load4DaysForecastXML() {
                 }
             }
 
-            // Weather Description
             let weather = "";
             for (let el of allElements) {
                 const name = el.nodeName.toLowerCase();
@@ -1155,7 +1173,6 @@ async function load4DaysForecastXML() {
                 }
             }
 
-            // 2. Target strictly <IconURL> / <C_IconURL>
             let rawIconUrl = "";
             for (let el of allElements) {
                 const name = el.nodeName.toLowerCase();
@@ -1165,7 +1182,6 @@ async function load4DaysForecastXML() {
                 }
             }
 
-            // Format IconURL path correctly
             let iconUrl = "";
             if (rawIconUrl) {
                 if (rawIconUrl.startsWith("http://") || rawIconUrl.startsWith("https://")) {
@@ -1177,7 +1193,6 @@ async function load4DaysForecastXML() {
                 }
             }
 
-            // 3. Temperature Min & Max
             let tempNums = [];
             for (let el of allElements) {
                 const name = el.nodeName.toLowerCase();
@@ -1198,7 +1213,6 @@ async function load4DaysForecastXML() {
                 ? (tempMin === tempMax ? `${tempMin}°C` : `${tempMin}°C - ${tempMax}°C`)
                 : '--';
 
-            // 4. Relative Humidity Min & Max
             let rhNums = [];
             for (let el of allElements) {
                 const name = el.nodeName.toLowerCase();
@@ -1252,17 +1266,17 @@ async function load4DaysForecastXML() {
     }
 }
 
-
-// DOM載入完成同時呼叫 UV + 整點天氣 + 七日預報（修正2：UV同時載入）
+// 頁面加載完成調用 API
 window.addEventListener('DOMContentLoaded', () => {
     loadHourlyWeather();
     loadUVData();
     load4DaysForecastXML();
 });
 
-// 自動刷新
+// 自動刷新定時器
 setInterval(loadHourlyWeather, 100000);
 setInterval(loadUVData, 120000);
+setInterval(loadForecastXML, 1800000);
 setInterval(load4DaysForecastXML, 3600000);
 </script>
 </body>
