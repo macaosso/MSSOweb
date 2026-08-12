@@ -484,8 +484,10 @@ body {
   margin-left: auto;
 }
 .chart-container {
-  padding: 20px;
-  height: 380px; /* 增加圖表高度 */
+  position: relative;
+  height: 380px;
+  width: 100%;
+  padding: 15px;
   box-sizing: border-box;
   flex: 1;
 }
@@ -1068,6 +1070,10 @@ function render24hChart(ctx){
   const labels = openMeteo24hX.length > 0 ? openMeteo24hX : (typeof label24hX !== 'undefined' ? label24hX : []);
   const temps = openMeteo24hTemp.length > 0 ? openMeteo24hTemp : (typeof temp24h !== 'undefined' ? temp24h : []);
 
+  // Calculate dynamic range for Y-axis
+  const minTemp = temps.length ? Math.floor(Math.min(...temps) - 2) : 20;
+  const maxTemp = temps.length ? Math.ceil(Math.max(...temps) + 2) : 38;
+
   tempChart = new Chart(ctx,{
     type:"line",
     data:{
@@ -1089,12 +1095,17 @@ function render24hChart(ctx){
       plugins:{title:{display:true,text:"24小時逐時氣溫預報 (Open-Meteo)"}},
       scales:{
         x:{display:true,title:{display:true,text:"時間"},ticks:{maxTicksLimit:12}},
-        y:{display:true,title:{display:true,text:"溫度℃"}}
+        y:{
+          display:true,
+          title:{display:true,text:"溫度℃"},
+          min: minTemp,
+          max: maxTemp
+        }
       }
     }
   });
 }
-
+  
 function render7dChart(ctx){
   if (typeof Chart === 'undefined') return;
 
@@ -1103,6 +1114,11 @@ function render7dChart(ctx){
   const labels = dynamic7dLabels.length > 0 ? dynamic7dLabels : (typeof label7dX !== 'undefined' ? label7dX : []);
   const maxArr = dynamic7dMax.length > 0 ? dynamic7dMax : (typeof temp7dMax !== 'undefined' ? temp7dMax : []);
   const minArr = dynamic7dMin.length > 0 ? dynamic7dMin : (typeof temp7dMin !== 'undefined' ? temp7dMin : []);
+
+  // Calculate dynamic range for Y-axis
+  const allTemps = [...maxArr, ...minArr];
+  const minTemp = allTemps.length ? Math.floor(Math.min(...allTemps) - 2) : 15;
+  const maxTemp = allTemps.length ? Math.ceil(Math.max(...allTemps) + 2) : 38;
 
   tempChart = new Chart(ctx,{
     type:"line",
@@ -1119,7 +1135,12 @@ function render7dChart(ctx){
       plugins:{title:{display:true,text:"7日氣溫預報 (動態數據)"}},
       scales:{
         x:{display:true,title:{display:true,text:"日期"}},
-        y:{display:true,title:{display:true,text:"溫度℃"}}
+        y:{
+          display:true,
+          title:{display:true,text:"溫度℃"},
+          min: minTemp,
+          max: maxTemp
+        }
       }
     }
   });
