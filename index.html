@@ -202,6 +202,11 @@ body {
   align-items: center;
   border-bottom: 1px solid var(--border-red);
 }
+.warning-title-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
 .warning-item {
   display: flex;
   gap: 18px;
@@ -309,6 +314,9 @@ body {
   font-size: 16px;
   font-weight: 700;
   border-bottom: 1px solid var(--border-orange);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .content-yellow {
   padding: 20px;
@@ -381,12 +389,22 @@ body {
   font-size: 44px !important;
   font-weight: 800 !important;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 #feels-desc {
   color: var(--accent-teal) !important;
 }
 .publishing-time {
   color: var(--text-muted) !important;
+}
+
+.weather-label-title {
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 /* ========== 7. 天氣預報 & 圖表並排模塊 (固定高度與相應對齊) ========== */
@@ -572,12 +590,18 @@ body {
   font-size: 14.5px;
   font-weight: 700;
   color: var(--accent-blue);
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .card-middle .humid-range-text {
   font-size: 13px;
   font-weight: 600;
   color: var(--accent-teal);
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .card-bottom {
@@ -701,7 +725,10 @@ body {
 
   <div class="warning-card" id="tcCard">
     <div class="warning-header">
-      熱帶氣旋
+      <span class="warning-title-text">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3a9 9 0 0 0-9 9c0 2.5 1 4.8 2.6 6.4"/><path d="M12 21a9 9 0 0 0 9-9c0-2.5-1-4.8-2.6-6.4"/></svg>
+        熱帶氣旋
+      </span>
       <a href="https://macaosso.github.io/MSSOweb/tc_gis.html" class="tc-btn">查看路徑</a>
     </div>
     <div id="tcContent"></div>
@@ -716,17 +743,28 @@ body {
   </div>
 
   <div class="warning-card" id="warnCard">
-    <div class="warning-header">天氣警告</div>
+    <div class="warning-header">
+      <span class="warning-title-text">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        天氣警告
+      </span>
+    </div>
     <div id="warnContent"></div>
   </div>
 
   <div id="swtBox" class="box">
-    <div class="header-orange">特別天氣提示</div>
+    <div class="header-orange">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      特別天氣提示
+    </div>
     <div id="swtContent" class="content-yellow"></div>
   </div>
 
   <div id="alertBox" class="box">
-    <div class="header-orange">預警提示</div>
+    <div class="header-orange">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      預警提示
+    </div>
     <div id="alertContent" class="content-yellow"></div>
   </div>
 
@@ -754,26 +792,41 @@ body {
                 <img id="weather-icon" alt="天氣圖標" style="width: 76px; height: 76px; filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.4));">
               </div>
               <div>
-                <div id="temp-value"></div>
+                <div id="temp-value">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+                  <span id="temp-num">29 °C</span>
+                </div>
                 <div id="feels-desc" style="font-size: 16px; margin-top: 6px; font-weight: 500;"></div>
               </div>
             </div>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
               <div class="weather-item" style="padding: 16px;">
-                <div style="font-size: 13px;">相對濕度</div>
+                <div class="weather-label-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                  相對濕度
+                </div>
                 <div id="hum-value" style="font-size: 18px; font-weight: 700; margin-top: 6px;"></div>
               </div>
               <div class="weather-item" style="padding: 16px;">
-                <div style="font-size: 13px;">風速</div>
+                <div class="weather-label-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+                  風速
+                </div>
                 <div id="wind-speed" style="font-size: 18px; font-weight: 700; margin-top: 6px;"></div>
               </div>
               <div class="weather-item" style="padding: 16px;">
-                <div style="font-size: 13px;">風向</div>
+                <div class="weather-label-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 19 21 12 17 5 21 12 2"/></svg>
+                  風向
+                </div>
                 <div id="wind-dir" style="font-size: 18px; font-weight: 700; margin-top: 6px;"></div>
               </div>
               <div class="weather-item" style="padding: 16px;">
-                <div style="font-size: 13px;">紫外線指數</div>
+                <div class="weather-label-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                  紫外線指數
+                </div>
                 <div id="uv-value" style="font-size: 18px; font-weight: 700; margin-top: 6px;"></div>
               </div>
             </div>
@@ -1136,7 +1189,7 @@ const errorTip = document.getElementById('error-tip');
 const weatherMain = document.getElementById('weather-main');
 const pubTime = document.getElementById('pub-time');
 const weatherIcon = document.getElementById('weather-icon');
-const tempValue = document.getElementById('temp-value');
+const tempNum = document.getElementById('temp-num');
 const feelsDesc = document.getElementById('feels-desc');
 const humValue = document.getElementById('hum-value');
 const windSpeed = document.getElementById('wind-speed');
@@ -1173,7 +1226,7 @@ async function loadHourlyWeather() {
         const feelDescRaw = xmlDoc.querySelector("FeelsLikeDescription")?.textContent || "--";
 
         pubTime.textContent = sysPubdate;
-        tempValue.textContent = `${temp} °C`;
+        tempNum.textContent = `${temp} °C`;
         feelsDesc.textContent = `體感溫度：${feelDescRaw}`;
         humValue.textContent = `${hum} %`;
         windSpeed.textContent = `${windSpd} km/h (${windSpdDesc})`;
@@ -1377,8 +1430,14 @@ async function load4DaysForecastXML() {
                         ${iconUrl 
                             ? `<img src="${iconUrl}" class="card-icon-large" alt="weather icon" referrerpolicy="no-referrer" onerror="this.style.display='none'">` 
                             : ''}
-                        <div class="temp-range-text">🌡️ ${tempDisplay}</div>
-                        <div class="humid-range-text">💧 ${rhDisplay}</div>
+                        <div class="temp-range-text">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+                          ${tempDisplay}
+                        </div>
+                        <div class="humid-range-text">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                          ${rhDisplay}
+                        </div>
                     </div>
 
                     <div class="card-bottom">
