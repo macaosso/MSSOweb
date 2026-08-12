@@ -458,6 +458,19 @@ body {
 .tab-content.active {
   display: block;
 }
+
+.valid-for-tag {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--accent-teal);
+  background: rgba(45, 212, 191, 0.1);
+  border: 1px solid rgba(45, 212, 191, 0.25);
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
 .chart-date-text {
   font-size: 13.5px;
   font-weight: 600;
@@ -814,6 +827,11 @@ body {
 
 <script src="webdata.js"></script>
 <script>
+// 全局存放從 XML 解析出的 7 日氣溫預報數據
+let dynamic7dLabels = [];
+let dynamic7dMax = [];
+let dynamic7dMin = [];
+
 // Menu toggle function
 function toggleMenu() {
   const nav = document.getElementById("navMenu");
@@ -838,7 +856,7 @@ function updateHeaderClock() {
 const forecastXmlUrl = "https://xml.smg.gov.mo/c_forecast.xml";
 const forecastProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(forecastXmlUrl)}`;
 
-// 動態讀取 天氣概況 / 今日天氣 / 明日天氣 XML
+// 動態讀取 天氣概況 / 今日天氣 / 明日天氣 XML（含 ValidFor 欄位）
 async function loadForecastXML() {
   try {
     const res = await fetch(forecastProxyUrl, { cache: "no-store" });
@@ -852,7 +870,13 @@ async function loadForecastXML() {
     const situation = xmlDoc.querySelector("TodaySituation")?.textContent.trim() || "";
     
     const wfNodes = xmlDoc.querySelectorAll("WeatherForecast");
+    
+    // 今日天氣：擷取 ValidFor & WeatherDescription
+    const todayValid = wfNodes[0]?.querySelector("ValidFor")?.textContent.trim() || "";
     const todayDesc = wfNodes[0]?.querySelector("WeatherDescription")?.textContent.trim() || "暫無資料";
+
+    // 明日天氣：擷取 ValidFor & WeatherDescription
+    const tomorrowValid = wfNodes[1]?.querySelector("ValidFor")?.textContent.trim() || "";
     const tomorrowDesc = wfNodes[1]?.querySelector("WeatherDescription")?.textContent.trim() || "暫無資料";
 
     if (pubDate) {
@@ -861,11 +885,25 @@ async function loadForecastXML() {
     if (situation) {
       document.getElementById("tab0").innerHTML = situation.replaceAll("\n", "<br>");
     }
+
+    // 今日天氣：在 WeatherDescription 前加入 ValidFor 標籤
     if (todayDesc) {
-      document.getElementById("tab1").innerHTML = todayDesc.replaceAll("\n", "<br>");
+      let todayHtml = "";
+      if (todayValid) {
+        todayHtml += `<div class="valid-for-tag">有效時間：${todayValid}</div>`;
+      }
+      todayHtml += todayDesc.replaceAll("\n", "<br>");
+      document.getElementById("tab1").innerHTML = todayHtml;
     }
+
+    // 明日天氣：在 WeatherDescription 前加入 ValidFor 標籤
     if (tomorrowDesc) {
-      document.getElementById("tab2").innerHTML = tomorrowDesc.replaceAll("\n", "<br>");
+      let tomorrowHtml = "";
+      if (tomorrowValid) {
+        tomorrowHtml += `<div class="valid-for-tag">有效時間：${tomorrowValid}</div>`;
+      }
+      tomorrowHtml += tomorrowDesc.replaceAll("\n", "<br>");
+      document.getElementById("tab2").innerHTML = tomorrowHtml;
     }
   } catch (err) {
     console.error("天氣預報 XML 解析異常：", err);
@@ -936,7 +974,7 @@ if (typeof tcWarnings !== 'undefined') renderWarnings(tcWarnings, "tcContent", "
 if (typeof warnWarnings !== 'undefined') renderWarnings(warnWarnings, "warnContent", "warnCard");
 </script>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/Chart.js"></script>
 <script>
 // Chart.js 深空主題配色配置
 Chart.defaults.color = '#94a3b8';
@@ -947,7 +985,9 @@ let tempChart;
 const dateDom = document.getElementById("chartDate");
 
 function initChart(){
-  dateDom.innerText = chartRightDate;
+  if (typeof chartRightDate !== 'undefined') {
+    dateDom.innerText = chartRightDate;
+  }
   const ctx = document.getElementById('tempChart').getContext('2d');
   render24hChart(ctx);
 
@@ -966,10 +1006,10 @@ function render24hChart(ctx){
   tempChart = new Chart(ctx,{
     type:"line",
     data:{
-      labels: label24hX,
+      labels: typeof label24hX !== 'undefined' ? label24hX : [],
       datasets:[{
         label:"氣溫(°C)",
-        data:temp24h,
+        data: typeof temp24h !== 'undefined' ? temp24h : [],
         borderColor:"#38bdf8",
         backgroundColor:"rgba(56, 189, 248, 0.12)",
         fill:true,
@@ -990,13 +1030,16 @@ function render24hChart(ctx){
   })
 }
 
+// 修改後的 7 日氣溫預報：優先使用從 https://xml.smg.gov.mo/c_7daysforecast.xml 動態解析的數據
 function render7dChart(ctx){
-  const maxArr = temp7dMax;
-  const minArr = temp7dMin;
+  const labels = dynamic7dLabels.length > 0 ? dynamic7dLabels : (typeof label7dX !== 'undefined' ? label7dX : []);
+  const maxArr = dynamic7dMax.length > 0 ? dynamic7dMax : (typeof temp7dMax !== 'undefined' ? temp7dMax : []);
+  const minArr = dynamic7dMin.length > 0 ? dynamic7dMin : (typeof temp7dMin !== 'undefined' ? temp7dMin : []);
+
   tempChart = new Chart(ctx,{
     type:"line",
     data:{
-      labels: label7dX,
+      labels: labels,
       datasets:[
         {label:"最高氣溫",data:maxArr,borderColor:"#ef4444",backgroundColor:"#ef4444",fill:false,tension:0.3,pointRadius:4},
         {label:"最低氣溫",data:minArr,borderColor:"#34d399",backgroundColor:"#34d399",fill:false,tension:0.3,pointRadius:4}
@@ -1005,7 +1048,7 @@ function render7dChart(ctx){
     options:{
       responsive:true,
       maintainAspectRatio:false,
-      plugins:{title:{display:true,text:"七日高低溫預報"}},
+      plugins:{title:{display:true,text:"7日氣溫預報 (動態數據)"}},
       scales:{
         x:{display:true,title:{display:true,text:"日期"}},
         y:{display:true,title:{display:true,text:"溫度℃"}}
@@ -1110,9 +1153,11 @@ function getUVColor(uv) {
     return "#34d399";
 }
 
+// 7日預報數據 XML (c_7daysforecast.xml)
 const fourDayXmlUrl = "https://xml.smg.gov.mo/c_7daysforecast.xml";
 const fourDayProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(fourDayXmlUrl)}`;
 
+// 讀取 c_7daysforecast.xml：同步生成下方卡片與圖表動態數據
 async function load4DaysForecastXML() {
     const loadingEl = document.getElementById('7day-xml-loading');
     const errorEl = document.getElementById('7day-xml-error');
@@ -1123,7 +1168,7 @@ async function load4DaysForecastXML() {
         if (errorEl) errorEl.style.display = 'none';
 
         const res = await fetch(fourDayProxyUrl, { cache: "no-store" });
-        if (!res.ok) throw new Error("4日預報數據請求失敗");
+        if (!res.ok) throw new Error("7日預報數據請求失敗");
 
         const xmlText = await res.text();
         const parser = new DOMParser();
@@ -1135,6 +1180,11 @@ async function load4DaysForecastXML() {
         }
 
         if (forecastNodes.length === 0) throw new Error("未能讀取預報數據");
+
+        // 重置動態圖表陣列
+        dynamic7dLabels = [];
+        dynamic7dMax = [];
+        dynamic7dMin = [];
 
         let html = '';
         forecastNodes.forEach(node => {
@@ -1193,6 +1243,7 @@ async function load4DaysForecastXML() {
                 }
             }
 
+            // 抓取氣溫 (Min & Max)
             let tempNums = [];
             for (let el of allElements) {
                 const name = el.nodeName.toLowerCase();
@@ -1213,6 +1264,18 @@ async function load4DaysForecastXML() {
                 ? (tempMin === tempMax ? `${tempMin}°C` : `${tempMin}°C - ${tempMax}°C`)
                 : '--';
 
+            // 收集數據填入「7日氣溫預報圖表」陣列
+            if (tempMin !== null && tempMax !== null) {
+                let chartLabel = date;
+                if (dayOfWeek) {
+                    chartLabel += ` (${dayOfWeek.replace("星期", "").replace("周", "")})`;
+                }
+                dynamic7dLabels.push(chartLabel || `第${dynamic7dLabels.length + 1}天`);
+                dynamic7dMin.push(tempMin);
+                dynamic7dMax.push(tempMax);
+            }
+
+            // 抓取濕度 (RH)
             let rhNums = [];
             for (let el of allElements) {
                 const name = el.nodeName.toLowerCase();
@@ -1259,8 +1322,16 @@ async function load4DaysForecastXML() {
         if (loadingEl) loadingEl.style.display = 'none';
         containerEl.innerHTML = html;
 
+        // 若當前圖表正處於「7日氣溫預報」，立即刷新規劃圖表
+        const activeChartBtn = document.querySelector('.chart-btn.active');
+        if (activeChartBtn && activeChartBtn.dataset.type === '7d') {
+            const ctx = document.getElementById('tempChart').getContext('2d');
+            if (tempChart) tempChart.destroy();
+            render7dChart(ctx);
+        }
+
     } catch (err) {
-        console.error("4日預報XML解析異常：", err);
+        console.error("7日預報XML解析異常：", err);
         if (loadingEl) loadingEl.style.display = 'none';
         if (errorEl && containerEl.children.length === 0) errorEl.style.display = 'block';
     }
