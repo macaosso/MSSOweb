@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="icons/MSSO.png">
+<title>澳門天氣 - 實況與氣象預報</title>
+<style>
+/* ========== 1. 深太空 (Deep Space) 主題基礎 ========== */
+:root {
+  --bg-dark: #0b0f19;
+  --card-bg: rgba(22, 30, 46, 0.75);
+  --card-bg-light: rgba(255, 255, 255, 0.03);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  
+  --accent-blue: #38bdf8;
+  --accent-teal: #2dd4bf;
+  --accent-green: #34d399;
+  --accent-yellow: #facc15;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #c084fc;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+/* 頁面最大寬度容器 */
+.page-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 15px 40px 15px;
+}
+
+/* ========== 2. 頁頭 Header & 頂欄導航 ========== */
+.header-nav-container {
+  position: sticky;
+  top: 0;
+  z-index: 3000;
+  background: rgba(11, 15, 25, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  margin-bottom: 20px;
+}
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logo {
+  height: 38px;
+  width: auto;
+  filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.3));
+}
+.title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.header-clock {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--accent-teal);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.9;
+}
+
+.menu-container {
+  position: relative;
+}
+.menu-toggle {
+  display: none;
+  font-size: 22px;
+  padding: 6px 12px;
+  cursor: pointer;
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  border-radius: 8px;
+}
+.menu-toggle.active {
+  border-color: var(--accent-blue);
+  background: rgba(56, 189, 248, 0.12);
+}
+
+.nav {
+  display: flex;
+  gap: 8px;
+}
+.nav a {
+  color: var(--text-muted);
+  padding: 8px 14px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+}
+.nav a:hover, .nav a.active {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* ========== 3. 通用卡片容器 ========== */
+.section-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.section-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 10px;
+}
+.update-tag {
+  font-size: 0.82rem;
+  color: var(--accent-teal);
+  font-weight: normal;
+}
+
+/* ========== 4. 實況天氣網格 ========== */
+.current-main-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.temp-large {
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--accent-blue);
+  line-height: 1;
+}
+.weather-desc-badge {
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 20px;
+  color: #ffffff;
+}
+
+.current-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+.current-item {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 14px;
+}
+.current-item .label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+.current-item .val {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-top: 4px;
+  color: var(--text-main);
+}
+
+/* ========== 5. 控制面板 (天數 & 變量選擇) ========== */
+.control-panel {
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 18px;
+}
+.control-group {
+  margin-bottom: 14px;
+}
+.control-group:last-child {
+  margin-bottom: 0;
+}
+.control-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--accent-teal);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.days-select-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.day-btn {
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.day-btn.active {
+  background: var(--accent-blue);
+  color: #0b0f19;
+  border-color: var(--accent-blue);
+  font-weight: 700;
+}
+
+.var-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.var-checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.05);
+  cursor: pointer;
+}
+.var-checkbox-item:hover {
+  border-color: var(--accent-blue);
+}
+.var-checkbox-item input {
+  accent-color: var(--accent-blue);
+  cursor: pointer;
+}
+
+.quick-action-btns {
+  display: flex;
+  gap: 10px;
+  font-size: 0.78rem;
+}
+.text-btn {
+  background: none;
+  border: none;
+  color: var(--accent-blue);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ========== 6. 預報表格樣式 ========== */
+.table-wrapper {
+  overflow-x: auto;
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  max-height: 600px;
+  overflow-y: auto;
+}
+.forecast-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  text-align: center;
+  white-space: nowrap;
+}
+.forecast-table th {
+  position: sticky;
+  top: 0;
+  background: #111827;
+  color: var(--accent-blue);
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--card-border);
+  font-weight: 600;
+  z-index: 10;
+}
+.forecast-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--text-main);
+}
+.forecast-table tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+.forecast-table tr:hover {
+  background-color: rgba(56, 189, 248, 0.06);
+}
+.time-col {
+  position: sticky;
+  left: 0;
+  background: #0f172a;
+  font-weight: 600;
+  color: var(--accent-teal) !important;
+  z-index: 5;
+}
+
+/* 響應式適配 */
+@media (max-width: 768px) {
+  .header-nav-container { padding: 0.75rem 1rem; }
+  .menu-toggle { display: block; }
+  .nav {
+    display: none;
+    flex-direction: column;
+    width: 220px;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 10px;
+  }
+  .nav.active { display: flex; }
+}
+@media (min-width: 769px) {
+  .nav { display: flex !important; }
+  .menu-toggle { display: none !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- 頂欄頁頭與導航 -->
+<div class="header-nav-container">
+  <div class="header">
+    <img src="icons/MSSO.png" class="logo" alt="MSSO Logo">
+    <div class="title">
+      澳門天氣
+      <span id="headerClock" class="header-clock"></span>
+    </div>
+  </div>
+
+  <div class="menu-container">
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+    <div class="nav" id="navMenu">
+      <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
+      <a href="#" class="active">澳門天氣</a>
+      <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
+      <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑</a>  
+      <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+    </div>
+  </div>
+</div>
+
+<div class="page-wrapper">
+
+  <!-- 1. 實況天氣區塊 -->
+  <div class="section-card">
+    <div class="section-title">
+      澳門即時天氣實況 (Open-Meteo)
+      <span class="update-tag" id="currentUpdateTime">更新中...</span>
+    </div>
+
+    <div class="current-main-row">
+      <div class="temp-large" id="curTemp">--°C</div>
+      <div class="weather-desc-badge" id="curCode">--</div>
+    </div>
+
+    <div class="current-grid">
+      <div class="current-item"><div class="label">體感溫度</div><div class="val" id="curAppTemp">--°C</div></div>
+      <div class="current-item"><div class="label">相對濕度</div><div class="val" id="curHum">--%</div></div>
+      <div class="current-item"><div class="label">風速 / 風向</div><div class="val" id="curWind">-- km/h</div></div>
+      <div class="current-item"><div class="label">陣風</div><div class="val" id="curGust">-- km/h</div></div>
+      <div class="current-item"><div class="label">海平面氣壓</div><div class="val" id="curMSL">-- hPa</div></div>
+      <div class="current-item"><div class="label">地面氣壓</div><div class="val" id="curPress">-- hPa</div></div>
+      <div class="current-item"><div class="label">總雲量</div><div class="val" id="curCloud">--%</div></div>
+      <div class="current-item"><div class="label">降水量 / 陣雨</div><div class="val" id="curPrecip">-- mm</div></div>
+    </div>
+  </div>
+
+  <!-- 2. 逐時預報與自訂數據表格區塊 -->
+  <div class="section-card">
+    <div class="section-title">
+      逐時天氣預報與變量分析 (最高14天)
+      <span class="update-tag" id="forecastUpdateTime">更新中...</span>
+    </div>
+
+    <!-- 控制選項面板 -->
+    <div class="control-panel">
+      <!-- 選擇預報天數 -->
+      <div class="control-group">
+        <div class="control-label">預報顯示天數</div>
+        <div class="days-select-bar" id="daysBar">
+          <button class="day-btn" data-days="1">1 天</button>
+          <button class="day-btn" data-days="3">3 天</button>
+          <button class="day-btn active" data-days="7">7 天</button>
+          <button class="day-btn" data-days="10">10 天</button>
+          <button class="day-btn" data-days="14">14 天</button>
+        </div>
+      </div>
+
+      <!-- 選擇顯示變量 -->
+      <div class="control-group" style="margin-top: 16px;">
+        <div class="control-label">
+          選擇顯示變量
+          <div class="quick-action-btns">
+            <button class="text-btn" onclick="selectAllVars(true)">全選</button>
+            <button class="text-btn" onclick="selectAllVars(false)">重置</button>
+          </div>
+        </div>
+        <div class="var-checkbox-grid" id="varCheckboxContainer"></div>
+      </div>
+    </div>
+
+    <!-- 數據表格 -->
+    <div class="table-wrapper">
+      <table class="forecast-table">
+        <thead>
+          <tr id="tableHeaderRow">
+            <th class="time-col">時間</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <tr><td colspan="10" style="padding: 30px 0; color: var(--text-muted);">正在載入預報數據...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ========== 1. WMO 天氣代碼對照表 ==========
+const wmoCodes = {
+  0: "晴朗",
+  1: "大部晴朗", 2: "多雲", 3: "陰天",
+  45: "有霧", 48: "霧淞",
+  51: "輕微細雨", 53: "中度細雨", 55: "濃密細雨",
+  61: "微雨", 63: "中雨", 65: "大雨",
+  66: "凍雨", 67: "強烈凍雨",
+  71: "小雪", 73: "中雪", 75: "大雪",
+  80: "陣雨", 81: "中度陣雨", 82: "暴陣雨",
+  95: "雷暴", 96: "雷暴伴有冰雹", 99: "強雷暴伴有冰雹"
+};
+
+function getWmoText(code) {
+  return wmoCodes[code] || `未知 (${code})`;
+}
+
+// ========== 2. 可選變量定義對照表 ==========
+const availableVariables = [
+  { key: "temperature_2m", label: "氣溫 (°C)", default: true },
+  { key: "apparent_temperature", label: "體感溫度 (°C)", default: true },
+  { key: "dew_point_2m", label: "露點 (°C)", default: false },
+  { key: "relative_humidity_2m", label: "相對濕度 (%)", default: true },
+  { key: "precipitation_probability", label: "降水機率 (%)", default: true },
+  { key: "precipitation", label: "降水量 (mm)", default: true },
+  { key: "weather_code", label: "天氣狀況", default: true },
+  { key: "wind_speed_10m", label: "風速 (km/h)", default: true },
+  { key: "wind_direction_10m", label: "風向 (°)", default: false },
+  { key: "wind_gusts_10m", label: "陣風 (km/h)", default: false },
+  { key: "pressure_msl", label: "海平面氣壓 (hPa)", default: false },
+  { key: "surface_pressure", label: "地面氣壓 (hPa)", default: false },
+  { key: "cloud_cover", label: "總雲量 (%)", default: false },
+  { key: "cloud_cover_high", label: "高雲量 (%)", default: false },
+  { key: "cloud_cover_mid", label: "中雲量 (%)", default: false },
+  { key: "cloud_cover_low", label: "低雲量 (%)", default: false },
+  { key: "visibility", label: "能見度 (m)", default: false }
+];
+
+let selectedDays = 7;
+let forecastRawData = null;
+
+// ========== 3. UI 初始化與導航控制 ==========
+function toggleMenu() {
+  const nav = document.getElementById("navMenu");
+  nav.classList.toggle("active");
+}
+
+function updateHeaderClock() {
+  const clockEl = document.getElementById('headerClock');
+  if (clockEl) {
+    const now = new Date();
+    clockEl.textContent = `${now.getFullYear()}年 ${String(now.getMonth()+1).padStart(2,'0')}月 ${String(now.getDate()).padStart(2,'0')}日 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  }
+}
+
+// 初始化勾選框列表
+function initVariableCheckboxes() {
+  const container = document.getElementById("varCheckboxContainer");
+  container.innerHTML = "";
+  availableVariables.forEach(v => {
+    const label = document.createElement("label");
+    label.className = "var-checkbox-item";
+    label.innerHTML = `
+      <input type="checkbox" value="${v.key}" ${v.default ? "checked" : ""} onchange="renderForecastTable()">
+      ${v.label}
+    `;
+    container.appendChild(label);
+  });
+}
+
+function selectAllVars(select) {
+  const checkboxes = document.querySelectorAll("#varCheckboxContainer input");
+  checkboxes.forEach(cb => cb.checked = select);
+  renderForecastTable();
+}
+
+// ========== 4. 抓取 API 數據 ==========
+const CURRENT_API = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&current=temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,showers,weather_code,pressure_msl,surface_pressure,cloud_cover,wind_speed_10m,wind_direction_10m,wind_gusts_10m&timezone=Asia%2FSingapore";
+const FORECAST_API = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,precipitation,weather_code,pressure_msl,surface_pressure,cloud_cover,visibility,cloud_cover_high,cloud_cover_mid,cloud_cover_low,wind_gusts_10m,wind_direction_10m,wind_speed_10m,apparent_temperature,dew_point_2m&timezone=Asia%2FSingapore&forecast_days=14";
+
+async function fetchCurrentWeather() {
+  try {
+    const res = await fetch(CURRENT_API);
+    if (!res.ok) throw new Error("實況數據載入失敗");
+    const data = await res.json();
+    const cur = data.current;
+
+    document.getElementById("curTemp").textContent = `${cur.temperature_2m} °C`;
+    document.getElementById("curCode").textContent = getWmoText(cur.weather_code);
+    document.getElementById("curAppTemp").textContent = `${cur.apparent_temperature} °C`;
+    document.getElementById("curHum").textContent = `${cur.relative_humidity_2m} %`;
+    document.getElementById("curWind").textContent = `${cur.wind_speed_10m} km/h (${cur.wind_direction_10m}°)`;
+    document.getElementById("curGust").textContent = `${cur.wind_gusts_10m} km/h`;
+    document.getElementById("curMSL").textContent = `${cur.pressure_msl} hPa`;
+    document.getElementById("curPress").textContent = `${cur.surface_pressure} hPa`;
+    document.getElementById("curCloud").textContent = `${cur.cloud_cover} %`;
+    document.getElementById("curPrecip").textContent = `${cur.precipitation} mm`;
+
+    const now = new Date();
+    document.getElementById("currentUpdateTime").textContent = `更新時間：${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+  } catch (err) {
+    console.error(err);
+    document.getElementById("currentUpdateTime").textContent = "實況更新失敗";
+  }
+}
+
+async function fetchForecastData() {
+  try {
+    const res = await fetch(FORECAST_API);
+    if (!res.ok) throw new Error("預報數據載入失敗");
+    forecastRawData = await res.json();
+
+    const now = new Date();
+    document.getElementById("forecastUpdateTime").textContent = `更新時間：${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+    renderForecastTable();
+  } catch (err) {
+    console.error(err);
+    document.getElementById("tableBody").innerHTML = `<tr><td colspan="10" style="color:var(--accent-red); padding: 30px 0;">預報數據加載失敗，請刷新重試。</td></tr>`;
+  }
+}
+
+// ========== 5. 動態渲染預報表格 ==========
+function renderForecastTable() {
+  if (!forecastRawData || !forecastRawData.hourly) return;
+
+  const hourly = forecastRawData.hourly;
+  const times = hourly.time;
+
+  // 取得當前已勾選的變量
+  const checkedBoxes = Array.from(document.querySelectorAll("#varCheckboxContainer input:checked"));
+  const activeVars = checkedBoxes.map(cb => {
+    return availableVariables.find(v => v.key === cb.value);
+  });
+
+  // 1. 構建表頭 Header
+  const headerRow = document.getElementById("tableHeaderRow");
+  headerRow.innerHTML = `<th class="time-col">時間</th>`;
+  activeVars.forEach(v => {
+    const th = document.createElement("th");
+    th.textContent = v.label;
+    headerRow.appendChild(th);
+  });
+
+  // 2. 計算顯示的數據點數量 (天數 * 24小時)
+  const maxPoints = Math.min(times.length, selectedDays * 24);
+
+  // 3. 構建表格數據 Body
+  const tbody = document.getElementById("tableBody");
+  tbody.innerHTML = "";
+
+  for (let i = 0; i < maxPoints; i++) {
+    const tr = document.createElement("tr");
+
+    // 時間欄 (格式: MM-DD HH:mm)
+    const timeStr = times[i].replace("T", " ");
+    const tdTime = document.createElement("td");
+    tdTime.className = "time-col";
+    tdTime.textContent = timeStr;
+    tr.appendChild(tdTime);
+
+    // 動態變量欄
+    activeVars.forEach(v => {
+      const td = document.createElement("td");
+      let val = hourly[v.key][i];
+
+      if (v.key === "weather_code") {
+        td.textContent = getWmoText(val);
+      } else {
+        td.textContent = val !== null && val !== undefined ? val : "--";
+      }
+      tr.appendChild(td);
+    });
+
+    tbody.appendChild(tr);
+  }
+}
+
+// ========== 6. 事件綁定與初始化 ==========
+window.addEventListener("DOMContentLoaded", () => {
+  updateHeaderClock();
+  setInterval(updateHeaderClock, 1000);
+
+  initVariableCheckboxes();
+  fetchCurrentWeather();
+  fetchForecastData();
+
+  // 天數切換按鈕事件
+  document.querySelectorAll("#daysBar .day-btn").forEach(btn => {
+    btn.addEventListener("click", function() {
+      document.querySelectorAll("#daysBar .day-btn").forEach(b => b.classList.remove("active"));
+      this.classList.add("active");
+      selectedDays = parseInt(this.dataset.days);
+      renderForecastTable();
+    });
+  });
+});
+</script>
+
+</body>
+</html>
