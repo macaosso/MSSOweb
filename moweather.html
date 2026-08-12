@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="icons/MSSO.png">
-<title>澳門天氣 - 實況、圖表與預報</title>
+<title>澳門天氣</title>
 
 <!-- Chart.js 圖表庫 -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -370,12 +370,12 @@ body {
 </head>
 <body>
 
-<!-- 頁頭與導航 -->
+<!-- 深太空頂欄頁頭與導航 -->
 <div class="header-nav-container">
   <div class="header">
     <img src="icons/MSSO.png" class="logo" alt="MSSO Logo">
     <div class="title">
-      澳門天氣
+      澳門民間氣象台 MSSO
       <span id="headerClock" class="header-clock"></span>
     </div>
   </div>
@@ -384,10 +384,12 @@ body {
     <div class="menu-toggle" onclick="toggleMenu()">☰</div>
     <div class="nav" id="navMenu">
       <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
-      <a href="#" class="active">澳門天氣</a>
       <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
-      <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑</a>  
+      <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋距離計算工具</a> 
+      <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑地圖</a>  
+      <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
       <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+      <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
     </div>
   </div>
 </div>
@@ -397,7 +399,7 @@ body {
   <!-- 1. 實況天氣 -->
   <div class="section-card">
     <div class="section-title">
-      澳門即時天氣實況 (Open-Meteo)
+      澳門即時天氣實況
       <span class="update-tag" id="currentUpdateTime">更新中...</span>
     </div>
 
@@ -421,7 +423,7 @@ body {
   <!-- 2. 預報控制、圖表與數據列表 -->
   <div class="section-card">
     <div class="section-title">
-      氣象趨勢圖與逐時數據預報 (最高14天)
+      氣象趨勢圖與逐時數據預報
       <span class="update-tag" id="forecastUpdateTime">更新中...</span>
     </div>
 
