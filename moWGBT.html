@@ -354,8 +354,9 @@
         .bg-normal { background: #0077b6; }
         .bg-caution { background: #38b000; color: #111; }
         .bg-alert { background: #c9b200; color: #111; }
-        .bg-danger { background: #e06c00; }
-        .bg-high-danger { background: #ff0000; }
+        .bg-high-alert { background: #e06c00; }
+        .bg-danger { background: #ef4444; }
+        .bg-high-danger { background: #b91c1c; }
         .bg-extreme { background: #7f1d1d; border: 1px solid #ef4444; }
 
         /* Table View */
@@ -505,7 +506,7 @@
 </head>
 <body>
 
-<!-- 選單容器 (同 index.html) -->
+<!-- 選單容器 -->
 <div class="header-nav-container">
   <div class="header">
     <img src="icons/MSSO.png" class="logo" alt="MSSO Logo">
@@ -603,18 +604,19 @@
         <!-- Card 2: Standards -->
         <div class="info-card" style="border-top-color: #f97316;">
             <h3>📊 暑熱指數警戒分級標準</h3>
-            <p>根據國際勞工組織與健康指引，WBGT 指數等級與相應熱危害風險：</p>
+            <p>根據 WBGT 指數等級與相應熱危害風險：</p>
             <table class="level-table">
                 <thead>
                     <tr><th>WBGT 範圍</th><th>危險等級</th><th>熱危害風險</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td>&lt; 24.5 °C</td><td><span class="badge bg-normal">正常</span></td><td>低風險，注意補充水分</td></tr>
-                    <tr><td>24.5 - 27.4 °C</td><td><span class="badge bg-caution">注意</span></td><td>持續運動/工作需適度休息</td></tr>
-                    <tr><td>27.5 - 29.4 °C</td><td><span class="badge bg-alert">警戒</span></td><td>熱痙攣、熱疲勞風險增加</td></tr>
-                    <tr><td>29.5 - 31.4 °C</td><td><span class="badge bg-danger">危險</span></td><td>強烈建議增加休息頻率</td></tr>
-                    <tr><td>31.5 - 33.4 °C</td><td><span class="badge bg-high-danger">非常危險</span></td><td>極易中暑，應減少劇烈戶外活動</td></tr>
-                    <tr><td>≥ 33.5 °C</td><td><span class="badge bg-extreme">極度危險</span></td><td>高危！應立即停止高強度戶外工作</td></tr>
+                    <tr><td>&lt; 21</td><td><span class="badge bg-normal">正常</span></td><td>低風險，注意補充水分</td></tr>
+                    <tr><td>21 - 25</td><td><span class="badge bg-caution">注意</span></td><td>持續運動/工作需適度休息</td></tr>
+                    <tr><td>25 - 28</td><td><span class="badge bg-alert">警戒</span></td><td>熱痙攣、熱疲勞風險增加</td></tr>
+                    <tr><td>28 - 31</td><td><span class="badge bg-high-alert">高度警戒</span></td><td>強烈建議增加休息頻率</td></tr>
+                    <tr><td>31 - 33</td><td><span class="badge bg-danger">危險</span></td><td>容易中暑，應減少劇烈戶外活動</td></tr>
+                    <tr><td>33 - 34</td><td><span class="badge bg-high-danger">非常危險</span></td><td>相當容易中暑，應避免劇烈戶外活動</td></tr>
+                    <tr><td>≥ 34</td><td><span class="badge bg-extreme">極度危險</span></td><td>高危！應立即停止高強度戶外工作</td></tr>
                 </tbody>
             </table>
         </div>
@@ -809,11 +811,12 @@ const excludedBridgeCodes = ["PV", "PN", "PS", "PG", "MN", "MS", "LH"];
 function getWbgtBadge(wbgtStr) {
     let w = parseFloat(wbgtStr);
     if (isNaN(w)) return `<span class="badge" style="background:#555;">無數據</span>`;
-    if (w >= 33.5) return `<span class="badge bg-extreme">極度危險</span>`;
-    if (w >= 31.5) return `<span class="badge bg-high-danger">非常危險</span>`;
-    if (w >= 29.5) return `<span class="badge bg-danger">危險</span>`;
-    if (w >= 27.5) return `<span class="badge bg-alert">警戒</span>`;
-    if (w >= 24.5) return `<span class="badge bg-caution">注意</span>`;
+    if (w >= 34) return `<span class="badge bg-extreme">極度危險</span>`;
+    if (w >= 33) return `<span class="badge bg-high-danger">非常危險</span>`;
+    if (w >= 31) return `<span class="badge bg-danger">危險</span>`;
+    if (w >= 28) return `<span class="badge bg-high-alert">高度警戒</span>`;
+    if (w >= 25) return `<span class="badge bg-alert">警戒</span>`;
+    if (w >= 21) return `<span class="badge bg-caution">注意</span>`;
     return `<span class="badge bg-normal">正常</span>`;
 }
 
@@ -916,7 +919,7 @@ function renderTable() {
             <td>${item.windSpeed} km/h</td>
             <td>${item.tnw} °C</td>
             <td>${item.tg} °C</td>
-            <td class="wbgt-val" style="color: #f97316;">${item.wbgt} °C</td>
+            <td class="wbgt-val" style="color: #f97316;">${item.wbgt}</td>
             <td>${badgeHtml}</td>
         `;
         tbody.appendChild(tr);
