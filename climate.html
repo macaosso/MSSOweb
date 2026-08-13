@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>澳門氣候數據與 ENSO 氣候變遷監測中心 | Macau Climate & ENSO Portal</title>
+
+<!-- External Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<style>
+/* ========== 1. Theme & Global Setup ========== */
+:root {
+  --bg-dark: #0b1120;
+  --card-bg: rgba(22, 32, 54, 0.78);
+  --card-bg-light: rgba(255, 255, 255, 0.03);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  
+  --accent-blue: #38bdf8;
+  --accent-teal: #2dd4bf;
+  --accent-green: #34d399;
+  --accent-yellow: #facc15;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #c084fc;
+}
+
+body.light-theme {
+  --bg-dark: #f0f4f8;
+  --card-bg: rgba(255, 255, 255, 0.92);
+  --card-bg-light: rgba(0, 0, 0, 0.03);
+  --card-border: rgba(0, 0, 0, 0.1);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+
+  --accent-blue: #0284c7;
+  --accent-teal: #0d9488;
+  --accent-green: #059669;
+  --accent-yellow: #d97706;
+  --accent-orange: #ea580c;
+  --accent-red: #dc2626;
+  --accent-purple: #9333ea;
+}
+
+html { scroll-behavior: smooth; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.page-wrapper {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 15px 50px 15px;
+}
+
+/* ========== 2. Header & Nav ========== */
+.header-nav-container {
+  position: sticky;
+  top: 0;
+  z-index: 3000;
+  background: rgba(11, 17, 32, 0.88);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1.5rem;
+  margin-bottom: 25px;
+}
+body.light-theme .header-nav-container { background: rgba(240, 244, 248, 0.92); }
+
+.title {
+  font-size: 1.15rem; font-weight: 700; color: var(--accent-blue);
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.header-clock {
+  font-size: 0.88rem; font-weight: 500; color: var(--accent-teal);
+  font-variant-numeric: tabular-nums;
+}
+
+.menu-container { display: flex; align-items: center; gap: 12px; }
+
+.btn-action {
+  background: var(--card-bg-light); border: 1px solid var(--card-border);
+  color: var(--text-main); padding: 8px 14px; border-radius: 20px; cursor: pointer;
+  display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600;
+  transition: all 0.25s ease;
+  text-decoration: none;
+}
+.btn-action:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+
+.sun-icon { display: block; }
+.moon-icon { display: none; }
+body.light-theme .sun-icon { display: none; }
+body.light-theme .moon-icon { display: block; }
+
+/* ========== 3. Layout Cards & Elements ========== */
+.section-title {
+  font-size: 1.35rem; font-weight: 700; color: var(--accent-blue);
+  margin: 35px 0 18px 0; display: flex; align-items: center; gap: 10px;
+  border-left: 4px solid var(--accent-blue); padding-left: 10px;
+}
+.astro-card {
+  background: var(--card-bg); border: 1px solid var(--card-border);
+  border-radius: 16px; padding: 22px; box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  margin-bottom: 22px;
+}
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+
+.metric-card {
+  background: var(--card-bg-light); border: 1px solid var(--card-border);
+  padding: 16px; border-radius: 14px; display: flex; flex-direction: column; gap: 6px;
+  position: relative;
+}
+.metric-card label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+.metric-card .value { font-size: 1.6rem; font-weight: 800; color: var(--text-main); }
+.metric-card .subtext { font-size: 0.78rem; color: var(--text-muted); }
+
+/* ========== 4. Tables ========== */
+.table-wrapper {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+}
+table.climate-table {
+  width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: center;
+  white-space: nowrap;
+}
+table.climate-table th {
+  background: var(--card-bg-light);
+  color: var(--accent-blue);
+  padding: 10px 8px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--card-border);
+}
+table.climate-table td {
+  padding: 9px 8px;
+  border-bottom: 1px solid var(--card-border);
+}
+table.climate-table tr:hover {
+  background: var(--card-bg-light);
+}
+table.climate-table tr.annual-row {
+  font-weight: 800;
+  background: rgba(56, 189, 248, 0.1);
+  color: var(--accent-teal);
+}
+
+/* ========== 5. Chart Containers ========== */
+.chart-container { position: relative; width: 100%; height: 340px; }
+
+/* ========== 6. ENSO Custom Badges & Phase Cards ========== */
+.enso-card {
+  border-radius: 16px; padding: 20px; border: 1px solid var(--card-border);
+  background: var(--card-bg); position: relative; overflow: hidden;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.enso-badge {
+  display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 20px;
+  font-weight: 800; font-size: 0.82rem; width: fit-content;
+}
+.enso-el-nino { background: rgba(239, 68, 68, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+.enso-la-nina { background: rgba(56, 189, 248, 0.2); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
+.enso-neutral { background: rgba(52, 211, 153, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
+
+@media (max-width: 820px) {
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- Navigation Header -->
+<div class="header-nav-container">
+  <div class="title">
+    🌍 澳門氣候資料與 ENSO 監測 Portal
+    <span id="headerClock" class="header-clock">--:--:--</span>
+  </div>
+
+  <div class="menu-container">
+    <a href="#macau-climate" class="btn-action">澳門氣候</a>
+    <a href="#enso-info" class="btn-action">ENSO 專區</a>
+    <button id="themeToggleBtn" class="btn-action" onclick="toggleTheme()">
+      <svg class="sun-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="moon-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+  </div>
+</div>
+
+<div class="page-wrapper">
+
+  <!-- ==================== SECTION 1: MACAU CLIMATE ==================== -->
+  <div id="macau-climate"></div>
+  <div class="section-title">
+    🇲🇴 澳門氣候概況 (Macau Climate Normals 1991–2020)
+  </div>
+
+  <!-- Key Metrics -->
+  <div class="grid-4">
+    <div class="metric-card">
+      <label>年平均氣溫 (Annual Mean Temp)</label>
+      <div class="value" style="color:var(--accent-orange);">22.8 °C</div>
+      <div class="subtext">平均最高 25.9°C | 最低 20.5°C</div>
+    </div>
+    <div class="metric-card">
+      <label>年總降雨量 (Annual Rainfall)</label>
+      <div class="value" style="color:var(--accent-blue);">1966.6 mm</div>
+      <div class="subtext">年平均降雨日數: 130.9 天</div>
+    </div>
+    <div class="metric-card">
+      <label>年總日照時間 (Sunshine Hours)</label>
+      <div class="value" style="color:var(--accent-yellow);">1749.3 小時</div>
+      <div class="subtext">7月份日照最長 (211.3h)</div>
+    </div>
+    <div class="metric-card">
+      <label>盛行風向與均速 (Prevailing Wind)</label>
+      <div class="value" style="color:var(--accent-teal);">北風 (N)</div>
+      <div class="subtext">年平均風速: 13.1 km/h</div>
+    </div>
+  </div>
+
+  <!-- 30-Year Normals Table -->
+  <div class="astro-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
+      <div>
+        <strong style="font-size:1.05rem; color:var(--accent-teal);">三十年氣象要素統計值 (1991 - 2020 年)</strong>
+        <p style="font-size:0.8rem; color:var(--text-muted);">數據來源：澳門地球物理氣象局 (SMG) 氣候統計基準</p>
+      </div>
+      <span style="font-size:0.75rem; background:rgba(45,212,191,0.15); color:var(--accent-teal); padding:4px 10px; border-radius:12px; font-weight:700;">
+        WMO 30-Year Standard Normals
+      </span>
+    </div>
+
+    <div class="table-wrapper">
+      <table class="climate-table">
+        <thead>
+          <tr>
+            <th rowspan="2">全月</th>
+            <th colspan="3">氣溫 (°C)</th>
+            <th rowspan="2">相對濕度<br>(%)</th>
+            <th rowspan="2">日照時間<br>(h)</th>
+            <th colspan="2">降雨</th>
+            <th colspan="2">風力</th>
+            <th rowspan="2">雷暴日數<br>(日)</th>
+            <th rowspan="2">霧日數<br>(日)</th>
+          </tr>
+          <tr>
+            <th>平均最高</th>
+            <th>平均</th>
+            <th>平均最低</th>
+            <th>總量 (mm)</th>
+            <th>日數 (日)</th>
+            <th>盛行風向</th>
+            <th>平均風速 (km/h)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1月</td><td>18.6</td><td>15.2</td><td>12.7</td><td>74.9</td><td>126.5</td><td>34.2</td><td>5.8</td><td>N</td><td>14.3</td><td>0.2</td><td>1.6</td></tr>
+          <tr><td>2月</td><td>19.2</td><td>16.1</td><td>13.9</td><td>80.5</td><td>85.7</td><td>43.9</td><td>8.9</td><td>N</td><td>13.2</td><td>0.2</td><td>3.6</td></tr>
+          <tr><td>3月</td><td>21.4</td><td>18.6</td><td>16.5</td><td>85.0</td><td>74.8</td><td>80.0</td><td>11.4</td><td>ESE</td><td>12.6</td><td>1.9</td><td>6.6</td></tr>
+          <tr><td>4月</td><td>25.1</td><td>22.3</td><td>20.3</td><td>86.3</td><td>94.6</td><td>153.5</td><td>11.6</td><td>ESE</td><td>12.4</td><td>3.8</td><td>4.2</td></tr>
+          <tr><td>5月</td><td>28.7</td><td>25.8</td><td>23.7</td><td>84.9</td><td>135.5</td><td>286.0</td><td>14.1</td><td>S</td><td>12.2</td><td>7.8</td><td>0.4</td></tr>
+          <tr><td>6月</td><td>30.5</td><td>27.8</td><td>25.7</td><td>84.6</td><td>159.0</td><td>373.7</td><td>17.7</td><td>S</td><td>12.1</td><td>10.5</td><td>0.03</td></tr>
+          <tr><td>7月</td><td>31.4</td><td>28.4</td><td>26.1</td><td>82.7</td><td>211.3</td><td>290.7</td><td>16.6</td><td>S</td><td>12.1</td><td>8.9</td><td>0.03</td></tr>
+          <tr><td>8月</td><td>31.5</td><td>28.3</td><td>25.9</td><td>82.1</td><td>188.2</td><td>331.4</td><td>16.2</td><td>S</td><td>11.1</td><td>10.9</td><td>0.03</td></tr>
+          <tr><td>9月</td><td>30.8</td><td>27.5</td><td>25.1</td><td>78.3</td><td>178.3</td><td>227.8</td><td>12.3</td><td>N</td><td>12.8</td><td>6.8</td><td>0.01</td></tr>
+          <tr><td>10月</td><td>28.5</td><td>25.1</td><td>22.7</td><td>72.5</td><td>192.2</td><td>75.1</td><td>6.2</td><td>NNE</td><td>14.5</td><td>1.2</td><td>0.03</td></tr>
+          <tr><td>11月</td><td>24.7</td><td>21.3</td><td>18.8</td><td>72.6</td><td>158.1</td><td>39.0</td><td>4.9</td><td>N</td><td>14.9</td><td>0.2</td><td>0.2</td></tr>
+          <tr><td>12月</td><td>20.3</td><td>16.9</td><td>14.3</td><td>70.8</td><td>145.1</td><td>31.3</td><td>5.0</td><td>N</td><td>15.4</td><td>0.1</td><td>0.5</td></tr>
+          <tr class="annual-row">
+            <td>全年</td><td>25.9</td><td>22.8</td><td>20.5</td><td>79.6</td><td>1749.3</td><td>1966.6</td><td>130.9</td><td>N</td><td>13.1</td><td>52.7</td><td>17.2</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Climate Charts Grid -->
+  <div class="grid-2">
+    <!-- Chart 1: Temp & Rainfall -->
+    <div class="astro-card">
+      <strong style="color:var(--accent-blue); font-size:1rem; display:block; margin-bottom:12px;">
+        🌡️ 氣溫與降雨量月變化圖 (Climate Diagram)
+      </strong>
+      <div class="chart-container">
+        <canvas id="macauTempRainChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Chart 2: Sunshine vs Fog & Thunderstorms -->
+    <div class="astro-card">
+      <strong style="color:var(--accent-purple); font-size:1rem; display:block; margin-bottom:12px;">
+        ⚡ 日照時間與雷暴/霧日數分佈 (Weather Phenomena)
+      </strong>
+      <div class="chart-container">
+        <canvas id="macauPhenoChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Climate Regional Characteristics -->
+  <div class="astro-card">
+    <strong style="color:var(--accent-teal); font-size:1.05rem; display:block; margin-bottom:12px;">
+      📍 澳門氣候特徵總覽 (Subtropical Monsoon Climate)
+    </strong>
+    <div class="grid-3" style="font-size:0.88rem; color:var(--text-muted);">
+      <div style="background:var(--card-bg-light); padding:15px; border-radius:12px; border:1px solid var(--card-border);">
+        <strong style="color:var(--accent-teal); display:block; margin-bottom:6px;">🌸 春季 (3月 - 4月) - 潮濕多霧</strong>
+        盛行東南東風 (ESE)，相對濕度高達 85%~86%。冷暖空氣交匯頻繁，霧日最集中（3月平均達 6.6 天），伴有南吹潮濕「回南天」。
+      </div>
+      <div style="background:var(--card-bg-light); padding:15px; border-radius:12px; border:1px solid var(--card-border);">
+        <strong style="color:var(--accent-yellow); display:block; margin-bottom:6px;">☀️ 夏季 (5月 - 8月) - 高溫多雨雷暴</strong>
+        受到夏季季風與偏南風 (S) 影響，雨量佔全年 65% 以上（6月雨量達 373.7mm 峰值）。雷暴最活躍（每年平均 52.7 天雷暴，多集中於夏季），同時為熱帶氣旋（颱風）主要影響期。
+      </div>
+      <div style="background:var(--card-bg-light); padding:15px; border-radius:12px; border:1px solid var(--card-border);">
+        <strong style="color:var(--accent-orange); display:block; margin-bottom:6px;">🍁 秋與冬季 (9月 - 2月) - 晴朗乾燥</strong>
+        秋季（10-11月）天高氣爽，日照充沛。冬季受大陸東北季風 (N) 控制，氣溫回落且天氣乾燥（12月相對濕度降至 70.8%），雨量顯著減少。
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==================== SECTION 2: ENSO PORTAL ==================== -->
+  <div id="enso-info"></div>
+  <div class="section-title">
+    🌊 ENSO 厄爾尼諾與拉尼娜現象專區 (El Niño - Southern Oscillation)
+  </div>
+
+  <!-- Three Phases Overview -->
+  <div class="grid-3">
+    <div class="enso-card">
+      <span class="enso-badge enso-el-nino">🔥 厄爾尼諾現象 (El Niño)</span>
+      <strong style="font-size:1.1rem; color:var(--text-main);">赤道東太平洋異常增暖</strong>
+      <p style="font-size:0.85rem; color:var(--text-muted);">
+        信風（Trade Winds）減弱，赤道暖水向東太平洋（南美沿岸）倒流，海溫偏高 $\ge +0.5^\circ\text{C}$。沃克環流（Walker Circulation）減弱或向東偏移。
+      </p>
+    </div>
+
+    <div class="enso-card">
+      <span class="enso-badge enso-neutral">⚖️ ENSO 中性狀態 (Neutral)</span>
+      <strong style="font-size:1.1rem; color:var(--text-main);">正常海溫與風場循環</strong>
+      <p style="font-size:0.85rem; color:var(--text-muted);">
+        信風正常吹拂，將表層暖水推向西太平洋（印尼/澳洲），東太平洋維持深層冷水上翻（Upwelling），海溫距平在 $\pm 0.5^\circ\text{C}$ 之間。
+      </p>
+    </div>
+
+    <div class="enso-card">
+      <span class="enso-badge enso-la-nina">❄️ 拉尼娜現象 (La Niña)</span>
+      <strong style="font-size:1.1rem; color:var(--text-main);">赤道東太平洋異常變冷</strong>
+      <p style="font-size:0.85rem; color:var(--text-muted);">
+        東風信風異常加強，將更多暖水堆積於西太平洋，東太平洋冷水上翻強勁，海溫偏低 $\le -0.5^\circ\text{C}$。沃克環流異常強化。
+      </p>
+    </div>
+  </div>
+
+  <!-- ONI Simulation Chart -->
+  <div class="astro-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+      <div>
+        <strong style="color:var(--accent-blue); font-size:1.05rem;">📈 海洋熱帶指數 (Oceanic Niño Index - ONI) 趨勢軌跡</strong>
+        <p style="font-size:0.8rem; color:var(--text-muted);">Niño 3.4 區域 (5°N-5°S, 170°W-120°W) 表層海溫距平值 (°C)</p>
+      </div>
+      <div style="display:flex; gap:10px; font-size:0.75rem;">
+        <span style="color:var(--accent-red); font-weight:700;">■ &ge; +0.5°C 厄爾尼諾</span>
+        <span style="color:var(--accent-blue); font-weight:700;">■ &le; -0.5°C 拉尼娜</span>
+      </div>
+    </div>
+    <div class="chart-container">
+      <canvas id="oniChart"></canvas>
+    </div>
+  </div>
+
+  <!-- Impact Matrix on Macau & South China Climate -->
+  <div class="astro-card">
+    <strong style="color:var(--accent-orange); font-size:1.05rem; display:block; margin-bottom:15px;">
+      🇲🇴 ENSO 對澳門及華南地區氣候之影響對比 (Regional Climate Impacts)
+    </strong>
+
+    <div style="overflow-x:auto;">
+      <table class="climate-table" style="text-align:left;">
+        <thead>
+          <tr>
+            <th style="text-align:left;">氣候要素 / 季節</th>
+            <th style="color:var(--accent-red); text-align:left;">🔥 厄爾尼諾背景下 (El Niño)</th>
+            <th style="color:var(--accent-blue); text-align:left;">❄️ 拉尼娜背景下 (La Niña)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><b>冬季氣溫 (Winter Temp)</b></td>
+            <td>華南及澳門冬季氣溫傾向<b>偏暖</b>，寒潮與強冷空氣頻率相對減少。</td>
+            <td>冬季易受東亞冬季風影響，氣溫傾向<b>偏冷</b>，極端寒潮侵襲機率較高。</td>
+          </tr>
+          <tr>
+            <td><b>冬春季降雨 (Rainfall)</b></td>
+            <td>菲律賓附近副高異常，帶動暖濕氣流，冬春季雨量易<b>偏多</b>。</td>
+            <td>季風偏乾，冬春季降雨傾向<b>偏少</b>，較易出現秋冬連旱現象。</td>
+          </tr>
+          <tr>
+            <td><b>熱帶氣旋生成位置 (TC Genesis)</b></td>
+            <td>颱風生成位置<b>偏東</b>（距華南較遠），在洋面上發展時間長，易形成強颱風。</td>
+            <td>颱風生成位置<b>偏西</b>（較靠近南海與菲東），於南海生成之熱帶氣旋比例增加。</td>
+          </tr>
+          <tr>
+            <td><b>影響澳門之颱風季 (Typhoon Season)</b></td>
+            <td>颱風影響華南的季節結束時間可能<b>偏遲</b>（秋颱風險上升）。</td>
+            <td>颱風影響華南的季節結束時間可能<b>偏早</b>，但夏季登陸頻次可能增加。</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- ========== JavaScript Logic ========== -->
+<script>
+// Macau Climate Data Arrays (from 1991-2020 statistics)
+const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+const tempMax = [18.6, 19.2, 21.4, 25.1, 28.7, 30.5, 31.4, 31.5, 30.8, 28.5, 24.7, 20.3];
+const tempAvg = [15.2, 16.1, 18.6, 22.3, 25.8, 27.8, 28.4, 28.3, 27.5, 25.1, 21.3, 16.9];
+const tempMin = [12.7, 13.9, 16.5, 20.3, 23.7, 25.7, 26.1, 25.9, 25.1, 22.7, 18.8, 14.3];
+const rainfall = [34.2, 43.9, 80.0, 153.5, 286.0, 373.7, 290.7, 331.4, 227.8, 75.1, 39.0, 31.3];
+const sunshine = [126.5, 85.7, 74.8, 94.6, 135.5, 159.0, 211.3, 188.2, 178.3, 192.2, 158.1, 145.1];
+const thunderDays = [0.2, 0.2, 1.9, 3.8, 7.8, 10.5, 8.9, 10.9, 6.8, 1.2, 0.2, 0.1];
+const fogDays = [1.6, 3.6, 6.6, 4.2, 0.4, 0.03, 0.03, 0.03, 0.01, 0.03, 0.2, 0.5];
+
+document.addEventListener('DOMContentLoaded', () => {
+  initClock();
+  renderMacauTempRainChart();
+  renderMacauPhenoChart();
+  renderONIChart();
+});
+
+/* Clock */
+function initClock() {
+  const update = () => {
+    const now = new Date();
+    document.getElementById('headerClock').textContent = 
+      `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  };
+  update();
+  setInterval(update, 1000);
+}
+
+/* Theme Toggle */
+function toggleTheme() {
+  document.body.classList.toggle('light-theme');
+}
+
+/* Macau Climate Chart 1: Temp & Rain */
+function renderMacauTempRainChart() {
+  const ctx = document.getElementById('macauTempRainChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [
+        {
+          label: '月總降雨量 (mm)',
+          data: rainfall,
+          backgroundColor: 'rgba(56, 189, 248, 0.55)',
+          borderColor: '#38bdf8',
+          borderWidth: 1,
+          borderRadius: 4,
+          yAxisID: 'yRain'
+        },
+        {
+          label: '平均最高氣溫 (°C)',
+          data: tempMax,
+          type: 'line',
+          borderColor: '#ef4444',
+          borderWidth: 2,
+          pointRadius: 3,
+          tension: 0.3,
+          yAxisID: 'yTemp'
+        },
+        {
+          label: '平均氣溫 (°C)',
+          data: tempAvg,
+          type: 'line',
+          borderColor: '#facc15',
+          borderWidth: 2.5,
+          pointRadius: 4,
+          tension: 0.3,
+          yAxisID: 'yTemp'
+        },
+        {
+          label: '平均最低氣溫 (°C)',
+          data: tempMin,
+          type: 'line',
+          borderColor: '#2dd4bf',
+          borderWidth: 2,
+          pointRadius: 3,
+          tension: 0.3,
+          yAxisID: 'yTemp'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+        yRain: {
+          type: 'linear', position: 'left',
+          title: { display: true, text: '降雨量 (mm)', color: '#38bdf8' },
+          ticks: { color: '#38bdf8' }, min: 0,
+          grid: { color: 'rgba(255,255,255,0.05)' }
+        },
+        yTemp: {
+          type: 'linear', position: 'right',
+          title: { display: true, text: '氣溫 (°C)', color: '#facc15' },
+          ticks: { color: '#facc15' }, min: 5, max: 35,
+          grid: { display: false }
+        }
+      },
+      plugins: {
+        legend: { labels: { color: '#f1f5f9', font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+/* Macau Climate Chart 2: Sunshine vs Phenomena */
+function renderMacauPhenoChart() {
+  const ctx = document.getElementById('macauPhenoChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [
+        {
+          label: '日照時間 (小時)',
+          data: sunshine,
+          backgroundColor: 'rgba(250, 204, 21, 0.6)',
+          borderColor: '#facc15',
+          borderWidth: 1,
+          borderRadius: 4,
+          yAxisID: 'ySun'
+        },
+        {
+          label: '雷暴日數 (天)',
+          data: thunderDays,
+          type: 'line',
+          borderColor: '#c084fc',
+          borderWidth: 2.5,
+          pointRadius: 4,
+          yAxisID: 'yDays'
+        },
+        {
+          label: '霧日數 (天)',
+          data: fogDays,
+          type: 'line',
+          borderColor: '#34d399',
+          borderWidth: 2.5,
+          pointRadius: 4,
+          yAxisID: 'yDays'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      scales: {
+        x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+        ySun: {
+          type: 'linear', position: 'left',
+          title: { display: true, text: '日照 (h)', color: '#facc15' },
+          ticks: { color: '#facc15' }, min: 0,
+          grid: { color: 'rgba(255,255,255,0.05)' }
+        },
+        yDays: {
+          type: 'linear', position: 'right',
+          title: { display: true, text: '日數 (天)', color: '#c084fc' },
+          ticks: { color: '#c084fc' }, min: 0, max: 15,
+          grid: { display: false }
+        }
+      },
+      plugins: {
+        legend: { labels: { color: '#f1f5f9', font: { size: 11 } } }
+      }
+    }
+  });
+}
+
+/* ONI Historical / Timeline Chart */
+function renderONIChart() {
+  const ctx = document.getElementById('oniChart').getContext('2d');
+  
+  const oniTimeline = [
+    '18/Q1','18/Q3','19/Q1','19/Q3','20/Q1','20/Q3','21/Q1','21/Q3','22/Q1','22/Q3','23/Q1','23/Q3','24/Q1','24/Q3','25/Q1','25/Q3','26/Q1','26/Q3'
+  ];
+  const oniValues = [
+    -0.9,  0.2,   0.8,   0.3,   0.5,  -0.6,  -1.0,  -0.7,  -0.9,  -1.0,  -0.4,   1.1,   1.8,   0.2,  -0.5,  -0.6,   0.1,   0.3
+  ];
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: oniTimeline,
+      datasets: [{
+        label: 'ONI 海溫距平 (°C)',
+        data: oniValues,
+        borderColor: '#38bdf8',
+        borderWidth: 2,
+        pointRadius: 5,
+        pointBackgroundColor: oniValues.map(v => v >= 0.5 ? '#ef4444' : (v <= -0.5 ? '#38bdf8' : '#34d399')),
+        segment: {
+          borderColor: ctx => ctx.p0.parsed.y >= 0.5 && ctx.p1.parsed.y >= 0.5 ? '#ef4444' : 
+                             (ctx.p0.parsed.y <= -0.5 && ctx.p1.parsed.y <= -0.5 ? '#38bdf8' : '#94a3b8')
+        },
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#f1f5f9' } },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const val = ctx.raw;
+              let phase = "中性 (Neutral)";
+              if (val >= 0.5) phase = "厄爾尼諾 (El Niño)";
+              if (val <= -0.5) phase = "拉尼娜 (La Niña)";
+              return ` ONI 距平: ${val > 0 ? '+' : ''}${val}°C (${phase})`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#94a3b8' }, grid: { display: false } },
+        y: {
+          ticks: { color: '#94a3b8' },
+          grid: { color: 'rgba(255,255,255,0.08)' },
+          title: { display: true, text: '溫差距平 (°C)', color: '#94a3b8' },
+          suggestedMin: -1.5,
+          suggestedMax: 2.0
+        }
+      }
+    }
+  });
+}
+</script>
+
+</body>
+</html>
