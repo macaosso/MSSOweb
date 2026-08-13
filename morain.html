@@ -171,7 +171,9 @@ body.light-theme .moon-icon { display: block; }
 .smg-warning-pill {
   padding: 4px 12px; border-radius: 12px; font-size: 0.82rem; font-weight: 800;
   display: inline-flex; align-items: center; gap: 6px; border: 1px solid currentColor;
+  text-decoration: none; transition: transform 0.2s;
 }
+.smg-warning-pill:hover { transform: scale(1.03); }
 .smg-warning-pill.none { background: rgba(52, 211, 153, 0.15); color: var(--accent-green); }
 .smg-warning-pill.yellow { background: rgba(250, 204, 21, 0.2); color: var(--accent-yellow); }
 .smg-warning-pill.red { background: rgba(239, 68, 68, 0.25); color: #f87171; }
@@ -211,6 +213,65 @@ body.light-theme .moon-icon { display: block; }
 .instability-pill.low { background: rgba(52, 211, 153, 0.2); color: var(--accent-green); }
 .instability-pill.moderate { background: rgba(245, 158, 11, 0.2); color: var(--accent-orange); }
 .instability-pill.high { background: rgba(239, 68, 68, 0.25); color: var(--accent-red); }
+
+/* Macau SMG Safety Section Specific UI */
+.rules-notice-box {
+  background: rgba(56, 189, 248, 0.08);
+  border-left: 4px solid var(--accent-blue);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  margin-bottom: 20px;
+}
+.rules-notice-box p { margin-bottom: 4px; }
+.rules-notice-box p:last-child { margin-bottom: 0; }
+
+.smg-signal-card {
+  border-radius: 14px;
+  padding: 18px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg-light);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all 0.3s ease;
+}
+.smg-signal-card.active-target {
+  box-shadow: 0 0 0 2px var(--accent-blue);
+  transform: translateY(-2px);
+}
+.smg-signal-card.yellow-card { border-top: 4px solid #facc15; }
+.smg-signal-card.red-card { border-top: 4px solid #ef4444; }
+.smg-signal-card.black-card { border-top: 4px solid #000; }
+
+.smg-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 10px;
+}
+.smg-card-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.smg-card-criteria {
+  font-size: 0.83rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+  background: rgba(0,0,0,0.15);
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+.safety-tips-list {
+  font-size: 0.85rem;
+  line-height: 1.55;
+  padding-left: 18px;
+}
+.safety-tips-list li { margin-bottom: 6px; }
 
 /* Timeline List */
 .timeline-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
@@ -287,7 +348,7 @@ body.light-theme .moon-icon { display: block; }
     <div class="advice-header">
       <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
         <div id="adviceBadge" class="advice-badge no-rain">-- 載入氣象模型數據 --</div>
-        <div id="smgWarningPill" class="smg-warning-pill none">⛈️ 暴雨信號: 無</div>
+        <a href="#smgWarningSection" id="smgWarningPill" class="smg-warning-pill none">⛈️ 暴雨信號: 無</a>
       </div>
       <span style="font-size:0.82rem; color:var(--text-muted);" id="lastUpdatedTime">自動更新中...</span>
     </div>
@@ -322,7 +383,91 @@ body.light-theme .moon-icon { display: block; }
     </div>
   </div>
 
-  <!-- 2. Sounding & Upper-Air Stability Indices Panel -->
+  <!-- 2. Macau Official Rainstorm Warning System & Safety Tips Section -->
+  <div class="section-title" id="smgWarningSection">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    《澳門暴雨警告信號系統》標準及安全提示
+  </div>
+
+  <div class="astro-card">
+    <!-- Official Rules Notice -->
+    <div class="rules-notice-box">
+      <p>📌 <strong>特別發布機制：</strong>紅色或黑色暴雨警告信號，可因應天氣情況在較低級別之暴雨警告信號未發出的情況下而直接發出。</p>
+      <p>📌 <strong>熱帶氣旋豁免：</strong>當八號風球或更高的熱帶氣旋信號生效時，上述三個級別的暴雨警告信號不會另行發出。</p>
+    </div>
+
+    <!-- 3 Levels Cards Grid -->
+    <div class="grid-3">
+      <!-- Yellow Signal Card -->
+      <div id="cardYellow" class="smg-signal-card yellow-card">
+        <div class="smg-card-header">
+          <span class="smg-card-title" style="color:var(--accent-yellow);">🟡 黃色暴雨警告信號</span>
+          <span style="font-size:0.75rem; font-weight:700; color:var(--accent-yellow);">≥ 20 mm/h</span>
+        </div>
+        <div class="smg-card-criteria">
+          <strong>標示意義：</strong>預測澳門特區廣泛地區一小時降雨量將達到約 20 毫米，或過去一小時降雨量已達到 20 毫米，且預料雨勢持續。
+        </div>
+        <div>
+          <strong style="font-size:0.85rem; color:var(--accent-yellow);">【安全提示】</strong>
+          <ol class="safety-tips-list">
+            <li>準備適當的預防措施，防範因暴雨而造成的災害；</li>
+            <li>避免在水浸地區進行活動；</li>
+            <li>留意最新的天氣消息及水浸資訊，以調整戶外活動的安排；</li>
+            <li>留意道路交通資訊；</li>
+            <li>學校、家長及學生應留意教育主管部門發出的最新消息。</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Red Signal Card -->
+      <div id="cardRed" class="smg-signal-card red-card">
+        <div class="smg-card-header">
+          <span class="smg-card-title" style="color:#f87171;">🔴 紅色暴雨警告信號</span>
+          <span style="font-size:0.75rem; font-weight:700; color:#f87171;">≥ 50 mm/h</span>
+        </div>
+        <div class="smg-card-criteria">
+          <strong>標示意義：</strong>預測澳門特區廣泛地區一小時降雨量將達到約 50 毫米，或過去一小時降雨量已達到 50 毫米，且預料雨勢持續。
+        </div>
+        <div>
+          <strong style="font-size:0.85rem; color:#f87171;">【安全提示】</strong>
+          <ol class="safety-tips-list">
+            <li>完成適當的預防措施，防範因暴雨而造成的災害；</li>
+            <li>應逗留在安全的室內場所暫避，避免在戶外或水浸地區進行活動；</li>
+            <li>提防塌樹、山泥傾瀉等災害；</li>
+            <li>留意最新的天氣消息及水浸資訊；</li>
+            <li>留意道路交通資訊；</li>
+            <li>學校、家長及學生應留意教育主管部門發出的最新消息；</li>
+            <li>避免逗留在地下空間或無其他出口的空間，因可能出現淹水或物料瀉入之風險。</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- Black Signal Card -->
+      <div id="cardBlack" class="smg-signal-card black-card">
+        <div class="smg-card-header">
+          <span class="smg-card-title" style="color:var(--text-main);">⬛ 黑色暴雨警告信號</span>
+          <span style="font-size:0.75rem; font-weight:700; color:var(--text-main);">≥ 80 mm/h</span>
+        </div>
+        <div class="smg-card-criteria">
+          <strong>標示意義：</strong>預測澳門特區廣泛地區一小時降雨量將達到約 80 毫米，或過去一小時降雨量已達到 80 毫米，且預料雨勢持續。
+        </div>
+        <div>
+          <strong style="font-size:0.85rem; color:var(--text-main);">【安全提示】</strong>
+          <ol class="safety-tips-list">
+            <li>完成一切的預防措施，防範因暴雨而造成的災害；</li>
+            <li>應逗留在安全的室內場所暫避，避免在戶外或水浸地區進行活動；</li>
+            <li>遠離山澗及斜坡，提防塌樹、山泥傾瀉等災害；</li>
+            <li>留意最新的天氣消息及水浸資訊；</li>
+            <li>留意道路交通資訊；</li>
+            <li>學校、家長及學生應留意教育主管部門發出的最新消息；</li>
+            <li>避免逗留在地下空間或無其他出口的空間，因可能出現淹水或物料瀉入之風險。</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Sounding & Upper-Air Stability Indices Panel -->
   <div class="section-title">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
     高空天氣與大氣穩定度指數 (Upper-Air Stability & Thunderstorm Risk)
@@ -341,7 +486,6 @@ body.light-theme .moon-icon { display: block; }
 
     <!-- Stability Indices Grid -->
     <div class="grid-4">
-      <!-- K Index -->
       <div class="metric-card">
         <span id="pillKIndex" class="instability-pill low">更新中</span>
         <label>K Index (K 指數)</label>
@@ -349,7 +493,6 @@ body.light-theme .moon-icon { display: block; }
         <div class="subtext" id="subKIndex">評估中低層濕度與溫差</div>
       </div>
 
-      <!-- Lifted Index -->
       <div class="metric-card">
         <span id="pillLiftedIndex" class="instability-pill low">更新中</span>
         <label>Lifted Index (抬升指數)</label>
@@ -357,7 +500,6 @@ body.light-theme .moon-icon { display: block; }
         <div class="subtext" id="subLiftedIndex">負值越低代表熱力浮力越大</div>
       </div>
 
-      <!-- CAPE -->
       <div class="metric-card">
         <span id="pillCAPE" class="instability-pill low">更新中</span>
         <label>CAPE (對流可用位能)</label>
@@ -365,7 +507,6 @@ body.light-theme .moon-icon { display: block; }
         <div class="subtext" id="subCAPE">強雷暴爆發的潛在能量</div>
       </div>
 
-      <!-- CIN -->
       <div class="metric-card">
         <span id="pillCIN" class="instability-pill low">更新中</span>
         <label>CIN (對流抑制指數)</label>
@@ -373,7 +514,6 @@ body.light-theme .moon-icon { display: block; }
         <div class="subtext" id="subCIN">壓制對流發展的逆溫蓋子</div>
       </div>
 
-      <!-- Showalter Index -->
       <div class="metric-card">
         <span id="pillShowalter" class="instability-pill low">更新中</span>
         <label>Showalter Index (沙瓦特指數)</label>
@@ -381,7 +521,6 @@ body.light-theme .moon-icon { display: block; }
         <div class="subtext" id="subShowalter">850-500hPa 垂直對流穩定度</div>
       </div>
 
-      <!-- Totals Totals Index -->
       <div class="metric-card">
         <span id="pillTT" class="instability-pill low">更新中</span>
         <label>Totals Totals (總指數 TT)</label>
@@ -389,7 +528,6 @@ body.light-theme .moon-icon { display: block; }
         <div class="subtext" id="subTT">> 50 代表有強雷暴風險</div>
       </div>
 
-      <!-- SWEAT Index -->
       <div class="metric-card">
         <span id="pillSWEAT" class="instability-pill low">更新中</span>
         <label>SWEAT Index (劇烈天氣威脅)</label>
@@ -397,7 +535,6 @@ body.light-theme .moon-icon { display: block; }
         <div class="subtext" id="subSWEAT">綜合風切變與水汽熱力指數</div>
       </div>
 
-      <!-- Vertical Wind Shear -->
       <div class="metric-card">
         <span id="pillShear" class="instability-pill low">更新中</span>
         <label>Vertical Wind Shear (風切變)</label>
@@ -407,7 +544,7 @@ body.light-theme .moon-icon { display: block; }
     </div>
   </div>
 
-  <!-- 3. Hourly Precipitation & Probability Dual-Axis Chart -->
+  <!-- 4. Hourly Precipitation & Probability Dual-Axis Chart -->
   <div class="section-title">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
     未來 24 小時逐小時降雨概率與雨量趨勢
@@ -419,7 +556,7 @@ body.light-theme .moon-icon { display: block; }
     </div>
   </div>
 
-  <!-- 4. Rain Periods Breakdown & Atmospheric Environment -->
+  <!-- 5. Rain Periods Breakdown & Atmospheric Environment -->
   <div class="grid-2">
     <!-- Rain Window Slots -->
     <div class="astro-card">
@@ -464,7 +601,7 @@ body.light-theme .moon-icon { display: block; }
     </div>
   </div>
 
-  <!-- 5. Real-time RainViewer Radar Overlay Map -->
+  <!-- 6. Real-time RainViewer Radar Overlay Map -->
   <div class="section-title">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
     實時降雨雷達動態回波圖 (RainViewer Satellite & Radar)
@@ -512,7 +649,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initRadarMap();
   fetchData();
 
-  // Auto-refresh data every 5 minutes (300,000 milliseconds)
   setInterval(() => {
     fetchData();
   }, 300000);
@@ -605,18 +741,27 @@ function parseAndRenderRainData(data) {
   else if (currentRain >= 16) currentLevelName = "暴雨 (Torrential)";
   document.getElementById('statRainLevel').textContent = `等級: ${currentLevelName}`;
 
-  // Macau SMG Rainstorm Warning Classification (Yellow: >=20mm/h, Red: >=50mm/h, Black: >=80mm/h)
+  // Macau SMG Warning System Active Highlight
   const maxHourlyRain = Math.max(...(hourly.precipitation || [0]));
   const smgPill = document.getElementById('smgWarningPill');
+  
+  // Clear previous target highlights
+  document.getElementById('cardYellow').classList.remove('active-target');
+  document.getElementById('cardRed').classList.remove('active-target');
+  document.getElementById('cardBlack').classList.remove('active-target');
+
   if (maxHourlyRain >= 80 || currentRain >= 80) {
     smgPill.className = "smg-warning-pill black";
     smgPill.textContent = "⬛ 暴雨信號: 黑色暴雨 (極高威脅)";
+    document.getElementById('cardBlack').classList.add('active-target');
   } else if (maxHourlyRain >= 50 || currentRain >= 50) {
     smgPill.className = "smg-warning-pill red";
     smgPill.textContent = "🔴 暴雨信號: 紅色暴雨 (高威脅)";
+    document.getElementById('cardRed').classList.add('active-target');
   } else if (maxHourlyRain >= 20 || currentRain >= 20) {
     smgPill.className = "smg-warning-pill yellow";
     smgPill.textContent = "🟡 暴雨信號: 黃色暴雨 (警戒)";
+    document.getElementById('cardYellow').classList.add('active-target');
   } else {
     smgPill.className = "smg-warning-pill none";
     smgPill.textContent = "⛈️ 暴雨信號: 無顯著暴雨";
@@ -648,12 +793,10 @@ function calculateAndRenderStabilityIndices(data) {
   const hourly = data.hourly || {};
   const currentHour = new Date().getHours();
 
-  // CAPE & CIN
   const cape = cur.cape ?? hourly.cape?.[currentHour] ?? 0;
   const cin = Math.abs(cur.convective_inhibition ?? hourly.convective_inhibition?.[currentHour] ?? 0);
   const liftedIndex = cur.lifted_index ?? hourly.lifted_index?.[currentHour] ?? 1.5;
 
-  // Meteorologically proxy formulas
   const rh = cur.relative_humidity_2m ?? 70;
   const temp = cur.temperature_2m ?? 25;
   let estimatedKIndex = Math.round((temp * 0.8) + (rh * 0.25) + (cape / 80));
@@ -765,7 +908,6 @@ function analyzeRainPeriods(hourly) {
     const prob = probs[i] ?? 0;
     const rain = precips[i] ?? 0;
     
-    // Check if index spans past midnight into next day
     const isNextDay = i >= 24;
     const hourVal = new Date(times[i]).getHours();
     const formattedHour = String(hourVal).padStart(2, '0') + (isNextDay ? ' (次日)' : '');
@@ -956,13 +1098,12 @@ async function updateRadarMapTile() {
     const data = await res.json();
 
     if (data.radar && data.radar.past && data.radar.past.length > 0) {
-      // Clear old layers
       radarTileLayers.forEach(l => leafletMap.removeLayer(l));
       radarTileLayers = [];
       radarTimestamps = [];
 
       const host = data.host;
-      const frames = data.radar.past.slice(-6); // last 6 frames
+      const frames = data.radar.past.slice(-6);
 
       frames.forEach((frame) => {
         const layer = L.tileLayer(`${host}${frame.path}/256/{z}/{x}/{y}/2/1_1.png`, {
@@ -973,7 +1114,6 @@ async function updateRadarMapTile() {
         radarTimestamps.push(new Date(frame.time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
       });
 
-      // Show latest frame initially
       radarCurrentFrameIndex = radarTileLayers.length - 1;
       showRadarFrame(radarCurrentFrameIndex);
     }
