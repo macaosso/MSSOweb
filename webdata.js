@@ -42,11 +42,11 @@ const ICON_PRESETS = {
 const tcWarnings = [
   {
     icon: "t1",
-    text: ""
+    text: "間08月1間08月1"
   },
   {
-    icon: "",
-    text: ""
+    icon: "s1",
+    text: "間08月1間08月1間08月1"
   },
   {
     icon: "",
