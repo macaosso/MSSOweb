@@ -283,6 +283,43 @@
             font-weight: 500;
         }
 
+        /* Summary Card Section */
+        .summary-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+            border: 1px solid var(--card-border);
+        }
+        .summary-card h3 {
+            font-size: 1.05rem;
+            color: var(--text-main);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+        }
+        .summary-item {
+            background: var(--card-bg-light);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .count-num {
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: var(--accent-blue);
+        }
+
         /* Info Cards Section */
         .info-grid {
             display: grid;
@@ -583,6 +620,41 @@
         </div>
     </header>
 
+    <!-- 各等級測站數量統計 (置於介紹 WBGT 之前) -->
+    <div class="summary-card">
+        <h3>📊 實時各暑熱等級測站數量統計</h3>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <span class="badge bg-normal">正常</span>
+                <span class="count-num" id="cnt-normal">0</span>
+            </div>
+            <div class="summary-item">
+                <span class="badge bg-caution">注意</span>
+                <span class="count-num" id="cnt-caution">0</span>
+            </div>
+            <div class="summary-item">
+                <span class="badge bg-alert">警戒</span>
+                <span class="count-num" id="cnt-alert">0</span>
+            </div>
+            <div class="summary-item">
+                <span class="badge bg-high-alert">高度警戒</span>
+                <span class="count-num" id="cnt-high-alert">0</span>
+            </div>
+            <div class="summary-item">
+                <span class="badge bg-danger">危險</span>
+                <span class="count-num" id="cnt-danger">0</span>
+            </div>
+            <div class="summary-item">
+                <span class="badge bg-high-danger">非常危險</span>
+                <span class="count-num" id="cnt-high-danger">0</span>
+            </div>
+            <div class="summary-item">
+                <span class="badge bg-extreme">極度危險</span>
+                <span class="count-num" id="cnt-extreme">0</span>
+            </div>
+        </div>
+    </div>
+
     <!-- Information Cards -->
     <div class="info-grid">
         <!-- Card 1: WBGT Formula -->
@@ -652,18 +724,13 @@
                 <thead>
                     <tr>
                         <th>測站名稱</th>
-                        <th>站代碼</th>
-                        <th>環境氣溫 (Ta)</th>
-                        <th>相對濕度 (RH)</th>
-                        <th>風速</th>
-                        <th>估算濕球 (Tnw)</th>
-                        <th>估算黑球 (Tg)</th>
-                        <th>暑熱指數 (WBGT)</th>
+                        <th>代碼</th>
+                        <th>WBGT</th>
                         <th>危險等級</th>
                     </tr>
                 </thead>
                 <tbody id="wbgt-table-body">
-                    <tr><td colspan="9" style="text-align: center; color: #888; padding: 20px;">資料載入中...</td></tr>
+                    <tr><td colspan="4" style="text-align: center; color: #888; padding: 20px;">資料載入中...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -830,6 +897,40 @@ function extractValue(selector, parent) {
     return val.trim();
 }
 
+// ========== 更新測站等級統計數量 ==========
+function updateSummaryCounts() {
+    let counts = {
+        normal: 0,
+        caution: 0,
+        alert: 0,
+        highAlert: 0,
+        danger: 0,
+        highDanger: 0,
+        extreme: 0
+    };
+
+    rawStationData.forEach(item => {
+        let w = parseFloat(item.wbgt);
+        if (isNaN(w)) return;
+
+        if (w >= 34) counts.extreme++;
+        else if (w >= 33) counts.highDanger++;
+        else if (w >= 31) counts.danger++;
+        else if (w >= 28) counts.highAlert++;
+        else if (w >= 25) counts.alert++;
+        else if (w >= 21) counts.caution++;
+        else counts.normal++;
+    });
+
+    document.getElementById('cnt-normal').textContent = counts.normal;
+    document.getElementById('cnt-caution').textContent = counts.caution;
+    document.getElementById('cnt-alert').textContent = counts.alert;
+    document.getElementById('cnt-high-alert').textContent = counts.highAlert;
+    document.getElementById('cnt-danger').textContent = counts.danger;
+    document.getElementById('cnt-high-danger').textContent = counts.highDanger;
+    document.getElementById('cnt-extreme').textContent = counts.extreme;
+}
+
 // ========== 抓取 SMG XML 數據 ==========
 function fetchWeatherData() {
     const cacheBuster = Date.now();
@@ -880,12 +981,13 @@ function fetchWeatherData() {
                 });
             });
 
+            updateSummaryCounts();
             renderTable();
         })
         .catch(err => {
             console.error("載入失敗: ", err);
             document.getElementById("wbgt-table-body").innerHTML = 
-                `<tr><td colspan="9" style="text-align:center; color:#ef4444; padding:20px;">數據載入失敗，請重新整理頁面或稍後再試。</td></tr>`;
+                `<tr><td colspan="4" style="text-align:center; color:#ef4444; padding:20px;">數據載入失敗，請重新整理頁面或稍後再試。</td></tr>`;
         });
 }
 
@@ -895,7 +997,7 @@ function renderTable() {
     tbody.innerHTML = "";
 
     if (rawStationData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding:20px;">目前無可用數據</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding:20px;">目前無可用數據</td></tr>`;
         return;
     }
 
@@ -914,11 +1016,6 @@ function renderTable() {
         tr.innerHTML = `
             <td><strong>${item.name}</strong></td>
             <td><code style="color:#60a5fa">${item.code}</code></td>
-            <td>${item.temp} °C</td>
-            <td>${item.humidity} %</td>
-            <td>${item.windSpeed} km/h</td>
-            <td>${item.tnw} °C</td>
-            <td>${item.tg} °C</td>
             <td class="wbgt-val" style="color: #f97316;">${item.wbgt}</td>
             <td>${badgeHtml}</td>
         `;
@@ -938,13 +1035,13 @@ document.querySelectorAll('.sort-btn').forEach(btn => {
 
 document.getElementById('btn-manual-refresh').addEventListener('click', () => {
     document.getElementById("wbgt-table-body").innerHTML = 
-        `<tr><td colspan="9" style="text-align: center; color: #888; padding: 20px;">正在更新數據...</td></tr>`;
+        `<tr><td colspan="4" style="text-align: center; color: #888; padding: 20px;">正在更新數據...</td></tr>`;
     fetchWeatherData();
 });
 
 window.addEventListener('DOMContentLoaded', () => {
     fetchWeatherData();
-    setInterval(fetchWeatherData, 60000); // 每 1 分鐘自動刷新
+    setInterval(fetchWeatherData, 60000); // 每 5 分鐘自動刷新
 });
 </script>
 </body>
