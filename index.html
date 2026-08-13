@@ -1638,7 +1638,7 @@ async function load4DaysForecastXML() {
 
         const pubDateStr = xmlDoc.querySelector("SysPubdate")?.textContent.trim();
         if (pubDateStr) {
-          chart7dUpdateTime = `發佈於 ${pubDateStr}`;
+          chart7dUpdateTime = `${pubDateStr} 更新`;
         } else {
           const now = new Date();
           chart7dUpdateTime = `更新於 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
