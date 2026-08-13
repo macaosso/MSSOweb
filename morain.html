@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>氣象氣候預測與高空大氣穩定度中心 - Rain & Atmospheric Stability Center</title>
+<title>澳門民間氣象台 - Rain & Atmospheric Stability Center</title>
 
 <!-- External Libraries -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -214,15 +214,12 @@ body.light-theme .moon-icon { display: block; }
 <!-- Navigation Header -->
 <div class="header-nav-container">
   <div class="title">
-    ☔ 降雨預測 & 高空大氣穩定度監測中心
+    MSSO降雨預測
     <span id="headerClock" class="header-clock">--:--:--</span>
   </div>
 
   <div class="menu-container">
     <div style="font-size:0.78rem; color:var(--text-muted); display:flex; align-items:center; gap:6px; margin-right:8px;">
-      <span class="pulse-dot"></span>
-      <span id="autoStatus">每 5 分鐘自動刷新</span>
-    </div>
     <button class="btn-action" onclick="fetchData()">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
       手動刷新
