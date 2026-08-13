@@ -1008,7 +1008,7 @@ body.light-theme .card-bottom {
     <div id="tcContent"></div>
   </div>
 
-  <div class="warning-card" id="tcForecastTableCard">
+  <div class="warning-card" id="tcForecastTableCard" style="display: none;">
     <div class="warning-header tc-forecast-header-row">
       <div class="tc-forecast-title" id="tableMainTitle"></div>
       <div class="tc-update-time" id="tableUpdateTime"></div>
@@ -1334,7 +1334,19 @@ function resolveIcon(iconKey) {
   // 3. Fallback conversion for short forms (e.g. "t1" -> "icons/t1.jpg")
   return `icons/${key.toLowerCase()}.jpg`;
 }
+  
+function renderTcForecastTable(tableData) {
+  const tableCard = document.getElementById('tcForecastTableCard');
+  const tableContent = document.getElementById('tcTableContent');
 
+  if (tableData && tableData.length > 0) {
+    // Populate your table here...
+    tableCard.style.display = 'block';
+  } else {
+    // Hide card if no data
+    tableCard.style.display = 'none';
+  }
+}
 function formatTextBoxContent(data) {
   if (Array.isArray(data)) {
     const validItems = data.filter(item => item && item.trim());
