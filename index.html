@@ -1248,7 +1248,7 @@ function updateHeaderClock() {
     const hrs = String(now.getHours()).padStart(2, '0');
     const mins = String(now.getMinutes()).padStart(2, '0');
     const secs = String(now.getSeconds()).padStart(2, '0');
-    clockEl.textContent = `${year}年 ${month} 月 ${date} 日 ${hrs}:${mins}:${secs}`;
+    clockEl.textContent = ` ${year}年 ${month}月 ${date}日 ${hrs}:${mins}:${secs} MST`;
   }
 }
 
