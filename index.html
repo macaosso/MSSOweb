@@ -1137,7 +1137,7 @@ body.light-theme .card-bottom {
       <div class="chart-btn-bar">
         <div class="btn-group">
           <button class="chart-btn active" data-type="24h">24小時氣溫</button>
-          <button class="chart-btn" data-type="7d">7日氣溫預報</button>
+          <button class="chart-btn" data-type="7d">7日氣溫</button>
         </div>
         <div class="chart-date-text" id="chartDate"></div>
       </div>
@@ -1510,7 +1510,7 @@ function render7dChart(ctx){
     options:{
       responsive:true,
       maintainAspectRatio:false,
-      plugins:{title:{display:true,text:"7日氣溫預報 (動態數據)"}},
+      plugins:{title:{display:true,text:"7日氣溫預報 "}},
       scales:{
         x:{display:true,title:{display:true,text:"日期"}},
         y:{
