@@ -1042,6 +1042,15 @@ body.light-theme .card-bottom {
     <div id="alertContent" class="content-yellow"></div>
   </div>
 
+  <!-- 天文潮特別提示 -->
+  <div id="tideBox" class="box">
+    <div class="header-orange">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c5-4 7 4 10 0s7 4 10 0"/><path d="M2 18c5-4 7 4 10 0s7 4 10 0"/></svg>
+      天文潮特別提示
+    </div>
+    <div id="tideContent" class="content-yellow"></div>
+  </div>
+
   <div class="three-tab-weather-wrap">
     <div class="three-tab-header">
       <div class="three-tab-item active" data-tab="hourly">
@@ -1307,23 +1316,91 @@ async function loadForecastXML() {
   }
 }
 
+/* ========== 圖標與文字解析輔助函式 ========== */
+function resolveIcon(iconKey) {
+  if (!iconKey) return "";
+  const key = iconKey.trim();
+
+  // 1. Check inside ICON_PRESETS map in webdata.js
+  if (typeof ICON_PRESETS !== 'undefined' && ICON_PRESETS[key]) {
+    return ICON_PRESETS[key];
+  }
+
+  // 2. If it is already a path or full URL
+  if (key.includes('/') || key.includes('.')) {
+    return key;
+  }
+
+  // 3. Fallback conversion for short forms (e.g. "t1" -> "icons/t1.jpg")
+  return `icons/${key.toLowerCase()}.jpg`;
+}
+
+function formatTextBoxContent(data) {
+  if (Array.isArray(data)) {
+    const validItems = data.filter(item => item && item.trim());
+    if (validItems.length === 0) return "";
+    return validItems.length === 1 ? validItems[0] : validItems.map(item => `• ${item}`).join('<br>');
+  }
+  return typeof data === 'string' ? data.trim() : "";
+}
+
+function renderTextBox(boxId, contentId, data) {
+  const box = document.getElementById(boxId);
+  const content = document.getElementById(contentId);
+  if (!box || !content) return;
+
+  const htmlContent = formatTextBoxContent(data);
+  if (htmlContent) {
+    box.style.display = 'block';
+    content.innerHTML = htmlContent;
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+function renderWarnings(data, containerId, cardId) {
+  const container = document.getElementById(containerId);
+  const card = document.getElementById(cardId);
+  if (!container || !card || !Array.isArray(data)) return;
+  
+  let html = "";
+  let validCount = 0;
+
+  data.forEach((item) => {
+    if ((!item.icon || !item.icon.trim()) && (!item.text || !item.text.trim())) return;
+    
+    const iconSrc = resolveIcon(item.icon);
+
+    if (validCount > 0) html += `<div class="divider"></div>`;
+    html += `
+         <div class="warning-item">
+           ${iconSrc ? `<div class="icon-box"><img src="${iconSrc}" alt="Warning Icon"></div>` : ""}
+           ${item.text ? `<div class="text-box">${item.text}</div>` : ""}
+         </div>
+       `;
+    validCount++;
+  });
+
+  container.innerHTML = html;
+  card.style.display = validCount > 0 ? "block" : "none";
+}
+
 window.addEventListener('DOMContentLoaded', function(){
     updateHeaderClock();
     setInterval(updateHeaderClock, 1000);
 
-    const alertBox = document.getElementById('alertBox');
-    const alertContent = document.getElementById('alertContent');
-    if(typeof alertipsText !== 'undefined' && alertipsText.trim()){
-        alertBox.style.display = 'block';
-        alertContent.innerText = alertipsText;
-    } else alertBox.style.display = 'none';
+    // 渲染三個提示框 (支援字串或陣列)
+    if (typeof alertipsText !== 'undefined') renderTextBox('alertBox', 'alertContent', alertipsText);
+    if (typeof swtText !== 'undefined') renderTextBox('swtBox', 'swtContent', swtText);
+    if (typeof tideText !== 'undefined') {
+      renderTextBox('tideBox', 'tideContent', tideText);
+    } else if (typeof TideText !== 'undefined') {
+      renderTextBox('tideBox', 'tideContent', TideText);
+    }
 
-    const swtBox = document.getElementById('swtBox');
-    const swtContent = document.getElementById('swtContent');
-    if(typeof swtText !== 'undefined' && swtText.trim()){
-        swtBox.style.display = 'block';
-        swtContent.innerText = swtText;
-    } else swtBox.style.display = 'none';
+    // 渲染警告卡片
+    if (typeof tcWarnings !== 'undefined') renderWarnings(tcWarnings, "tcContent", "tcCard");
+    if (typeof warnWarnings !== 'undefined') renderWarnings(warnWarnings, "warnContent", "warnCard");
 
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabItems = document.querySelectorAll('.tab-content');
@@ -1339,29 +1416,6 @@ window.addEventListener('DOMContentLoaded', function(){
 
     loadForecastXML();
 });
-
-function renderWarnings(data, containerId, cardId) {
-  const container = document.getElementById(containerId);
-  const card = document.getElementById(cardId);
-  if (!container || !card || !Array.isArray(data)) return;
-  
-  let html = "";
-  data.forEach((item, index) => {
-    if ((!item.icon || item.icon.trim()==="") && (!item.text || item.text.trim()==="")) return;
-    html += `
-         <div class="warning-item">
-           ${item.icon ? `<div class="icon-box"><img src="${item.icon}" alt="Warning Icon"></div>` : ""}
-           ${item.text ? `<div class="text-box">${item.text}</div>` : ""}
-         </div>
-       `;
-    if (index < data.length - 1) html += `<div class="divider"></div>`;
-  });
-  container.innerHTML = html;
-  card.style.display = html.trim() ? "block" : "none";
-}
-
-if (typeof tcWarnings !== 'undefined') renderWarnings(tcWarnings, "tcContent", "tcCard");
-if (typeof warnWarnings !== 'undefined') renderWarnings(warnWarnings, "warnContent", "warnCard");
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
