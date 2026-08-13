@@ -944,7 +944,7 @@ document.getElementById('btn-manual-refresh').addEventListener('click', () => {
 
 window.addEventListener('DOMContentLoaded', () => {
     fetchWeatherData();
-    setInterval(fetchWeatherData, 300000); // 每 5 分鐘自動刷新
+    setInterval(fetchWeatherData, 60000); // 每 1 分鐘自動刷新
 });
 </script>
 </body>
