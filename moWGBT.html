@@ -4,64 +4,254 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>澳門暑熱指數 (WBGT) 實時監測</title>
+    <link rel="icon" type="image/png" href="icons/MSSO.png">
     <style>
+        /* ========== 1. 主題基礎變數 ========== */
+        :root {
+          --bg-dark: #121212;
+          --card-bg: #1e1e2f;
+          --card-bg-light: rgba(255, 255, 255, 0.05);
+          --card-border: #2d2d50;
+          --text-main: #e0e0e0;
+          --text-muted: #a0a0a0;
+          --accent-blue: #38bdf8;
+          --accent-teal: #2dd4bf;
+          --accent-red: #ef4444;
+        }
+
+        body.light-theme {
+          --bg-dark: #f8fafc;
+          --card-bg: #ffffff;
+          --card-bg-light: rgba(0, 0, 0, 0.04);
+          --card-border: #e2e8f0;
+          --text-main: #0f172a;
+          --text-muted: #64748b;
+          --accent-blue: #0284c7;
+          --accent-teal: #0d9488;
+          --accent-red: #dc2626;
+        }
+
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
         body {
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-            background-color: #121212;
-            color: #e0e0e0;
-            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            padding: 0 0 20px 0;
             font-size: 14px;
             line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            padding: 0 20px;
         }
 
-        /* Navigation Menu Bar */
-        .navbar {
-            background: #1a1a2e;
-            border-radius: 12px;
-            padding: 14px 25px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            border: 1px solid #2d2d50;
+        /* ========== 2. 頁頭 Header & 頂欄導航 (選單組件) ========== */
+        .header-nav-container {
+          position: sticky;
+          top: 0;
+          z-index: 3000;
+          background: rgba(18, 18, 18, 0.88);
+          backdrop-filter: blur(12px);
+          border-bottom: 1px solid var(--card-border);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.75rem 1.5rem;
+          margin-bottom: 20px;
+          transition: background 0.3s ease;
         }
-        .nav-logo {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: #3b82f6;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        body.light-theme .header-nav-container {
+          background: rgba(248, 250, 252, 0.88);
         }
-        .nav-links {
-            list-style: none;
-            display: flex;
-            gap: 20px;
+
+        .header {
+          display: flex;
+          align-items: center;
+          gap: 12px;
         }
-        .nav-links a {
-            color: #a0a0a0;
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.2s ease;
+        .logo {
+          height: 38px;
+          width: auto;
+          filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.3));
         }
-        .nav-links a:hover, .nav-links a.active {
-            color: #ffffff;
-            border-bottom: 2px solid #3b82f6;
-            padding-bottom: 2px;
+        .title {
+          font-size: 1.15rem;
+          font-weight: 700;
+          color: var(--accent-blue);
+          letter-spacing: 0.5px;
+          display: flex;
+          align-items: baseline;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .header-clock {
+          font-size: 0.88rem;
+          font-weight: 500;
+          color: var(--accent-teal);
+          font-variant-numeric: tabular-nums;
+          opacity: 0.9;
+        }
+
+        .menu-container {
+          position: relative;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        /* 主題切換按鈕 */
+        .theme-toggle-btn {
+          background: var(--card-bg-light);
+          border: 1px solid var(--card-border);
+          color: var(--text-main);
+          padding: 8px 12px;
+          border-radius: 20px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 13px;
+          font-weight: 600;
+          transition: all 0.25s ease;
+          outline: none;
+        }
+        .theme-toggle-btn:hover {
+          border-color: var(--accent-blue);
+          color: var(--accent-blue);
+          transform: translateY(-1px);
+        }
+        .sun-icon {
+          display: block;
+        }
+        .moon-icon {
+          display: none;
+        }
+        body.light-theme .sun-icon {
+          display: none;
+        }
+        body.light-theme .moon-icon {
+          display: block;
+        }
+
+        .menu-toggle {
+          display: none;
+          font-size: 22px;
+          padding: 6px 12px;
+          cursor: pointer;
+          background: var(--card-bg-light);
+          border: 1px solid var(--card-border);
+          color: var(--text-main);
+          border-radius: 8px;
+          transition: all 0.2s;
+        }
+        .menu-toggle:hover {
+          border-color: var(--accent-blue);
+        }
+        .menu-toggle.active {
+          border-color: var(--accent-blue);
+          background: rgba(56, 189, 248, 0.12);
+        }
+
+        .nav {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+        .nav a {
+          color: var(--text-muted);
+          padding: 8px 14px;
+          font-size: 0.92rem;
+          font-weight: 500;
+          text-decoration: none;
+          border-radius: 20px;
+          transition: all 0.2s ease;
+          display: block;
+        }
+        .nav a:hover, .nav a.active {
+          color: var(--text-main);
+          background: rgba(255, 255, 255, 0.08);
+        }
+        body.light-theme .nav a:hover, body.light-theme .nav a.active {
+          background: rgba(0, 0, 0, 0.05);
+        }
+
+        /* 下拉選單樣式 */
+        .dropdown {
+          position: relative;
+          display: inline-block;
+        }
+
+        .dropdown-btn {
+          background: transparent;
+          border: none;
+          color: var(--text-muted);
+          padding: 8px 14px;
+          font-size: 0.92rem;
+          font-weight: 500;
+          font-family: inherit;
+          border-radius: 20px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .dropdown-btn .arrow {
+          font-size: 0.7rem;
+          transition: transform 0.2s ease;
+        }
+
+        .dropdown:hover .dropdown-btn,
+        .dropdown.active .dropdown-btn {
+          color: var(--text-main);
+          background: rgba(255, 255, 255, 0.08);
+        }
+        body.light-theme .dropdown:hover .dropdown-btn,
+        body.light-theme .dropdown.active .dropdown-btn {
+          background: rgba(0, 0, 0, 0.05);
+        }
+
+        .dropdown:hover .arrow,
+        .dropdown.active .arrow {
+          transform: rotate(180deg);
+        }
+
+        .dropdown-content {
+          display: none;
+          position: absolute;
+          top: 100%;
+          left: 0;
+          min-width: 190px;
+          background: var(--card-bg);
+          backdrop-filter: blur(16px);
+          border: 1px solid var(--card-border);
+          border-radius: 12px;
+          padding: 6px;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+          z-index: 3100;
+          margin-top: 4px;
+        }
+
+        .dropdown:hover .dropdown-content,
+        .dropdown.active .dropdown-content {
+          display: block;
+        }
+
+        .dropdown-content a {
+          padding: 8px 12px;
+          border-radius: 8px;
+          white-space: nowrap;
+          font-size: 0.88rem;
         }
         
-        /* Header */
+        /* Header Section */
         header {
             background: linear-gradient(135deg, #1a1a2e, #16213e);
             color: #f0f0f0;
@@ -73,6 +263,10 @@
             align-items: center;
             flex-wrap: wrap;
             box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        body.light-theme header {
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            color: #0f172a;
         }
         header h1 {
             font-size: 1.8rem;
@@ -97,22 +291,25 @@
             margin-bottom: 25px;
         }
         .info-card {
-            background: #1e1e2f;
+            background: var(--card-bg);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
             border-top: 4px solid #3b82f6;
+            border-left: 1px solid var(--card-border);
+            border-right: 1px solid var(--card-border);
+            border-bottom: 1px solid var(--card-border);
         }
         .info-card h3 {
             font-size: 1.1rem;
-            color: #ffffff;
+            color: var(--text-main);
             margin-bottom: 12px;
             display: flex;
             align-items: center;
             gap: 8px;
         }
         .info-card p, .info-card li {
-            color: #c0c0c0;
+            color: var(--text-muted);
             font-size: 0.88rem;
         }
         .info-card ul {
@@ -123,14 +320,14 @@
             margin-bottom: 6px;
         }
         .formula-box {
-            background: #252542;
+            background: var(--card-bg-light);
             padding: 10px 14px;
             border-radius: 8px;
             font-family: 'Courier New', Courier, monospace;
-            color: #60a5fa;
+            color: var(--accent-blue);
             font-weight: bold;
             margin: 8px 0;
-            border: 1px solid #2d2d50;
+            border: 1px solid var(--card-border);
         }
 
         /* Level Badges & Colors */
@@ -143,7 +340,7 @@
         .level-table th, .level-table td {
             padding: 6px 8px;
             text-align: left;
-            border-bottom: 1px solid #2d2d50;
+            border-bottom: 1px solid var(--card-border);
         }
         .badge {
             display: inline-block;
@@ -163,10 +360,11 @@
 
         /* Table View */
         .table-container {
-            background: #1e1e2f;
+            background: var(--card-bg);
             border-radius: 12px;
             padding: 20px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+            border: 1px solid var(--card-border);
         }
         .table-header-bar {
             display: flex;
@@ -179,15 +377,15 @@
         .table-title {
             font-size: 1.2rem;
             font-weight: bold;
-            color: #fff;
+            color: var(--text-main);
         }
         .sort-buttons button, .action-btn {
             padding: 7px 14px;
             margin-left: 6px;
-            border: none;
+            border: 1px solid var(--card-border);
             border-radius: 6px;
-            background: #252542;
-            color: #c5c5c5;
+            background: var(--card-bg-light);
+            color: var(--text-muted);
             cursor: pointer;
             font-size: 0.85rem;
             transition: all 0.25s ease;
@@ -206,35 +404,81 @@
             width: 100%;
             border-collapse: collapse;
             font-size: 0.88rem;
-            color: #e0e0e0;
+            color: var(--text-main);
         }
         .data-table th, .data-table td {
-            border: 1px solid #2d2d50;
+            border: 1px solid var(--card-border);
             padding: 12px 10px;
             text-align: center;
         }
         .data-table th {
-            background: #252542;
+            background: var(--card-bg-light);
             font-weight: 600;
-            color: #fff;
+            color: var(--text-main);
         }
         .data-table tr:nth-child(even) {
-            background: #181828;
+            background: rgba(0, 0, 0, 0.03);
         }
         .data-table tr:hover {
-            background: #2d2d50;
+            background: var(--card-bg-light);
         }
         .wbgt-val {
             font-size: 1.05rem;
             font-weight: bold;
         }
 
+        /* ========== 響應式適配 ========== */
         @media (max-width: 768px) {
-            .navbar {
-                flex-direction: column;
-                gap: 12px;
-                align-items: flex-start;
+            .header-nav-container {
+                padding: 0.75rem 1rem;
             }
+            .menu-toggle {
+                display: block;
+            }
+            .nav {
+                display: none;
+                flex-direction: column;
+                width: 230px;
+                position: absolute;
+                top: calc(100% + 8px);
+                right: 0;
+                background: var(--card-bg);
+                backdrop-filter: blur(16px);
+                border: 1px solid var(--card-border);
+                border-radius: 12px;
+                padding: 10px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+                align-items: stretch;
+            }
+            .nav a {
+                width: 100%;
+                padding: 10px 14px;
+                border-radius: 8px;
+            }
+            .nav.active {
+                display: flex;
+            }
+
+            .dropdown {
+                width: 100%;
+            }
+            .dropdown-btn {
+                width: 100%;
+                justify-content: space-between;
+                padding: 10px 14px;
+                border-radius: 8px;
+            }
+            .dropdown-content {
+                position: static;
+                box-shadow: none;
+                border: none;
+                background: rgba(255, 255, 255, 0.03);
+                margin-top: 4px;
+                padding-left: 10px;
+                border-left: 2px solid var(--accent-blue);
+                border-radius: 0 8px 8px 0;
+            }
+
             .data-table th, .data-table td {
                 padding: 8px 5px;
                 font-size: 0.8rem;
@@ -248,27 +492,89 @@
                 text-align: left;
             }
         }
+
+        @media (min-width: 769px) {
+            .nav {
+                display: flex !important;
+            }
+            .menu-toggle {
+                display: none !important;
+            }
+        }
     </style>
 </head>
 <body>
 
+<!-- 選單容器 (同 index.html) -->
+<div class="header-nav-container">
+  <div class="header">
+    <img src="icons/MSSO.png" class="logo" alt="MSSO Logo">
+    <div class="title">
+      澳門民間氣象台 MSSO
+      <span id="headerClock" class="header-clock"></span>
+    </div>
+  </div>
+
+  <div class="menu-container">
+    <!-- 切換主題按鈕 (太陽 / 月亮圖標) -->
+    <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+      <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+    <div class="nav" id="navMenu">
+      <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
+
+      <!-- 天氣 下拉選單 -->
+      <div class="dropdown">
+        <button class="dropdown-btn">天氣 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/Apparent_Temperature/">溫度計算</a>
+          <a href="map.html">澳門綜合氣象實況</a>
+          <a href="https://macaosso.github.io/MSSOweb/morain.html">澳門降雨預報</a>
+          <a href="https://macaosso.github.io/MSSOweb/moweather.html">澳門天氣實況及預報</a>
+          <a href="https://macaosso.github.io/MSSOweb/AQImap.html">澳門空氣質量實況</a>
+        </div>
+      </div>
+
+      <!-- 熱帶氣旋 下拉選單 -->
+      <div class="dropdown">
+        <button class="dropdown-btn">熱帶氣旋 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
+          <a href="https://macaosso.github.io/MSSOweb/TCtracker.html">熱帶氣旋襲澳追蹤</a>
+          <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋計算工具</a>
+          <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑GIS地圖</a>
+        </div>
+      </div>
+      
+      <div class="dropdown">
+        <button class="dropdown-btn">天文 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/astro.html">天文專頁</a>
+        </div>
+      </div>
+      
+      <!-- 其他 下拉選單 -->
+      <div class="dropdown">
+        <button class="dropdown-btn">其他 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+          <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="container">
-    <!-- Menu Bar -->
-    <nav class="navbar">
-        <div class="nav-logo">🇲🇴 澳門暑熱實時監測</div>
-        <ul class="nav-links">
-            <li><a href="index.html">實時地圖</a></li>
-            <li><a href="#" class="active">WBGT 數據表格</a></li>
-            <li><a href="#info-section">計算公式與標準</a></li>
-            <li><a href="#precaution-section">防暑注意事項</a></li>
-        </ul>
-    </nav>
 
     <!-- Header Section -->
     <header>
         <div>
             <h1>澳門暑熱指數 (WBGT) 實時監測</h1>
-            <small style="color: #a0a0a0;">氣象數據源自 澳門地球物理氣象局 (SMG)</small>
+            <small style="opacity:0.8;">氣象數據源自 澳門地球物理氣象局 (SMG)</small>
         </div>
         <div class="meta-info">
             <div>資料更新時間：<span id="pub-date">載入中...</span></div>
@@ -363,6 +669,73 @@
 </div>
 
 <script>
+/* ========== 主題與導航選單邏輯 ========== */
+function applyTheme(theme) {
+  if (theme === 'light') {
+    document.body.classList.add('light-theme');
+  } else {
+    document.body.classList.remove('light-theme');
+  }
+}
+
+function toggleTheme() {
+  const isLight = document.body.classList.contains('light-theme');
+  const newTheme = isLight ? 'dark' : 'light';
+  localStorage.setItem('msso_theme', newTheme);
+  applyTheme(newTheme);
+}
+
+(function initTheme() {
+  const savedTheme = localStorage.getItem('msso_theme');
+  if (savedTheme) {
+    if (savedTheme === 'light') document.body.classList.add('light-theme');
+  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+    document.body.classList.add('light-theme');
+  }
+})();
+
+function toggleMenu() {
+  const nav = document.getElementById("navMenu");
+  const btn = document.querySelector(".menu-toggle");
+  nav.classList.toggle("active");
+  btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
+}
+
+function updateHeaderClock() {
+  const clockEl = document.getElementById('headerClock');
+  if (clockEl) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const date = String(now.getDate()).padStart(2, '0');
+    const hrs = String(now.getHours()).padStart(2, '0');
+    const mins = String(now.getMinutes()).padStart(2, '0');
+    const secs = String(now.getSeconds()).padStart(2, '0');
+    clockEl.textContent = ` ${year}年${month}月${date}日 ${hrs}:${mins}:${secs} MST`;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  updateHeaderClock();
+  setInterval(updateHeaderClock, 1000);
+
+  const dropdownBtns = document.querySelectorAll('.dropdown-btn');
+  dropdownBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const currentDropdown = btn.parentElement;
+      document.querySelectorAll('.dropdown').forEach(d => {
+        if (d !== currentDropdown) d.classList.remove('active');
+      });
+      currentDropdown.classList.toggle('active');
+    });
+  });
+
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('active'));
+  });
+});
+
 // ========== 物理常數與計算邏輯 (WBGT) ==========
 const sigma = 5.670374419e-8; 
 const eps = 0.95;             
@@ -431,7 +804,6 @@ const stationCodes = {
     "路環市區": "DC"
 };
 
-// 排除的大橋站點代碼 (不具備完整的氣溫與濕度感測器)
 const excludedBridgeCodes = ["PV", "PN", "PS", "PG", "MN", "MS", "LH"];
 
 function getWbgtBadge(wbgtStr) {
@@ -487,7 +859,6 @@ function fetchWeatherData() {
 
                 const code = stationCodes[name] || "--";
 
-                // 自動過濾大橋測站或缺乏溫濕度數據的站點
                 if (excludedBridgeCodes.includes(code) || isNaN(Ta) || isNaN(RH)) {
                     return; 
                 }
