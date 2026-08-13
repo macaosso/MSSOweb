@@ -1,18 +1,53 @@
-//Tropical Cyclone Warning
+/* ==========================================================================
+   圖標短代碼對照表 (對應 icons/ 資料夾)
+   ========================================================================== */
+const ICON_PRESETS = {
+  // 冷/寒冷警告 (Cold)
+  c1: "icons/c1.jpg",
+  c2: "icons/c2.jpg",
+  c3: "icons/c3.jpg",
+
+  // 極端天氣 (Extreme)
+  e1: "icons/e1.jpg",
+  e2: "icons/e2.jpg",
+
+  // 酷熱警告 (Heat)
+  h1: "icons/h1.jpg",
+  h2: "icons/h2.jpg",
+  h3: "icons/h3.jpg",
+
+  // 暴雨/雨量警告 (Rain)
+  r0: "icons/r0.jpg",
+  r1: "icons/r1.jpg",
+  r2: "icons/r2.jpg",
+  r3: "icons/r3.jpg",
+
+  // 風暴潮/水浸警告 (Surge / Flood)
+  s1: "icons/s1.jpg",
+  s2: "icons/s2.jpg",
+  s3: "icons/s3.jpg",
+
+  // 熱帶氣旋警告信號 (Tropical Cyclone)
+  t1: "icons/t1.jpg",
+  t2: "icons/t2.jpg",
+  t3: "icons/t3.jpg",
+  t4: "icons/t4.jpg",
+  t5: "icons/t5.jpg",
+  t6: "icons/t6.jpg"
+};
+
+// ==========================================================================
+// 1. 熱帶氣旋警告 (tcWarnings) [已新增至 4 條]
+// ==========================================================================
 const tcWarnings = [
   {
-    icon:"",
+    icon: "",
     text: ""
   },
-  
   {
-    icon:"",
+    icon: "",
     text: ""
   },
-];
-
-//Warning
-const warnWarnings = [
   {
     icon: "",
     text: ""
@@ -23,15 +58,57 @@ const warnWarnings = [
   }
 ];
 
-//Special Warning Tips
-const swtText = `（13/8 19:00）截至8月13日，本台已錄得30個酷熱日。受高空槽前西南氣流、切變線及早前的長時間高溫天氣影響，珠江囗明日雨勢增多及有雷暴。市民應留意天氣變化。`;
+// ==========================================================================
+// 2. 天氣警告 (warnWarnings) [已新增至 4 條]
+// ==========================================================================
+const warnWarnings = [
+  {
+    icon: "r0",
+    text: ""
+  },
+  {
+    icon: "",
+    text: ""
+  },
+  {
+    icon: "",
+    text: ""
+  },
+  {
+    icon: "",
+    text: ""
+  }
+];
 
-//Alert Tips
-const alertipsText = `高溫預警提示於本地時間08月13日19時40分取消。`;
+// ==========================================================================
+// 3. 特別天氣提示 (swtText) [原 1 條 + 新增 2 條]
+// ==========================================================================
+const swtText = [
+  "（13/8 19:00）截至8月13日，本台已錄得30個酷熱日。受高空槽前西南氣流、切變線及早前的長時間高溫天氣影響，珠江囗明日雨勢增多及有雷暴。市民應留意天氣變化。",
+  "預料明日日間局勢伴有強烈陣風，強降雨時段能見度較低，駕駛人士請注意行車安全。",
+  "未來數日本澳驟雨增多，高溫天氣將略為緩和，出門請備雨具。"
+];
 
-//受熱帶氣旋 99W 可能發佈之警報
-//2026-07-14  16:40 MST 更新
+// ==========================================================================
+// 4. 預警提示 (alertipsText) [原 1 條 + 新增 2 條]
+// ==========================================================================
+const alertipsText = [
+  "高溫預警提示於本地時間08月13日19時40分取消。",
+  "預計明日午間起風力漸趨增強，偏東風 4 至 5 級，陣風可達 7 級。",
+  "強對流天氣預警：未來數小時本澳周邊地區有雷雨發展，請戶外工作者注意避雷。"
+];
 
+// ==========================================================================
+// 5. 天文潮特別提示 (tideText / TideText) [新增模組]
+// ==========================================================================
+const tideText = [
+  "農曆六月中旬正值天文大潮，預計未來兩三日日間高潮位期間，內港低窪地區可能出現 0.2 米以下微乾水浸。",
+  "預計明日最高潮位出現時間為中午 12:15 左右，請低窪地區商戶及居民防範水浸。"
+];
+
+// ==========================================================================
+// 6. 熱帶氣旋可能發佈之警報預測 (TC_WARNING_DATA)
+// ==========================================================================
 const TC_WARNING_DATA = {
   mainTitle: "受熱帶氣旋「紅霞」可能發佈之警報",
   updateTimeText: "2026-07-24  22:00 MST 更新",
@@ -47,72 +124,3 @@ const TC_WARNING_DATA = {
     { signal: "風暴潮危險警報", period: "", probability: "" },    
   ]
 };
-
-function renderTcWarningTable(data) {
-  // Get the whole card wrapper element
-  const cardWrapper = document.getElementById("tcForecastTableCard");
-  if (!cardWrapper) return;
-
-  // Check if ALL probability are empty
-  const hasValidProbability = data.tableRows.some(row => 
-    row.probability && row.probability.trim() !== ""
-  );
-
-  // Hide entire card box if no valid probability exists
-  if (!hasValidProbability) {
-    cardWrapper.style.display = "none";
-    return;
-  }
-
-  // Show card again when there is valid probability data
-  cardWrapper.style.display = "block";
-
-  // 1. Update main title
-  const titleEl = cardWrapper.querySelector(".tc-forecast-title");
-  if(titleEl) titleEl.textContent = data.mainTitle;
-
-  // 2. Update update time
-  const timeEl = cardWrapper.querySelector(".tc-update-time");
-  if(timeEl) timeEl.textContent = data.updateTimeText;
-
-  // 3. Clear old table content
-  const container = document.getElementById("tcTableContent");
-  if(!container) return;
-  container.innerHTML = "";
-
-  // 4. Build table HTML
-  let tableHtml = `
-    <table class="tc-warning-table">
-      <thead>
-        <tr>
-          <th>警告信號</th>
-          <th>預計可能發佈時段</th>
-          <th>可能性</th>
-        </tr>
-      </thead>
-      <tbody>
-  `;
-  // Only render rows with non-empty probability
-  data.tableRows.forEach(row => {
-    if (!row.probability || row.probability.trim() === "") return;
-    tableHtml += `
-      <tr>
-        <td>${row.signal}</td>
-        <td>${row.period}</td>
-        <td>${row.probability}</td>
-      </tr>
-    `;
-  });
-  tableHtml += `</tbody></table>`;
-
-  // 5. Inject table into page
-  container.innerHTML = tableHtml;
-}
-
-function refreshTcWarningTable(newData) {
-  renderTcWarningTable(newData);
-}
-
-window.addEventListener("DOMContentLoaded", () => {
-  renderTcWarningTable(TC_WARNING_DATA);
-});
