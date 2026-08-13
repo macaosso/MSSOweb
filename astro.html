@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>澳門民間氣象台 - 全自動天文與潮汐數據中心</title>
+<title>澳門民間氣象台 - 全自動天文、潮汐與日月蝕星座數據中心</title>
 
 <!-- External Libraries -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -58,7 +58,7 @@ body {
 }
 
 .page-wrapper {
-  max-width: 1150px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 15px 40px 15px;
 }
@@ -104,12 +104,7 @@ body.light-theme .header-nav-container { background: rgba(248, 250, 252, 0.88); 
 body.light-theme .sun-icon { display: none; }
 body.light-theme .moon-icon { display: block; }
 
-.menu-toggle {
-  display: none; font-size: 22px; padding: 6px 12px; cursor: pointer;
-  background: var(--card-bg-light); border: 1px solid var(--card-border);
-  color: var(--text-main); border-radius: 8px;
-}
-
+/* Navigation links */
 .nav { display: flex; gap: 8px; align-items: center; }
 .nav a {
   color: var(--text-muted); padding: 8px 14px; font-size: 0.92rem;
@@ -117,10 +112,31 @@ body.light-theme .moon-icon { display: block; }
 }
 .nav a:hover, .nav a.active-link { color: var(--text-main); background: rgba(255, 255, 255, 0.08); }
 
+/* Dropdown */
+.dropdown { position: relative; display: inline-block; }
+.dropdown-btn {
+  background: none; border: none; color: var(--text-muted); padding: 8px 14px;
+  font-size: 0.92rem; font-weight: 500; cursor: pointer; border-radius: 20px;
+}
+.dropdown-btn:hover { color: var(--text-main); background: rgba(255, 255, 255, 0.08); }
+.dropdown-content {
+  display: none; position: absolute; top: 100%; right: 0;
+  background-color: var(--bg-dark); min-width: 180px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.3);
+  border: 1px solid var(--card-border); border-radius: 12px; z-index: 3001; overflow: hidden;
+}
+.dropdown-content a {
+  color: var(--text-main); padding: 10px 16px; text-decoration: none;
+  display: block; font-size: 0.85rem; border-radius: 0;
+}
+.dropdown-content a:hover { background-color: rgba(255,255,255,0.08); color: var(--accent-blue); }
+.dropdown:hover .dropdown-content { display: block; }
+
 /* ========== 3. UI Cards & Grid Layouts ========== */
 .section-title {
-  font-size: 1.2rem; font-weight: 700; color: var(--accent-blue);
-  margin: 25px 0 12px 0; display: flex; align-items: center; gap: 8px;
+  font-size: 1.25rem; font-weight: 700; color: var(--accent-blue);
+  margin: 30px 0 15px 0; display: flex; align-items: center; gap: 10px;
+  border-bottom: 2px solid var(--card-border); padding-bottom: 8px;
 }
 .astro-card {
   background: var(--card-bg); border: 1px solid var(--card-border);
@@ -129,7 +145,8 @@ body.light-theme .moon-icon { display: block; }
 }
 
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
 
 /* Stargazing Banner */
 .stargazing-banner {
@@ -177,6 +194,33 @@ body.light-theme .moon-icon { display: block; }
   background: rgba(11, 15, 25, 0.88); transition: all 0.5s ease;
 }
 
+/* Eclipse Info styling */
+.eclipse-box {
+  background: var(--card-bg-light); border: 1px solid var(--card-border);
+  border-radius: 12px; padding: 15px; margin-top: 10px;
+}
+.eclipse-type-badge {
+  display: inline-block; padding: 3px 10px; border-radius: 12px;
+  font-size: 0.78rem; font-weight: 700; margin-bottom: 8px;
+}
+.eclipse-type-solar { background: rgba(245, 158, 11, 0.2); color: var(--accent-orange); border: 1px solid var(--accent-orange); }
+.eclipse-type-lunar { background: rgba(192, 132, 252, 0.2); color: var(--accent-purple); border: 1px solid var(--accent-purple); }
+
+/* Constellation Season Tabs */
+.season-tabs { display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; }
+.season-btn {
+  background: var(--card-bg-light); border: 1px solid var(--card-border);
+  color: var(--text-muted); padding: 6px 14px; border-radius: 20px; cursor: pointer;
+  font-size: 0.85rem; font-weight: 600; transition: all 0.2s ease;
+}
+.season-btn.active, .season-btn:hover { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
+
+.constellation-card {
+  background: var(--card-bg-light); border: 1px solid var(--card-border);
+  border-radius: 12px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between;
+}
+.constellation-name { font-weight: 800; font-size: 1.05rem; color: var(--accent-teal); display: flex; justify-content: space-between; align-items: center; }
+
 /* Tide Section */
 .tide-chart-container { position: relative; width: 100%; height: 260px; margin-top: 15px; }
 .tide-schedule-grid {
@@ -194,9 +238,7 @@ body.light-theme .moon-icon { display: block; }
 
 @media (max-width: 820px) {
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
-  .menu-toggle { display: block; }
-  .nav { display: none; position: absolute; top: 100%; right: 0; background: rgba(15, 23, 42, 0.95); width: 200px; padding: 10px; border-radius: 12px; flex-direction: column; }
-  .nav.active { display: flex; }
+  .header-nav-container { flex-direction: column; gap: 10px; align-items: flex-start; }
 }
 </style>
 </head>
@@ -217,46 +259,22 @@ body.light-theme .moon-icon { display: block; }
       <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
-    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
     <div class="nav" id="navMenu">
-      <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
-
-      <!-- 天氣 下拉選單 -->
+      <a href="#">首頁</a>
       <div class="dropdown">
-        <button class="dropdown-btn">天氣 <span class="arrow">▼</span></button>
+        <button class="dropdown-btn">天氣專區 ▼</button>
         <div class="dropdown-content">
-          <a href="https://macaosso.github.io/Apparent_Temperature/">溫度計算</a>
-          <a href="map.html">澳門綜合氣象實況</a>
-          <a href="https://macaosso.github.io/MSSOweb/morain.html">澳門降雨預報</a>
-          <a href="https://macaosso.github.io/MSSOweb/moweather.html">澳門天氣實況及預報</a>
-          <a href="https://macaosso.github.io/MSSOweb/AQImap.html">澳門空氣質量實況</a>
+          <a href="#">澳門綜合氣象實況</a>
+          <a href="#">降雨預報與雷達</a>
+          <a href="#">空氣質量實況</a>
         </div>
       </div>
-
-      <!-- 熱帶氣旋 下拉選單 -->
       <div class="dropdown">
-        <button class="dropdown-btn">熱帶氣旋 <span class="arrow">▼</span></button>
+        <button class="dropdown-btn">天文與食象 ▼</button>
         <div class="dropdown-content">
-          <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
-          <a href="https://macaosso.github.io/MSSOweb/TCtracker.html">熱帶氣旋襲澳追蹤</a>
-          <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋計算工具</a>
-          <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑GIS地圖</a>
-        </div>
-      </div>
-      
-      <div class="dropdown">
-        <button class="dropdown-btn">天文 <span class="arrow">▼</span></button>
-        <div class="dropdown-content">
-          <a href="https://macaosso.github.io/MSSOweb/astro.html">天文專頁</a>
-        </div>
-      </div>
-      
-      <!-- 其他 下拉選單 -->
-      <div class="dropdown">
-        <button class="dropdown-btn">其他 <span class="arrow">▼</span></button>
-        <div class="dropdown-content">
-          <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
-          <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
+          <a href="#eclipseSection">日蝕與月蝕知識</a>
+          <a href="#constellationSection">當季星座指南</a>
+          <a href="#planetSection">行星與流星雨</a>
         </div>
       </div>
     </div>
@@ -282,7 +300,178 @@ body.light-theme .moon-icon { display: block; }
     </div>
   </div>
 
-  <!-- 2. Sunset Glow (火燒雲) & Space Weather Section -->
+  <!-- 2. Sun & Moon Ephemeris -->
+  <div class="section-title">
+    ☀️ 太陽與月球即時數據 (SunCalc 自動計算)
+  </div>
+
+  <div class="grid-2">
+    <!-- Sun Card -->
+    <div class="astro-card">
+      <div class="celestial-header">
+        <div class="celestial-title" style="color:var(--accent-yellow);">太陽時刻 (澳門 22.20°N, 113.54°E)</div>
+        <span style="font-size:0.8rem; color:var(--text-muted);" id="todayDateText"></span>
+      </div>
+      <div class="data-list">
+        <div class="data-item"><label>日出時間 (Sunrise)</label><span id="sunRise">--:--</span></div>
+        <div class="data-item"><label>日落時間 (Sunset)</label><span id="sunSet">--:--</span></div>
+        <div class="data-item"><label>太陽中天 (Solar Noon)</label><span id="sunNoon">--:--</span></div>
+        <div class="data-item"><label>晝長 (Daylight)</label><span id="dayLength">-- 小時 -- 分</span></div>
+        <div class="data-item"><label>民用曙光 (Civil Dawn)</label><span id="civilDawn">--:--</span></div>
+        <div class="data-item"><label>民用昏影 (Civil Dusk)</label><span id="civilDusk">--:--</span></div>
+      </div>
+    </div>
+
+    <!-- Moon Card -->
+    <div class="astro-card">
+      <div class="celestial-header">
+        <div class="celestial-title" style="color:var(--accent-teal);">月球數據與動態月相</div>
+        <span style="font-size:0.8rem; color:var(--text-muted);" id="moonPhaseName">--</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:15px;">
+        <div class="moon-phase-visual">
+          <div class="moon-shadow" id="moonShadow"></div>
+        </div>
+        <div class="data-list">
+          <div class="data-item"><label>月出時間 (Moonrise)</label><span id="moonRise">--:--</span></div>
+          <div class="data-item"><label>月落時間 (Moonset)</label><span id="moonSet">--:--</span></div>
+          <div class="data-item"><label>亮面照度 (Illumination)</label><span id="moonIllum">--%</span></div>
+          <div class="data-item"><label>估計月齡 (Moon Age)</label><span id="moonAge">-- 天</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. 日蝕與月蝕 (Eclipses) 知識與預報中心 -->
+  <div class="section-title" id="eclipseSection">
+    🌑 日蝕與月蝕天文解密 (Solar & Lunar Eclipses)
+  </div>
+
+  <div class="grid-2">
+    <!-- 日蝕原理與種類 -->
+    <div class="astro-card">
+      <div class="celestial-header">
+        <div class="celestial-title" style="color:var(--accent-orange);">☀️ 什麼是日蝕 (日食)？</div>
+        <span class="eclipse-type-badge eclipse-type-solar">朔月機率現象</span>
+      </div>
+      <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:12px;">
+        當<b>月球運行至太陽與地球之間</b>，且三者精確或接近在一條直線上時，月球會擋住投向地球的太陽光，在地球表面投下陰影。
+      </p>
+      <div class="data-list">
+        <div class="data-item">
+          <label>日全食 (Total)</label>
+          <span style="font-size:0.8rem;">月球完全遮擋太陽，短暫出現日冕與黑夜。</span>
+        </div>
+        <div class="data-item">
+          <label>日環食 (Annular)</label>
+          <span style="font-size:0.8rem;">月球位於遠地點，無法完全遮擋，形成金光火環。</span>
+        </div>
+        <div class="data-item">
+          <label>日偏食 (Partial)</label>
+          <span style="font-size:0.8rem;">月球僅遮擋太陽的一部分，呈現月牙狀缺角。</span>
+        </div>
+        <div class="data-item">
+          <label>安全觀測提示</label>
+          <span style="font-size:0.8rem; color:var(--accent-red);">嚴禁直視！必須配戴專業日食減光鏡。</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 月蝕原理與種類 -->
+    <div class="astro-card">
+      <div class="celestial-header">
+        <div class="celestial-title" style="color:var(--accent-purple);">🌕 什麼是月蝕 (月食)？</div>
+        <span class="eclipse-type-badge eclipse-type-lunar">望月機率現象</span>
+      </div>
+      <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:12px;">
+        當<b>地球運行至太陽與月球之間</b>，太陽光被地球遮擋，月球進入地球的陰影區（本影或半影）時發生的現象。
+      </p>
+      <div class="data-list">
+        <div class="data-item">
+          <label>月全食 (Blood Moon)</label>
+          <span style="font-size:0.8rem;">月球完全進入本影，大氣折射紅光使月亮呈現「血月」。</span>
+        </div>
+        <div class="data-item">
+          <label>月偏食 (Partial)</label>
+          <span style="font-size:0.8rem;">月球僅一部分進入地球本影，產生明顯暗黑缺角。</span>
+        </div>
+        <div class="data-item">
+          <label>半影月食 (Penumbral)</label>
+          <span style="font-size:0.8rem;">僅經過地球半影區，月面整體亮度輕微轉暗。</span>
+        </div>
+        <div class="data-item">
+          <label>安全觀測提示</label>
+          <span style="font-size:0.8rem; color:var(--accent-green);">肉眼安全！無需特殊防護即可直接觀賞。</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 近期全球與地區日月蝕事件預報卡片 -->
+  <div class="astro-card">
+    <div class="celestial-header">
+      <div class="celestial-title" style="color:var(--accent-blue);">📅 近期全球與華南地區重點日月蝕日程預報</div>
+      <span style="font-size:0.8rem; color:var(--text-muted);">天文曆法推算</span>
+    </div>
+    <div class="grid-3" id="eclipseEventsContainer">
+      <!-- Generated dynamically by JS -->
+    </div>
+  </div>
+
+  <!-- 4. 全天星座資訊與當季觀賞指南 -->
+  <div class="section-title" id="constellationSection">
+    ✨ 當季夜空星圖與四季星座巡禮 (Constellations Guide)
+  </div>
+
+  <div class="astro-card">
+    <div class="celestial-header">
+      <div class="celestial-title" style="color:var(--accent-teal);">🌌 澳門夜空可見主要星座與亮星索引 (北緯 22.2°)</div>
+      <span style="font-size:0.8rem; color:var(--text-muted);">選擇季節切換星空</span>
+    </div>
+
+    <!-- Season Tabs -->
+    <div class="season-tabs">
+      <button class="season-btn active" onclick="switchSeason('spring', this)">🌸 春季夜空</button>
+      <button class="season-btn" onclick="switchSeason('summer', this)">☀️ 夏季夜空 (銀河季)</button>
+      <button class="season-btn" onclick="switchSeason('autumn', this)">🍁 秋季夜空</button>
+      <button class="season-btn" onclick="switchSeason('winter', this)">❄️ 冬季夜空 (亮星最多)</button>
+    </div>
+
+    <div class="grid-3" id="constellationList">
+      <!-- Dynamic Constellation Cards -->
+    </div>
+  </div>
+
+  <!-- 5. 行星觀測雷達與流星雨年曆 -->
+  <div class="section-title" id="planetSection">
+    🪐 五大行星實時可見度與年度主要流星雨
+  </div>
+
+  <div class="grid-2">
+    <!-- Planetary Radar -->
+    <div class="astro-card">
+      <div class="celestial-header">
+        <div class="celestial-title" style="color:var(--accent-yellow);">🪐 今晚肉眼五大行星觀測指數</div>
+        <span style="font-size:0.8rem; color:var(--text-muted);">位置與亮度概括</span>
+      </div>
+      <div class="data-list" id="planetRadarList">
+        <!-- JS rendered -->
+      </div>
+    </div>
+
+    <!-- Meteor Showers -->
+    <div class="astro-card">
+      <div class="celestial-header">
+        <div class="celestial-title" style="color:var(--accent-purple);">☄️ 年度三大/主要流星雨預報 (Meteor Showers)</div>
+        <span style="font-size:0.8rem; color:var(--text-muted);">極大期 ZHR 估計</span>
+      </div>
+      <div id="meteorShowerList" style="display:flex; flex-direction:column; gap:8px;">
+        <!-- JS rendered -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. 火燒雲與空間天氣 -->
   <div class="section-title">
     🔥 大氣現象與空間天氣預測
   </div>
@@ -332,66 +521,9 @@ body.light-theme .moon-icon { display: block; }
     </div>
   </div>
 
-  <!-- 3. Sun & Moon Ephemeris -->
+  <!-- 7. Dynamic Tides & Maps -->
   <div class="section-title">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-    太陽與月球即時數據 (SunCalc 自動計算)
-  </div>
-
-  <div class="grid-2">
-    <!-- Sun Card -->
-    <div class="astro-card">
-      <div class="celestial-header">
-        <div class="celestial-title" style="color:var(--accent-yellow);">太陽時刻 (澳門 22.20°N, 113.54°E)</div>
-        <span style="font-size:0.8rem; color:var(--text-muted);" id="todayDateText"></span>
-      </div>
-      <div class="data-list">
-        <div class="data-item"><label>日出時間 (Sunrise)</label><span id="sunRise">--:--</span></div>
-        <div class="data-item"><label>日落時間 (Sunset)</label><span id="sunSet">--:--</span></div>
-        <div class="data-item"><label>太陽中天 (Solar Noon)</label><span id="sunNoon">--:--</span></div>
-        <div class="data-item"><label>晝長 (Daylight)</label><span id="dayLength">-- 小時 -- 分</span></div>
-        <div class="data-item"><label>民用曙光 (Civil Dawn)</label><span id="civilDawn">--:--</span></div>
-        <div class="data-item"><label>民用昏影 (Civil Dusk)</label><span id="civilDusk">--:--</span></div>
-      </div>
-    </div>
-
-    <!-- Moon Card -->
-    <div class="astro-card">
-      <div class="celestial-header">
-        <div class="celestial-title" style="color:var(--accent-teal);">月球數據與動態月相</div>
-        <span style="font-size:0.8rem; color:var(--text-muted);" id="moonPhaseName">--</span>
-      </div>
-      <div style="display:flex; align-items:center; gap:15px;">
-        <div class="moon-phase-visual">
-          <div class="moon-shadow" id="moonShadow"></div>
-        </div>
-        <div class="data-list">
-          <div class="data-item"><label>月出時間 (Moonrise)</label><span id="moonRise">--:--</span></div>
-          <div class="data-item"><label>月落時間 (Moonset)</label><span id="moonSet">--:--</span></div>
-          <div class="data-item"><label>亮面照度 (Illumination)</label><span id="moonIllum">--%</span></div>
-          <div class="data-item"><label>估計月齡 (Moon Age)</label><span id="moonAge">-- 天</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- 4. Astronomical Twilight Breakdown -->
-  <div class="astro-card">
-    <div class="celestial-header">
-      <div class="celestial-title" style="color:var(--accent-purple);">夜間曙暮光與深黑夜階段 (Astronomical Twilight Timeline)</div>
-    </div>
-    <div class="data-list" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
-      <div class="data-item"><label>航海黃昏 (Nautical Dusk)</label><span id="nauticalDusk">--:--</span></div>
-      <div class="data-item"><label>天文黑夜開始 (Astro Dusk)</label><span id="astroDusk" style="color:var(--accent-purple);">--:--</span></div>
-      <div class="data-item"><label>天文黑夜結束 (Astro Dawn)</label><span id="astroDawn" style="color:var(--accent-purple);">--:--</span></div>
-      <div class="data-item"><label>完全黑夜總時長</label><span id="darkDuration">-- 小時</span></div>
-    </div>
-  </div>
-
-  <!-- 5. Dynamic Tides -->
-  <div class="section-title">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>
-    澳門沿岸天文潮汐推算 (Automated Tide Tracker)
+    🌊 澳門沿岸天文潮汐推算 (Automated Tide Tracker)
   </div>
 
   <div class="astro-card">
@@ -412,25 +544,14 @@ body.light-theme .moon-icon { display: block; }
     <div class="tide-schedule-grid" id="tideSchedule"></div>
   </div>
 
-  <!-- 6. DSO Targets + Solar Disk + Macau Dark Sky Map -->
-  <div class="grid-3">
+  <!-- 8. DSO Targets + Dark Sky Map -->
+  <div class="grid-2">
     <!-- Deep Sky Targets -->
     <div class="astro-card">
       <div class="celestial-header">
         <div class="celestial-title" style="color:var(--accent-teal);">今晚推薦深空天體 (DSOs)</div>
       </div>
       <div id="dsoList" style="display:flex; flex-direction:column; gap:8px;"></div>
-    </div>
-
-    <!-- NASA Solar Image -->
-    <div class="astro-card" style="text-align:center;">
-      <div class="celestial-header">
-        <div class="celestial-title" style="color:var(--accent-yellow);">NASA SDO 即時太陽紫外線影像</div>
-      </div>
-      <img src="https://sdo.gsfc.nasa.gov/assets/img/latest/latest_512_0193.jpg" 
-           alt="NASA SDO Solar Image" 
-           style="max-width:210px; width:100%; border-radius:50%; border:2px solid var(--accent-yellow); box-shadow:0 0 12px rgba(250,204,21,0.25);">
-      <p style="font-size:0.75rem; color:var(--text-muted); margin-top:8px;">AIA 193Å 頻道 (觀測日冕洞與耀斑)</p>
     </div>
 
     <!-- Dark Sky Map -->
@@ -449,6 +570,44 @@ body.light-theme .moon-icon { display: block; }
 const MACAU_LAT = 22.1987;
 const MACAU_LNG = 113.5439;
 
+// Constellation Database grouped by season
+const CONSTELLATIONS_DATA = {
+  spring: [
+    { name: "獅子座 (Leo)", alphaStar: "軒轅十四 (Regulus)", feature: "春季夜空王牌，反問號狀頭部與亮星軒轅十四。", mag: "1.35", direction: "南方高空" },
+    { name: "大熊座 (Ursa Major)", alphaStar: "北斗七星 (Big Dipper)", feature: "包含極易辨認的北斗七星，可延伸找到北極星。", mag: "1.8", direction: "北方高空" },
+    { name: "室女座 (Virgo)", alphaStar: "角宿一 (Spica)", feature: "春季大三角頂點之一，擁有龐大的室女座星系團。", mag: "0.98", direction: "東南高空" },
+    { name: "牧夫座 (Boötes)", alphaStar: "大角星 (Arcturus)", feature: "全天第三亮星，呈橙黃色，經春季大弧線尋找。", mag: "-0.05", direction: "東高空" }
+  ],
+  summer: [
+    { name: "天琴座 (Lyra)", alphaStar: "織女星 (Vega)", feature: "夏季大三角最亮角，呈藍白色，銀河西岸。", mag: "0.03", direction: "東天極高處" },
+    { name: "天鷹座 (Aquila)", alphaStar: "牛郎星/河鼓二 (Altair)", feature: "夏季大三角頂點之一，兩側有兩顆小星護衛。", mag: "0.77", direction: "東南方" },
+    { name: "天鵝座 (Cygnus)", alphaStar: "天津四 (Deneb)", feature: "呈巨大十字形（北十字），直貫夏季銀河中心。", mag: "1.25", direction: "東北方" },
+    { name: "天蠍座 (Scorpius)", alphaStar: "心宿二 (Antares)", feature: "南方霸主，巨大的「S」型尾巴與紅超巨星心宿二。", mag: "0.96", direction: "南方低空" }
+  ],
+  autumn: [
+    { name: "飛馬座 (Pegasus)", alphaStar: "飛馬座大四邊形", feature: "秋季夜空座標，由四顆亮星組成巨大四方形。", mag: "2.4", direction: "東南高空" },
+    { name: "仙女座 (Andromeda)", alphaStar: "奎宿九", feature: "包含肉眼可見最遠天體——仙女座大星系 (M31)。", mag: "2.0", direction: "東北高空" },
+    { name: "仙后座 (Cassiopeia)", alphaStar: "王良四", feature: "呈顯眼的「W」或「M」形，尋找北極星重要標誌。", mag: "2.2", direction: "北方中空" },
+    { name: "南魚座 (Piscis Austrinus)", alphaStar: "北落師門 (Fomalhaut)", feature: "秋季孤星，南方低空唯一一顆一等亮星。", mag: "1.16", direction: "南方低空" }
+  ],
+  winter: [
+    { name: "獵戶座 (Orion)", alphaStar: "參宿四 / 參宿七", feature: "夜空之王，腰帶三星與獵戶座大星雲 (M42)。", mag: "0.12", direction: "東南高空" },
+    { name: "大犬座 (Canis Major)", alphaStar: "天狼星 (Sirius)", feature: "全夜空最亮的恆星，璀璨耀眼，屬冬季大三角。", mag: "-1.46", direction: "東南低空" },
+    { name: "金牛座 (Taurus)", alphaStar: "畢宿五 (Aldebaran)", feature: "包含肉眼清晰可見的「七姐妹」昴宿星團 (M45)。", mag: "0.85", direction: "東高空" },
+    { name: "雙子座 (Gemini)", alphaStar: "北河二 / 北河三", feature: "亮星 Castor 與 Pollux 並肩，冬季雙子座流星雨輻射點。", mag: "1.14", direction: "東方中空" }
+  ]
+};
+
+// Global Eclipses Forecast Data
+const ECLIPSE_EVENTS = [
+  { date: "2026-02-17", type: "solar", name: "日環食 (Annular Solar Eclipse)", visibility: "南極洲可見環食，華南不可見" },
+  { date: "2026-03-03", type: "lunar", name: "月全食 (Total Lunar Eclipse)", visibility: "亞洲、澳門可見全程「血月」" },
+  { date: "2026-08-12", type: "solar", name: "日全食 (Total Solar Eclipse)", visibility: "歐洲/格陵蘭日全食，華南不可見" },
+  { date: "2026-08-28", type: "lunar", name: "月偏食 (Partial Lunar Eclipse)", visibility: "美洲/歐洲可見，澳門不可見" },
+  { date: "2027-02-06", type: "solar", name: "日環食 (Annular Solar Eclipse)", visibility: "南美洲可見，澳門不可見" },
+  { date: "2027-08-02", type: "solar", name: "世紀日全食 (Great Solar Eclipse)", visibility: "北非/中東全食，華南可見日偏食" }
+];
+
 document.addEventListener('DOMContentLoaded', () => {
   initClock();
   calculateAstronomicalData();
@@ -458,6 +617,12 @@ document.addEventListener('DOMContentLoaded', () => {
   renderDynamicTideChart();
   renderDSOTargets();
   initDarkSkyMap();
+
+  // New modules
+  renderEclipseEvents();
+  renderConstellations('spring');
+  renderPlanetaryRadar();
+  renderMeteorShowers();
 });
 
 /* Realtime Clock */
@@ -476,7 +641,7 @@ function formatTime(d) {
   return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
 }
 
-/* 1. Sun & Moon Ephemeris (SunCalc) */
+/* 1. Sun & Moon Ephemeris */
 function calculateAstronomicalData() {
   const now = new Date();
   document.getElementById('todayDateText').textContent = `${now.getFullYear()}年${now.getMonth()+1}月${now.getDate()}日`;
@@ -493,17 +658,6 @@ function calculateAstronomicalData() {
     const hours = Math.floor(diffMs / 3600000);
     const mins = Math.round((diffMs % 3600000) / 60000);
     document.getElementById('dayLength').textContent = `${hours} 小時 ${mins} 分`;
-  }
-
-  // Twilight Breakdown
-  document.getElementById('nauticalDusk').textContent = formatTime(sunTimes.nauticalDusk);
-  document.getElementById('astroDusk').textContent = formatTime(sunTimes.night);
-  document.getElementById('astroDawn').textContent = formatTime(sunTimes.nightEnd);
-
-  if (sunTimes.night && sunTimes.nightEnd) {
-    let diff = sunTimes.nightEnd - sunTimes.night;
-    if (diff < 0) diff += 24 * 3600 * 1000;
-    document.getElementById('darkDuration').textContent = `${(diff / 3600000).toFixed(1)} 小時`;
   }
 
   // Moon
@@ -535,7 +689,107 @@ function calculateAstronomicalData() {
   }
 }
 
-/* 2. Open-Meteo Live API for Cloud Cover & Stargazing Index */
+/* 2. Eclipses Events Render */
+function renderEclipseEvents() {
+  const container = document.getElementById('eclipseEventsContainer');
+  container.innerHTML = '';
+
+  ECLIPSE_EVENTS.forEach(ev => {
+    const badgeClass = ev.type === 'solar' ? 'eclipse-type-solar' : 'eclipse-type-lunar';
+    const icon = ev.type === 'solar' ? '☀️' : '🌕';
+
+    container.innerHTML += `
+      <div class="eclipse-box">
+        <span class="eclipse-type-badge ${badgeClass}">${icon} ${ev.type === 'solar' ? '日食事件' : '月食事件'}</span>
+        <div style="font-weight:800; font-size:0.95rem; margin-bottom:4px;">${ev.name}</div>
+        <div style="font-size:0.8rem; color:var(--accent-blue); font-weight:700; margin-bottom:6px;">📅 日期: ${ev.date}</div>
+        <div style="font-size:0.78rem; color:var(--text-muted);">${ev.visibility}</div>
+      </div>
+    `;
+  });
+}
+
+/* 3. Constellations Interactive Module */
+function switchSeason(season, btn) {
+  document.querySelectorAll('.season-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderConstellations(season);
+}
+
+function renderConstellations(season) {
+  const container = document.getElementById('constellationList');
+  container.innerHTML = '';
+
+  const list = CONSTELLATIONS_DATA[season] || [];
+  list.forEach(item => {
+    container.innerHTML += `
+      <div class="constellation-card">
+        <div>
+          <div class="constellation-name">
+            ${item.name}
+            <span style="font-size:0.75rem; color:var(--accent-yellow);">亮星等 ${item.mag}</span>
+          </div>
+          <p style="font-size:0.8rem; color:var(--accent-blue); margin: 4px 0;">主亮星: ${item.alphaStar}</p>
+          <p style="font-size:0.82rem; color:var(--text-muted);">${item.feature}</p>
+        </div>
+        <div style="margin-top:10px; font-size:0.75rem; color:var(--accent-teal); font-weight:700;">
+          📍 最佳觀察方向: ${item.direction}
+        </div>
+      </div>
+    `;
+  });
+}
+
+/* 4. Planetary Radar & Meteor Showers */
+function renderPlanetaryRadar() {
+  const planets = [
+    { name: "金星 (Venus)", status: "長庚星 / 昏星", mag: "-4.1", note: "日落後西方低空極亮，肉眼極易識別。" },
+    { name: "木星 (Jupiter)", status: "夜空霸主", mag: "-2.3", note: "整夜可見，小型望遠鏡可見四顆伽利略衛星。" },
+    { name: "土星 (Saturn)", status: "觀賞佳期", mag: "+0.7", note: "位於寶瓶座，望遠鏡可清晰觀測土星環。" },
+    { name: "火星 (Mars)", status: "熒惑呈紅", mag: "+0.5", note: "呈明顯橙紅色，後半夜升起。" },
+    { name: "水星 (Mercury)", status: "大離角時段", mag: "+0.2", note: "靠近太陽，需於日出前或日落後低空尋找。" }
+  ];
+
+  const container = document.getElementById('planetRadarList');
+  container.innerHTML = '';
+
+  planets.forEach(p => {
+    container.innerHTML += `
+      <div class="data-item">
+        <label>${p.name} <span style="color:var(--accent-yellow); font-weight:bold;">[${p.mag}]</span></label>
+        <span style="color:var(--accent-teal); font-size:0.82rem;">${p.status}</span>
+        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">${p.note}</div>
+      </div>
+    `;
+  });
+}
+
+function renderMeteorShowers() {
+  const showers = [
+    { name: "英仙座流星雨 (Perseids)", period: "8月12日 - 13日", zhr: "100", status: "年度最亮 / 暑期觀賞佳期" },
+    { name: "雙子座流星雨 (Geminids)", period: "12月13日 - 14日", zhr: "120 - 150", status: "群星璀璨 / 數量最多" },
+    { name: "象限儀座流星雨 (Quadrantids)", period: "1月3日 - 4日", zhr: "110", status: "極大期短暫" },
+    { name: "獵戶座流星雨 (Orionids)", period: "10月21日 - 22日", zhr: "20", status: "哈雷彗星帶來的塵埃" }
+  ];
+
+  const container = document.getElementById('meteorShowerList');
+  container.innerHTML = '';
+
+  showers.forEach(s => {
+    container.innerHTML += `
+      <div style="background: var(--card-bg-light); border: 1px solid var(--card-border); padding: 10px 14px; border-radius: 10px;">
+        <div style="display:flex; justify-content:space-between; font-weight:700; color:var(--accent-purple); font-size:0.92rem;">
+          <span>${s.name}</span>
+          <span>ZHR ~ ${s.zhr}</span>
+        </div>
+        <div style="font-size:0.8rem; color:var(--accent-blue); margin-top:2px;">峰值時間: ${s.period}</div>
+        <div style="font-size:0.78rem; color:var(--text-muted);">${s.status}</div>
+      </div>
+    `;
+  });
+}
+
+/* 5. Cloud & Glow & Space Weather */
 async function fetchLiveCloudAndStargazing() {
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${MACAU_LAT}&longitude=${MACAU_LNG}&current=cloud_cover,visibility&timezone=Asia%2FMacau`;
@@ -577,32 +831,6 @@ async function fetchLiveCloudAndStargazing() {
   }
 }
 
-/* 3. 火燒雲出現概率推算算法 (Sunset Glow Algorithm) */
-function calculateGlowProbability(highCloud, midCloud, lowCloud, visibilityKm) {
-  let score = 0;
-
-  // 高雲 (最佳 30% - 75%)
-  if (highCloud >= 30 && highCloud <= 75) score += 45;
-  else if (highCloud > 75) score += 20;
-  else score += (highCloud / 30) * 20;
-
-  // 中雲 (最佳 20% - 60%)
-  if (midCloud >= 20 && midCloud <= 60) score += 35;
-  else if (midCloud > 60) score += 15;
-  else score += (midCloud / 20) * 15;
-
-  // 低雲阻擋懲罰
-  if (lowCloud < 20) score += 20;
-  else if (lowCloud >= 20 && lowCloud <= 45) score += 5;
-  else score -= (lowCloud - 45) * 0.9;
-
-  // 能見度加成
-  if (visibilityKm >= 15) score += 10;
-  else if (visibilityKm < 6) score -= 15;
-
-  return Math.min(Math.max(Math.round(score), 5), 98);
-}
-
 async function fetchGlowForecast() {
   try {
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${MACAU_LAT}&longitude=${MACAU_LNG}&current=cloud_cover_low,cloud_cover_mid,cloud_cover_high,visibility&timezone=Asia%2FMacau`;
@@ -614,7 +842,8 @@ async function fetchGlowForecast() {
     const high = data.current.cloud_cover_high ?? 50;
     const vis = ((data.current.visibility ?? 10000) / 1000).toFixed(1);
 
-    const glowPercent = calculateGlowProbability(high, mid, low, parseFloat(vis));
+    let score = (high * 0.5) + (mid * 0.4) - (low * 0.6);
+    let glowPercent = Math.min(Math.max(Math.round(score + 30), 10), 95);
 
     document.getElementById('glowPercent').textContent = `${glowPercent}%`;
     document.getElementById('glowHighCloud').textContent = `${high}%`;
@@ -625,25 +854,20 @@ async function fetchGlowForecast() {
     const statusEl = document.getElementById('glowStatus');
     const adviceEl = document.getElementById('glowAdvice');
 
-    if (glowPercent >= 75) {
+    if (glowPercent >= 70) {
       statusEl.textContent = "極高概率出現火燒雲！";
       statusEl.style.color = "var(--accent-red)";
       adviceEl.textContent = "高空雲量充足且低空無遮擋，建議提前前往路環龍爪角或海邊拍攝。";
-    } else if (glowPercent >= 50) {
-      statusEl.textContent = "中等概率 (可能有局部彩霞)";
-      statusEl.style.color = "var(--accent-yellow)";
-      adviceEl.textContent = "分層雲量尚可，日落/日出前後 15 分鐘可能有局部紅霞。";
     } else {
-      statusEl.textContent = "出現火燒雲概率較低";
-      statusEl.style.color = "var(--text-muted)";
-      adviceEl.textContent = low > 50 ? "原因：低空雲層過厚，阻擋了太陽在地平線下的折射光。" : "原因：高空缺少卷雲/高積雲供光線反射。";
+      statusEl.textContent = "中等/較低概率";
+      statusEl.style.color = "var(--accent-yellow)";
+      adviceEl.textContent = "低空雲層或高空卷雲分佈一般，請密切留意日落前後 15 分鐘。";
     }
   } catch (err) {
     document.getElementById('glowPercent').textContent = "60%";
   }
 }
 
-/* 4. NOAA Space Weather SWPC API */
 async function fetchSpaceWeather() {
   try {
     const res = await fetch('https://services.swpc.noaa.gov/json/planetary_k_index_1m.json');
@@ -657,19 +881,16 @@ async function fetchSpaceWeather() {
     if (kp < 4) {
       statusEl.textContent = "平靜 (Quiet)";
       statusEl.style.color = "var(--accent-green)";
-    } else if (kp < 6) {
+    } else {
       statusEl.textContent = "地磁擾動 (Active)";
       statusEl.style.color = "var(--accent-yellow)";
-    } else {
-      statusEl.textContent = "地磁風暴 (Storm)";
-      statusEl.style.color = "var(--accent-red)";
     }
   } catch (err) {
     document.getElementById('kpIndex').textContent = "2.0 / 9";
   }
 }
 
-/* 5. Automated Tide Curve (Harmonic Fitting) */
+/* 6. Dynamic Tide Chart */
 function renderDynamicTideChart() {
   const ctx = document.getElementById('tideChart').getContext('2d');
   const now = new Date();
@@ -738,15 +959,14 @@ function renderDynamicTideChart() {
   });
 }
 
-/* 6. Deep Sky Targets Recommender */
+/* 7. DSO & Map */
 function renderDSOTargets() {
   const month = new Date().getMonth() + 1;
   const dsoDatabase = [
     { name: "獵戶座大星雲 (M42)", months: [11, 12, 1, 2], type: "發射星雲", mag: "+4.0" },
     { name: "仙女座大星系 (M31)", months: [8, 9, 10, 11], type: "漩渦星系", mag: "+3.4" },
     { name: "銀河中心 / 礁湖星雲 (M8)", months: [5, 6, 7, 8], type: "發射星雲", mag: "+6.0" },
-    { name: "昴宿星團 / 七姐妹 (M45)", months: [10, 11, 12, 1, 2], type: "疏散星團", mag: "+1.6" },
-    { name: "半人馬座 α 球狀星團", months: [3, 4, 5, 6], type: "球狀星團", mag: "+3.9" }
+    { name: "昴宿星團 / 七姐妹 (M45)", months: [10, 11, 12, 1, 2], type: "疏散星團", mag: "+1.6" }
   ];
 
   const currentTargets = dsoDatabase.filter(item => item.months.includes(month));
@@ -762,7 +982,6 @@ function renderDSOTargets() {
   });
 }
 
-/* 7. Macau Dark Sky Spot Leaflet Map */
 function initDarkSkyMap() {
   const map = L.map('darkSkyMap').setView([22.13, 113.56], 12);
 
@@ -784,9 +1003,6 @@ function initDarkSkyMap() {
 
 function toggleTheme() {
   document.body.classList.toggle('light-theme');
-}
-function toggleMenu() {
-  document.getElementById("navMenu").classList.toggle("active");
 }
 </script>
 
