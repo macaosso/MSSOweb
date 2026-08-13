@@ -22,6 +22,44 @@
             max-width: 1400px;
             margin: 0 auto;
         }
+
+        /* Navigation Menu Bar */
+        .navbar {
+            background: #1a1a2e;
+            border-radius: 12px;
+            padding: 14px 25px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: 1px solid #2d2d50;
+        }
+        .nav-logo {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #3b82f6;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .nav-links {
+            list-style: none;
+            display: flex;
+            gap: 20px;
+        }
+        .nav-links a {
+            color: #a0a0a0;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        .nav-links a:hover, .nav-links a.active {
+            color: #ffffff;
+            border-bottom: 2px solid #3b82f6;
+            padding-bottom: 2px;
+        }
         
         /* Header */
         header {
@@ -192,6 +230,11 @@
         }
 
         @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 12px;
+                align-items: flex-start;
+            }
             .data-table th, .data-table td {
                 padding: 8px 5px;
                 font-size: 0.8rem;
@@ -210,6 +253,17 @@
 <body>
 
 <div class="container">
+    <!-- Menu Bar -->
+    <nav class="navbar">
+        <div class="nav-logo">🇲🇴 澳門暑熱實時監測</div>
+        <ul class="nav-links">
+            <li><a href="index.html">實時地圖</a></li>
+            <li><a href="#" class="active">WBGT 數據表格</a></li>
+            <li><a href="#info-section">計算公式與標準</a></li>
+            <li><a href="#precaution-section">防暑注意事項</a></li>
+        </ul>
+    </nav>
+
     <!-- Header Section -->
     <header>
         <div>
@@ -222,19 +276,19 @@
         </div>
     </header>
 
-    <!-- Information Cards: Formula, Standard, Precautions -->
+    <!-- Information Cards -->
     <div class="info-grid">
         <!-- Card 1: WBGT Formula -->
-        <div class="info-card">
+        <div class="info-card" id="info-section">
             <h3>🌡️ 什麼是暑熱指數 (WBGT)？</h3>
-            <p><strong>黑球濕球溫度 (Wet Bulb Globe Temperature, WBGT)</strong> 是國際公認評估熱壓力 (Heat Stress) 的綜合指標，考慮了氣溫、濕度、風速及太陽輻射對人體散熱的綜合影響。</p>
+            <p><strong>黑球濕球溫度 (Wet Bulb Globe Temperature, WBGT)</strong> 是國際公認評估熱壓力 (Heat Stress) 的綜合指標，綜合氣溫、濕度、風速及太陽輻射對人體散熱的影響。</p>
             
             <div class="formula-box">
                 戶外有日照公式：<br>
                 WBGT = 0.7 × Tnw + 0.2 × Tg + 0.1 × Ta
             </div>
             <ul>
-                <li><strong>Tnw (自然濕球溫度)：</strong>反映環境濕度與蒸發冷卻能力（佔比最高 70%）。</li>
+                <li><strong>Tnw (自然濕球溫度)：</strong>反映環境濕度與蒸發冷卻能力（佔比 70%）。</li>
                 <li><strong>Tg (黑球溫度)：</strong>反映太陽直接輻射與環境熱輻射（佔比 20%）。</li>
                 <li><strong>Ta (乾球氣溫)：</strong>環境實際空氣溫度（佔 10%）。</li>
             </ul>
@@ -243,7 +297,7 @@
         <!-- Card 2: Standards -->
         <div class="info-card" style="border-top-color: #f97316;">
             <h3>📊 暑熱指數警戒分級標準</h3>
-            <p>根據國際勞工組織與健康指引，WBGT 指數等級與相應風險如下：</p>
+            <p>根據國際勞工組織與健康指引，WBGT 指數等級與相應熱危害風險：</p>
             <table class="level-table">
                 <thead>
                     <tr><th>WBGT 範圍</th><th>危險等級</th><th>熱危害風險</th></tr>
@@ -260,7 +314,7 @@
         </div>
 
         <!-- Card 3: Precautions -->
-        <div class="info-card" style="border-top-color: #ef4444;">
+        <div class="info-card" id="precaution-section" style="border-top-color: #ef4444;">
             <h3>🛡️ 高溫與酷熱預防措施</h3>
             <ul>
                 <li><strong>定時補充水分：</strong>切勿等口渴才喝水，戶外活動者每小時應補充 500-1000cc 水分或含電解質飲料。</li>
@@ -310,35 +364,31 @@
 
 <script>
 // ========== 物理常數與計算邏輯 (WBGT) ==========
-const sigma = 5.670374419e-8; // 史蒂芬波茲曼常數 W/(m²·K⁴)
-const eps = 0.95;             // 地面與黑球輻射率
+const sigma = 5.670374419e-8; 
+const eps = 0.95;             
 
-// 1. 自然濕球溫度 (Tnw) 估算 (Stull 近似公式)
 function calcTnw(Ta, RH) {
     if (isNaN(Ta) || isNaN(RH)) return NaN;
     let part1 = Math.atan(0.151977 * Math.sqrt(RH + 8.313659));
     let part2 = Math.atan(Ta + RH);
     let part3 = Math.atan(RH - 1.676331);
     let part4 = 0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH);
-    let Tnw = Ta * part1 + part2 - part3 + part4 - 4.686035;
-    return Tnw;
+    return Ta * part1 + part2 - part3 + part4 - 4.686035;
 }
 
-// 2. 對流換熱係數 (hc)
 function calcHc(Va) {
     if (isNaN(Va)) return NaN;
-    let v_ms = Va / 3.6; // km/h -> m/s
+    let v_ms = Va / 3.6; 
     return 6.3 * Math.pow(v_ms, 0.6) / Math.pow(0.15, 0.4);
 }
 
-// 3. 迭代求解黑球溫度 (Tg)
 function solveTg(TaC, Va) {
     const TaK = TaC + 273.15;
     const hc = calcHc(Va);
     if (isNaN(hc)) return NaN;
 
     let TgK = TaK + 3;
-    let TmrtK = TaK + 12; // 日照效應太陽平均輻射增溫估算
+    let TmrtK = TaK + 12;
 
     for (let iter = 0; iter < 15; iter++) {
         const Tmrt4 = Math.pow(TmrtK, 4);
@@ -348,7 +398,6 @@ function solveTg(TaC, Va) {
     return TgK - 273.15;
 }
 
-// 4. WBGT 綜合計算: WBGT = 0.7*Tnw + 0.2*Tg + 0.1*Ta
 function calculateFullWBGT(Ta, RH, windKmH) {
     if (isNaN(Ta) || isNaN(RH) || isNaN(windKmH)) {
         return { tnw: '--', tg: '--', wbgt: '--' };
@@ -370,15 +419,21 @@ function calculateFullWBGT(Ta, RH, windKmH) {
 
 // ========== 測站代碼對照表 ==========
 const stationCodes = {
-    "紀念孫中山市政公園": "DP", "黑沙環": "EM", "大炮台": "FM", 
-    "外港": "PE", "媽閣": "MM", "大潭山": "TG", 
-    "東亞運大馬路": "JA", "九澳": "KV", "澳門大學": "UM", 
-    "路環市區": "DC", "西灣大橋": "PV", "友誼大橋北": "PN", 
-    "友誼大橋南": "PS", "嘉樂庇總督大橋": "PG", "澳門大橋北": "MN", 
-    "澳門大橋南": "MS", "蓮花大橋": "LH"
+    "紀念孫中山市政公園": "DP", 
+    "黑沙環": "EM", 
+    "大炮台": "FM", 
+    "外港": "PE", 
+    "媽閣": "MM", 
+    "大潭山": "TG", 
+    "東亞運大馬路": "JA", 
+    "九澳": "KV", 
+    "澳門大學": "UM", 
+    "路環市區": "DC"
 };
 
-// WBGT 危險分級 Badge 樣式轉換
+// 排除的大橋站點代碼 (不具備完整的氣溫與濕度感測器)
+const excludedBridgeCodes = ["PV", "PN", "PS", "PG", "MN", "MS", "LH"];
+
 function getWbgtBadge(wbgtStr) {
     let w = parseFloat(wbgtStr);
     if (isNaN(w)) return `<span class="badge" style="background:#555;">無數據</span>`;
@@ -390,11 +445,9 @@ function getWbgtBadge(wbgtStr) {
     return `<span class="badge bg-normal">正常</span>`;
 }
 
-// 數據儲存變數
 let rawStationData = [];
 let currentSort = "desc";
 
-// 輔助函式: 提取 XML 數值
 function extractValue(selector, parent) {
     const el = parent.querySelector(selector);
     if (!el) return '';
@@ -416,7 +469,6 @@ function fetchWeatherData() {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
             
-            // 發布時間
             const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent || "未知";
             document.getElementById("pub-date").textContent = pubTime;
 
@@ -433,14 +485,21 @@ function fetchWeatherData() {
                 const RH = parseFloat(humidity);
                 const Wind = parseFloat(windSpeed);
 
+                const code = stationCodes[name] || "--";
+
+                // 自動過濾大橋測站或缺乏溫濕度數據的站點
+                if (excludedBridgeCodes.includes(code) || isNaN(Ta) || isNaN(RH)) {
+                    return; 
+                }
+
                 const calcRes = calculateFullWBGT(Ta, RH, Wind);
 
                 rawStationData.push({
                     name: name,
-                    code: stationCodes[name] || "--",
-                    temp: isNaN(Ta) ? '--' : Ta.toFixed(1),
-                    humidity: isNaN(RH) ? '--' : RH.toFixed(0),
-                    windSpeed: isNaN(Wind) ? '--' : Wind.toFixed(1),
+                    code: code,
+                    temp: Ta.toFixed(1),
+                    humidity: RH.toFixed(0),
+                    windSpeed: isNaN(Wind) ? '0.0' : Wind.toFixed(1),
                     tnw: calcRes.tnw,
                     tg: calcRes.tg,
                     wbgt: calcRes.wbgt
@@ -466,24 +525,14 @@ function renderTable() {
         return;
     }
 
-    // 複製並排序
     let sortedList = [...rawStationData];
 
     if (currentSort === "desc") {
-        sortedList.sort((a, b) => {
-            let valA = parseFloat(a.wbgt) || -999;
-            let valB = parseFloat(b.wbgt) || -999;
-            return valB - valA;
-        });
+        sortedList.sort((a, b) => (parseFloat(b.wbgt) || -999) - (parseFloat(a.wbgt) || -999));
     } else if (currentSort === "asc") {
-        sortedList.sort((a, b) => {
-            let valA = parseFloat(a.wbgt) || 999;
-            let valB = parseFloat(b.wbgt) || 999;
-            return valA - valB;
-        });
+        sortedList.sort((a, b) => (parseFloat(a.wbgt) || 999) - (parseFloat(b.wbgt) || 999));
     }
 
-    // 渲染列
     sortedList.forEach(item => {
         const badgeHtml = getWbgtBadge(item.wbgt);
         const tr = document.createElement("tr");
@@ -491,12 +540,12 @@ function renderTable() {
         tr.innerHTML = `
             <td><strong>${item.name}</strong></td>
             <td><code style="color:#60a5fa">${item.code}</code></td>
-            <td>${item.temp !== '--' ? item.temp + ' °C' : '--'}</td>
-            <td>${item.humidity !== '--' ? item.humidity + ' %' : '--'}</td>
-            <td>${item.windSpeed !== '--' ? item.windSpeed + ' km/h' : '--'}</td>
-            <td>${item.tnw !== '--' ? item.tnw + ' °C' : '--'}</td>
-            <td>${item.tg !== '--' ? item.tg + ' °C' : '--'}</td>
-            <td class="wbgt-val" style="color: #f97316;">${item.wbgt !== '--' ? item.wbgt + ' °C' : '--'}</td>
+            <td>${item.temp} °C</td>
+            <td>${item.humidity} %</td>
+            <td>${item.windSpeed} km/h</td>
+            <td>${item.tnw} °C</td>
+            <td>${item.tg} °C</td>
+            <td class="wbgt-val" style="color: #f97316;">${item.wbgt} °C</td>
             <td>${badgeHtml}</td>
         `;
         tbody.appendChild(tr);
@@ -519,10 +568,9 @@ document.getElementById('btn-manual-refresh').addEventListener('click', () => {
     fetchWeatherData();
 });
 
-// 頁面初次載入 + 每 5 分鐘 (300,000 ms) 自動刷新
 window.addEventListener('DOMContentLoaded', () => {
     fetchWeatherData();
-    setInterval(fetchWeatherData, 300000);
+    setInterval(fetchWeatherData, 300000); // 每 5 分鐘自動刷新
 });
 </script>
 </body>
