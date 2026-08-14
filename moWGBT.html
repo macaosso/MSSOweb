@@ -51,7 +51,7 @@
             padding: 0 20px;
         }
 
-        /* ========== 2. 頁頭 Header & 頂欄導航 (選單組件) ========== */
+        /* ========== 2. 頁頭 Header & 頂欄導航 ========== */
         .header-nav-container {
           position: sticky;
           top: 0;
@@ -126,18 +126,10 @@
           color: var(--accent-blue);
           transform: translateY(-1px);
         }
-        .sun-icon {
-          display: block;
-        }
-        .moon-icon {
-          display: none;
-        }
-        body.light-theme .sun-icon {
-          display: none;
-        }
-        body.light-theme .moon-icon {
-          display: block;
-        }
+        .sun-icon { display: block; }
+        .moon-icon { display: none; }
+        body.light-theme .sun-icon { display: none; }
+        body.light-theme .moon-icon { display: block; }
 
         .menu-toggle {
           display: none;
@@ -149,13 +141,6 @@
           color: var(--text-main);
           border-radius: 8px;
           transition: all 0.2s;
-        }
-        .menu-toggle:hover {
-          border-color: var(--accent-blue);
-        }
-        .menu-toggle.active {
-          border-color: var(--accent-blue);
-          background: rgba(56, 189, 248, 0.12);
         }
 
         .nav {
@@ -177,16 +162,11 @@
           color: var(--text-main);
           background: rgba(255, 255, 255, 0.08);
         }
-        body.light-theme .nav a:hover, body.light-theme .nav a.active {
-          background: rgba(0, 0, 0, 0.05);
-        }
 
-        /* 下拉選單樣式 */
         .dropdown {
           position: relative;
           display: inline-block;
         }
-
         .dropdown-btn {
           background: transparent;
           border: none;
@@ -202,27 +182,6 @@
           align-items: center;
           gap: 6px;
         }
-
-        .dropdown-btn .arrow {
-          font-size: 0.7rem;
-          transition: transform 0.2s ease;
-        }
-
-        .dropdown:hover .dropdown-btn,
-        .dropdown.active .dropdown-btn {
-          color: var(--text-main);
-          background: rgba(255, 255, 255, 0.08);
-        }
-        body.light-theme .dropdown:hover .dropdown-btn,
-        body.light-theme .dropdown.active .dropdown-btn {
-          background: rgba(0, 0, 0, 0.05);
-        }
-
-        .dropdown:hover .arrow,
-        .dropdown.active .arrow {
-          transform: rotate(180deg);
-        }
-
         .dropdown-content {
           display: none;
           position: absolute;
@@ -236,19 +195,14 @@
           padding: 6px;
           box-shadow: 0 10px 25px rgba(0,0,0,0.5);
           z-index: 3100;
-          margin-top: 4px;
         }
-
-        .dropdown:hover .dropdown-content,
-        .dropdown.active .dropdown-content {
+        .dropdown:hover .dropdown-content, .dropdown.active .dropdown-content {
           display: block;
         }
-
         .dropdown-content a {
           padding: 8px 12px;
           border-radius: 8px;
           white-space: nowrap;
-          font-size: 0.88rem;
         }
         
         /* Header Section */
@@ -271,53 +225,14 @@
         header h1 {
             font-size: 1.8rem;
             font-weight: 600;
-            letter-spacing: 0.5px;
         }
         .meta-info {
             text-align: right;
             font-size: 0.9rem;
-            opacity: 0.9;
         }
         .refresh-status {
             color: #2ecc71;
             font-weight: 500;
-        }
-
-        /* Summary Card Section */
-        .summary-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 16px 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
-            border: 1px solid var(--card-border);
-        }
-        .summary-card h3 {
-            font-size: 1.05rem;
-            color: var(--text-main);
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .summary-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 10px;
-        }
-        .summary-item {
-            background: var(--card-bg-light);
-            border: 1px solid var(--card-border);
-            border-radius: 8px;
-            padding: 8px 12px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .count-num {
-            font-size: 1.15rem;
-            font-weight: bold;
-            color: var(--accent-blue);
         }
 
         /* Info Cards Section */
@@ -341,26 +256,12 @@
             font-size: 1.1rem;
             color: var(--text-main);
             margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .info-card p, .info-card li {
-            color: var(--text-muted);
-            font-size: 0.88rem;
-        }
-        .info-card ul {
-            padding-left: 18px;
-            margin-top: 6px;
-        }
-        .info-card li {
-            margin-bottom: 6px;
         }
         .formula-box {
             background: var(--card-bg-light);
             padding: 10px 14px;
             border-radius: 8px;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: monospace;
             color: var(--accent-blue);
             font-weight: bold;
             margin: 8px 0;
@@ -396,6 +297,129 @@
         .bg-high-danger { background: #b91c1c; }
         .bg-extreme { background: #7f1d1d; border: 1px solid #ef4444; }
 
+        /* ========== 3. 地圖區域樣式 (Picture 2 + Picture 3 結合) ========== */
+        .map-section-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+            border: 1px solid var(--card-border);
+        }
+        .wbgt-map-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: #a0c2e7;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .map-base-img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Pins 標籤樣式 (比照 Picture 3 風格) */
+        .map-pin {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            z-index: 10;
+            cursor: pointer;
+            transition: transform 0.2s ease, z-index 0.2s;
+        }
+        .map-pin:hover {
+            transform: translate(-50%, -108%) scale(1.1);
+            z-index: 25;
+        }
+        .pin-badge {
+            padding: 4px 9px;
+            border-radius: 6px;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 0.95rem;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+            white-space: nowrap;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.6);
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+        /* 標籤箭頭尖角 */
+        .pin-badge::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px 6px 0;
+            border-style: solid;
+            border-color: inherit;
+            display: block;
+            width: 0;
+        }
+
+        /* 圖例邊欄 ( Picture 3 右上角樣式 ) */
+        .map-legend {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border-radius: 8px;
+            padding: 10px 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            color: #0f172a;
+            font-size: 0.82rem;
+            z-index: 15;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        body:not(.light-theme) .map-legend {
+            background: rgba(20, 20, 35, 0.85);
+            color: #e2e8f0;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .legend-title {
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+            text-align: center;
+            border-bottom: 1px solid rgba(150,150,150,0.3);
+            padding-bottom: 4px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 3px;
+            font-weight: 600;
+        }
+        .legend-color-box {
+            width: 32px;
+            height: 14px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        /* 右下角時間標籤 (比照 Picture 3) */
+        .map-timestamp {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #0f172a;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.78rem;
+            font-weight: bold;
+            z-index: 15;
+        }
+        body:not(.light-theme) .map-timestamp {
+            background: rgba(0, 0, 0, 0.75);
+            color: #f1f5f9;
+        }
+
         /* Table View */
         .table-container {
             background: var(--card-bg);
@@ -428,14 +452,9 @@
             font-size: 0.85rem;
             transition: all 0.25s ease;
         }
-        .sort-buttons button:hover, .action-btn:hover {
+        .sort-buttons button:hover, .action-btn:hover, .sort-buttons button.active {
             background: #3b82f6;
             color: #fff;
-        }
-        .sort-buttons button.active {
-            background: #3b82f6;
-            color: #fff;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
         }
 
         .data-table {
@@ -452,91 +471,27 @@
         .data-table th {
             background: var(--card-bg-light);
             font-weight: 600;
-            color: var(--text-main);
-        }
-        .data-table tr:nth-child(even) {
-            background: rgba(0, 0, 0, 0.03);
-        }
-        .data-table tr:hover {
-            background: var(--card-bg-light);
         }
         .wbgt-val {
             font-size: 1.05rem;
             font-weight: bold;
         }
 
-        /* ========== 響應式適配 ========== */
+        /* RWD 調整 */
         @media (max-width: 768px) {
-            .header-nav-container {
-                padding: 0.75rem 1rem;
+            .map-legend {
+                padding: 6px 8px;
+                font-size: 0.72rem;
+                top: 8px;
+                right: 8px;
             }
-            .menu-toggle {
-                display: block;
+            .legend-color-box {
+                width: 22px;
+                height: 10px;
             }
-            .nav {
-                display: none;
-                flex-direction: column;
-                width: 230px;
-                position: absolute;
-                top: calc(100% + 8px);
-                right: 0;
-                background: var(--card-bg);
-                backdrop-filter: blur(16px);
-                border: 1px solid var(--card-border);
-                border-radius: 12px;
-                padding: 10px;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-                align-items: stretch;
-            }
-            .nav a {
-                width: 100%;
-                padding: 10px 14px;
-                border-radius: 8px;
-            }
-            .nav.active {
-                display: flex;
-            }
-
-            .dropdown {
-                width: 100%;
-            }
-            .dropdown-btn {
-                width: 100%;
-                justify-content: space-between;
-                padding: 10px 14px;
-                border-radius: 8px;
-            }
-            .dropdown-content {
-                position: static;
-                box-shadow: none;
-                border: none;
-                background: rgba(255, 255, 255, 0.03);
-                margin-top: 4px;
-                padding-left: 10px;
-                border-left: 2px solid var(--accent-blue);
-                border-radius: 0 8px 8px 0;
-            }
-
-            .data-table th, .data-table td {
-                padding: 8px 5px;
+            .pin-badge {
                 font-size: 0.8rem;
-            }
-            header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 10px;
-            }
-            .meta-info {
-                text-align: left;
-            }
-        }
-
-        @media (min-width: 769px) {
-            .nav {
-                display: flex !important;
-            }
-            .menu-toggle {
-                display: none !important;
+                padding: 2px 6px;
             }
         }
     </style>
@@ -554,17 +509,15 @@
   </div>
 
   <div class="menu-container">
-    <!-- 切換主題按鈕 (太陽 / 月亮圖標) -->
     <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
-      <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-      <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
 
     <div class="menu-toggle" onclick="toggleMenu()">☰</div>
     <div class="nav" id="navMenu">
       <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
 
-      <!-- 天氣 下拉選單 -->
       <div class="dropdown">
         <button class="dropdown-btn">天氣 <span class="arrow">▼</span></button>
         <div class="dropdown-content">
@@ -576,7 +529,6 @@
         </div>
       </div>
 
-      <!-- 熱帶氣旋 下拉選單 -->
       <div class="dropdown">
         <button class="dropdown-btn">熱帶氣旋 <span class="arrow">▼</span></button>
         <div class="dropdown-content">
@@ -594,7 +546,6 @@
         </div>
       </div>
       
-      <!-- 其他 下拉選單 -->
       <div class="dropdown">
         <button class="dropdown-btn">其他 <span class="arrow">▼</span></button>
         <div class="dropdown-content">
@@ -620,60 +571,22 @@
         </div>
     </header>
 
-    <!-- 各等級測站數量統計 (置於介紹 WBGT 之前) -->
-    <div class="summary-card">
-        <h3>📊 實時各暑熱等級測站數量統計</h3>
-        <div class="summary-grid">
-            <div class="summary-item">
-                <span class="badge bg-normal">正常</span>
-                <span class="count-num" id="cnt-normal">0</span>
-            </div>
-            <div class="summary-item">
-                <span class="badge bg-caution">注意</span>
-                <span class="count-num" id="cnt-caution">0</span>
-            </div>
-            <div class="summary-item">
-                <span class="badge bg-alert">警戒</span>
-                <span class="count-num" id="cnt-alert">0</span>
-            </div>
-            <div class="summary-item">
-                <span class="badge bg-high-alert">高度警戒</span>
-                <span class="count-num" id="cnt-high-alert">0</span>
-            </div>
-            <div class="summary-item">
-                <span class="badge bg-danger">危險</span>
-                <span class="count-num" id="cnt-danger">0</span>
-            </div>
-            <div class="summary-item">
-                <span class="badge bg-high-danger">非常危險</span>
-                <span class="count-num" id="cnt-high-danger">0</span>
-            </div>
-            <div class="summary-item">
-                <span class="badge bg-extreme">極度危險</span>
-                <span class="count-num" id="cnt-extreme">0</span>
-            </div>
-        </div>
-    </div>
-
     <!-- Information Cards -->
     <div class="info-grid">
-        <!-- Card 1: WBGT Formula -->
         <div class="info-card" id="info-section">
             <h3>🌡️ 什麼是暑熱指數 (WBGT)？</h3>
             <p><strong>黑球濕球溫度 (Wet Bulb Globe Temperature, WBGT)</strong> 是國際公認評估熱壓力 (Heat Stress) 的綜合指標，綜合氣溫、濕度、風速及太陽輻射對人體散熱的影響。</p>
-            
             <div class="formula-box">
                 戶外有日照公式：<br>
                 WBGT = 0.7 × Tnw + 0.2 × Tg + 0.1 × Ta
             </div>
             <ul>
-                <li><strong>Tnw (自然濕球溫度)：</strong>反映環境濕度與蒸發冷卻能力（佔比 70%）。</li>
-                <li><strong>Tg (黑球溫度)：</strong>反映太陽直接輻射與環境熱輻射（佔比 20%）。</li>
+                <li><strong>Tnw (自然濕球溫度)：</strong>反映環境濕度與蒸發冷卻能力（佔 70%）。</li>
+                <li><strong>Tg (黑球溫度)：</strong>反映太陽直接輻射與環境熱輻射（佔 20%）。</li>
                 <li><strong>Ta (乾球氣溫)：</strong>環境實際空氣溫度（佔 10%）。</li>
             </ul>
         </div>
 
-        <!-- Card 2: Standards -->
         <div class="info-card" style="border-top-color: #f97316;">
             <h3>📊 暑熱指數警戒分級標準</h3>
             <p>根據 WBGT 指數等級與相應熱危害風險：</p>
@@ -693,15 +606,45 @@
             </table>
         </div>
 
-        <!-- Card 3: Precautions -->
         <div class="info-card" id="precaution-section" style="border-top-color: #ef4444;">
             <h3>🛡️ 高溫與酷熱預防措施</h3>
             <ul>
-                <li><strong>定時補充水分：</strong>切勿等口渴才喝水，戶外活動者每小時應補充 500-1000cc 水分或含電解質飲料。</li>
-                <li><strong>合理安排休息：</strong>在高暑熱指數環境下，每工作 45-50 分鐘應至陰涼通風處休息 10-15 分鐘。</li>
-                <li><strong>穿著透氣衣物：</strong>選擇淺色、寬鬆、透氣良好之材質，有助於汗液蒸發散熱。</li>
-                <li><strong>留意身體警訊：</strong>若出現頭暈、頭痛、噁心、心悸、大量出汗或皮膚發紅灼熱，應立即暫停活動並求醫。</li>
+                <li><strong>定時補充水分：</strong>切勿等口渴才喝水，戶外活動者每小時應補充 500-1000cc 水分。</li>
+                <li><strong>合理安排休息：</strong>在高暑熱指數環境下，每工作 45-50 分鐘應至陰涼處休息 10-15 分鐘。</li>
+                <li><strong>穿著透氣衣物：</strong>選擇淺色、寬鬆、透氣良好之材質。</li>
+                <li><strong>留意身體警訊：</strong>若出現頭暈、噁心、心悸、大量出汗，應立即暫停活動求醫。</li>
             </ul>
+        </div>
+    </div>
+
+    <!-- Map Interactive Section (Picture 2 Base Map + Picture 3 Visuals) -->
+    <div class="map-section-container">
+        <div class="table-header-bar">
+            <div class="table-title">澳門各氣象站暑熱指數 (WBGT) 地圖分佈</div>
+        </div>
+        <div class="wbgt-map-wrapper">
+            <!-- 底圖 (Picture 2 map.png) -->
+            <img src="map.png" alt="澳門氣象地圖" class="map-base-img">
+
+            <!-- 測站 Pins (動態標註 WBGT 數值) -->
+            <div id="stationPinsGroup"></div>
+
+            <!-- 右上角圖例 (Picture 3 佈局風格) -->
+            <div class="map-legend">
+                <div class="legend-title">暑熱指數 (WBGT)</div>
+                <div class="legend-item"><span class="legend-color-box bg-extreme"></span>極度危險 (≥34)</div>
+                <div class="legend-item"><span class="legend-color-box bg-high-danger"></span>非常危險 (33-34)</div>
+                <div class="legend-item"><span class="legend-color-box bg-danger"></span>危險 (31-33)</div>
+                <div class="legend-item"><span class="legend-color-box bg-high-alert"></span>高度警戒 (28-31)</div>
+                <div class="legend-item"><span class="legend-color-box bg-alert"></span>警戒 (25-28)</div>
+                <div class="legend-item"><span class="legend-color-box bg-caution"></span>注意 (21-25)</div>
+                <div class="legend-item"><span class="legend-color-box bg-normal"></span>正常 (&lt;21)</div>
+            </div>
+
+            <!-- 右下角時間 (Picture 3 佈局風格) -->
+            <div class="map-timestamp">
+                更新時間: <span id="map-pub-time">載入中...</span>
+            </div>
         </div>
     </div>
 
@@ -724,13 +667,18 @@
                 <thead>
                     <tr>
                         <th>測站名稱</th>
-                        <th>代碼</th>
-                        <th>WBGT</th>
+                        <th>站代碼</th>
+                        <th>環境氣溫 (Ta)</th>
+                        <th>相對濕度 (RH)</th>
+                        <th>風速</th>
+                        <th>估算濕球 (Tnw)</th>
+                        <th>估算黑球 (Tg)</th>
+                        <th>暑熱指數 (WBGT)</th>
                         <th>危險等級</th>
                     </tr>
                 </thead>
                 <tbody id="wbgt-table-body">
-                    <tr><td colspan="4" style="text-align: center; color: #888; padding: 20px;">資料載入中...</td></tr>
+                    <tr><td colspan="9" style="text-align: center; color: #888; padding: 20px;">資料載入中...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -805,7 +753,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// ========== 物理常數與計算邏輯 (WBGT) ==========
+// ========== 物理常數與 WBGT 計算邏輯 ==========
 const sigma = 5.670374419e-8; 
 const eps = 0.95;             
 
@@ -859,7 +807,7 @@ function calculateFullWBGT(Ta, RH, windKmH) {
     };
 }
 
-// ========== 測站代碼對照表 ==========
+// ========== 測站代碼對照表與座標點位置 (map.png) ==========
 const stationCodes = {
     "紀念孫中山市政公園": "DP", 
     "黑沙環": "EM", 
@@ -873,17 +821,42 @@ const stationCodes = {
     "路環市區": "DC"
 };
 
+const stationCoordinates = {
+    "紀念孫中山市政公園": { top: 7.5, left: 34.5 },
+    "黑沙環":           { top: 11.0, left: 43.5 },
+    "大炮台":           { top: 18.0, left: 33.0 },
+    "外港":             { top: 19.5, left: 44.5 },
+    "媽閣":             { top: 27.5, left: 25.5 },
+    "東亞運大馬路":     { top: 48.0, left: 32.5 },
+    "大潭山":           { top: 48.5, left: 48.0 },
+    "澳門大學":         { top: 74.5, left: 29.0 },
+    "路環市區":         { top: 79.0, left: 40.5 },
+    "九澳":             { top: 67.5, left: 58.5 }
+};
+
 const excludedBridgeCodes = ["PV", "PN", "PS", "PG", "MN", "MS", "LH"];
+
+function getWbgtColorHex(wbgtStr) {
+    let w = parseFloat(wbgtStr);
+    if (isNaN(w)) return "#555555";
+    if (w >= 34) return "#7f1d1d";
+    if (w >= 33) return "#b91c1c";
+    if (w >= 31) return "#ef4444";
+    if (w >= 28) return "#e06c00";
+    if (w >= 25) return "#c9b200";
+    if (w >= 21) return "#38b000";
+    return "#0077b6";
+}
 
 function getWbgtBadge(wbgtStr) {
     let w = parseFloat(wbgtStr);
     if (isNaN(w)) return `<span class="badge" style="background:#555;">無數據</span>`;
-    if (w >= 33.5) return `<span class="badge bg-extreme">極度危險</span>`;
-    if (w >= 32.5) return `<span class="badge bg-high-danger">非常危險</span>`;
-    if (w >= 30.5) return `<span class="badge bg-danger">危險</span>`;
-    if (w >= 27.5) return `<span class="badge bg-high-alert">高度警戒</span>`;
-    if (w >= 24.5) return `<span class="badge bg-alert">警戒</span>`;
-    if (w >= 20.5) return `<span class="badge bg-caution">注意</span>`;
+    if (w >= 34) return `<span class="badge bg-extreme">極度危險</span>`;
+    if (w >= 33) return `<span class="badge bg-high-danger">非常危險</span>`;
+    if (w >= 31) return `<span class="badge bg-danger">危險</span>`;
+    if (w >= 28) return `<span class="badge bg-high-alert">高度警戒</span>`;
+    if (w >= 25) return `<span class="badge bg-alert">警戒</span>`;
+    if (w >= 21) return `<span class="badge bg-caution">注意</span>`;
     return `<span class="badge bg-normal">正常</span>`;
 }
 
@@ -897,38 +870,33 @@ function extractValue(selector, parent) {
     return val.trim();
 }
 
-// ========== 更新測站等級統計數量 ==========
-function updateSummaryCounts() {
-    let counts = {
-        normal: 0,
-        caution: 0,
-        alert: 0,
-        highAlert: 0,
-        danger: 0,
-        highDanger: 0,
-        extreme: 0
-    };
+// ========== 在地圖上繪製 Pins 標籤 (Picture 3 版面) ==========
+function renderMapPins() {
+    const container = document.getElementById("stationPinsGroup");
+    if (!container) return;
+    container.innerHTML = "";
 
     rawStationData.forEach(item => {
-        let w = parseFloat(item.wbgt);
-        if (isNaN(w)) return;
+        const coords = stationCoordinates[item.name];
+        if (!coords) return;
 
-        if (w >= 33.5) counts.extreme++;
-        else if (w >= 32.5) counts.highDanger++;
-        else if (w >= 30.5) counts.danger++;
-        else if (w >= 27.5) counts.highAlert++;
-        else if (w >= 24.5) counts.alert++;
-        else if (w >= 20.5) counts.caution++;
-        else counts.normal++;
+        const hexColor = getWbgtColorHex(item.wbgt);
+        const pin = document.createElement("div");
+        pin.className = "map-pin";
+        pin.style.top = coords.top + "%";
+        pin.style.left = coords.left + "%";
+
+        pin.innerHTML = `
+            <div class="pin-badge" style="background-color: ${hexColor}; border-color: ${hexColor};">
+                ${item.wbgt !== '--' ? item.wbgt : 'N/A'}
+            </div>
+        `;
+        container.appendChild(pin);
     });
 
-    document.getElementById('cnt-normal').textContent = counts.normal;
-    document.getElementById('cnt-caution').textContent = counts.caution;
-    document.getElementById('cnt-alert').textContent = counts.alert;
-    document.getElementById('cnt-high-alert').textContent = counts.highAlert;
-    document.getElementById('cnt-danger').textContent = counts.danger;
-    document.getElementById('cnt-high-danger').textContent = counts.highDanger;
-    document.getElementById('cnt-extreme').textContent = counts.extreme;
+    const pubTimeText = document.getElementById("pub-date")?.textContent || "";
+    const mapPubEl = document.getElementById("map-pub-time");
+    if (mapPubEl) mapPubEl.textContent = pubTimeText;
 }
 
 // ========== 抓取 SMG XML 數據 ==========
@@ -981,23 +949,23 @@ function fetchWeatherData() {
                 });
             });
 
-            updateSummaryCounts();
             renderTable();
+            renderMapPins();
         })
         .catch(err => {
             console.error("載入失敗: ", err);
             document.getElementById("wbgt-table-body").innerHTML = 
-                `<tr><td colspan="4" style="text-align:center; color:#ef4444; padding:20px;">數據載入失敗，請重新整理頁面或稍後再試。</td></tr>`;
+                `<tr><td colspan="9" style="text-align:center; color:#ef4444; padding:20px;">數據載入失敗，請重新整理頁面或稍後再試。</td></tr>`;
         });
 }
 
-// ========== 渲染表格與排序 ==========
+// ========== 渲染表格 ==========
 function renderTable() {
     const tbody = document.getElementById("wbgt-table-body");
     tbody.innerHTML = "";
 
     if (rawStationData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding:20px;">目前無可用數據</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding:20px;">目前無可用數據</td></tr>`;
         return;
     }
 
@@ -1016,6 +984,11 @@ function renderTable() {
         tr.innerHTML = `
             <td><strong>${item.name}</strong></td>
             <td><code style="color:#60a5fa">${item.code}</code></td>
+            <td>${item.temp} °C</td>
+            <td>${item.humidity} %</td>
+            <td>${item.windSpeed} km/h</td>
+            <td>${item.tnw} °C</td>
+            <td>${item.tg} °C</td>
             <td class="wbgt-val" style="color: #f97316;">${item.wbgt}</td>
             <td>${badgeHtml}</td>
         `;
@@ -1023,7 +996,7 @@ function renderTable() {
     });
 }
 
-// ========== 事件監聽與自動刷新 ==========
+// ========== 事件監聽 ==========
 document.querySelectorAll('.sort-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
@@ -1035,13 +1008,13 @@ document.querySelectorAll('.sort-btn').forEach(btn => {
 
 document.getElementById('btn-manual-refresh').addEventListener('click', () => {
     document.getElementById("wbgt-table-body").innerHTML = 
-        `<tr><td colspan="4" style="text-align: center; color: #888; padding: 20px;">正在更新數據...</td></tr>`;
+        `<tr><td colspan="9" style="text-align: center; color: #888; padding: 20px;">正在更新數據...</td></tr>`;
     fetchWeatherData();
 });
 
 window.addEventListener('DOMContentLoaded', () => {
     fetchWeatherData();
-    setInterval(fetchWeatherData, 60000); // 每 5 分鐘自動刷新
+    setInterval(fetchWeatherData, 60000);
 });
 </script>
 </body>
