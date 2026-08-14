@@ -228,23 +228,18 @@
             text-align: right;
             font-size: 0.9rem;
         }
-        .refresh-status {
-            color: #2ecc71;
-            font-weight: 500;
-            font-variant-numeric: tabular-nums;
-        }
 
         /* 1. 各警戒等級數量統計 */
         .summary-count-bar {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
             margin-bottom: 20px;
             background: var(--card-bg);
             padding: 14px 20px;
             border-radius: 12px;
             border: 1px solid var(--card-border);
-            font-size: 0.9rem;
+            font-size: 0.88rem;
             align-items: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
@@ -253,7 +248,7 @@
             align-items: center;
             gap: 6px;
             background: var(--card-bg-light);
-            padding: 6px 14px;
+            padding: 5px 12px;
             border-radius: 20px;
             border: 1px solid var(--card-border);
             font-weight: bold;
@@ -585,18 +580,19 @@
         </div>
         <div class="meta-info">
             <div>資料更新時間：<span id="pub-date">載入中...</span></div>
-            <div class="refresh-status" id="refreshStatus">● 每 5 分鐘自動刷新數據 (倒數 05:00)</div>
         </div>
     </header>
 
-    <!-- 1. 各警戒等級數量統計 -->
+    <!-- 1. 各警戒等級數量統計 (按照要求細化為 7 個等級獨立計數) -->
     <div class="summary-count-bar" id="summaryCountBar">
         <span style="font-weight: bold;">📊 各警戒等級數量統計：</span>
-        <span class="count-pill">總測站數: <span id="countTotal">0</span></span>
-        <span class="count-pill" style="color:#7f1d1d;">極度危險: <span id="countExtreme">0</span></span>
+        <span class="count-pill" style="color:#0077b6;">正常: <span id="countNormal">0</span></span>
+        <span class="count-pill" style="color:#38b000;">注意: <span id="countCaution">0</span></span>
+        <span class="count-pill" style="color:#c9b200;">警戒: <span id="countAlert">0</span></span>
+        <span class="count-pill" style="color:#e06c00;">高度警戒: <span id="countHighAlert">0</span></span>
         <span class="count-pill" style="color:#ef4444;">危險: <span id="countDanger">0</span></span>
-        <span class="count-pill" style="color:#e06c00;">警戒: <span id="countAlert">0</span></span>
-        <span class="count-pill" style="color:#0077b6;">正常/注意: <span id="countNormal">0</span></span>
+        <span class="count-pill" style="color:#b91c1c;">非常危險: <span id="countVeryDanger">0</span></span>
+        <span class="count-pill" style="color:#7f1d1d;">極度危險: <span id="countExtreme">0</span></span>
     </div>
 
     <!-- 2. 地圖分佈 -->
@@ -783,30 +779,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 const REFRESH_INTERVAL_SECS = 300;
-let countdownSeconds = REFRESH_INTERVAL_SECS;
 let countdownTimer = null;
 
-function startCountdown() {
-    countdownSeconds = REFRESH_INTERVAL_SECS;
-    updateCountdownUI();
+function startAutoRefresh() {
     if (countdownTimer) clearInterval(countdownTimer);
-
     countdownTimer = setInterval(() => {
-        countdownSeconds--;
-        if (countdownSeconds <= 0) {
-            fetchWeatherData();
-        } else {
-            updateCountdownUI();
-        }
-    }, 1000);
-}
-
-function updateCountdownUI() {
-    const el = document.getElementById("refreshStatus");
-    if (!el) return;
-    const mins = String(Math.floor(countdownSeconds / 60)).padStart(2, '0');
-    const secs = String(countdownSeconds % 60).padStart(2, '0');
-    el.textContent = `● 每 5 分鐘自動刷新數據 (倒數 ${mins}:${secs})`;
+        fetchWeatherData();
+    }, REFRESH_INTERVAL_SECS * 1000);
 }
 
 const sigma = 5.670374419e-8; 
@@ -876,29 +855,29 @@ const stationCodes = {
 };
 
 /* 
-   🎯 精確對齊標註圖中 10 個黑色圓圈中心：
-   - 紀念孫中山市政公園: 半島最頂端黑圈
-   - 黑沙環: 半島東北黑圈
-   - 大炮台: 半島中央黑圈
-   - 外港: 半島東側黑圈
-   - 媽閣: 半島西南黑圈
-   - 東亞運大馬路: 氹仔西側黑圈
-   - 大潭山: 氹仔東側黑圈
-   - 澳門大學: Cotai 西側黑圈
-   - 路環市區: 路環西南黑圈
-   - 九澳: 路環東側黑圈
+   🎯 按照【圖 2】精確對齊標籤尖端位置：
+   - 紀念孫中山市政公園 (30.6): 半島最北頂端
+   - 黑沙環 (31.1): 半島東北角
+   - 大炮台 (30.1): 半島中西側
+   - 外港 (30.5): 半島中東側
+   - 媽閣 (30.4): 半島西南端
+   - 東亞運大馬路 (30.4): 氹仔西側
+   - 大潭山 (29.0): 氹仔東側
+   - 澳門大學 (30.2): 橫琴校區 (Cotai西邊)
+   - 路環市區 (30.5): 路環西南端
+   - 九澳 (29.1): 路環東側
 */
 const stationCoordinates = {
-    "紀念孫中山市政公園": { top: 11.5, left: 34.8 },
-    "黑沙環":           { top: 15.8, left: 40.8 },
-    "大炮台":           { top: 22.2, left: 30.2 },
-    "外港":             { top: 22.8, left: 41.6 },
-    "媽閣":             { top: 32.2, left: 25.2 },
-    "東亞運大馬路":     { top: 54.8, left: 35.5 },
-    "大潭山":           { top: 54.2, left: 47.2 },
-    "澳門大學":         { top: 77.8, left: 30.8 },
-    "路環市區":         { top: 88.8, left: 38.6 },
-    "九澳":             { top: 75.8, left: 59.2 }
+    "紀念孫中山市政公園": { top: 5.0,  left: 29.8 },
+    "黑沙環":           { top: 11.2, left: 46.8 },
+    "大炮台":           { top: 18.2, left: 24.2 },
+    "外港":             { top: 18.2, left: 47.0 },
+    "媽閣":             { top: 28.5, left: 14.0 },
+    "東亞運大馬路":     { top: 50.0, left: 27.2 },
+    "大潭山":           { top: 50.0, left: 55.2 },
+    "澳門大學":         { top: 77.0, left: 22.5 },
+    "路環市區":         { top: 85.0, left: 39.5 },
+    "九澳":             { top: 73.0, left: 73.5 }
 };
 
 const excludedBridgeCodes = ["PV", "PN", "PS", "PG", "MN", "MS", "LH"];
@@ -937,27 +916,35 @@ function extractValue(selector, parent) {
     return val.trim();
 }
 
+/* 計算並更新 7 個獨立警戒等級的測站數量 */
 function updateSummaryCounts() {
-    let total = rawStationData.length;
     let extreme = 0;
+    let veryDanger = 0;
     let danger = 0;
+    let highAlert = 0;
     let alert = 0;
+    let caution = 0;
     let normal = 0;
 
     rawStationData.forEach(item => {
         let w = parseFloat(item.wbgt);
         if (isNaN(w)) return;
         if (w >= 34) extreme++;
+        else if (w >= 33) veryDanger++;
         else if (w >= 31) danger++;
+        else if (w >= 28) highAlert++;
         else if (w >= 25) alert++;
+        else if (w >= 21) caution++;
         else normal++;
     });
 
-    document.getElementById("countTotal").textContent = total;
-    document.getElementById("countExtreme").textContent = extreme;
-    document.getElementById("countDanger").textContent = danger;
-    document.getElementById("countAlert").textContent = alert;
     document.getElementById("countNormal").textContent = normal;
+    document.getElementById("countCaution").textContent = caution;
+    document.getElementById("countAlert").textContent = alert;
+    document.getElementById("countHighAlert").textContent = highAlert;
+    document.getElementById("countDanger").textContent = danger;
+    document.getElementById("countVeryDanger").textContent = veryDanger;
+    document.getElementById("countExtreme").textContent = extreme;
 }
 
 function renderMapPins() {
@@ -1040,7 +1027,7 @@ function fetchWeatherData() {
             renderTable();
             renderMapPins();
             updateSummaryCounts();
-            startCountdown();
+            startAutoRefresh();
         })
         .catch(err => {
             console.error("載入失敗: ", err);
