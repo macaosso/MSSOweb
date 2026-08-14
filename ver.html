@@ -1,492 +1,734 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>澳門民間氣象台 - 版本記錄</title>
-<link rel="icon" type="image/png" href="icons/MSSO.png">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>版本記錄 - 澳門民間氣象台 MSSO</title>
+    <link rel="icon" type="image/png" href="icons/MSSO.png">
+    
+    <style>
+        /* ========== 1. 主題基礎變數 (與全站統一) ========== */
+        :root {
+          --bg-dark: #121212;
+          --card-bg: #1e1e2f;
+          --card-bg-light: rgba(255, 255, 255, 0.05);
+          --card-border: #2d2d50;
+          --text-main: #ffffff;
+          --text-muted: #a0a0a0;
+          --accent-blue: #38bdf8;
+          --accent-teal: #2dd4bf;
+          --accent-red: #ef4444;
+          --accent-purple: #c084fc;
+        }
 
-<style>
-/* ========== 全域樣式與變數設定 ========== */
-:root {
-  --bg-color: #0b0f19;
-  --header-bg: #111827;
-  --card-bg: #162032;
-  --card-border: rgba(255, 255, 255, 0.08);
-  --accent-cyan: #06b6d4;
-  --accent-teal: #14b8a6;
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-highlight: #38bdf8;
-}
+        body.light-theme {
+          --bg-dark: #f8fafc;
+          --card-bg: #ffffff;
+          --card-bg-light: rgba(0, 0, 0, 0.04);
+          --card-border: #e2e8f0;
+          --text-main: #0f172a;
+          --text-muted: #64748b;
+          --accent-blue: #0284c7;
+          --accent-teal: #0d9488;
+          --accent-red: #dc2626;
+          --accent-purple: #9333ea;
+        }
 
-html {
-  scroll-behavior: smooth;
-}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            padding: 0 0 40px 0;
+            font-size: 14px;
+            line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
 
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background-color: var(--bg-color);
-  color: var(--text-primary);
-  line-height: 1.6;
-}
+        /* ========== 2. 頁頭 Header & 頂欄導航 ========== */
+        .header-nav-container {
+          position: sticky;
+          top: 0;
+          z-index: 3000;
+          background: rgba(18, 18, 18, 0.88);
+          backdrop-filter: blur(12px);
+          border-bottom: 1px solid var(--card-border);
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          padding: 0.75rem 1.5rem;
+          margin-bottom: 25px;
+          transition: background 0.3s ease;
+        }
+        body.light-theme .header-nav-container {
+          background: rgba(248, 250, 252, 0.88);
+        }
 
-* {
-  box-sizing: border-box;
-}
+        .header {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+        .logo {
+          height: 38px;
+          width: auto;
+          filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.3));
+        }
+        .title {
+          font-size: 1.15rem;
+          font-weight: 700;
+          color: var(--accent-blue);
+          letter-spacing: 0.5px;
+          display: flex;
+          align-items: baseline;
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+        .header-clock {
+          font-size: 0.88rem;
+          font-weight: 500;
+          color: var(--accent-teal);
+          font-variant-numeric: tabular-nums;
+          opacity: 0.9;
+        }
 
-/* ========== 頁頭 Header ========== */
-.header {
-  background: var(--header-bg);
-  padding: 16px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--card-border);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  backdrop-filter: blur(10px);
-}
+        .menu-container {
+          position: relative;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
+        .theme-toggle-btn {
+          background: var(--card-bg-light);
+          border: 1px solid var(--card-border);
+          color: var(--text-main);
+          padding: 8px 12px;
+          border-radius: 20px;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 13px;
+          font-weight: 600;
+          transition: all 0.25s ease;
+          outline: none;
+        }
+        .theme-toggle-btn:hover {
+          border-color: var(--accent-blue);
+          color: var(--accent-blue);
+          transform: translateY(-1px);
+        }
+        .sun-icon { display: block; }
+        .moon-icon { display: none; }
+        body.light-theme .sun-icon { display: none; }
+        body.light-theme .moon-icon { display: block; }
 
-.logo {
-  height: 38px;
-  width: auto;
-}
+        .menu-toggle {
+          display: none;
+          font-size: 22px;
+          padding: 6px 12px;
+          cursor: pointer;
+          background: var(--card-bg-light);
+          border: 1px solid var(--card-border);
+          color: var(--text-main);
+          border-radius: 8px;
+          transition: all 0.2s;
+        }
 
-.title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: #ffffff;
-  letter-spacing: 0.5px;
-}
+        .nav {
+          display: flex;
+          gap: 8px;
+          align-items: center;
+        }
+        .nav a {
+          color: var(--text-muted);
+          padding: 8px 14px;
+          font-size: 0.92rem;
+          font-weight: 500;
+          text-decoration: none;
+          border-radius: 20px;
+          transition: all 0.2s ease;
+          display: block;
+        }
+        .nav a:hover, .nav a.active {
+          color: var(--text-main);
+          background: rgba(255, 255, 255, 0.08);
+        }
 
-/* ========== 導航選單 ========== */
-.menu-container {
-  position: relative;
-}
+        .dropdown {
+          position: relative;
+          display: inline-block;
+        }
+        .dropdown-btn {
+          background: transparent;
+          border: none;
+          color: var(--text-muted);
+          padding: 8px 14px;
+          font-size: 0.92rem;
+          font-weight: 500;
+          font-family: inherit;
+          border-radius: 20px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        .dropdown-content {
+          display: none;
+          position: absolute;
+          top: 100%;
+          left: 0;
+          min-width: 190px;
+          background: var(--card-bg);
+          backdrop-filter: blur(16px);
+          border: 1px solid var(--card-border);
+          border-radius: 12px;
+          padding: 6px;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+          z-index: 3100;
+        }
+        .dropdown:hover .dropdown-content, .dropdown.active .dropdown-content {
+          display: block;
+        }
+        .dropdown-content a {
+          padding: 8px 12px;
+          border-radius: 8px;
+          white-space: nowrap;
+        }
 
-.menu-toggle {
-  display: none;
-  font-size: 22px;
-  padding: 8px 14px;
-  cursor: pointer;
-  background: #1f293d;
-  color: #ffffff;
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-  transition: background 0.2s;
-}
+        /* 標題橫幅 Header Banner */
+        header.page-banner {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #f0f0f0;
+            padding: 24px 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            border: 1px solid var(--card-border);
+        }
+        body.light-theme header.page-banner {
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            color: #0f172a;
+        }
+        header.page-banner h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
 
-.menu-toggle:hover {
-  background: #2b3954;
-}
+        /* ========== 3. 版本歷史卡片樣式 ========== */
+        .version-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
 
-.nav {
-  display: flex;
-  gap: 6px;
-}
+        .version-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 24px 28px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+            border: 1px solid var(--card-border);
+            border-left: 5px solid var(--accent-blue);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .version-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+        }
 
-.nav a {
-  color: var(--text-secondary);
-  padding: 10px 14px;
-  font-size: 0.95rem;
-  text-decoration: none;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  font-weight: 500;
-}
+        /* 最新版本特別高亮 */
+        .version-card.latest-version {
+            border-left-color: var(--accent-teal);
+            border-top: 1px solid var(--accent-teal);
+            background: linear-gradient(180deg, rgba(45, 212, 191, 0.05) 0%, var(--card-bg) 100%);
+        }
 
-.nav a:hover, .nav a.active {
-  background: rgba(6, 182, 212, 0.15);
-  color: var(--accent-cyan);
-}
+        .version-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
 
-@media (max-width: 992px) {
-  .menu-toggle {
-    display: block;
-  }
+        .version-title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
-  .nav {
-    display: none;
-    flex-direction: column;
-    position: absolute;
-    top: 50px;
-    right: 0;
-    width: 260px;
-    background: #162032;
-    border: 1px solid var(--card-border);
-    border-radius: 12px;
-    padding: 8px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-  }
+        .version-number {
+            font-size: 1.4rem;
+            font-weight: 800;
+            color: var(--text-main);
+            letter-spacing: 0.5px;
+        }
 
-  .nav.active {
-    display: flex;
-  }
+        .badge-tag {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .badge-tag.new {
+            background: linear-gradient(135deg, #2dd4bf, #0284c7);
+            color: #ffffff;
+            box-shadow: 0 2px 8px rgba(45, 212, 191, 0.4);
+        }
+        .badge-tag.upgrade {
+            background: rgba(56, 189, 248, 0.15);
+            color: var(--accent-blue);
+            border: 1px solid var(--accent-blue);
+        }
 
-  .nav a {
-    padding: 12px 16px;
-  }
-}
+        .version-subheading {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
 
-/* ========== 容器與頁面標題 ========== */
-.container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 30px 20px;
-}
+        /* 模組分區樣式 */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 18px;
+        }
 
-.page-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
-}
+        .module-box {
+            background: var(--card-bg-light);
+            border-radius: 10px;
+            padding: 16px;
+            border: 1px solid var(--card-border);
+        }
 
-.page-title {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #ffffff;
-  border-left: 4px solid var(--accent-cyan);
-  padding-left: 12px;
-  margin: 0;
-}
+        .module-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--accent-blue);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-/* ========== 快捷紀錄查詢卡片 ========== */
-.record-links {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-bottom: 32px;
-}
+        .change-list {
+            list-style: none;
+            padding-left: 0;
+        }
+        .change-list li {
+            position: relative;
+            padding-left: 18px;
+            margin-bottom: 8px;
+            color: var(--text-main);
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+        .change-list li:last-child {
+            margin-bottom: 0;
+        }
+        .change-list li::before {
+            content: "•";
+            position: absolute;
+            left: 4px;
+            top: -1px;
+            color: var(--accent-teal);
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
 
-.record-card {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 20px;
-  border-radius: 14px;
-  font-size: 1.05rem;
-  font-weight: 600;
-  text-decoration: none;
-  color: #ffffff;
-  border: 1px solid var(--card-border);
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  transition: all 0.25s ease;
-}
+        /* 列表式排版（針對 v3.0, v2.0, v1.0 結構） */
+        .numbered-section {
+            margin-bottom: 16px;
+        }
+        .numbered-section:last-child {
+            margin-bottom: 0;
+        }
+        .numbered-title {
+            font-weight: 700;
+            font-size: 0.98rem;
+            color: var(--text-main);
+            margin-bottom: 6px;
+        }
 
-.record-card.tip-record {
-  background: linear-gradient(135deg, #1e3a3a 0%, #0d2121 100%);
-  border-color: rgba(20, 184, 166, 0.3);
-}
-
-.record-card.warn-record {
-  background: linear-gradient(135deg, #4a1d1d 0%, #260e0e 100%);
-  border-color: rgba(239, 68, 68, 0.3);
-}
-
-.record-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
-  filter: brightness(1.1);
-}
-
-@media (max-width: 640px) {
-  .record-links {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* ========== 版本紀錄卡片 ========== */
-.changelog-list {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.info-box {
-  background: var(--card-bg);
-  border-radius: 16px;
-  border: 1px solid var(--card-border);
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-  transition: transform 0.25s ease, border-color 0.25s ease;
-}
-
-.info-box:hover {
-  transform: translateY(-2px);
-  border-color: rgba(6, 182, 212, 0.3);
-}
-
-/* 最新版本高亮樣式 */
-.info-box.latest-version {
-  border: 1px solid rgba(6, 182, 212, 0.5);
-  box-shadow: 0 0 20px rgba(6, 182, 212, 0.15);
-}
-
-.info-title {
-  background: #1e293b;
-  color: #ffffff;
-  padding: 16px 24px;
-  font-size: 1.1rem;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--card-border);
-}
-
-.version-badge {
-  background: linear-gradient(135deg, var(--accent-cyan), #2563eb);
-  color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 20px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.info-content {
-  padding: 24px;
-  font-size: 0.95rem;
-  color: #cbd5e1;
-}
-
-.info-content b {
-  color: var(--text-highlight);
-  font-size: 1rem;
-  display: inline-block;
-  margin-top: 12px;
-  margin-bottom: 4px;
-}
-
-.info-content b:first-child {
-  margin-top: 0;
-}
-
-.info-content ul {
-  margin: 4px 0 16px 0;
-  padding-left: 20px;
-}
-
-.info-content li {
-  margin-bottom: 4px;
-}
-
-/* ========== 頁尾 ========== */
-footer {
-  text-align: center;
-  padding: 24px;
-  margin-top: 40px;
-  background: #0d121f;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  border-top: 1px solid var(--card-border);
-}
-</style>
+        @media (max-width: 768px) {
+            .menu-toggle { display: block; }
+            .nav {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                right: 0;
+                background: var(--card-bg);
+                width: 200px;
+                padding: 10px;
+                border: 1px solid var(--card-border);
+                border-radius: 12px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            }
+            .nav.active { display: flex; }
+            .version-card {
+                padding: 18px;
+            }
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
-
 <body>
 
-<!-- HEADER -->
-<header class="header">
-  <div class="header-left">
-    <img src="icons/MSSO.png" alt="澳門民間氣象台 Logo" class="logo">
-    <div class="title">澳門民間氣象台 MSSO</div>
+<!-- 頂欄導航 -->
+<div class="header-nav-container">
+  <div class="header">
+    <img src="icons/MSSO.png" class="logo" alt="MSSO Logo">
+    <div class="title">
+      澳門民間氣象台 MSSO
+      <span id="headerClock" class="header-clock"></span>
+    </div>
   </div>
 
   <div class="menu-container">
-    <button class="menu-toggle" id="menuBtn" aria-label="切換導航選單" onclick="toggleMenu()">☰</button>
-    <nav class="nav" id="navMenu">
+    <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+      <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+    <div class="nav" id="navMenu">
       <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
-      <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
-      <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">距離計算</a>
-      <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">路徑地圖</a>
-      <a href="https://macaosso.github.io/MSSOweb/tc.html">氣旋資訊</a>
-      <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
-      <a href="https://macaosso.github.io/MSSOweb/ver.html" class="active">版本記錄</a>
-    </nav>
+
+      <div class="dropdown">
+        <button class="dropdown-btn">天氣 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/Apparent_Temperature/">溫度計算</a>
+          <a href="map.html">澳門綜合氣象實況</a>
+          <a href="https://macaosso.github.io/MSSOweb/morain.html">澳門降雨預報</a>
+          <a href="https://macaosso.github.io/MSSOweb/moweather.html">澳門天氣實況及預報</a>
+          <a href="https://macaosso.github.io/MSSOweb/AQImap.html">澳門空氣質量實況</a>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-btn">熱帶氣旋 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
+          <a href="https://macaosso.github.io/MSSOweb/TCtracker.html">熱帶氣旋襲澳追蹤</a>
+          <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋計算工具</a>
+          <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑GIS地圖</a>
+        </div>
+      </div>
+      
+      <div class="dropdown">
+        <button class="dropdown-btn">天文 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/astro.html">天文專頁</a>
+        </div>
+      </div>
+      
+      <div class="dropdown">
+        <button class="dropdown-btn">其他 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+          <a href="https://macaosso.github.io/MSSOweb/ver.html" class="active">版本記錄</a>
+        </div>
+      </div>
+    </div>
   </div>
-</header>
+</div>
 
-<!-- MAIN CONTAINER -->
-<main class="container">
+<div class="container">
 
-  <div class="page-header">
-    <h1 class="page-title">版本記錄</h1>
-  </div>
+    <!-- 標題橫幅 -->
+    <header class="page-banner">
+        <div>
+            <h1>📜 版本記錄與更新日誌</h1>
+            <small style="opacity:0.8;">記錄 澳門民間氣象台 (MSSO) 平台的成長軌跡與功能演進</small>
+        </div>
+    </header>
 
-  <!-- 紀錄查詢快捷鏈接 -->
-  <div class="record-links">
-    <a href="https://macaosso.github.io/MSSOweb/Trecord.html" class="record-card tip-record">
-      📋 提示記錄查詢
-    </a>
-    <a href="https://macaosso.github.io/MSSOweb/Wrecord.html" class="record-card warn-record">
-      ⚠️ 警告記錄查詢
-    </a>
-  </div>
+    <!-- 版本時間軸容器 -->
+    <div class="version-timeline">
 
-  <!-- 版本記錄列表（倒序排列：最新版本在最前） -->
-  <div class="changelog-list">
+        <!-- ==================== 版本 4.0.0 ==================== -->
+        <div class="version-card latest-version">
+            <div class="version-header">
+                <div class="version-title-group">
+                    <span class="version-number">版本 4.0.0</span>
+                    <span class="badge-tag new">LATEST NEW</span>
+                </div>
+                <div class="version-subheading">全方位功能重構與氣象/天文/氣候專頁拓展</div>
+            </div>
 
-    <!-- ✅ 版本 4.0.0 (新增) -->
-    <article class="info-box latest-version">
-      <div class="info-title">
-        <span>【跨頁面整合與即時監測升級】版本 4.0.0 更新日誌</span>
-        <span class="version-badge">LATEST</span>
-      </div>
-      <div class="info-content">
-        <b>1. 即時雷達與衛星雲圖整合</b>
-        <ul>
-          <li>新增：動態氣象雷達迴波圖與強對流即時疊加圖層。</li>
-          <li>新增：高解析度衛星雲圖播放器，支援時間軸切換與播放控制。</li>
-        </ul>
+            <div class="modules-grid">
+                <div class="module-box">
+                    <div class="module-title">💻 網頁介面</div>
+                    <ul class="change-list">
+                        <li>優化網頁架構與目錄分類排版。</li>
+                        <li>全新重構版面配色，全面支援淺色與深色主題切換。</li>
+                    </ul>
+                </div>
 
-        <b>2. 智慧預警與自動推播架構</b>
-        <ul>
-          <li>新增：暴雨/極端天氣與熱帶氣旋多級警報自動提醒。</li>
-          <li>新增：個人化分區天氣提醒訂閱機制與 PWA 桌面通知支援。</li>
-        </ul>
+                <div class="module-box">
+                    <div class="module-title">☀️ 日常天氣</div>
+                    <ul class="change-list">
+                        <li>新增整點天氣實況展示。</li>
+                        <li><strong>澳門暑熱監測：</strong>實時 WBGT 監測、未來 3 日預報、分級標準及高溫酷熱預防措施。</li>
+                        <li><strong>澳門降雨預報：</strong>未來 24 小時降雨概率與雨量趨勢、高空天氣與大氣穩定度指數、實時雷達動態圖。</li>
+                        <li><strong>澳門天氣實況及預報：</strong>即時氣況、趨勢圖表與逐時數據。</li>
+                    </ul>
+                </div>
 
-        <b>3. 系統效能重構與行動端體驗優化</b>
-        <ul>
-          <li>優化：全站支援 PWA (Progressive Web App)，提升離線快取與載入速度。</li>
-          <li>優化：升級 GIS 地圖圖層渲染引擎，降低手機運行時的資源消耗。</li>
-          <li>修正：修復行動端選單展開時可能產生的版面排版抖動問題。</li>
-        </ul>
-      </div>
-    </article>
+                <div class="module-box">
+                    <div class="module-title">🌀 熱帶氣旋</div>
+                    <ul class="change-list">
+                        <li>GIS 版面提升，支援同時動態顯示多個熱帶氣旋。</li>
+                        <li>優化圖層渲染與視覺呈現效果。</li>
+                    </ul>
+                </div>
 
-    <!-- 版本 3.0.0 -->
-    <article class="info-box">
-      <div class="info-title">【地圖模組專屬升級】版本 3.0.0 更新日誌</div>
-      <div class="info-content">
-        <b>1. 全域介面深色主題統一改造</b>
-        <ul>
-          <li>重製全站統一深色 Dashboard 風格，匹配酷熱指數、氣旋計算工具、TC 資訊頁視覺規範。</li>
-          <li>頁頭導航、浮動圖例、氣旋資訊面板、更新時間浮窗全部替換深色半透樣式。</li>
-          <li>Leaflet 彈窗、地圖標籤、圖例符號配色同步深色模式，提升夜間可讀性。</li>
-        </ul>
+                <div class="module-box">
+                    <div class="module-title">🌌 天文專頁</div>
+                    <ul class="change-list">
+                        <li>新增觀星條件、太陽與月球即時數據、日蝕與月蝕預報。</li>
+                        <li>當季夜空星圖、四季星座、五大行星可見度及年度流星雨。</li>
+                        <li>火燒雲出現概率預測與太陽活動/空間天氣監測。</li>
+                        <li>澳門沿岸天文潮汐推算、推薦深空天體及澳門觀星地點地圖。</li>
+                    </ul>
+                </div>
 
-        <b>2. 氣旋標記渲染邏輯修復</b>
-        <ul>
-          <li>優化地圖縮放時標記尺寸自適應演算法，依照縮放等級動態調整圖標大小。</li>
-          <li>重構滑鼠懸浮/手機點擊標記放大邏輯，每次讀取氣旋實時風力判定強度，不再依賴圖檔名稱。</li>
-        </ul>
+                <div class="module-box">
+                    <div class="module-title">🌍 氣候專頁</div>
+                    <ul class="change-list">
+                        <li>新增氣候專頁：包含澳門氣候概況與主要氣候特徵。</li>
+                        <li>新增厄爾尼諾 (El Niño) 與拉尼娜 (La Niña) 現象分析。</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
-        <b>3. 路徑與誤差圓錐演算法優化</b>
-        <ul>
-          <li>平滑路徑曲線計算參數調校，預報軌跡過渡更加流順自然。</li>
-          <li>優化 72 小時內 / 72 小時後誤差圓錐透明度分層，前後期預報誤差層次更直觀。</li>
-          <li>修正風圈（41km 強風圈 / 88km 暴風圈）多邊形繪製邊界銳角問題。</li>
-        </ul>
+        <!-- ==================== 版本 3.0.0 ==================== -->
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title-group">
+                    <span class="version-number">版本 3.0.0</span>
+                    <span class="badge-tag upgrade">地圖模組專屬升級</span>
+                </div>
+            </div>
 
-        <b>4. 輔助資訊面板升級</b>
-        <ul>
-          <li>重製左下角 TC 即時資訊面板配色，標題使用全站專用青藍高亮色。</li>
-          <li>優化圖例符號尺寸與排版，雙欄佈局寬度擴充，強度分類文字不擠壓。</li>
-          <li>澳門固定 800/400/200/100km 參考虛線圈透明度微調，不遮擋氣旋路徑。</li>
-        </ul>
+            <div class="numbered-section">
+                <div class="numbered-title">1. 全域介面深色主題統一改造</div>
+                <ul class="change-list">
+                    <li>重製全站統一深色 Dashboard 風格，匹配酷熱指數、氣旋計算工具、TC 資訊頁視覺規範。</li>
+                    <li>頁頭導航、浮動圖例、氣旋資訊面板、更新時間浮窗全部替換深色半透樣式。</li>
+                    <li>Leaflet 彈窗、地圖標籤、圖例符號配色同步深色模式，提升夜間可讀性。</li>
+                </ul>
+            </div>
 
-        <b>5. 交互細節與體驗優化</b>
-        <ul>
-          <li>點擊導航連結自動收合移動下拉菜單，操作邏輯更順手。</li>
-          <li>頁面載入自動重置導航狀態，解決瀏覽緩存導致菜單卡住彈出的問題。</li>
-          <li>所有輸出結果、彈窗文字行距與字重統一全站規範，閱讀舒適度提升。</li>
-        </ul>
-      </div>
-    </article>
+            <div class="numbered-section">
+                <div class="numbered-title">2. 氣旋標記渲染邏輯修復</div>
+                <ul class="change-list">
+                    <li>優化地圖縮放時標記尺寸自適應演算法，依照縮放等級動態調整圖標大小。</li>
+                    <li>重構滑鼠懸浮/手機點擊標記放大邏輯，每次讀取氣旋實時風力判定強度，不再依賴圖檔名稱。</li>
+                </ul>
+            </div>
 
-    <!-- 版本 2.0.0 -->
-    <article class="info-box">
-      <div class="info-title">【功能升級】版本 2.0.0 更新日誌</div>
-      <div class="info-content">
-        <b>1. 天氣警告資訊擴充</b>
-        <ul>
-          <li>新增：非官方天氣警告資訊展示模組。</li>
-        </ul>
+            <div class="numbered-section">
+                <div class="numbered-title">3. 路徑與誤差圓錐演算法優化</div>
+                <ul class="change-list">
+                    <li>平滑路徑曲線計算參數調校，預報軌跡過渡更加流順自然。</li>
+                    <li>優化 72 小時內 / 72 小時後誤差圓錐透明度分層，前後期預報誤差層次更直觀。</li>
+                    <li>修正風圈（41km 強風圈 / 88km 暴風圈）多邊形繪製邊界銳角問題。</li>
+                </ul>
+            </div>
 
-        <b>2. 計算工具優化與擴充</b>
-        <ul>
-          <li>優化：熱帶氣旋計算工具及介面。</li>
-          <li>優化：酷熱指數計算介面。</li>
-          <li>新增：體感溫度計算工具與露點溫度計算工具。</li>
-        </ul>
+            <div class="numbered-section">
+                <div class="numbered-title">4. 輔助資訊面板升級</div>
+                <ul class="change-list">
+                    <li>重製左下角 TC 即時資訊面板配色，標題使用全站專用青藍高亮色。</li>
+                    <li>優化圖例符號尺寸與排版，雙欄佈局寬度擴充，強度分類文字不擠壓。</li>
+                    <li>澳門固定 800/400/200/100km 參考虛線圈透明度微調，不遮擋氣旋路徑。</li>
+                </ul>
+            </div>
 
-        <b>3. 氣象預報模組擴建</b>
-        <ul>
-          <li>新增：廿四小時逐時天氣預報頁面與七日氣溫走勢預報頁面。</li>
-        </ul>
+            <div class="numbered-section">
+                <div class="numbered-title">5. 交互細節與體驗優化</div>
+                <ul class="change-list">
+                    <li>點擊導航連結自動收合移動下拉菜單，操作邏輯更順手。</li>
+                    <li>頁面載入自動重置導航狀態，解決瀏覽緩存導致菜單卡住彈出的問題。</li>
+                    <li>所有輸出結果、彈窗文字行距與字重統一全站規範，閱讀舒適度提升。</li>
+                </ul>
+            </div>
+        </div>
 
-        <b>4. GIS 地圖新頁面上架</b>
-        <ul>
-          <li>新增：空氣質量實況 GIS 網頁、熱帶氣旋追蹤 GIS 專屬網頁及綜合氣象實況 GIS 總覽網頁。</li>
-        </ul>
-      </div>
-    </article>
+        <!-- ==================== 版本 2.0.0 ==================== -->
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title-group">
+                    <span class="version-number">版本 2.0.0</span>
+                    <span class="badge-tag upgrade">功能升級</span>
+                </div>
+            </div>
 
-    <!-- 版本 1.0.0 -->
-    <article class="info-box">
-      <div class="info-title">【新功能登場】版本 1.0.0 更新日誌</div>
-      <div class="info-content">
-        <b>1. 全新首頁與即時預警</b>
-        <ul>
-          <li>新增：首頁全新改版，即時掌握天氣資訊。</li>
-          <li>新增：預警提示、特別天氣提示、熱帶氣旋提示與即時天氣警告。</li>
-          <li>新增：天氣概況、今日天氣及明日天氣預報。</li>
-        </ul>
+            <div class="numbered-section">
+                <div class="numbered-title">1. 天氣警告資訊擴充</div>
+                <ul class="change-list">
+                    <li>新增：非官方天氣警告資訊展示模組。</li>
+                </ul>
+            </div>
 
-        <b>2. 熱帶氣旋追蹤系統</b>
-        <ul>
-          <li>新增：熱帶氣旋路徑互動地圖（整合即時路徑、預測誤差圈、圖例與最後更新時間）。</li>
-          <li>新增：熱帶氣旋詳細資訊頁面與距離計算工具。</li>
-        </ul>
+            <div class="numbered-section">
+                <div class="numbered-title">2. 計算工具優化與擴充</div>
+                <ul class="change-list">
+                    <li>優化：熱帶氣旋計算工具及介面。</li>
+                    <li>優化：酷熱指數計算介面。</li>
+                    <li>新增：體感溫度計算工具與露點溫度計算工具。</li>
+                </ul>
+            </div>
 
-        <b>3. 生活氣象與其他更新</b>
-        <ul>
-          <li>新增：酷熱指數頁面與關於我們頁面。</li>
-        </ul>
-      </div>
-    </article>
+            <div class="numbered-section">
+                <div class="numbered-title">3. 氣象預報模組擴建</div>
+                <ul class="change-list">
+                    <li>新增：廿四小時逐時天氣預報頁面與七日氣溫走勢預報頁面。</li>
+                </ul>
+            </div>
 
-  </div>
-</main>
+            <div class="numbered-section">
+                <div class="numbered-title">4. GIS 地圖新頁面上架</div>
+                <ul class="change-list">
+                    <li>新增：空氣質量實況 GIS 網頁、熱帶氣旋追蹤 GIS 專屬網頁及綜合氣象實況 GIS 總覽網頁。</li>
+                </ul>
+            </div>
+        </div>
 
-<!-- FOOTER -->
-<footer>
-  ©2026 澳門民間氣象台 MSSO. All rights reserved.
-</footer>
+        <!-- ==================== 版本 1.0.0 ==================== -->
+        <div class="version-card">
+            <div class="version-header">
+                <div class="version-title-group">
+                    <span class="version-number">版本 1.0.0</span>
+                    <span class="badge-tag upgrade">新功能登場</span>
+                </div>
+            </div>
 
-<!-- JAVASCRIPT -->
+            <div class="numbered-section">
+                <div class="numbered-title">1. 全新首頁與即時預警</div>
+                <ul class="change-list">
+                    <li>新增：首頁全新改版，即時掌握天氣資訊。</li>
+                    <li>新增：預警提示、特別天氣提示、熱帶氣旋提示與即時天氣警告。</li>
+                    <li>新增：天氣概況、今日天氣及明日天氣預報。</li>
+                </ul>
+            </div>
+
+            <div class="numbered-section">
+                <div class="numbered-title">2. 熱帶氣旋追蹤系統</div>
+                <ul class="change-list">
+                    <li>新增：熱帶氣旋路徑互動地圖（整合即時路徑、預測誤差圈、圖例與最後更新時間）。</li>
+                    <li>新增：熱帶氣旋詳細資訊頁面與距離計算工具。</li>
+                </ul>
+            </div>
+
+            <div class="numbered-section">
+                <div class="numbered-title">3. 生活氣象與其他更新</div>
+                <ul class="change-list">
+                    <li>新增：酷熱指數頁面與關於我們頁面。</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+
 <script>
-function toggleMenu() {
-  const nav = document.getElementById("navMenu");
-  const btn = document.getElementById("menuBtn");
-  const isActive = nav.classList.toggle("active");
-
-  btn.innerHTML = isActive ? "✕" : "☰";
+// 主題切換邏輯
+function applyTheme(theme) {
+  if (theme === 'light') {
+    document.body.classList.add('light-theme');
+  } else {
+    document.body.classList.remove('light-theme');
+  }
 }
 
-// 點擊選單外部自動關閉
-document.addEventListener("click", function(event) {
-  const nav = document.getElementById("navMenu");
-  const btn = document.getElementById("menuBtn");
+function toggleTheme() {
+  const isLight = document.body.classList.contains('light-theme');
+  const newTheme = isLight ? 'dark' : 'light';
+  localStorage.setItem('msso_theme', newTheme);
+  applyTheme(newTheme);
+}
 
-  if (!nav.contains(event.target) && !btn.contains(event.target) && nav.classList.contains("active")) {
-    nav.classList.remove("active");
-    btn.innerHTML = "☰";
+(function initTheme() {
+  const savedTheme = localStorage.getItem('msso_theme');
+  if (savedTheme) {
+    if (savedTheme === 'light') document.body.classList.add('light-theme');
+  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+    document.body.classList.add('light-theme');
   }
+})();
+
+// 手機選單切換
+function toggleMenu() {
+  const nav = document.getElementById("navMenu");
+  const btn = document.querySelector(".menu-toggle");
+  nav.classList.toggle("active");
+  btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
+}
+
+// 頁頭時鐘
+function updateHeaderClock() {
+  const clockEl = document.getElementById('headerClock');
+  if (clockEl) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const date = String(now.getDate()).padStart(2, '0');
+    const hrs = String(now.getHours()).padStart(2, '0');
+    const mins = String(now.getMinutes()).padStart(2, '0');
+    const secs = String(now.getSeconds()).padStart(2, '0');
+    clockEl.textContent = ` ${year}年${month}月${date}日 ${hrs}:${mins}:${secs} MST`;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  updateHeaderClock();
+  setInterval(updateHeaderClock, 1000);
+
+  // 下拉選單點擊控制
+  const dropdownBtns = document.querySelectorAll('.dropdown-btn');
+  dropdownBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const currentDropdown = btn.parentElement;
+      document.querySelectorAll('.dropdown').forEach(d => {
+        if (d !== currentDropdown) d.classList.remove('active');
+      });
+      currentDropdown.classList.toggle('active');
+    });
+  });
+
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('active'));
+  });
 });
 </script>
 
