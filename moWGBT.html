@@ -17,7 +17,7 @@
           --card-bg: #1e1e2f;
           --card-bg-light: rgba(255, 255, 255, 0.05);
           --card-border: #2d2d50;
-          --text-main: #e0e0e0;
+          --text-main: #ffffff;
           --text-muted: #a0a0a0;
           --accent-blue: #38bdf8;
           --accent-teal: #2dd4bf;
@@ -311,7 +311,7 @@
             text-align: center;
         }
 
-        /* 桌面端/大螢幕：圖例位於地圖右上角內部 */
+        /* 圖例 */
         .map-legend {
             position: absolute;
             top: 15px;
@@ -514,7 +514,6 @@
         .bg-high-danger { background: #b91c1c; }
         .bg-extreme { background: #7f1d1d; border: 1px solid #ef4444; }
 
-        /* 手機端適應 */
         @media (max-width: 768px) {
             .menu-toggle { display: block; }
             .nav {
@@ -661,7 +660,6 @@
 
             <div id="stationPinsGroup"></div>
 
-            <!-- 圖例 (桌面端在右上角內部，手機端在下方) -->
             <div class="map-legend">
                 <div class="legend-title">暑熱指數 (WBGT)</div>
                 <div class="legend-item"><span class="legend-color-box bg-extreme"></span>極度危險</div>
@@ -679,7 +677,7 @@
         </div>
     </div>
 
-    <!-- 簡化後的表格 -->
+    <!-- 數據表格 -->
     <div class="table-container">
         <div class="table-header-bar">
             <div class="table-title">澳門各氣象站實時 WBGT 暑熱指數表格</div>
@@ -710,7 +708,7 @@
         </div>
     </div>
 
-    <!-- 📈 3日暑熱指數 (WBGT) 逐時預測圖表 (放置於分級標準前) -->
+    <!-- 📈 3日暑熱指數 (WBGT) 逐時預測圖表 -->
     <div class="forecast-chart-container">
         <div class="table-header-bar">
             <div class="table-title">📈 澳門未來 3 日暑熱指數 (WBGT) 逐時預報趨勢</div>
@@ -770,12 +768,44 @@
 </div>
 
 <script>
+let wbgtChartInstance = null;
+
+// 根據夜間/日間模式動態設定圖表色彩 (夜間模式文字設為純白色 #ffffff)
+function getChartThemeColors() {
+    const isLight = document.body.classList.contains('light-theme');
+    return {
+        textColor: isLight ? '#0f172a' : '#ffffff',      // 夜間模式: 純白色文字
+        mutedText: isLight ? '#64748b' : '#d1d5db',      // 夜間模式: 淺灰色次要文字
+        gridColor: isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.12)'
+    };
+}
+
+function updateChartTheme() {
+    if (!wbgtChartInstance) return;
+    const colors = getChartThemeColors();
+    
+    // 更新圖例文字顏色
+    wbgtChartInstance.options.plugins.legend.labels.color = colors.textColor;
+    
+    // 更新 X 軸文字與網格顏色
+    wbgtChartInstance.options.scales.x.ticks.color = colors.mutedText;
+    wbgtChartInstance.options.scales.x.grid.color = colors.gridColor;
+    
+    // 更新 Y 軸文字與網格顏色
+    wbgtChartInstance.options.scales.y.title.color = colors.mutedText;
+    wbgtChartInstance.options.scales.y.ticks.color = colors.mutedText;
+    wbgtChartInstance.options.scales.y.grid.color = colors.gridColor;
+    
+    wbgtChartInstance.update();
+}
+
 function applyTheme(theme) {
   if (theme === 'light') {
     document.body.classList.add('light-theme');
   } else {
     document.body.classList.remove('light-theme');
   }
+  updateChartTheme(); // 切換主題時即時重繪圖表文字顏色
 }
 
 function toggleTheme() {
@@ -1070,8 +1100,6 @@ function fetchWeatherData() {
 }
 
 /* ========== 3日 WBGT 預報圖表繪製 (Open-Meteo API) ========== */
-let wbgtChartInstance = null;
-
 async function fetchAndRenderForecastChart() {
     const forecastApi = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m&timezone=Asia%2FSingapore&forecast_days=3";
 
@@ -1110,6 +1138,8 @@ function renderChart(labels, dataValues) {
     const ctx = document.getElementById('wbgtForecastChart').getContext('2d');
     if (wbgtChartInstance) wbgtChartInstance.destroy();
 
+    const colors = getChartThemeColors();
+
     wbgtChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
@@ -1136,7 +1166,7 @@ function renderChart(labels, dataValues) {
             plugins: {
                 legend: {
                     display: true,
-                    labels: { color: 'var(--text-main)', font: { size: 12, weight: 'bold' } }
+                    labels: { color: colors.textColor, font: { size: 12, weight: 'bold' } }
                 },
                 tooltip: {
                     callbacks: {
@@ -1176,13 +1206,13 @@ function renderChart(labels, dataValues) {
             },
             scales: {
                 x: {
-                    ticks: { color: 'var(--text-muted)', maxRotation: 45, autoSkip: true, maxTicksLimit: 12 },
-                    grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                    ticks: { color: colors.mutedText, maxRotation: 45, autoSkip: true, maxTicksLimit: 12 },
+                    grid: { color: colors.gridColor }
                 },
                 y: {
-                    title: { display: true, text: 'WBGT (°C)', color: 'var(--text-muted)' },
-                    ticks: { color: 'var(--text-muted)' },
-                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    title: { display: true, text: 'WBGT (°C)', color: colors.mutedText },
+                    ticks: { color: colors.mutedText },
+                    grid: { color: colors.gridColor },
                     suggestedMin: 18,
                     suggestedMax: 36
                 }
