@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>澳門暑熱指數 (WBGT) 實時地圖</title>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <style>
+        :root {
+            --bg-dark: #f0f4f8;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --border-color: #cbd5e1;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .map-card {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        .map-header {
+            padding: 16px 24px;
+            background: #1e293b;
+            color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .map-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .map-header .timestamp {
+            font-size: 0.88rem;
+            color: #94a3b8;
+        }
+
+        /* Leaflet Container */
+        #map-container {
+            position: relative;
+            height: 620px;
+            width: 100%;
+        }
+
+        #map {
+            height: 100%;
+            width: 100%;
+            background: #aad3df; /* Sea blue background */
+        }
+
+        /* Floating Pin Marker Styles */
+        .wbgt-pin-badge {
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 13px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+            white-space: nowrap;
+            text-align: center;
+            border: 1.5px solid #ffffff;
+            position: relative;
+            transform: translate(-50%, -100%);
+        }
+
+        /* Pointer Tip below badge */
+        .wbgt-pin-badge::after {
+            content: '';
+            position: absolute;
+            bottom: -7px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 7px solid currentColor;
+        }
+
+        /* Map Legend Overlay */
+        .map-legend {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            padding: 12px 16px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            font-size: 0.82rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .legend-title {
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-align: center;
+            color: #334155;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 4px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .legend-color {
+            width: 38px;
+            height: 18px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        /* Category Color Standards */
+        .bg-normal { background-color: #0284c7; color: #0284c7; }
+        .bg-caution { background-color: #16a34a; color: #16a34a; }
+        .bg-alert { background-color: #eab308; color: #eab308; }
+        .bg-high-alert { background-color: #f97316; color: #f97316; }
+        .bg-danger { background-color: #ef4444; color: #ef4444; }
+        .bg-high-danger { background-color: #b91c1c; color: #b91c1c; }
+        .bg-extreme { background-color: #7f1d1d; color: #7f1d1d; }
+
+        /* Popup customization */
+        .leaflet-popup-content-wrapper {
+            border-radius: 8px;
+            padding: 4px;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="map-card">
+    <div class="map-header">
+        <h2>🌡️ 澳門各氣象站暑熱指數 (WBGT) 實時分佈圖</h2>
+        <div class="timestamp">更新時間：<span id="update-time">載入中...</span></div>
+    </div>
+
+    <div id="map-container">
+        <div id="map"></div>
+
+        <!-- Legend Overlay (Top-Right corner) -->
+        <div class="map-legend">
+            <div class="legend-title">暑熱指數 (WBGT)</div>
+            <div class="legend-item"><span class="legend-color" style="background:#7f1d1d;"></span> 極度危險 (≥34)</div>
+            <div class="legend-item"><span class="legend-color" style="background:#b91c1c;"></span> 非常危險 (33-34)</div>
+            <div class="legend-item"><span class="legend-color" style="background:#ef4444;"></span> 危險 (31-33)</div>
+            <div class="legend-item"><span class="legend-color" style="background:#f97316;"></span> 高度警戒 (28-31)</div>
+            <div class="legend-item"><span class="legend-color" style="background:#eab308;"></span> 警戒 (25-28)</div>
+            <div class="legend-item"><span class="legend-color" style="background:#16a34a;"></span> 注意 (21-25)</div>
+            <div class="legend-item"><span class="legend-color" style="background:#0284c7;"></span> 正常 (&lt;21)</div>
+        </div>
+    </div>
+</div>
+
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// 1. Weather Station GPS Coordinates (Macau)
+const stationCoords = {
+    "紀念孫中山市政公園": [22.2136, 113.5478],
+    "黑沙環": [22.2118, 113.5572],
+    "大炮台": [22.1972, 113.5421],
+    "外港": [22.1963, 113.5578],
+    "媽閣": [22.1862, 113.5312],
+    "大潭山": [22.1608, 113.5682],
+    "東亞運大馬路": [22.1521, 113.5475],
+    "九澳": [22.1331, 113.5832],
+    "澳門大學": [22.1298, 113.5451],
+    "路環市區": [22.1168, 113.5519]
+};
+
+// Excluded Bridge stations
+const excludedCodes = ["PV", "PN", "PS", "PG", "MN", "MS", "LH"];
+
+// Initialize Leaflet Map centered on Macau
+const map = L.map('map', {
+    center: [22.165, 113.552],
+    zoom: 12.5,
+    zoomControl: true
+});
+
+// Add CartoDB Positron Light Map Tiles
+L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>',
+    maxZoom: 18,
+    minZoom: 11
+}).addTo(map);
+
+let markersGroup = L.layerGroup().addTo(map);
+
+// 2. WBGT Calculation Helpers
+function calcTnw(Ta, RH) {
+    let p1 = Math.atan(0.151977 * Math.sqrt(RH + 8.313659));
+    let p2 = Math.atan(Ta + RH);
+    let p3 = Math.atan(RH - 1.676331);
+    let p4 = 0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH);
+    return Ta * p1 + p2 - p3 + p4 - 4.686035;
+}
+
+function solveTg(TaC, Va) {
+    const TaK = TaC + 273.15;
+    const v_ms = (isNaN(Va) ? 0 : Va) / 3.6;
+    const hc = 6.3 * Math.pow(v_ms, 0.6) / Math.pow(0.15, 0.4);
+    let TgK = TaK + 3;
+    let TmrtK = TaK + 12;
+
+    for (let i = 0; i < 15; i++) {
+        TgK = (0.95 * 5.67037e-8 * Math.pow(TmrtK, 4) + hc * TaK) / 
+              (0.95 * 5.67037e-8 * Math.pow(TgK, 3) + hc);
+    }
+    return TgK - 273.15;
+}
+
+function calculateWBGT(Ta, RH, Wind) {
+    if (isNaN(Ta) || isNaN(RH)) return null;
+    let Tnw = calcTnw(Ta, RH);
+    let Tg = solveTg(Ta, Wind);
+    return (0.7 * Tnw + 0.2 * Tg + 0.1 * Ta).toFixed(1);
+}
+
+// 3. Get Color & Risk Level based on WBGT Value
+function getWbgtStyle(wbgtVal) {
+    let w = parseFloat(wbgtVal);
+    if (w >= 34) return { color: '#7f1d1d', label: '極度危險' };
+    if (w >= 33) return { color: '#b91c1c', label: '非常危險' };
+    if (w >= 31) return { color: '#ef4444', label: '危險' };
+    if (w >= 28) return { color: '#f97316', label: '高度警戒' };
+    if (w >= 25) return { color: '#eab308', label: '警戒' };
+    if (w >= 21) return { color: '#16a34a', label: '注意' };
+    return { color: '#0284c7', label: '正常' };
+}
+
+// 4. Fetch Weather Data and Render Map Markers
+function fetchAndRenderMap() {
+    const proxyUrl = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${Date.now()}`;
+
+    fetch(proxyUrl)
+        .then(res => res.text())
+        .then(xmlStr => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
+            
+            const pubDate = xmlDoc.querySelector("SysPubdate")?.textContent || "";
+            document.getElementById("update-time").textContent = pubDate;
+
+            markersGroup.clearLayers();
+
+            const stations = xmlDoc.querySelectorAll("WeatherReport station");
+            stations.forEach(st => {
+                const name = st.querySelector("stationname")?.textContent?.trim();
+                const temp = parseFloat(st.querySelector("Temperature dValue")?.textContent || st.querySelector("Temperature Value")?.textContent);
+                const rh = parseFloat(st.querySelector("Humidity dValue")?.textContent || st.querySelector("Humidity Value")?.textContent);
+                const wind = parseFloat(st.querySelector("WindSpeed dValue")?.textContent || st.querySelector("WindSpeed Value")?.textContent || 0);
+
+                if (!name || !stationCoords[name]) return;
+
+                const wbgt = calculateWBGT(temp, rh, wind);
+                if (!wbgt) return;
+
+                const style = getWbgtStyle(wbgt);
+                const coords = stationCoords[name];
+
+                // Create Custom Floating Tag DivIcon
+                const customIcon = L.divIcon({
+                    className: 'custom-wbgt-marker',
+                    html: `
+                        <div class="wbgt-pin-badge" style="background-color: ${style.color}; color: ${style.color};">
+                            <span style="color: #fff;">${wbgt}</span>
+                        </div>
+                    `,
+                    iconSize: [45, 30],
+                    iconAnchor: [22, 30]
+                });
+
+                // Add Marker to Map
+                const marker = L.marker(coords, { icon: customIcon });
+                marker.bindPopup(`
+                    <div style="text-align:center;">
+                        <strong>${name}</strong><br>
+                        WBGT 指數：<b style="color:${style.color}; font-size:16px;">${wbgt}</b> (${style.label})<br>
+                        <small>氣溫: ${temp}°C | 濕度: ${rh}% | 風速: ${wind} km/h</small>
+                    </div>
+                `);
+
+                markersGroup.addLayer(marker);
+            });
+        })
+        .catch(err => console.error("Map Data Fetch Error:", err));
+}
+
+// Initial fetch & set interval refresh (every 5 mins)
+fetchAndRenderMap();
+setInterval(fetchAndRenderMap, 300000);
+</script>
+
+</body>
+</html>
