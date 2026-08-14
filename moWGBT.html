@@ -623,13 +623,13 @@
 
             <div class="map-legend">
                 <div class="legend-title">暑熱指數 (WBGT)</div>
-                <div class="legend-item"><span class="legend-color-box bg-extreme"></span>極度危險 (≥34)</div>
-                <div class="legend-item"><span class="legend-color-box bg-high-danger"></span>非常危險 (33-34)</div>
-                <div class="legend-item"><span class="legend-color-box bg-danger"></span>危險 (31-33)</div>
-                <div class="legend-item"><span class="legend-color-box bg-high-alert"></span>高度警戒 (28-31)</div>
-                <div class="legend-item"><span class="legend-color-box bg-alert"></span>警戒 (25-28)</div>
-                <div class="legend-item"><span class="legend-color-box bg-caution"></span>注意 (21-25)</div>
-                <div class="legend-item"><span class="legend-color-box bg-normal"></span>正常 (&lt;21)</div>
+                <div class="legend-item"><span class="legend-color-box bg-extreme"></span>極度危險</div>
+                <div class="legend-item"><span class="legend-color-box bg-high-danger"></span>非常危險</div>
+                <div class="legend-item"><span class="legend-color-box bg-danger"></span>危險</div>
+                <div class="legend-item"><span class="legend-color-box bg-high-alert"></span>高度警戒</div>
+                <div class="legend-item"><span class="legend-color-box bg-alert"></span>警戒</div>
+                <div class="legend-item"><span class="legend-color-box bg-caution"></span>注意</div>
+                <div class="legend-item"><span class="legend-color-box bg-normal"></span>正常</div>
             </div>
 
             <div class="map-timestamp">
@@ -644,9 +644,9 @@
             <div class="table-title">澳門各氣象站實時 WBGT 暑熱指數表格</div>
             <div style="display: flex; align-items: center;">
                 <div class="sort-buttons">
-                    <button class="sort-btn active" data-sort="desc">WBGT 由高至低</button>
-                    <button class="sort-btn" data-sort="asc">WBGT 由低至高</button>
-                    <button class="sort-btn" data-sort="default">預設排序</button>
+                    <button class="sort-btn active" data-sort="desc">高至低</button>
+                    <button class="sort-btn" data-sort="asc">低至高</button>
+                    <button class="sort-btn" data-sort="default">預設</button>
                 </div>
                 <button class="action-btn" id="btn-manual-refresh" style="margin-left: 10px;">🔄 立即刷新</button>
             </div>
@@ -865,15 +865,15 @@ const stationCodes = {
 */
 const stationCoordinates = {
     "紀念孫中山市政公園": { top: 7.0, left: 36.0 },
-    "黑沙環":           { top: 14.0, left: 44 },
+    "黑沙環":           { top: 13.0, left: 44 },
     "大炮台":           { top: 22.0, left: 32 },
-    "外港":             { top: 33.0, left: 46.5 },
-    "媽閣":             { top: 33.0, left: 25.0 },
-    "東亞運大馬路":     { top: 53.5, left: 29.5 },
+    "外港":             { top: 22.0, left: 46.5 },
+    "媽閣":             { top: 33.0, left: 28.0 },
+    "東亞運大馬路":     { top: 53.5, left: 32.0 },
     "大潭山":           { top: 53.0, left: 49.5 },
-    "澳門大學":         { top: 70.5, left: 27.5 },
-    "路環市區":         { top: 83.5, left: 33.5 },
-    "九澳":             { top: 70.5, left: 52.5 }
+    "澳門大學":         { top: 78, left: 32 },
+    "路環市區":         { top: 86.5, left: 36.5 },
+    "九澳":             { top: 80.5, left: 60.5 }
 };
 
 const excludedBridgeCodes = ["PV", "PN", "PS", "PG", "MN", "MS", "LH"];
