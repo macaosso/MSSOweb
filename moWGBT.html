@@ -878,12 +878,12 @@ const excludedBridgeCodes = ["PV", "PN", "PS", "PG", "MN", "MS", "LH"];
 function getWbgtBadge(wbgtStr) {
     let w = parseFloat(wbgtStr);
     if (isNaN(w)) return `<span class="badge" style="background:#555;">無數據</span>`;
-    if (w >= 34) return `<span class="badge bg-extreme">極度危險</span>`;
-    if (w >= 33) return `<span class="badge bg-high-danger">非常危險</span>`;
-    if (w >= 31) return `<span class="badge bg-danger">危險</span>`;
-    if (w >= 28) return `<span class="badge bg-high-alert">高度警戒</span>`;
-    if (w >= 25) return `<span class="badge bg-alert">警戒</span>`;
-    if (w >= 21) return `<span class="badge bg-caution">注意</span>`;
+    if (w >= 33.5) return `<span class="badge bg-extreme">極度危險</span>`;
+    if (w >= 32.5) return `<span class="badge bg-high-danger">非常危險</span>`;
+    if (w >= 30.5) return `<span class="badge bg-danger">危險</span>`;
+    if (w >= 27.5) return `<span class="badge bg-high-alert">高度警戒</span>`;
+    if (w >= 24.5) return `<span class="badge bg-alert">警戒</span>`;
+    if (w >= 20.5) return `<span class="badge bg-caution">注意</span>`;
     return `<span class="badge bg-normal">正常</span>`;
 }
 
@@ -913,12 +913,12 @@ function updateSummaryCounts() {
         let w = parseFloat(item.wbgt);
         if (isNaN(w)) return;
 
-        if (w >= 34) counts.extreme++;
-        else if (w >= 33) counts.highDanger++;
-        else if (w >= 31) counts.danger++;
-        else if (w >= 28) counts.highAlert++;
-        else if (w >= 25) counts.alert++;
-        else if (w >= 21) counts.caution++;
+        if (w >= 33.5) counts.extreme++;
+        else if (w >= 32.5) counts.highDanger++;
+        else if (w >= 30.5) counts.danger++;
+        else if (w >= 27.5) counts.highAlert++;
+        else if (w >= 24.5) counts.alert++;
+        else if (w >= 20.5) counts.caution++;
         else counts.normal++;
     });
 
