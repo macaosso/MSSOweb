@@ -229,7 +229,7 @@
             font-size: 0.9rem;
         }
 
-        /* 1. 各警戒等級數量統計 */
+        /* 警戒等級數量統計條 */
         .summary-count-bar {
             display: flex;
             gap: 10px;
@@ -254,7 +254,7 @@
             font-weight: bold;
         }
 
-        /* 2. 地圖分佈 */
+        /* 地圖分佈區塊 */
         .map-section-container {
             background: var(--card-bg);
             border-radius: 12px;
@@ -279,7 +279,7 @@
             display: block;
         }
 
-        /* Pins 標籤與氣泡尖端定位 */
+        /* 地圖 Pins 氣泡與尖端對齊 */
         .map-pin {
             position: absolute;
             transform: translate(-50%, -100%);
@@ -374,7 +374,7 @@
             color: #f1f5f9;
         }
 
-        /* 3. Table View */
+        /* 數據表格區塊 */
         .table-container {
             background: var(--card-bg);
             border-radius: 12px;
@@ -415,12 +415,12 @@
         .data-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.88rem;
+            font-size: 0.92rem;
             color: var(--text-main);
         }
         .data-table th, .data-table td {
             border: 1px solid var(--card-border);
-            padding: 12px 10px;
+            padding: 12px 14px;
             text-align: center;
         }
         .data-table th {
@@ -428,11 +428,11 @@
             font-weight: 600;
         }
         .wbgt-val {
-            font-size: 1.05rem;
+            font-size: 1.1rem;
             font-weight: bold;
         }
 
-        /* 4, 5, 6. Info Cards */
+        /* 資訊卡片區 */
         .info-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -494,6 +494,21 @@
         .bg-extreme { background: #7f1d1d; border: 1px solid #ef4444; }
 
         @media (max-width: 768px) {
+            .menu-toggle { display: block; }
+            .nav {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 100%;
+                right: 0;
+                background: var(--card-bg);
+                width: 200px;
+                padding: 10px;
+                border: 1px solid var(--card-border);
+                border-radius: 12px;
+                box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            }
+            .nav.active { display: flex; }
             .map-legend {
                 padding: 6px 8px;
                 font-size: 0.72rem;
@@ -583,7 +598,7 @@
         </div>
     </header>
 
-    <!-- 1. 各警戒等級數量統計 (按照要求細化為 7 個等級獨立計數) -->
+    <!-- 警戒等級數量統計 -->
     <div class="summary-count-bar" id="summaryCountBar">
         <span style="font-weight: bold;">📊 各警戒等級數量統計：</span>
         <span class="count-pill" style="color:#0077b6;">正常: <span id="countNormal">0</span></span>
@@ -595,7 +610,7 @@
         <span class="count-pill" style="color:#7f1d1d;">極度危險: <span id="countExtreme">0</span></span>
     </div>
 
-    <!-- 2. 地圖分佈 -->
+    <!-- 地圖分佈 -->
     <div class="map-section-container">
         <div class="table-header-bar">
             <div class="table-title">澳門各氣象站暑熱指數 (WBGT) 地圖分佈</div>
@@ -623,7 +638,7 @@
         </div>
     </div>
 
-    <!-- 3. 表格 -->
+    <!-- 簡化後的表格 (僅保留 4 欄) -->
     <div class="table-container">
         <div class="table-header-bar">
             <div class="table-title">澳門各氣象站實時 WBGT 暑熱指數表格</div>
@@ -641,28 +656,21 @@
             <table class="data-table">
                 <thead>
                     <tr>
-                        <th>#</th>
                         <th>測站名稱</th>
                         <th>站代碼</th>
-                        <th>環境氣溫 (Ta)</th>
-                        <th>相對濕度 (RH)</th>
-                        <th>風速</th>
-                        <th>估算濕球 (Tnw)</th>
-                        <th>估算黑球 (Tg)</th>
                         <th>暑熱指數 (WBGT)</th>
                         <th>危險等級</th>
                     </tr>
                 </thead>
                 <tbody id="wbgt-table-body">
-                    <tr><td colspan="10" style="text-align: center; color: #888; padding: 20px;">資料載入中...</td></tr>
+                    <tr><td colspan="4" style="text-align: center; color: #888; padding: 20px;">資料載入中...</td></tr>
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- 資訊卡片區 (4, 5, 6) -->
+    <!-- 資訊卡片區 -->
     <div class="info-grid">
-        <!-- 4. 暑熱指數警戒分級標準 -->
         <div class="info-card" style="border-top-color: #f97316;">
             <h3>📊 暑熱指數警戒分級標準</h3>
             <p>根據 WBGT 指數等級與相應熱危害風險：</p>
@@ -682,7 +690,6 @@
             </table>
         </div>
 
-        <!-- 5. 什麼是暑熱指數 (WBGT)？ -->
         <div class="info-card" id="info-section">
             <h3>🌡️ 什麼是暑熱指數 (WBGT)？</h3>
             <p><strong>黑球濕球溫度 (Wet Bulb Globe Temperature, WBGT)</strong> 是國際公認評估熱壓力 (Heat Stress) 的綜合指標，綜合氣溫、濕度、風速及太陽輻射對人體散熱的影響。</p>
@@ -697,7 +704,6 @@
             </ul>
         </div>
 
-        <!-- 6. 高溫與酷熱預防措施 -->
         <div class="info-card" id="precaution-section" style="border-top-color: #ef4444;">
             <h3>🛡️ 高溫與酷熱預防措施</h3>
             <ul>
@@ -855,29 +861,19 @@ const stationCodes = {
 };
 
 /* 
-   🎯 按照【圖 2】精確對齊標籤尖端位置：
-   - 紀念孫中山市政公園 (30.6): 半島最北頂端
-   - 黑沙環 (31.1): 半島東北角
-   - 大炮台 (30.1): 半島中西側
-   - 外港 (30.5): 半島中東側
-   - 媽閣 (30.4): 半島西南端
-   - 東亞運大馬路 (30.4): 氹仔西側
-   - 大潭山 (29.0): 氹仔東側
-   - 澳門大學 (30.2): 橫琴校區 (Cotai西邊)
-   - 路環市區 (30.5): 路環西南端
-   - 九澳 (29.1): 路環東側
+   🎯 根據【地圖白色圓點】精確對齊標籤氣泡尖端座標 (top %, left %)：
 */
 const stationCoordinates = {
-    "紀念孫中山市政公園": { top: 5.0,  left: 29.8 },
-    "黑沙環":           { top: 11.2, left: 46.8 },
-    "大炮台":           { top: 18.2, left: 24.2 },
-    "外港":             { top: 18.2, left: 47.0 },
-    "媽閣":             { top: 28.5, left: 14.0 },
-    "東亞運大馬路":     { top: 50.0, left: 27.2 },
-    "大潭山":           { top: 50.0, left: 55.2 },
-    "澳門大學":         { top: 77.0, left: 22.5 },
-    "路環市區":         { top: 85.0, left: 39.5 },
-    "九澳":             { top: 73.0, left: 73.5 }
+    "紀念孫中山市政公園": { top: 14.0, left: 29.0 },
+    "黑沙環":           { top: 15.5, left: 46.5 },
+    "大炮台":           { top: 26.5, left: 38.5 },
+    "外港":             { top: 33.0, left: 46.5 },
+    "媽閣":             { top: 39.5, left: 25.5 },
+    "東亞運大馬路":     { top: 53.5, left: 29.5 },
+    "大潭山":           { top: 53.0, left: 49.5 },
+    "澳門大學":         { top: 70.5, left: 27.5 },
+    "路環市區":         { top: 83.5, left: 33.5 },
+    "九澳":             { top: 70.5, left: 52.5 }
 };
 
 const excludedBridgeCodes = ["PV", "PN", "PS", "PG", "MN", "MS", "LH"];
@@ -916,15 +912,8 @@ function extractValue(selector, parent) {
     return val.trim();
 }
 
-/* 計算並更新 7 個獨立警戒等級的測站數量 */
 function updateSummaryCounts() {
-    let extreme = 0;
-    let veryDanger = 0;
-    let danger = 0;
-    let highAlert = 0;
-    let alert = 0;
-    let caution = 0;
-    let normal = 0;
+    let extreme = 0, veryDanger = 0, danger = 0, highAlert = 0, alert = 0, caution = 0, normal = 0;
 
     rawStationData.forEach(item => {
         let w = parseFloat(item.wbgt);
@@ -1015,11 +1004,6 @@ function fetchWeatherData() {
                 rawStationData.push({
                     name: name,
                     code: code,
-                    temp: Ta.toFixed(1),
-                    humidity: RH.toFixed(0),
-                    windSpeed: isNaN(Wind) ? '0.0' : Wind.toFixed(1),
-                    tnw: calcRes.tnw,
-                    tg: calcRes.tg,
                     wbgt: calcRes.wbgt
                 });
             });
@@ -1032,7 +1016,7 @@ function fetchWeatherData() {
         .catch(err => {
             console.error("載入失敗: ", err);
             document.getElementById("wbgt-table-body").innerHTML = 
-                `<tr><td colspan="10" style="text-align:center; color:#ef4444; padding:20px;">數據載入失敗，請重新整理頁面或稍後再試。</td></tr>`;
+                `<tr><td colspan="4" style="text-align:center; color:#ef4444; padding:20px;">數據載入失敗，請重新整理頁面或稍後再試。</td></tr>`;
         });
 }
 
@@ -1041,7 +1025,7 @@ function renderTable() {
     tbody.innerHTML = "";
 
     if (rawStationData.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="10" style="text-align: center; padding:20px;">目前無可用數據</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; padding:20px;">目前無可用數據</td></tr>`;
         return;
     }
 
@@ -1053,19 +1037,13 @@ function renderTable() {
         sortedList.sort((a, b) => (parseFloat(a.wbgt) || 999) - (parseFloat(b.wbgt) || 999));
     }
 
-    sortedList.forEach((item, index) => {
+    sortedList.forEach((item) => {
         const badgeHtml = getWbgtBadge(item.wbgt);
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
-            <td><strong>${index + 1}</strong></td>
             <td><strong>${item.name}</strong></td>
             <td><code style="color:#60a5fa">${item.code}</code></td>
-            <td>${item.temp} °C</td>
-            <td>${item.humidity} %</td>
-            <td>${item.windSpeed} km/h</td>
-            <td>${item.tnw} °C</td>
-            <td>${item.tg} °C</td>
             <td class="wbgt-val" style="color: #f97316;">${item.wbgt}</td>
             <td>${badgeHtml}</td>
         `;
@@ -1084,7 +1062,7 @@ document.querySelectorAll('.sort-btn').forEach(btn => {
 
 document.getElementById('btn-manual-refresh').addEventListener('click', () => {
     document.getElementById("wbgt-table-body").innerHTML = 
-        `<tr><td colspan="10" style="text-align: center; color: #888; padding: 20px;">正在更新數據...</td></tr>`;
+        `<tr><td colspan="4" style="text-align: center; color: #888; padding: 20px;">正在更新數據...</td></tr>`;
     fetchWeatherData();
 });
 
