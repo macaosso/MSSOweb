@@ -105,7 +105,6 @@
           gap: 10px;
         }
 
-        /* 主題切換按鈕 */
         .theme-toggle-btn {
           background: var(--card-bg-light);
           border: 1px solid var(--card-border);
@@ -205,7 +204,6 @@
           white-space: nowrap;
         }
         
-        /* Header Section */
         header {
             background: linear-gradient(135deg, #1a1a2e, #16213e);
             color: #f0f0f0;
@@ -236,7 +234,7 @@
             font-variant-numeric: tabular-nums;
         }
 
-        /* 1. 測站數量統計列 (Counting Summary Bar) */
+        /* 1. 各警戒等級數量統計 */
         .summary-count-bar {
             display: flex;
             gap: 12px;
@@ -261,7 +259,7 @@
             font-weight: bold;
         }
 
-        /* 2. 地圖區域樣式 */
+        /* 2. 地圖分佈 */
         .map-section-container {
             background: var(--card-bg);
             border-radius: 12px;
@@ -286,7 +284,7 @@
             display: block;
         }
 
-        /* Pins 標籤樣式 */
+        /* Pins 標籤與氣泡尖端定位 */
         .map-pin {
             position: absolute;
             transform: translate(-50%, -100%);
@@ -323,7 +321,6 @@
             width: 0;
         }
 
-        /* 圖例邊欄 */
         .map-legend {
             position: absolute;
             top: 15px;
@@ -440,7 +437,7 @@
             font-weight: bold;
         }
 
-        /* 4, 5, 6. Info Cards Section */
+        /* 4, 5, 6. Info Cards */
         .info-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -473,7 +470,6 @@
             border: 1px solid var(--card-border);
         }
 
-        /* Level Badges & Colors */
         .level-table {
             width: 100%;
             border-collapse: collapse;
@@ -502,7 +498,6 @@
         .bg-high-danger { background: #b91c1c; }
         .bg-extreme { background: #7f1d1d; border: 1px solid #ef4444; }
 
-        /* RWD 調整 */
         @media (max-width: 768px) {
             .map-legend {
                 padding: 6px 8px;
@@ -523,7 +518,6 @@
 </head>
 <body>
 
-<!-- 選單容器 -->
 <div class="header-nav-container">
   <div class="header">
     <img src="icons/MSSO.png" class="logo" alt="MSSO Logo">
@@ -584,7 +578,6 @@
 
 <div class="container">
 
-    <!-- Header Section -->
     <header>
         <div>
             <h1>澳門暑熱指數 (WBGT) 實時監測</h1>
@@ -596,7 +589,7 @@
         </div>
     </header>
 
-    <!-- 1. 各警戒等級數量統計 (Counting Summary Bar) -->
+    <!-- 1. 各警戒等級數量統計 -->
     <div class="summary-count-bar" id="summaryCountBar">
         <span style="font-weight: bold;">📊 各警戒等級數量統計：</span>
         <span class="count-pill">總測站數: <span id="countTotal">0</span></span>
@@ -606,20 +599,17 @@
         <span class="count-pill" style="color:#0077b6;">正常/注意: <span id="countNormal">0</span></span>
     </div>
 
-    <!-- 2. 地圖分佈 (Map Interactive Section) -->
+    <!-- 2. 地圖分佈 -->
     <div class="map-section-container">
         <div class="table-header-bar">
             <div class="table-title">澳門各氣象站暑熱指數 (WBGT) 地圖分佈</div>
         </div>
 
         <div class="wbgt-map-wrapper">
-            <!-- 底圖 -->
             <img src="map.png" alt="澳門氣象地圖" class="map-base-img">
 
-            <!-- 測站 Pins (依參考圖精準定位) -->
             <div id="stationPinsGroup"></div>
 
-            <!-- 右上角圖例 -->
             <div class="map-legend">
                 <div class="legend-title">暑熱指數 (WBGT)</div>
                 <div class="legend-item"><span class="legend-color-box bg-extreme"></span>極度危險 (≥34)</div>
@@ -631,14 +621,13 @@
                 <div class="legend-item"><span class="legend-color-box bg-normal"></span>正常 (&lt;21)</div>
             </div>
 
-            <!-- 右下角時間 -->
             <div class="map-timestamp">
                 更新時間: <span id="map-pub-time">載入中...</span>
             </div>
         </div>
     </div>
 
-    <!-- 3. 表格 (Main Data Table Section) -->
+    <!-- 3. 表格 -->
     <div class="table-container">
         <div class="table-header-bar">
             <div class="table-title">澳門各氣象站實時 WBGT 暑熱指數表格</div>
@@ -727,7 +716,6 @@
 </div>
 
 <script>
-/* ========== 主題與導航選單邏輯 ========== */
 function applyTheme(theme) {
   if (theme === 'light') {
     document.body.classList.add('light-theme');
@@ -794,8 +782,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-/* ========== 倒數刷新計時器 (Countdown Timer) ========== */
-const REFRESH_INTERVAL_SECS = 300; // 5 分鐘
+const REFRESH_INTERVAL_SECS = 300;
 let countdownSeconds = REFRESH_INTERVAL_SECS;
 let countdownTimer = null;
 
@@ -822,7 +809,6 @@ function updateCountdownUI() {
     el.textContent = `● 每 5 分鐘自動刷新數據 (倒數 ${mins}:${secs})`;
 }
 
-// ========== 物理常數與 WBGT 計算邏輯 ==========
 const sigma = 5.670374419e-8; 
 const eps = 0.95;             
 
@@ -876,7 +862,6 @@ function calculateFullWBGT(Ta, RH, windKmH) {
     };
 }
 
-// ========== 測站代碼對照表 ==========
 const stationCodes = {
     "紀念孫中山市政公園": "DP", 
     "黑沙環": "EM", 
@@ -891,29 +876,29 @@ const stationCodes = {
 };
 
 /* 
-   地圖 Pin 座標精準對齊（參考圖所示之實際位置）：
-   - 紀念孫中山市政公園: 北端頂部
-   - 黑沙環: 半島東北側
-   - 大炮台: 半島中西側
-   - 外港: 半島中東側
-   - 媽閣: 半島西南角
-   - 東亞運大馬路: 氹仔西側
-   - 大潭山: 氹仔東側
-   - 澳門大學: 橫琴/澳大校區西側
-   - 路環市區: 路環西南側
-   - 九澳: 路環東北側
+   🎯 精確對齊標註圖中 10 個黑色圓圈中心：
+   - 紀念孫中山市政公園: 半島最頂端黑圈
+   - 黑沙環: 半島東北黑圈
+   - 大炮台: 半島中央黑圈
+   - 外港: 半島東側黑圈
+   - 媽閣: 半島西南黑圈
+   - 東亞運大馬路: 氹仔西側黑圈
+   - 大潭山: 氹仔東側黑圈
+   - 澳門大學: Cotai 西側黑圈
+   - 路環市區: 路環西南黑圈
+   - 九澳: 路環東側黑圈
 */
 const stationCoordinates = {
-    "紀念孫中山市政公園": { top: 5.5,  left: 31.0 },
-    "黑沙環":           { top: 11.0, left: 49.0 },
-    "大炮台":           { top: 19.5, left: 24.0 },
-    "外港":             { top: 19.5, left: 49.0 },
-    "媽閣":             { top: 29.0, left: 14.0 },
-    "東亞運大馬路":     { top: 50.0, left: 28.0 },
-    "大潭山":           { top: 50.0, left: 57.0 },
-    "澳門大學":         { top: 77.0, left: 22.0 },
-    "路環市區":         { top: 85.0, left: 38.0 },
-    "九澳":             { top: 73.0, left: 76.0 }
+    "紀念孫中山市政公園": { top: 11.5, left: 34.8 },
+    "黑沙環":           { top: 15.8, left: 40.8 },
+    "大炮台":           { top: 22.2, left: 30.2 },
+    "外港":             { top: 22.8, left: 41.6 },
+    "媽閣":             { top: 32.2, left: 25.2 },
+    "東亞運大馬路":     { top: 54.8, left: 35.5 },
+    "大潭山":           { top: 54.2, left: 47.2 },
+    "澳門大學":         { top: 77.8, left: 30.8 },
+    "路環市區":         { top: 88.8, left: 38.6 },
+    "九澳":             { top: 75.8, left: 59.2 }
 };
 
 const excludedBridgeCodes = ["PV", "PN", "PS", "PG", "MN", "MS", "LH"];
@@ -952,7 +937,6 @@ function extractValue(selector, parent) {
     return val.trim();
 }
 
-// ========== 1. 更新測站數量統計 ==========
 function updateSummaryCounts() {
     let total = rawStationData.length;
     let extreme = 0;
@@ -976,7 +960,6 @@ function updateSummaryCounts() {
     document.getElementById("countNormal").textContent = normal;
 }
 
-// ========== 2. 在地圖上繪製 Pins 標籤 ==========
 function renderMapPins() {
     const container = document.getElementById("stationPinsGroup");
     if (!container) return;
@@ -1005,7 +988,6 @@ function renderMapPins() {
     if (mapPubEl) mapPubEl.textContent = pubTimeText;
 }
 
-// ========== 抓取 SMG XML 數據 ==========
 function fetchWeatherData() {
     const cacheBuster = Date.now();
     const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
@@ -1067,7 +1049,6 @@ function fetchWeatherData() {
         });
 }
 
-// ========== 3. 渲染表格 ==========
 function renderTable() {
     const tbody = document.getElementById("wbgt-table-body");
     tbody.innerHTML = "";
@@ -1105,7 +1086,6 @@ function renderTable() {
     });
 }
 
-// ========== 事件監聽 ==========
 document.querySelectorAll('.sort-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
