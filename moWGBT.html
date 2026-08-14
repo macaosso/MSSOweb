@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>澳門暑熱指數 (WBGT) 實時監測</title>
     <link rel="icon" type="image/png" href="icons/MSSO.png">
+    
+    <!-- Chart.js & Annotation Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1"></script>
+
     <style>
         /* ========== 1. 主題基礎變數 ========== */
         :root {
@@ -280,7 +285,7 @@
             display: block;
         }
 
-        /* 地圖 Pins：簡化標籤樣式，參考圖片 */
+        /* 地圖 Pins */
         .map-pin {
             position: absolute;
             transform: translate(-50%, -50%);
@@ -306,7 +311,7 @@
             text-align: center;
         }
 
-        /* 桌面端/大螢幕：圖例位於地圖右上角內部 (參考圖片) */
+        /* 桌面端/大螢幕：圖例位於地圖右上角內部 */
         .map-legend {
             position: absolute;
             top: 15px;
@@ -431,6 +436,23 @@
             font-weight: bold;
         }
 
+        /* 預測圖表區塊容器 */
+        .forecast-chart-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+            border: 1px solid var(--card-border);
+            border-top: 4px solid var(--accent-blue);
+        }
+        .chart-wrapper {
+            position: relative;
+            width: 100%;
+            height: 380px;
+            margin-top: 15px;
+        }
+
         /* 資訊卡片區 */
         .info-grid {
             display: grid;
@@ -492,7 +514,7 @@
         .bg-high-danger { background: #b91c1c; }
         .bg-extreme { background: #7f1d1d; border: 1px solid #ef4444; }
 
-        /* 手機端適應：圖例移動至地圖下方，避免擋住數據 */
+        /* 手機端適應 */
         @media (max-width: 768px) {
             .menu-toggle { display: block; }
             .nav {
@@ -537,6 +559,9 @@
                 font-size: 0.72rem;
                 padding: 2px 5px;
                 border-radius: 4px;
+            }
+            .chart-wrapper {
+                height: 300px;
             }
         }
     </style>
@@ -606,7 +631,7 @@
     <header>
         <div>
             <h1>澳門暑熱指數 (WBGT) 實時監測</h1>
-            <small style="opacity:0.8;">氣象數據源自 澳門地球物理氣象局 (SMG)</small>
+            <small style="opacity:0.8;">氣象數據源自 澳門地球物理氣象局 (SMG) & Open-Meteo</small>
         </div>
         <div class="meta-info">
             <div>資料更新時間：<span id="pub-date">載入中...</span></div>
@@ -636,7 +661,7 @@
 
             <div id="stationPinsGroup"></div>
 
-            <!-- 圖例 (在電腦版浮動於地圖右上角，手機版移至下方) -->
+            <!-- 圖例 (桌面端在右上角內部，手機端在下方) -->
             <div class="map-legend">
                 <div class="legend-title">暑熱指數 (WBGT)</div>
                 <div class="legend-item"><span class="legend-color-box bg-extreme"></span>極度危險</div>
@@ -654,7 +679,7 @@
         </div>
     </div>
 
-    <!-- 簡化後的表格 (僅保留 4 欄) -->
+    <!-- 簡化後的表格 -->
     <div class="table-container">
         <div class="table-header-bar">
             <div class="table-title">澳門各氣象站實時 WBGT 暑熱指數表格</div>
@@ -664,7 +689,7 @@
                     <button class="sort-btn" data-sort="asc">低至高</button>
                     <button class="sort-btn" data-sort="default">預設</button>
                 </div>
-                <button class="action-btn" id="btn-manual-refresh" style="margin-left: 10px;">🔄 立即刷新</button>
+                <button class="action-btn" id="btn-manual-refresh" style="margin-left: 10px;">🔄 實時刷新</button>
             </div>
         </div>
 
@@ -682,6 +707,17 @@
                     <tr><td colspan="4" style="text-align: center; color: #888; padding: 20px;">資料載入中...</td></tr>
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- 📈 3日暑熱指數 (WBGT) 逐時預測圖表 (放置於分級標準前) -->
+    <div class="forecast-chart-container">
+        <div class="table-header-bar">
+            <div class="table-title">📈 澳門未來 3 日暑熱指數 (WBGT) 逐時預報趨勢</div>
+            <small style="color: var(--text-muted);">氣象數據源自 Open-Meteo</small>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="wbgtForecastChart"></canvas>
         </div>
     </div>
 
@@ -1033,6 +1069,128 @@ function fetchWeatherData() {
         });
 }
 
+/* ========== 3日 WBGT 預報圖表繪製 (Open-Meteo API) ========== */
+let wbgtChartInstance = null;
+
+async function fetchAndRenderForecastChart() {
+    const forecastApi = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m&timezone=Asia%2FSingapore&forecast_days=3";
+
+    try {
+        const res = await fetch(forecastApi);
+        if (!res.ok) throw new Error("Forecast API error");
+        const data = await res.json();
+
+        const times = data.hourly.time;
+        const temps = data.hourly.temperature_2m;
+        const rhs = data.hourly.relative_humidity_2m;
+        const winds = data.hourly.wind_speed_10m;
+
+        const labels = [];
+        const wbgtValues = [];
+
+        for (let i = 0; i < times.length; i++) {
+            const dateObj = new Date(times[i]);
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const hours = String(dateObj.getHours()).padStart(2, '0');
+
+            labels.push(`${month}/${day} ${hours}:00`);
+
+            const calc = calculateFullWBGT(temps[i], rhs[i], winds[i]);
+            wbgtValues.push(parseFloat(calc.wbgt) || null);
+        }
+
+        renderChart(labels, wbgtValues);
+    } catch (err) {
+        console.error("無法取得 WBGT 預測數據:", err);
+    }
+}
+
+function renderChart(labels, dataValues) {
+    const ctx = document.getElementById('wbgtForecastChart').getContext('2d');
+    if (wbgtChartInstance) wbgtChartInstance.destroy();
+
+    wbgtChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: '預測暑熱指數 (WBGT)',
+                data: dataValues,
+                borderColor: '#38bdf8',
+                backgroundColor: 'rgba(56, 189, 248, 0.12)',
+                borderWidth: 2.5,
+                fill: true,
+                tension: 0.35,
+                pointRadius: 2,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false
+            },
+            plugins: {
+                legend: {
+                    display: true,
+                    labels: { color: 'var(--text-main)', font: { size: 12, weight: 'bold' } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return ` WBGT 預測: ${context.raw} °C`;
+                        }
+                    }
+                },
+                annotation: {
+                    annotations: {
+                        caution: {
+                            type: 'line', yMin: 21, yMax: 21, borderColor: '#38b000', borderWidth: 1.5, borderDash: [4, 4],
+                            label: { display: true, content: '21°C 注意', position: 'start', backgroundColor: '#38b000', color: '#111', font: { size: 10, weight: 'bold' } }
+                        },
+                        alert: {
+                            type: 'line', yMin: 25, yMax: 25, borderColor: '#c9b200', borderWidth: 1.5, borderDash: [4, 4],
+                            label: { display: true, content: '25°C 警戒', position: 'start', backgroundColor: '#c9b200', color: '#111', font: { size: 10, weight: 'bold' } }
+                        },
+                        highAlert: {
+                            type: 'line', yMin: 28, yMax: 28, borderColor: '#e06c00', borderWidth: 1.5, borderDash: [4, 4],
+                            label: { display: true, content: '28°C 高度警戒', position: 'start', backgroundColor: '#e06c00', color: '#fff', font: { size: 10, weight: 'bold' } }
+                        },
+                        danger: {
+                            type: 'line', yMin: 31, yMax: 31, borderColor: '#ef4444', borderWidth: 1.5, borderDash: [4, 4],
+                            label: { display: true, content: '31°C 危險', position: 'start', backgroundColor: '#ef4444', color: '#fff', font: { size: 10, weight: 'bold' } }
+                        },
+                        veryDanger: {
+                            type: 'line', yMin: 33, yMax: 33, borderColor: '#b91c1c', borderWidth: 1.5, borderDash: [4, 4],
+                            label: { display: true, content: '33°C 非常危險', position: 'start', backgroundColor: '#b91c1c', color: '#fff', font: { size: 10, weight: 'bold' } }
+                        },
+                        extreme: {
+                            type: 'line', yMin: 34, yMax: 34, borderColor: '#7f1d1d', borderWidth: 1.5, borderDash: [4, 4],
+                            label: { display: true, content: '34°C 極度危險', position: 'start', backgroundColor: '#7f1d1d', color: '#fff', font: { size: 10, weight: 'bold' } }
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: 'var(--text-muted)', maxRotation: 45, autoSkip: true, maxTicksLimit: 12 },
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                },
+                y: {
+                    title: { display: true, text: 'WBGT (°C)', color: 'var(--text-muted)' },
+                    ticks: { color: 'var(--text-muted)' },
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    suggestedMin: 18,
+                    suggestedMax: 36
+                }
+            }
+        }
+    });
+}
+
 function renderTable() {
     const tbody = document.getElementById("wbgt-table-body");
     tbody.innerHTML = "";
@@ -1081,6 +1239,7 @@ document.getElementById('btn-manual-refresh').addEventListener('click', () => {
 
 window.addEventListener('DOMContentLoaded', () => {
     fetchWeatherData();
+    fetchAndRenderForecastChart();
 });
 </script>
 </body>
