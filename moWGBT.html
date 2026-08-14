@@ -808,7 +808,7 @@ function calcTnw(Ta, RH) {
 
 function calcHc(Va) {
     if (isNaN(Va)) return NaN;
-    let v_ms = Va / 3.6; 
+    let v_ms = Math.max(Va / 3.6, 0.1); 
     return 6.3 * Math.pow(v_ms, 0.6) / Math.pow(0.15, 0.4);
 }
 
