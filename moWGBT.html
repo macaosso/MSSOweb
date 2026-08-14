@@ -279,6 +279,13 @@
             background-color: #a0c2e7;
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
+
+        /* 新增：地圖底圖專用容器，確保座標始終以圖片高度為準 */
+        .map-image-container {
+            position: relative;
+            width: 100%;
+        }
+
         .map-base-img {
             width: 100%;
             height: auto;
@@ -656,9 +663,14 @@
         </div>
 
         <div class="wbgt-map-wrapper">
-            <img src="map.png" alt="澳門氣象地圖" class="map-base-img">
-
-            <div id="stationPinsGroup"></div>
+            <!-- 將圖片與 Pins 獨立包裝在同一個容器中以修正手機端位移問題 -->
+            <div class="map-image-container">
+                <img src="map.png" alt="澳門氣象地圖" class="map-base-img">
+                <div id="stationPinsGroup"></div>
+                <div class="map-timestamp">
+                    更新時間: <span id="map-pub-time">載入中...</span>
+                </div>
+            </div>
 
             <div class="map-legend">
                 <div class="legend-title">暑熱指數 (WBGT)</div>
@@ -669,10 +681,6 @@
                 <div class="legend-item"><span class="legend-color-box bg-alert"></span>警戒</div>
                 <div class="legend-item"><span class="legend-color-box bg-caution"></span>注意</div>
                 <div class="legend-item"><span class="legend-color-box bg-normal"></span>正常</div>
-            </div>
-
-            <div class="map-timestamp">
-                更新時間: <span id="map-pub-time">載入中...</span>
             </div>
         </div>
     </div>
