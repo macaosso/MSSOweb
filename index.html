@@ -895,6 +895,7 @@ body.light-theme .card-bottom {
     border-radius: 8px;
   }
   .dropdown-content {
+    display: none;
     position: static;
     box-shadow: none;
     border: none;
@@ -903,6 +904,11 @@ body.light-theme .card-bottom {
     padding-left: 10px;
     border-left: 2px solid var(--accent-blue);
     border-radius: 0 8px 8px 0;
+    opacity: 1;
+    visibility: visible;
+  }
+  .dropdown.active .dropdown-content {
+    display: block;
   }
   body.light-theme .dropdown-content {
     background: rgba(0, 0, 0, 0.03);
