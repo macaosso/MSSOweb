@@ -251,7 +251,6 @@ body.light-theme .dropdown.active .dropdown-btn {
 }
 
 .dropdown-content {
-  display: none;
   position: absolute;
   top: 100%;
   left: 0;
@@ -264,14 +263,25 @@ body.light-theme .dropdown.active .dropdown-btn {
   box-shadow: 0 10px 25px rgba(0,0,0,0.5);
   z-index: 3100;
   margin-top: 4px;
+
+  /* Hidden state with fade-out delay */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.25s ease, visibility 0.25s ease;
+  transition-delay: 0.4s; /* Holds menu open for 0.4 seconds after mouse leaves */
 }
+
 body.light-theme .dropdown-content {
   background: rgba(255, 255, 255, 0.98);
 }
 
 .dropdown:hover .dropdown-content,
 .dropdown.active .dropdown-content {
-  display: block;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-delay: 0s; /* Opens immediately on hover */
 }
 
 .dropdown-content a {
