@@ -1,1456 +1,1918 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>澳門各氣象站數據 - 澳門民間氣象台 MSSO</title>
-    <link rel="icon" type="image/png" href="icons/MSSO.png">
-    
-    <!-- Chart.js for rendering history trend graphs -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <style>
-        /* ========== 主題基礎變數 ========== */
-        :root {
-            --bg-dark: #121212;
-            --card-bg: #1e1e2f;
-            --card-bg-light: rgba(255, 255, 255, 0.05);
-            --card-border: #2d2d50;
-            --text-main: #ffffff;
-            --text-muted: #a0a0a0;
-            --accent-blue: #38bdf8;
-            --accent-teal: #2dd4bf;
-            --accent-red: #ef4444;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="icons/MSSO.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<title>澳門民間氣象台 - 首頁</title>
+<style>
+/* ========== 1. 深太空 (Deep Space) 全域主題基礎 ========== */
+:root {
+  --bg-dark: #0b0f19;
+  --card-bg: rgba(22, 30, 46, 0.75);
+  --card-bg-light: rgba(255, 255, 255, 0.03);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  
+  --accent-blue: #38bdf8;
+  --accent-teal: #2dd4bf;
+  --accent-green: #34d399;
+  --accent-yellow: #facc15;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #c084fc;
 
-        body.light-theme {
-            --bg-dark: #f8fafc;
-            --card-bg: #ffffff;
-            --card-bg-light: rgba(0, 0, 0, 0.04);
-            --card-border: #e2e8f0;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --accent-blue: #0284c7;
-            --accent-teal: #0d9488;
-            --accent-red: #dc2626;
-        }
+  --bg-red: rgba(239, 68, 68, 0.12);
+  --border-red: rgba(239, 68, 68, 0.35);
+  --bg-orange: rgba(245, 158, 11, 0.12);
+  --border-orange: rgba(245, 158, 11, 0.35);
+}
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            padding: 0 0 20px 0;
-            font-size: 14px;
-            line-height: 1.6;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-            padding: 0 20px;
-        }
+/* ========== 明亮主題 (Light Theme) ========== */
+body.light-theme {
+  --bg-dark: #f8fafc;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-bg-light: rgba(0, 0, 0, 0.04);
+  --card-border: rgba(0, 0, 0, 0.12);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
 
-        /* ========== 頂欄導航 Navbar ========== */
-        .header-nav-container {
-            position: sticky;
-            top: 0;
-            z-index: 3000;
-            background: rgba(18, 18, 18, 0.88);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--card-border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.75rem 1.5rem;
-            margin-bottom: 20px;
-            transition: background 0.3s ease;
-        }
-        body.light-theme .header-nav-container {
-            background: rgba(248, 250, 252, 0.88);
-        }
+  --accent-blue: #0284c7;
+  --accent-teal: #0d9488;
+  --accent-green: #059669;
+  --accent-yellow: #d97706;
+  --accent-orange: #d97706;
+  --accent-red: #dc2626;
+  --accent-purple: #9333ea;
 
-        .header-logo-group {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .logo {
-            height: 38px;
-            width: auto;
-            filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.3));
-        }
-        .title {
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--accent-blue);
-            letter-spacing: 0.5px;
-            display: flex;
-            align-items: baseline;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        .header-clock {
-            font-size: 0.88rem;
-            font-weight: 500;
-            color: var(--accent-teal);
-            font-variant-numeric: tabular-nums;
-            opacity: 0.9;
-        }
+  --bg-red: rgba(239, 68, 68, 0.08);
+  --border-red: rgba(239, 68, 68, 0.25);
+  --bg-orange: rgba(245, 158, 11, 0.08);
+  --border-orange: rgba(245, 158, 11, 0.25);
+}
 
-        .menu-container {
-            position: relative;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
+html {
+  scroll-behavior: smooth;
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
 
-        .theme-toggle-btn {
-            background: var(--card-bg-light);
-            border: 1px solid var(--card-border);
-            color: var(--text-main);
-            padding: 8px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            font-weight: 600;
-            transition: all 0.25s ease;
-            outline: none;
-        }
-        .theme-toggle-btn:hover {
-            border-color: var(--accent-blue);
-            color: var(--accent-blue);
-            transform: translateY(-1px);
-        }
-        .sun-icon { display: block; }
-        .moon-icon { display: none; }
-        body.light-theme .sun-icon { display: none; }
-        body.light-theme .moon-icon { display: block; }
+/* 頁面最大寬度容器 */
+.page-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 15px 40px 15px;
+}
 
-        .menu-toggle {
-            display: none;
-            font-size: 22px;
-            padding: 6px 12px;
-            cursor: pointer;
-            background: var(--card-bg-light);
-            border: 1px solid var(--card-border);
-            color: var(--text-main);
-            border-radius: 8px;
-            transition: all 0.2s;
-        }
+/* ========== 2. 頁頭 Header & 頂欄導航 ========== */
+.header-nav-container {
+  position: sticky;
+  top: 0;
+  z-index: 3000;
+  background: rgba(11, 15, 25, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  margin-bottom: 20px;
+  transition: background 0.3s ease;
+}
+body.light-theme .header-nav-container {
+  background: rgba(248, 250, 252, 0.88);
+}
 
-        .nav {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .nav a {
-            color: var(--text-muted);
-            padding: 8px 14px;
-            font-size: 0.92rem;
-            font-weight: 500;
-            text-decoration: none;
-            border-radius: 20px;
-            transition: all 0.2s ease;
-            display: block;
-        }
-        .nav a:hover, .nav a.active {
-            color: var(--text-main);
-            background: rgba(255, 255, 255, 0.08);
-        }
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logo {
+  height: 38px;
+  width: auto;
+  filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.3));
+}
+.title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.header-clock {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--accent-teal);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.9;
+}
 
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        .dropdown-btn {
-            background: transparent;
-            border: none;
-            color: var(--text-muted);
-            padding: 8px 14px;
-            font-size: 0.92rem;
-            font-weight: 500;
-            font-family: inherit;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            min-width: 190px;
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 6px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            z-index: 3100;
-        }
-        .dropdown:hover .dropdown-content, .dropdown.active .dropdown-content {
-            display: block;
-        }
-        .dropdown-content a {
-            padding: 8px 12px;
-            border-radius: 8px;
-            white-space: nowrap;
-        }
+.menu-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-        /* Header Sub-bar */
-        header {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            color: #f0f0f0;
-            padding: 20px 30px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-        }
-        body.light-theme header {
-            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
-            color: #0f172a;
-        }
-        header h1 {
-            font-size: 1.8rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-        }
-        .meta-info {
-            text-align: right;
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
+/* 主題切換按鈕 */
+.theme-toggle-btn {
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  padding: 8px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  outline: none;
+}
+.theme-toggle-btn:hover {
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  transform: translateY(-1px);
+}
+.sun-icon {
+  display: block;
+}
+.moon-icon {
+  display: none;
+}
+body.light-theme .sun-icon {
+  display: none;
+}
+body.light-theme .moon-icon {
+  display: block;
+}
 
-        /* View Switch */
-        .view-switch {
-            margin-bottom: 15px;
-            display: flex;
-            gap: 10px;
-        }
-        .view-switch button {
-            padding: 10px 18px;
-            border: 1px solid var(--card-border);
-            border-radius: 8px;
-            background: var(--card-bg);
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 0.95rem;
-            font-weight: 500;
-            transition: all 0.25s ease;
-        }
-        .view-switch button.active {
-            background: #3b82f6;
-            color: #fff;
-            box-shadow: 0 3px 10px rgba(59, 130, 246, 0.3);
-            border-color: #3b82f6;
-        }
-        .view-switch button:hover:not(.active) {
-            background: var(--card-bg-light);
-            color: var(--text-main);
-        }
+.menu-toggle {
+  display: none;
+  font-size: 22px;
+  padding: 6px 12px;
+  cursor: pointer;
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.menu-toggle:hover {
+  border-color: var(--accent-blue);
+}
+.menu-toggle.active {
+  border-color: var(--accent-blue);
+  background: rgba(56, 189, 248, 0.12);
+}
 
-        /* Tab Panel */
-        .tab-wrapper {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 10px;
-            padding: 15px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-        }
-        .tab-group {
-            margin-bottom: 12px;
-        }
-        .group-title {
-            font-size: 1rem;
-            font-weight: 600;
-            color: var(--text-main);
-            margin: 0 0 10px 0;
-        }
-        .group-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            padding-left: 10px;
-        }
-        .tab-btn {
-            padding: 9px 14px;
-            border: 1px solid var(--card-border);
-            border-radius: 7px;
-            background: var(--card-bg-light);
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: all 0.25s ease;
-        }
-        .tab-btn.active {
-            background: #3b82f6;
-            color: #fff;
-            border-color: #3b82f6;
-            box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
-        }
-        .tab-btn:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.1);
-            color: var(--text-main);
-        }
+.nav {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.nav a {
+  color: var(--text-muted);
+  padding: 8px 14px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  display: block;
+}
+.nav a:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+body.light-theme .nav a:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
 
-        /* Main Layout */
-        .main-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        @media (max-width: 1024px) {
-            .main-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-        .map-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-            padding: 15px;
-            position: relative;
-        }
+/* ========== 下拉選單樣式 (Dropdown Style) ========== */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
 
-        /* 地圖與標記 CSS */
-        .wbgt-map-wrapper {
-            position: relative;
-            width: 100%;
-            border-radius: 12px;
-            overflow: hidden;
-            background-color: #a0c2e7;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        .map-image-container {
-            position: relative;
-            width: 100%;
-        }
-        .map-base-img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-        .map-pin {
-            position: absolute;
-            transform: translate(-50%, -50%);
-            z-index: 10;
-            cursor: pointer;
-            transition: transform 0.2s ease, z-index 0.2s;
-        }
-        .map-pin:hover {
-            transform: translate(-50%, -50%) scale(1.18);
-            z-index: 25;
-        }
-        .pin-badge {
-            padding: 4px 8px;
-            border-radius: 6px;
-            color: #ffffff;
-            font-weight: bold;
-            font-size: 0.92rem;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
-            white-space: nowrap;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.6);
-            position: relative;
-            border: 1px solid rgba(255,255,255,0.4);
-            text-align: center;
-        }
+.dropdown-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px 14px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  font-family: inherit;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 
-        /* Legend */
-        .map-legend {
-            position: absolute;
-            bottom: 15px;
-            right: 15px;
-            background: rgba(20, 20, 35, 0.92);
-            backdrop-filter: blur(8px);
-            color: #e0e0e0;
-            padding: 10px 12px;
-            border-radius: 8px;
-            font-size: 0.75rem;
-            box-shadow: 0 3px 12px rgba(0,0,0,0.35);
-            z-index: 15;
-            min-width: 130px;
-            border: 1px solid var(--card-border);
-        }
-        body.light-theme .map-legend {
-            background: rgba(255, 255, 255, 0.92);
-            color: #0f172a;
-        }
-        .map-legend h4 {
-            margin: 0 0 6px 0;
-            font-size: 0.8rem;
-            text-align: center;
-            border-bottom: 1px solid var(--card-border);
-            padding-bottom: 4px;
-        }
-        .legend-items {
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 4px;
-        }
-        .legend-color {
-            width: 12px;
-            height: 12px;
-            border-radius: 3px;
-            margin-right: 6px;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
+.dropdown-btn .arrow {
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
 
-        /* Timestamp */
-        .time-stamp, .time-stamp-indicator {
-            position: absolute;
-            background: rgba(20, 20, 35, 0.9);
-            color: #f0f0f0;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            z-index: 15;
-            border: 1px solid var(--card-border);
-            backdrop-filter: blur(4px);
-        }
-        body.light-theme .time-stamp, body.light-theme .time-stamp-indicator {
-            background: rgba(255, 255, 255, 0.9);
-            color: #0f172a;
-        }
-        .time-stamp {
-            top: 25px;
-            right: 25px;
-        }
-        .time-stamp-indicator {
-            top: 65px;
-            right: 25px;
-        }
+.dropdown:hover .dropdown-btn,
+.dropdown.active .dropdown-btn {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+body.light-theme .dropdown:hover .dropdown-btn,
+body.light-theme .dropdown.active .dropdown-btn {
+  background: rgba(0, 0, 0, 0.05);
+}
 
-        /* Dedicated Trend Chart Container */
-        .trend-card-wrapper {
-            min-height: 450px;
-            display: flex;
-            align-items: flex-start;
-            justify-content: center;
-        }
-        .empty-tip {
-            color: var(--text-muted);
-            font-size: 1rem;
-            margin-top: 50px;
-        }
-        .trend-card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-            padding: 20px;
-            border: 1px solid var(--card-border);
-            border-top: 4px solid var(--accent-blue);
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-        .trend-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--card-border);
-            padding-bottom: 12px;
-        }
-        .trend-card-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-        .trend-card-badge {
-            font-size: 0.85rem;
-            font-weight: 600;
-            color: var(--accent-blue);
-            background: var(--card-bg-light);
-            padding: 4px 10px;
-            border-radius: 12px;
-            border: 1px solid var(--card-border);
-        }
-        .trend-chart-box {
-            position: relative;
-            height: 380px;
-            width: 100%;
-        }
+.dropdown:hover .arrow,
+.dropdown.active .arrow {
+  transform: rotate(180deg);
+}
 
-        /* Table */
-        .table-container {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-        }
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-            font-size: 0.85rem;
-            color: var(--text-main);
-        }
-        .data-table th, .data-table td {
-            border: 1px solid var(--card-border);
-            padding: 11px;
-            text-align: center;
-        }
-        .data-table th {
-            background: var(--card-bg-light);
-            font-weight: 600;
-        }
-        .data-table tr:hover {
-            background: var(--card-bg-light);
-        }
-        .sort-buttons button {
-            padding: 6px 12px;
-            margin-left: 6px;
-            border: 1px solid var(--card-border);
-            border-radius: 5px;
-            background: var(--card-bg-light);
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-        }
-        .sort-buttons button:hover {
-            background: #3b82f6;
-            color: #fff;
-        }
-        .hide { display: none !important; }
+.dropdown-content {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 190px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  z-index: 3100;
+  margin-top: 4px;
 
-        @media (max-width: 768px) {
-            .menu-toggle { display: block; }
-            .nav {
-                display: none;
-                flex-direction: column;
-                position: absolute;
-                top: 100%;
-                right: 0;
-                background: var(--card-bg);
-                width: 200px;
-                padding: 10px;
-                border: 1px solid var(--card-border);
-                border-radius: 12px;
-                box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            }
-            .nav.active { display: flex; }
-            .pin-badge {
-                font-size: 0.72rem;
-                padding: 2px 5px;
-            }
-        }
-    </style>
+  /* Hidden state with fade-out delay */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0s linear 0.4s;
+}
+
+/* Hover Bridge: Bridge the gap between the button and the menu */
+.dropdown-content::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 0;
+  width: 100%;
+  height: 8px;
+}
+
+body.light-theme .dropdown-content {
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.dropdown:hover .dropdown-content,
+.dropdown.active .dropdown-content {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.25s ease, visibility 0s linear 0s;
+}
+
+.dropdown-content a {
+  padding: 8px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+  font-size: 0.88rem;
+}
+
+/* ========== 3. 首頁快捷鏈接模塊 ========== */
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 15px 0 25px 0;
+  width: 100%;
+}
+.link-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 10px;
+  border-radius: 14px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--text-main);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  transition: all 0.25s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.link-box.weather {
+  background: linear-gradient(135deg, rgba(20, 83, 116, 0.35), rgba(15, 23, 42, 0.6));
+  border-color: rgba(56, 189, 248, 0.3);
+}
+.link-box.flood {
+  background: linear-gradient(135deg, rgba(13, 110, 110, 0.35), rgba(15, 23, 42, 0.6));
+  border-color: rgba(45, 212, 191, 0.3);
+}
+.link-box.map {
+  background: linear-gradient(135deg, rgba(88, 28, 135, 0.35), rgba(15, 23, 42, 0.6));
+  border-color: rgba(192, 132, 252, 0.3);
+}
+body.light-theme .link-box.weather {
+  background: linear-gradient(135deg, rgba(186, 230, 253, 0.5), rgba(255, 255, 255, 0.9));
+}
+body.light-theme .link-box.flood {
+  background: linear-gradient(135deg, rgba(153, 246, 228, 0.5), rgba(255, 255, 255, 0.9));
+}
+body.light-theme .link-box.map {
+  background: linear-gradient(135deg, rgba(233, 213, 255, 0.5), rgba(255, 255, 255, 0.9));
+}
+.link-box:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-blue);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.2);
+}
+
+/* ========== 4. 警告卡片 ========== */
+.warning-card {
+  margin: 20px 0;
+  border-radius: 16px;
+  background: var(--bg-red);
+  border: 1px solid var(--border-red);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.1);
+  overflow: hidden;
+}
+.warning-header {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-red);
+}
+body.light-theme .warning-header {
+  color: #991b1b;
+  background: rgba(239, 68, 68, 0.15);
+}
+.warning-title-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.warning-item {
+  display: flex;
+  gap: 18px;
+  padding: 20px;
+  align-items: center;
+}
+.icon-box {
+  width: 70px;
+  height: 70px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 8px;
+}
+body.light-theme .icon-box {
+  background: rgba(255, 255, 255, 0.6);
+}
+.icon-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.text-box {
+  flex: 1;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: #fecfcf;
+  text-align: left;
+}
+body.light-theme .text-box {
+  color: #7f1d1d;
+}
+.divider {
+  height: 1px;
+  background: rgba(239, 68, 68, 0.2);
+  margin: 0 20px;
+}
+.tc-btn {
+  background: var(--accent-red);
+  color: #ffffff;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+  border: none;
+}
+.tc-btn:hover {
+  background: #dc2626;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.tc-forecast-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.tc-forecast-title {
+  white-space: nowrap;
+}
+.tc-update-time {
+  font-size: 13px;
+  font-weight: normal;
+  color: #fca5a5;
+  opacity: 0.85;
+  text-align: right;
+}
+body.light-theme .tc-update-time {
+  color: #991b1b;
+}
+.tc-table-wrap {
+  padding: 16px 20px;
+}
+.tc-warning-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #fecfcf;
+}
+body.light-theme .tc-warning-table {
+  color: #7f1d1d;
+}
+.tc-warning-table th,
+.tc-warning-table td {
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 12px 10px;
+  text-align: center;
+  font-size: 14px;
+}
+.tc-warning-table th {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #ffffff;
+  font-weight: 600;
+}
+body.light-theme .tc-warning-table th {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #991b1b;
+}
+.tc-warning-table tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+body.light-theme .tc-warning-table tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* ========== 5. 橙色提示框 ========== */
+.box {
+  margin: 20px 0;
+  border-radius: 16px;
+  background: var(--bg-orange);
+  border: 1px solid var(--border-orange);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.08);
+  overflow: hidden;
+}
+.header-orange {
+  background: rgba(245, 158, 11, 0.25);
+  color: var(--accent-yellow);
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border-orange);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+body.light-theme .header-orange {
+  color: #9a3412;
+  background: rgba(245, 158, 11, 0.15);
+}
+.content-yellow {
+  padding: 20px;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: #fef08a;
+}
+body.light-theme .content-yellow {
+  color: #78350f;
+}
+
+/* ========== 6. 澳門整點實時天氣 ========== */
+.three-tab-weather-wrap {
+  margin: 20px 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+}
+.three-tab-header {
+  display: flex;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--card-border);
+}
+body.light-theme .three-tab-header {
+  background: rgba(0, 0, 0, 0.02);
+}
+.three-tab-item {
+  flex: 1;
+  padding: 16px;
+  text-align: center;
+  color: var(--accent-blue);
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(56, 189, 248, 0.05);
+}
+.three-tab-content-box {
+  padding: 24px;
+}
+.tab-panel {
+  display: none;
+}
+.tab-panel.active {
+  display: block;
+}
+
+#load-tip {
+  color: var(--text-muted);
+}
+#error-tip {
+  color: var(--accent-red);
+}
+.weather-item {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 12px !important;
+  transition: transform 0.2s;
+}
+body.light-theme .weather-item {
+  background: rgba(0, 0, 0, 0.02) !important;
+}
+.weather-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.3) !important;
+}
+.weather-item div:first-child {
+  color: var(--text-muted) !important;
+}
+.weather-item div:last-child {
+  color: var(--text-main) !important;
+}
+#temp-value {
+  color: var(--accent-blue) !important;
+  font-size: 44px !important;
+  font-weight: 800 !important;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+#feels-desc {
+  color: var(--accent-teal) !important;
+}
+.publishing-time {
+  color: var(--text-muted) !important;
+}
+
+.weather-label-title {
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ========== 7. 天氣預報 & 圖表並排模塊 ========== */
+.forecast-chart-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 10px 0;
+  align-items: stretch;
+}
+.forecast-tab-wrap {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  background: var(--card-bg);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.chart-wrap {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  background: var(--card-bg);
+  display: flex;
+  flex-direction: column;
+  height: 460px;
+}
+.tab-header, .chart-btn-bar {
+  display: flex;
+  gap: 8px;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid var(--card-border);
+  align-items: center;
+}
+body.light-theme .tab-header,
+body.light-theme .chart-btn-bar {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.tab-btn, .chart-btn {
+  flex: 1;
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  background: var(--card-bg-light);
+  color: var(--text-muted);
+  padding: 8px 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: center;
+}
+.tab-btn.active, .chart-btn.active {
+  background: var(--accent-blue);
+  color: #ffffff;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+.tab-btn:hover:not(.active), .chart-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+}
+body.light-theme .tab-btn:hover:not(.active), 
+body.light-theme .chart-btn:hover:not(.active) {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.tab-content-box {
+  padding: 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow-y: auto;
+}
+.tab-content {
+  display: none;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--text-main);
+}
+.tab-content.active {
+  display: block;
+}
+
+.forecast-time-bottom {
+  text-align: right;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-top: 15px;
+}
+
+.valid-time-row {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-teal);
+  background: rgba(45, 212, 191, 0.1);
+  border: 1px solid rgba(45, 212, 191, 0.25);
+  padding: 6px 12px;
+  border-radius: 8px;
+  display: block;
+  margin-bottom: 14px;
+  width: fit-content;
+}
+
+.chart-date-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-teal);
+  margin-left: auto;
+}
+.chart-container {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  padding: 15px 20px 20px 20px;
+  box-sizing: border-box;
+}
+
+/* ========== 8. 七日天氣預報橫向卡片組 ========== */
+.seven-day-scroll-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 2px 10px 2px;
+  scroll-behavior: smooth;
+}
+.seven-day-scroll-row::-webkit-scrollbar {
+  height: 6px;
+}
+.seven-day-scroll-row::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+body.light-theme .seven-day-scroll-row::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+}
+.seven-day-scroll-row::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+body.light-theme .seven-day-scroll-row::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.forecast-card-mini {
+  flex: 0 0 175px;
+  min-width: 175px;
+  background: rgba(18, 26, 43, 0.85);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+body.light-theme .forecast-card-mini {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.forecast-card-mini:hover {
+  border-color: var(--accent-blue);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(56, 189, 248, 0.15);
+}
+
+.card-top {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+body.light-theme .card-top {
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+.card-middle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 0;
+}
+
+.card-middle .card-icon-large {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
+}
+
+.card-middle .temp-range-text {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--accent-blue);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.card-middle .humid-range-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-teal);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.card-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 8px;
+}
+body.light-theme .card-bottom {
+  border-top-color: rgba(0, 0, 0, 0.08);
+}
+
+.card-condition {
+  font-size: 12px;
+  color: var(--text-main);
+  line-height: 1.5;
+  white-space: normal;
+  word-break: break-word;
+  overflow: visible;
+}
+
+/* ========== 9. 響應式適配 ========== */
+@media (max-width: 768px) {
+  .header-nav-container {
+    padding: 0.75rem 1rem;
+  }
+  .menu-toggle {
+    display: block;
+  }
+  .nav {
+    display: none;
+    flex-direction: column;
+    width: 230px;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    align-items: stretch;
+  }
+  body.light-theme .nav {
+    background: rgba(255, 255, 255, 0.98);
+  }
+  .nav a {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+  }
+  .nav.active {
+    display: flex;
+  }
+
+  /* 行動端下拉選單調整 */
+  .dropdown {
+    width: 100%;
+  }
+  .dropdown-btn {
+    width: 100%;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: 8px;
+  }
+  .dropdown-content {
+    position: static;
+    box-shadow: none;
+    border: none;
+    background: rgba(255, 255, 255, 0.03);
+    margin-top: 4px;
+    padding-left: 10px;
+    border-left: 2px solid var(--accent-blue);
+    border-radius: 0 8px 8px 0;
+  }
+  body.light-theme .dropdown-content {
+    background: rgba(0, 0, 0, 0.03);
+  }
+
+  .forecast-chart-row {
+    grid-template-columns: 1fr;
+  }
+  .chart-wrap {
+    height: 380px;
+  }
+  .quick-links {
+    grid-template-columns: 1fr;
+  }
+  .tc-forecast-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .tc-update-time {
+    text-align: left;
+  }
+}
+
+@media (min-width: 769px) {
+  .nav {
+    display: flex !important;
+  }
+  .menu-toggle {
+    display: none !important;
+  }
+}
+
+@media (max-width: 375px) {
+  .link-box {
+    padding: 14px 6px;
+    font-size: 12px;
+  }
+  .nav {
+    width: calc(100vw - 30px);
+  }
+}
+</style>
 </head>
+
 <body>
 
-<!-- 頂欄 Navigation -->
 <div class="header-nav-container">
-    <div class="header-logo-group">
-        <img src="icons/MSSO.png" class="logo" alt="MSSO Logo">
-        <div class="title">
-            澳門民間氣象台 MSSO
-            <span id="headerClock" class="header-clock"></span>
-        </div>
+  <div class="header">
+    <img src="icons/MSSO.png" class="logo" alt="MSSO Logo">
+    <div class="title">
+      澳門民間氣象台 MSSO
+      <span id="headerClock" class="header-clock"></span>
     </div>
+  </div>
 
-    <div class="menu-container">
-        <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
-            <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-            <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        </button>
+  <div class="menu-container">
+    <!-- 切換主題按鈕 (太陽 / 月亮圖標) -->
+    <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+      <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
 
-        <div class="menu-toggle" onclick="toggleMenu()">☰</div>
-        <div class="nav" id="navMenu">
-            <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+    <div class="nav" id="navMenu">
+      <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
 
-            <div class="dropdown">
-                <button class="dropdown-btn">天氣 <span class="arrow">▼</span></button>
-                <div class="dropdown-content">
-                    <a href="https://macaosso.github.io/Apparent_Temperature/">溫度計算</a>
-                    <a href="map.html" class="active">澳門綜合氣象實況</a>
-                    <a href="moWGBT.html">澳門暑熱指數(WBGT)</a>
-                    <a href="https://macaosso.github.io/MSSOweb/morain.html">澳門降雨預報</a>
-                    <a href="https://macaosso.github.io/MSSOweb/moweather.html">澳門天氣實況及預報</a>
-                    <a href="https://macaosso.github.io/MSSOweb/AQImap.html">澳門空氣質量實況</a>
-                </div>
-            </div>
-
-            <div class="dropdown">
-                <button class="dropdown-btn">熱帶氣旋 <span class="arrow">▼</span></button>
-                <div class="dropdown-content">
-                    <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
-                    <a href="https://macaosso.github.io/MSSOweb/TCtracker.html">熱帶氣旋襲澳追蹤</a>
-                    <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋計算工具</a>
-                    <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑GIS地圖</a>
-                </div>
-            </div>
-
-            <div class="dropdown">
-                <button class="dropdown-btn">天文 <span class="arrow">▼</span></button>
-                <div class="dropdown-content">
-                    <a href="https://macaosso.github.io/MSSOweb/astro.html">天文專頁</a>
-                </div>
-            </div>
-
-            <div class="dropdown">
-                <button class="dropdown-btn">其他 <span class="arrow">▼</span></button>
-                <div class="dropdown-content">
-                    <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
-                    <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
-                </div>
-            </div>
+      <!-- 天氣 下拉選單 -->
+      <div class="dropdown">
+        <button class="dropdown-btn">天氣 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/moWGBT.html">暑熱指數 WBGT</a>
+          <a href="map.html">澳門綜合氣象實況</a>
+          <a href="https://macaosso.github.io/MSSOweb/morain.html">澳門降雨預報</a>
+          <a href="https://macaosso.github.io/MSSOweb/moweather.html">澳門天氣實況及預報</a>
+          <a href="https://macaosso.github.io/MSSOweb/AQImap.html">澳門空氣質量實況</a>
         </div>
+      </div>
+
+      <!-- 熱帶氣旋 下拉選單 -->
+      <div class="dropdown">
+        <button class="dropdown-btn">熱帶氣旋 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
+          <a href="https://macaosso.github.io/MSSOweb/TCtracker.html">熱帶氣旋襲澳追蹤</a>
+          <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋計算工具</a>
+          <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑GIS地圖</a>
+        </div>
+      </div>
+      
+      <div class="dropdown">
+        <button class="dropdown-btn">天文 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/astro.html">天文專頁</a>
+        </div>
+      </div>
+      
+      <div class="dropdown">
+        <button class="dropdown-btn">氣候 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+            <a href="https://macaosso.github.io/MSSOweb/climate.html">氣候專頁</a>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-btn">地球物理 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="earthquake.html" class="active">地震專頁</a>
+          <a href="https://macaosso.github.io/MSSOweb/tsunami.html">海嘯專頁</a>
+        </div>
+      </div>
+      
+      <!-- 其他 下拉選單 -->
+      <div class="dropdown">
+        <button class="dropdown-btn">其他 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+          <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 
-<div class="container">
-    <header>
+<div class="page-wrapper">
+
+  <div class="warning-card" id="tcCard">
+    <div class="warning-header">
+      <span class="warning-title-text">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3a9 9 0 0 0-9 9c0 2.5 1 4.8 2.6 6.4"/><path d="M12 21a9 9 0 0 0 9-9c0-2.5-1-4.8-2.6-6.4"/></svg>
+        熱帶氣旋
+      </span>
+      <a href="https://macaosso.github.io/MSSOweb/tc_gis.html" class="tc-btn">查看路徑</a>
+    </div>
+    <div id="tcContent"></div>
+  </div>
+
+  <div class="warning-card" id="tcForecastTableCard" style="display: none;">
+    <div class="warning-header tc-forecast-header-row">
+      <div class="tc-forecast-title" id="tableMainTitle"></div>
+      <div class="tc-update-time" id="tableUpdateTime"></div>
+    </div>
+    <div class="tc-table-wrap" id="tcTableContent"></div>
+  </div>
+
+  <div class="warning-card" id="warnCard">
+    <div class="warning-header">
+      <span class="warning-title-text">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        天氣警告
+      </span>
+    </div>
+    <div id="warnContent"></div>
+  </div>
+
+  <div id="swtBox" class="box">
+    <div class="header-orange">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      特別天氣提示
+    </div>
+    <div id="swtContent" class="content-yellow"></div>
+  </div>
+
+  <div id="alertBox" class="box">
+    <div class="header-orange">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      預警提示
+    </div>
+    <div id="alertContent" class="content-yellow"></div>
+  </div>
+
+  <!-- 天文潮特別提示 -->
+  <div id="tideBox" class="box">
+    <div class="header-orange">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c5-4 7 4 10 0s7 4 10 0"/><path d="M2 18c5-4 7 4 10 0s7 4 10 0"/></svg>
+      天文潮特別提示
+    </div>
+    <div id="tideContent" class="content-yellow"></div>
+  </div>
+
+  <div class="three-tab-weather-wrap">
+    <div class="three-tab-header">
+      <div class="three-tab-item active" data-tab="hourly">
+        整點天氣
+      </div>
+    </div>
+
+    <div class="three-tab-content-box">
+      <div class="tab-panel active" id="panel-hourly">
+        <div class="hourly-weather-wrap" style="padding: 10px 0;">
+          <div id="load-tip" style="text-align: center; font-size: 15px; padding: 15px 0;">
+            正在載入澳門整點實時天氣數據...
+          </div>
+
+          <div id="weather-main">
+            <div style="font-size: 16px; font-weight: 700; color: var(--accent-blue); margin-bottom: 6px;">
+              實時氣溫
+            </div>
+            <div class="publishing-time" style="margin-bottom: 20px; font-size: 14px;">
+              數據發布時間：<span id="pub-time">載入中...</span>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 25px; flex-wrap: wrap; margin-bottom: 25px;">
+              <div>
+                <img id="weather-icon" alt="天氣圖標" style="width: 76px; height: 76px; filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.4));">
+              </div>
+              <div>
+                <div id="temp-value">
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+                  <span id="temp-num">-- °C</span>
+                </div>
+                <div id="feels-desc" style="font-size: 16px; margin-top: 6px; font-weight: 500;">體感溫度：--</div>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+              <div class="weather-item" style="padding: 16px;">
+                <div class="weather-label-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                  相對濕度
+                </div>
+                <div id="hum-value" style="font-size: 18px; font-weight: 700; margin-top: 6px;">--</div>
+              </div>
+              <div class="weather-item" style="padding: 16px;">
+                <div class="weather-label-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+                  風速
+                </div>
+                <div id="wind-speed" style="font-size: 18px; font-weight: 700; margin-top: 6px;">--</div>
+              </div>
+              <div class="weather-item" style="padding: 16px;">
+                <div class="weather-label-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 19 21 12 17 5 21 12 2"/></svg>
+                  風向
+                </div>
+                <div id="wind-dir" style="font-size: 18px; font-weight: 700; margin-top: 6px;">--</div>
+              </div>
+              <div class="weather-item" style="padding: 16px;">
+                <div class="weather-label-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                  紫外線指數
+                </div>
+                <div id="uv-value" style="font-size: 18px; font-weight: 700; margin-top: 6px;">--</div>
+              </div>
+            </div>
+          </div>
+
+          <div id="error-tip" style="display: none; text-align: center; padding: 30px 0;">
+            數據載入失敗，請稍後重試
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 預報 & 圖表 並排模塊 -->
+  <div class="forecast-chart-row">
+    <div class="forecast-tab-wrap">
+      <div class="tab-header">
+        <button class="tab-btn active" data-index="0">天氣概況</button>
+        <button class="tab-btn" data-index="1">今日天氣</button>
+        <button class="tab-btn" data-index="2">明日天氣</button>
+      </div>
+      <div class="tab-content-box">
         <div>
-            <h1>澳門各氣象站數據</h1>
-            <small style="color: #2ecc71;">● 點擊地圖標記查看歷年/歷史走勢圖 | 切換分類查看不同指標</small>
+          <div class="tab-content active" id="tab0"></div>
+          <div class="tab-content" id="tab1"></div>
+          <div class="tab-content" id="tab2"></div>
         </div>
-        <div class="meta-info">
-            <div>更新時間：<span id="pub-date">載入中...</span></div>
-            <div>每5分鐘自動刷新</div>
-        </div>
-    </header>
-
-    <!-- 地圖/表格 切換按鈕 -->
-    <div class="view-switch">
-        <button id="btn-map" class="active">地圖</button>
-        <button id="btn-table">表格</button>
+        
+        <div id="forecastTime" class="forecast-time-bottom">發佈時間：2026-08-12 21:00</div>
+      </div>
     </div>
 
-    <!-- 分類折疊面板 -->
-    <div class="tab-wrapper" id="main-tab">
-        <div class="tab-group">
-            <h3 class="group-title">氣象數據</h3>
-            <div class="group-buttons show">
-                <button class="tab-btn active" data-type="tempCurrent">實時氣溫 (°C)</button>
-                <button class="tab-btn" data-type="tempMax">最高氣溫 (°C)</button>
-                <button class="tab-btn" data-type="tempMin">最低氣溫 (°C)</button>
-                <button class="tab-btn" data-type="apparentTemp">體感溫度 (°C)</button>
-                <button class="tab-btn" data-type="heatIndex">酷熱指數 (°C)</button>
-                <button class="tab-btn" data-type="wbgt">黑球濕球溫度(°C)</button>
-                <button class="tab-btn" data-type="dewPoint">露點溫度 (°C)</button>
-                <button class="tab-btn" data-type="humidity">相對濕度 (%)</button>
-                <button class="tab-btn" data-type="windDir">風向</button>
-                <button class="tab-btn" data-type="windSpeed">風速 (km/h)</button>
-                <button class="tab-btn" data-type="windGust">陣風 (km/h)</button>
-                <button class="tab-btn" data-type="rain1m">一分鐘雨量(mm)</button>
-                <button class="tab-btn" data-type="rain1h">一小時雨量(mm)</button>
-                <button class="tab-btn" data-type="rainTotal">日累積雨量(mm)</button>
-                <button class="tab-btn" data-type="pressSea">海平面氣壓 (hPa)</button>
-                <button class="tab-btn" data-type="pressStation">站氣壓 (hPa)</button>
-            </div>
+    <div class="chart-wrap">
+      <div class="chart-btn-bar">
+        <div class="btn-group">
+          <button class="chart-btn active" data-type="24h">24小時氣溫</button>
+          <button class="chart-btn" data-type="7d">7日氣溫</button>
         </div>
-        <div class="tab-group">
-            <h3 class="group-title">水位</h3>
-            <div class="group-buttons show">
-                <button class="tab-btn" data-type="waterLevel">實時水位 (m)</button>
-            </div>
-        </div>
+        <div class="chart-date-text" id="chartDate"></div>
+      </div>
+      <div class="chart-container">
+        <canvas id="tempChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="three-tab-weather-wrap" style="margin-top: 25px;">
+    <div class="three-tab-header">
+      <div class="three-tab-item active">
+        七日天氣預報
+      </div>
     </div>
 
-    <!-- 地圖視圖 -->
-    <div class="main-layout" id="map-view">
-        <div class="map-card">
-            <div class="wbgt-map-wrapper">
-                <div class="map-image-container">
-                    <img src="map.png" alt="澳門氣象地圖" class="map-base-img">
-                    <div id="stationPinsGroup"></div>
-                    <div id="time-stamp" class="time-stamp"></div>
-                    <div id="current-indicator" class="time-stamp-indicator"></div>
-                </div>
-            </div>
-
-            <div id="map-legend" class="map-legend">
-                <h4>圖例</h4>
-                <div id="legend-content" class="legend-items"></div>
-            </div>
-        </div>
-
-        <!-- Trend Chart Only Container -->
-        <div id="trend-card-box" class="trend-card-wrapper">
-            <div class="empty-tip">請點擊地圖上標記查看歷史走勢圖</div>
-        </div>
+    <div class="three-tab-content-box" style="padding: 18px 16px;">
+      <div id="7day-xml-loading" style="text-align: center; font-size: 15px; padding: 25px 0; color: var(--text-muted);">
+        正在載入七日天氣預報數據...
+      </div>
+      <div id="7day-xml-error" style="display: none; text-align: center; padding: 25px 0; color: var(--accent-red);">
+        七日預報數據載入失敗，請稍後重試
+      </div>
+      <div id="7day-xml-container" class="seven-day-scroll-row"></div>
     </div>
+  </div>
 
-    <!-- 表格視圖 -->
-    <div id="table-view" class="hide">
-        <div class="table-container">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:10px;">
-                <div id="table-title" style="font-size:1.1rem;font-weight:bold;">數據表格</div>
-                <div class="sort-buttons">
-                    <button class="sort-btn" data-sort="default">預設</button>
-                    <button class="sort-btn" data-sort="desc">高至低</button>
-                    <button class="sort-btn" data-sort="asc">低至高</button>
-                </div>
-            </div>
-            <table class="data-table" id="data-table">
-                <thead><tr><th>測站名稱</th><th>站代碼</th><th>數值</th></tr></thead>
-                <tbody id="table-body"></tbody>
-            </table>
-        </div>
-    </div>
 </div>
 
+<script src="webdata.js"></script>
 <script>
-// ========== 1. 物理常數 & WBGT 計算 ==========
-const sigma = 5.670374419e-8; 
-const eps = 0.95;             
-
-function calculateApparentTemp(T, RH, windSpeedKmH) {
-    const V = windSpeedKmH / 3.6;
-    const e = (RH / 100) * 6.105 * Math.exp((17.27 * T) / (237.7 + T));
-    const apparentTemp = 1.04 * T + 0.2 * e - 0.65 * V - 2.7;
-    return isNaN(apparentTemp) ? '--' : apparentTemp.toFixed(1);
-}
-function calculateHeatIndex(T, RH) {
-    if (isNaN(T) || isNaN(RH)) return '--';
-    let hi = -8.7846947556 + 1.61139411 * T + 2.3385488388 * RH
-             - 0.14611605 * T * RH - 0.012308094 * Math.pow(T, 2)
-             - 0.0164248278 * Math.pow(RH, 2)
-             + 0.0002211732 * Math.pow(T, 2) * RH
-             + 0.00072546 * T * Math.pow(RH, 2)
-             - 0.000003582 * Math.pow(T, 2) * Math.pow(RH, 2);
-    return hi.toFixed(1);
-}
-function calculateDewPoint(T, RH) {
-    if (isNaN(T) || isNaN(RH) || RH <= 0) return '--';
-    const a = 17.27;
-    const b = 237.7;
-    const gamma = (a * T) / (b + T) + Math.log(RH / 100);
-    const dew = (b * gamma) / (a - gamma);
-    return dew.toFixed(1);
-}
-
-function calcTnw(Ta, RH) {
-    if(isNaN(Ta)||isNaN(RH)) return NaN;
-    let part1 = Math.atan(0.151977 * Math.sqrt(RH + 8.313659));
-    let part2 = Math.atan(Ta + RH);
-    let part3 = Math.atan(RH - 1.676331);
-    let part4 = 0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH);
-    return Ta * part1 + part2 - part3 + part4 - 4.686035;
-}
-function calcHc(Va) {
-    if(isNaN(Va)) return NaN;
-    let v_ms = Math.max(Va / 3.6, 0.1); 
-    return 6.3 * Math.pow(v_ms, 0.6) / Math.pow(0.15, 0.4);
-}
-function solveTg(TaC, Va) {
-    const TaK = TaC + 273.15;
-    const hc = calcHc(Va);
-    if (isNaN(hc)) return NaN;
-    let TgK = TaK + 3;
-    let TmrtK = TaK + 12;
-    for(let iter=0; iter<15; iter++){
-        const Tmrt4 = Math.pow(TmrtK, 4);
-        const newTgK = ( eps*sigma*Tmrt4 + hc*TaK ) / ( eps*sigma*Math.pow(TgK,3) + hc );
-        TgK = newTgK;
-    }
-    return TgK - 273.15;
-}
-function calcWBGT(Ta, RH, windKmH){
-    if(isNaN(Ta)||isNaN(RH)||isNaN(windKmH)) return '--';
-    let Tnw = calcTnw(Ta, RH);
-    let Tg = solveTg(Ta, windKmH);
-    if(isNaN(Tnw)||isNaN(Tg)) return '--';
-    return (0.7*Tnw + 0.2*Tg + 0.1*Ta).toFixed(1);
-}
-
-// ========== 2. 測站坐標與百分比對應 ==========
-const stationCoordinates = {
-    "紀念孫中山市政公園": { code: "DP", top: 7.0, left: 36.0 },
-    "黑沙環":           { code: "EM", top: 13.0, left: 44.0 },
-    "大炮台":           { code: "FM", top: 22.0, left: 33.0 },
-    "外港":             { code: "PE", top: 22.0, left: 45.5 },
-    "媽閣":             { code: "MM", top: 31.0, left: 28.0 },
-    "西灣大橋":         { code: "PV", top: 38.0, left: 26.0 },
-    "友誼大橋北":       { code: "PN", top: 20.0, left: 55.0 },
-    "友誼大橋南":       { code: "PS", top: 32.0, left: 54.0 },
-    "嘉樂庇總督大橋":   { code: "PG", top: 35.0, left: 38.0 },
-    "澳門大橋北":       { code: "MN", top: 26.0, left: 61.0 },
-    "澳門大橋南":       { code: "MS", top: 36.0, left: 60.0 },
-    "東亞運大馬路":     { code: "JA", top: 53.5, left: 34.0 },
-    "大潭山":           { code: "TG", top: 53.0, left: 49.5 },
-    "蓮花大橋":         { code: "LH", top: 68.0, left: 29.0 },
-    "澳門大學":         { code: "UM", top: 78.0, left: 35.0 },
-    "九澳":             { code: "KV", top: 75.0, left: 60.5 },
-    "路環市區":         { code: "DC", top: 86.5, left: 40.5 }
-};
-
-const floodCoordinates = {
-    "青洲河邊馬路": { top: 8.0, left: 29.0 },
-    "花地瑪教會街": { top: 9.0, left: 39.0 },
-    "紅街市":       { top: 15.0, left: 34.0 },
-    "光復街":       { top: 18.0, left: 35.0 },
-    "永樂戲院":     { top: 18.0, left: 32.0 },
-    "內港北":       { top: 21.0, left: 27.0 },
-    "內港":         { top: 23.0, left: 27.0 },
-    "康公廟":       { top: 24.0, left: 29.0 },
-    "司打口":       { top: 27.0, left: 28.0 },
-    "內港南":       { top: 29.0, left: 25.0 },
-    "下環街":       { top: 30.0, left: 27.0 },
-    "菜園路":       { top: 53.0, left: 54.0 },
-    "沙維斯街":     { top: 54.0, left: 43.0 },
-    "柯維納馬路":   { top: 54.0, left: 40.0 },
-    "益隆":         { top: 56.0, left: 54.0 },
-    "松樹尾":       { top: 57.0, left: 51.0 },
-    "黑橋街":       { top: 58.0, left: 50.0 },
-    "石排灣":       { top: 78.0, left: 52.0 },
-    "聖方濟各堂":   { top: 86.0, left: 41.0 }
-};
-
-// 欄位對應
-const fieldMap = {
-    tempCurrent: {field:'temp', label:'實時氣溫', unit:'℃'},
-    tempMax: {field:'tempMax', label:'最高氣溫', unit:'℃'},
-    tempMin: {field:'tempMin', label:'最低氣溫', unit:'℃'},
-    apparentTemp: {field:'apparentTemp', label:'體感溫度', unit:'℃'},
-    heatIndex: {field:'heatIndex', label:'酷熱指數', unit:'℃'},
-    wbgt:{field:'wbgt',label:'綜合溫度熱指數WBGT',unit:'℃'},
-    dewPoint: {field:'dewPoint', label:'露點溫度', unit:'℃'},
-    humidity: {field:'humidity', label:'相對濕度', unit:'%'},
-    windDir: {field:'windDir', label:'風向', unit:''},
-    windSpeed: {field:'windSpeed', label:'風速', unit:'km/h'},
-    windGust: {field:'windGust', label:'陣風', unit:'km/h'},
-    rain1m:{field:'rain1m',label:'一分鐘雨量',unit:'mm'},
-    rain1h:{field:'rain1h',label:'一小時雨量',unit:'mm'},
-    rainTotal:{field:'rainTotal',label:'日累積雨量',unit:'mm'},
-    pressSea: {field:'pressSea', label:'海平面氣壓', unit:'hPa'},
-    pressStation: {field:'pressStation', label:'站氣壓', unit:'hPa'},
-    waterLevel: {field:'waterLevel', label:'實時水位', unit:'m'}
-};
-
-// ========== 3. 數據色標函數 ==========
-function getTempColor(tempStr) {
-    const temp = parseFloat(tempStr);
-    if (isNaN(temp)) return "#78797a";
-    if (temp >= 37.5) return "#330101";
-    if (temp >= 35.5) return "#8d1919";
-    if (temp >= 32.5) return "#f12828";
-    if (temp >= 27.5) return "#ff7a00";
-    if (temp >= 22.5) return "#b37802";
-    if (temp >= 17.5) return "#919107";
-    if (temp >= 12.5) return "#19aa75";
-    if (temp >= 7.5)  return "#0d517a";
-    if (temp >= 3.5)  return "#141970";
-    return "#300c46";
-}
-function getHeatIndexColor(hiStr) {
-    const hi = parseFloat(hiStr);
-    if (isNaN(hi)) return "#78797a";
-    if (hi >= 54.5) return "#000000";
-    if (hi >= 49.5) return "#ff0000";
-    if (hi >= 44.5) return "#e06c00";
-    if (hi >= 39.5) return "#c9b200";
-    if (hi >= 35.5) return "#38b000";
-    return "#0077b6";
-}
-function getWBGTColor(wbgtStr){
-    let w=parseFloat(wbgtStr);
-    if(isNaN(w)) return "#78797a";
-    if(w>=33) return "#000000";
-    if(w>=31) return "#ff0000";
-    if(w>=28) return "#e06c00";
-    if(w>=25) return "#c9b200";
-    if(w>=21) return "#38b000";
-    return "#0077b6";
-}
-function getHumidityColor(humStr) {
-    const hum = parseFloat(humStr);
-    if (isNaN(hum)) return "#78797a";
-    if (hum >= 94.5) return "#071770";
-    if (hum >= 84.5) return "#147ccd";
-    if (hum >= 49.5) return "#0b8743";
-    if (hum >= 30.5) return "#96592d";
-    return "#641515";
-}
-function getDewColor(dewStr) {
-    const dew = parseFloat(dewStr);
-    if (isNaN(dewStr)) return "#78797a";
-    if (dew >= 28)  return "#470f64";
-    if (dew >= 24)  return "#a82020";
-    if (dew >= 18)  return "#347b28";
-    if (dew >= 12)  return "#8f6825";
-    return "#8a462b";
-}
-function getWindColor(windStr) {
-    const wind = parseFloat(windStr);
-    if (isNaN(wind)) return "#78797a";
-    if (wind >= 117.5) return "#6a0606";
-    if (wind >= 87.5)  return "#b1510d";
-    if (wind >= 62.5)  return "#7f710b";
-    if (wind >= 40.5)  return "#154c83";
-    return "#11750a";
-}
-function getPressSeaColor(pressStr) {
-    const press = parseFloat(pressStr);
-    if (isNaN(pressStr)) return "#78797a";
-    if (press < 980)    return "#571b7a";
-    if (press < 990)    return "#b42121";
-    if (press < 1000)   return "#757012";
-    return "#2b7c42";
-}
-function getRain1mColor(valStr) {
-    const v = parseFloat(valStr);
-    if (isNaN(v)) return "#78797a";
-    if (v >= 1.8) return "#6a0c7a";
-    if (v >= 1.4) return "#000000";
-    if (v >= 0.8) return "#921818";
-    if (v >= 0.4) return "#878e14";
-    if (v >= 0.2) return "#227192";
-    return "#636363";
-}
-function getRain1hColor(valStr) {
-    const v = parseFloat(valStr);
-    if (isNaN(v)) return "#78797a";
-    if (v >= 100.0) return "#6a0c7a";
-    if (v >= 80.0) return "#020000";
-    if (v >= 50.0) return "#921818";
-    if (v >= 20.0) return "#878e14";
-    if (v >= 10.0) return "#149f37";
-    if (v >= 0.1) return "#227192";
-    return "#636363";
-}
-function getRainTotalColor(valStr) {
-    const v = parseFloat(valStr);
-    if (isNaN(v)) return "#78797a";
-    if (v >= 350.0) return "#000000";
-    if (v >= 200.0) return "#921818";
-    if (v >= 100.0) return "#e86119";
-    if (v >= 50.0) return "#878e14";
-    if (v >= 0.1) return "#227192";
-    return "#636363";
-}
-function getPressStationColor(pressStr) {
-    const press = parseFloat(pressStr);
-    if (isNaN(press)) return "#78797a";
-    if (press < 965)    return "#571b7a";
-    if (press < 975)    return "#b42121";
-    if (press < 985)    return "#757012";
-    return "#2b7c42";
-}
-function getWaterLevelColor(wlStr) {
-    const wl = parseFloat(wlStr);
-    if (isNaN(wl)) return "#78797a";
-    if (wl >= 2.50)     return "#000000";
-    if (wl >= 1.49)     return "#c61e05";
-    if (wl >= 1.00)     return "#ff7200";
-    if (wl >= 0.50)     return "#c4ab08";
-    if (wl >= 0.01)     return "#1a6080";
-    return "#1b6009";
-}
-
-function updateLegendPanel(tabType) {
-    const legendContent = document.getElementById('legend-content');
-    let legendHTML = '';
-    switch(tabType) {
-        case "tempCurrent":case "tempMax":case "tempMin":case "apparentTemp":
-            legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#330101"></div>極為酷熱</div>
-            <div class="legend-item"><div class="legend-color" style="background:#8d1919"></div>非常酷熱</div>
-            <div class="legend-item"><div class="legend-color" style="background:#f12828"></div>酷熱</div>
-            <div class="legend-item"><div class="legend-color" style="background:#ff7a00"></div>炎熱</div>
-            <div class="legend-item"><div class="legend-color" style="background:#b37802"></div>溫暖</div>
-            <div class="legend-item"><div class="legend-color" style="background:#919107"></div>和暖</div>
-            <div class="legend-item"><div class="legend-color" style="background:#19aa75"></div>清涼</div>
-            <div class="legend-item"><div class="legend-color" style="background:#0d517a"></div>寒冷</div>
-            <div class="legend-item"><div class="legend-color" style="background:#141970"></div>非常寒冷</div>
-            <div class="legend-item"><div class="legend-color" style="background:#300c46"></div>極為寒冷</div>`;
-            break;
-        case "wbgt":
-            legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>極度危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#ff0000"></div>非常危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#e06c00"></div>危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#c9b200"></div>警戒</div>
-            <div class="legend-item"><div class="legend-color" style="background:#38b000"></div>注意</div>
-            <div class="legend-item"><div class="legend-color" style="background:#0077b6"></div>正常</div>`;
-            break;
-        case "heatIndex":
-            legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>極度危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#ff0000"></div>非常危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#e06c00"></div>危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#c9b200"></div>警戒</div>
-            <div class="legend-item"><div class="legend-color" style="background:#38b000"></div>注意</div>
-            <div class="legend-item"><div class="legend-color" style="background:#0077b6"></div>正常</div>`;
-            break;
-        case "dewPoint":
-            legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#470f64"></div>危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#a82020"></div>悶熱</div>
-            <div class="legend-item"><div class="legend-color" style="background:#347b28"></div>舒適</div>
-            <div class="legend-item"><div class="legend-color" style="background:#8f6825"></div>乾爽</div>
-            <div class="legend-item"><div class="legend-color" style="background:#8a462b"></div>乾燥</div>`;
-            break;
-        case "humidity":
-            legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#071770"></div>非常潮濕</div>
-            <div class="legend-item"><div class="legend-color" style="background:#147ccd"></div>潮濕</div>
-            <div class="legend-item"><div class="legend-color" style="background:#0b8743"></div>正常</div>
-            <div class="legend-item"><div class="legend-color" style="background:#96592d"></div>乾燥</div>
-            <div class="legend-item"><div class="legend-color" style="background:#641515"></div>非常乾燥</div>`;
-            break;
-        case "windSpeed":case "windGust":
-            legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#6a0606"></div>颶風</div>
-            <div class="legend-item"><div class="legend-color" style="background:#b1510d"></div>暴風</div>
-            <div class="legend-item"><div class="legend-color" style="background:#7f710b"></div>烈風</div>
-            <div class="legend-item"><div class="legend-color" style="background:#154c83"></div>強風</div>
-            <div class="legend-item"><div class="legend-color" style="background:#11750a"></div>強風以下</div>`;
-            break;
-        case "waterLevel":
-            legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>≥ 2.50 m</div>
-            <div class="legend-item"><div class="legend-color" style="background:#c61e05"></div>1.49 - 2.49 m</div>
-            <div class="legend-item"><div class="legend-color" style="background:#ff7200"></div>1.00 - 1.49 m</div>
-            <div class="legend-item"><div class="legend-color" style="background:#c4ab08"></div>0.50 - 0.99 m</div>
-            <div class="legend-item"><div class="legend-color" style="background:#1a6080"></div>0.01 - 0.49 m</div>
-            <div class="legend-item"><div class="legend-color" style="background:#1b6009"></div>0.00 m</div>`;
-            break;
-        default:
-            legendHTML = `<div class="legend-item" style="color:#777;">預設圖例</div>`;
-    }
-    legendContent.innerHTML = legendHTML;
-}
-
-// ========== 5. 全局變數與數據存儲 ==========
-let currentTab = "tempCurrent";
-let pointDataList = [];
-let floodDataList = [];
-let selectedStationInfo = null; // 紀錄目前選取的測站，切換標籤或數據刷新時自動更新趨勢圖
-let activeChartInstance = null;
-
-// 數據快照儲存於 localStorage
-function saveHistorySnapshot(pubTime) {
-    if (!pointDataList.length && !floodDataList.length) return;
-
-    let history = [];
-    try {
-        history = JSON.parse(localStorage.getItem('msso_weather_history') || '[]');
-    } catch(e) { history = []; }
-
-    const timeLabel = pubTime || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
-    // 避免重複寫入相同時間點的紀錄
-    if (history.length > 0 && history[history.length - 1].time === timeLabel) {
-        return;
-    }
-
-    history.push({
-        time: timeLabel,
-        stations: pointDataList,
-        floods: floodDataList
-    });
-
-    // 保留最近 200 筆快照 (約 16 小時)
-    if (history.length > 200) history.shift();
-
-    localStorage.setItem('msso_weather_history', JSON.stringify(history));
-}
-
-// 渲染純趨勢圖外框
-function renderTrendOnlyCard(stationName, isFlood = false) {
-    const trendBox = document.getElementById("trend-card-box");
-    const cfg = fieldMap[currentTab] || fieldMap['tempCurrent'];
-
-    trendBox.innerHTML = `
-    <div class="trend-card">
-        <div class="trend-card-header">
-            <div class="trend-card-title">${stationName}</div>
-            <div class="trend-card-badge">${cfg.label} 歷史走勢</div>
-        </div>
-        <div class="trend-chart-box">
-            <canvas id="stationChartCanvas"></canvas>
-        </div>
-    </div>`;
-
-    renderStationChart(stationName, isFlood);
-}
-
-// 繪製 Station 歷史走勢圖
-function renderStationChart(stationName, isFlood = false) {
-    const canvas = document.getElementById('stationChartCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-
-    let history = [];
-    try {
-        history = JSON.parse(localStorage.getItem('msso_weather_history') || '[]');
-    } catch(e) { history = []; }
-
-    if (history.length === 0) return;
-
-    const cfg = fieldMap[currentTab] || fieldMap['tempCurrent'];
-    const field = cfg.field;
-
-    const labels = history.map(item => item.time);
-    const datasetValues = history.map(item => {
-        const list = isFlood ? item.floods : item.stations;
-        const match = list ? list.find(s => s.name === stationName) : null;
-        if (!match) return null;
-        const val = parseFloat(match[field]);
-        return isNaN(val) ? null : val;
-    });
-
-    if (activeChartInstance) {
-        activeChartInstance.destroy();
-    }
-
-    activeChartInstance = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: `${stationName} - ${cfg.label} (${cfg.unit})`,
-                data: datasetValues,
-                borderColor: '#38bdf8',
-                backgroundColor: 'rgba(56, 189, 248, 0.15)',
-                borderWidth: 2,
-                pointRadius: 3,
-                fill: true,
-                tension: 0.35
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    labels: { color: getComputedStyle(document.body).getPropertyValue('--text-main') }
-                }
-            },
-            scales: {
-                x: {
-                    ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-muted'), maxRotation: 45 },
-                    grid: { color: 'rgba(255,255,255,0.05)' }
-                },
-                y: {
-                    ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-muted') },
-                    grid: { color: 'rgba(255,255,255,0.05)' }
-                }
-            }
-        }
-    });
-}
-
-// 介面切換與按鈕監聽
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        currentTab = btn.dataset.type;
-
-        document.getElementById('current-indicator').textContent = `${fieldMap[currentTab]?.label || currentTab}`;
-
-        updateMapMarkers();
-        updateLegendPanel(currentTab);
-        renderDataTable(currentTab);
-
-        // 如果目前有已選取的測站，切換標籤時重新繪製該指標走勢圖
-        if (selectedStationInfo) {
-            renderTrendOnlyCard(selectedStationInfo.name, selectedStationInfo.isFlood);
-        }
-    });
-});
-
-document.getElementById('btn-map').addEventListener('click', function(){
-    this.classList.add('active');
-    document.getElementById('btn-table').classList.remove('active');
-    document.getElementById('map-view').classList.remove('hide');
-    document.getElementById('table-view').classList.add('hide');
-});
-document.getElementById('btn-table').addEventListener('click', function(){
-    this.classList.add('active');
-    document.getElementById('btn-map').classList.remove('active');
-    document.getElementById('map-view').classList.add('hide');
-    document.getElementById('table-view').classList.remove('hide');
-    renderDataTable(currentTab);
-});
-
-// ========== 6. 地圖 Pin 標記渲染 ==========
-function updateMapMarkers() {
-    const container = document.getElementById('stationPinsGroup');
-    if (!container) return;
-    container.innerHTML = "";
-
-    let sourceList, pointCoords;
-    if (currentTab === "waterLevel") {
-        sourceList = floodDataList;
-        pointCoords = floodCoordinates;
-    } else {
-        sourceList = pointDataList;
-        pointCoords = stationCoordinates;
-    }
-
-    sourceList.forEach(point => {
-        const name = point.name;
-        const coords = pointCoords[name];
-        if (!coords) return;
-
-        let showVal = "";
-        let bgColor = "#3498db";
-        let skipMarker = false;
-
-        switch (currentTab) {
-            case "tempCurrent": showVal = point.temp; bgColor = getTempColor(showVal); break;
-            case "tempMax": showVal = point.tempMax; bgColor = getTempColor(showVal); break;
-            case "tempMin": showVal = point.tempMin; bgColor = getTempColor(showVal); break;
-            case "humidity": showVal = point.humidity; bgColor = getHumidityColor(showVal); break;
-            case "dewPoint": showVal = point.dewPoint; bgColor = getDewColor(showVal); break;
-            case "windDir": showVal = point.windDir || "--"; bgColor = "#9b59b6"; break;
-            case "windSpeed": showVal = point.windSpeed; bgColor = getWindColor(showVal); break;
-            case "windGust": showVal = point.windGust; bgColor = getWindColor(showVal); break;
-            case "pressSea": showVal = point.pressSea; bgColor = getPressSeaColor(showVal); break;
-            case "pressStation": showVal = point.pressStation; bgColor = getPressStationColor(showVal); break;
-            case "apparentTemp": showVal = point.apparentTemp; bgColor = getTempColor(showVal); break;
-            case "heatIndex":
-                showVal = point.heatIndex;
-                bgColor = getHeatIndexColor(showVal);
-                if (isNaN(parseFloat(showVal)) || parseFloat(showVal) < 32.5) skipMarker = true;
-                break;
-            case "wbgt":
-                showVal = point.wbgt;
-                bgColor = getWBGTColor(showVal);
-                if(isNaN(parseFloat(showVal))) skipMarker = true;
-                break;
-            case "rain1m": showVal = point.rain1m; bgColor = getRain1mColor(showVal); break;
-            case "rain1h": showVal = point.rain1h; bgColor = getRain1hColor(showVal); break;
-            case "rainTotal": showVal = point.rainTotal; bgColor = getRainTotalColor(showVal); break;
-            case "waterLevel":
-                showVal = point.waterLevel;
-                if (showVal === '--' || showVal === '') skipMarker = true;
-                bgColor = getWaterLevelColor(showVal);
-                break;
-        }
-
-        if (skipMarker || showVal === '' || showVal === '--') return;
-
-        const pin = document.createElement("div");
-        pin.className = "map-pin";
-        pin.style.top = coords.top + "%";
-        pin.style.left = coords.left + "%";
-
-        pin.innerHTML = `
-            <div class="pin-badge" style="background-color: ${bgColor}; border-color: ${bgColor};">
-                ${showVal}
-            </div>
-        `;
-
-        pin.addEventListener('click', () => {
-            const isFlood = (currentTab === "waterLevel");
-            selectedStationInfo = { name: point.name, isFlood: isFlood };
-            renderTrendOnlyCard(point.name, isFlood);
-        });
-
-        container.appendChild(pin);
-    });
-}
-
-// 表格渲染
-let lastSort = "default";
-function renderDataTable(type, sortType = lastSort) {
-    const cfg = fieldMap[type];
-    const field = cfg.field;
-    document.getElementById('table-title').textContent = `${cfg.label} 數據表格`;
-    const tbody = document.getElementById('table-body');
-    tbody.innerHTML = "";
-
-    let sourceList = type === "waterLevel" ? floodDataList : pointDataList;
-
-    let validList = sourceList.filter(item => item[field] !== '--' && item[field] !== '');
-
-    if (sortType === "desc") {
-        validList.sort((a, b) => parseFloat(b[field]) - parseFloat(a[field]));
-    } else if (sortType === "asc") {
-        validList.sort((a, b) => parseFloat(a[field]) - parseFloat(b[field]));
-    }
-    lastSort = sortType;
-
-    validList.forEach(item => {
-        const name = item.name;
-        const code = stationCoordinates[name]?.code || item.code || "";
-        let val = item[field];
-        let displayVal = val + (cfg.unit ? " " + cfg.unit : "");
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${displayVal}</td>`;
-        tbody.appendChild(tr);
-    });
-}
-
-document.querySelectorAll('.sort-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        renderDataTable(currentTab, btn.dataset.sort);
-    });
-});
-
-// ========== 7. XML 數據抓取與解析 ==========
-const extractNodeValue = (selector, parent) => {
-    const el = parent.querySelector(selector);
-    if (!el) return '';
-    const val = el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || '';
-    return val.trim();
-};
-
-function fetchWeatherData() {
-    const cacheBuster = Date.now();
-    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
-    return fetch(url, { cache: "no-store" })
-        .then(res => res.text())
-        .then(xmlStr => {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
-            const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent || "未知";
-            document.getElementById("pub-date").textContent = pubTime;
-            document.getElementById("time-stamp").textContent = pubTime;
-
-            const stations = xmlDoc.querySelectorAll("WeatherReport station");
-            pointDataList = [];
-
-            stations.forEach(station => {
-                const name = station.querySelector("stationname")?.textContent || "";
-                const temp = extractNodeValue("Temperature", station);
-                const tempMax = extractNodeValue("Temperature_daily_max", station);
-                const tempMin = extractNodeValue("Temperature_daily_min", station);
-                const humidity = extractNodeValue("Humidity", station);
-                const windSpeed = extractNodeValue("WindSpeed", station);
-                const windGust = extractNodeValue("WindGust", station);
-                const pressSea = extractNodeValue("MeanSeaLevelPressure", station);
-                const pressStation = extractNodeValue("StationPressure", station);
-                const windDirNode = station.querySelector("WindDirection");
-                const windDir = windDirNode?.querySelector("dValue")?.textContent || "";
-
-                let rain1m = "", rain1h = "", rainTotal = "";
-                station.querySelectorAll("Rainfall").forEach(r => {
-                    const type = r.querySelector("Type")?.textContent;
-                    const val = r.querySelector("dValue")?.textContent || "";
-                    if (type === "3") rain1m = val;
-                    if (type === "4") rain1h = val;
-                    if (type === "5") rainTotal = val;
-                });
-
-                const T = parseFloat(temp);
-                const RH = parseFloat(humidity);
-                const windSpeedKmH = parseFloat(windSpeed);
-                const apparentTemp = calculateApparentTemp(T, RH, windSpeedKmH);
-                const heatIndex = calculateHeatIndex(T, RH);
-                const dewPoint = calculateDewPoint(T, RH);
-                const wbgt = calcWBGT(T, RH, windSpeedKmH);
-
-                pointDataList.push({
-                    name, temp, tempMax, tempMin, humidity, windDir,
-                    windSpeed, windGust, rain1m, rain1h, rainTotal,
-                    pressSea, pressStation, apparentTemp, heatIndex, dewPoint,
-                    waterLevel: "--", wbgt
-                });
-            });
-            return pubTime;
-        });
-}
-
-function fetchFloodData() {
-    const cacheBuster = Date.now();
-    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_ftgms.xml?t=${cacheBuster}`;
-    return fetch(url, { cache: "no-store" })
-        .then(res => res.text())
-        .then(xmlStr => {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
-            const stations = xmlDoc.querySelectorAll("WLReport station");
-            floodDataList = [];
-
-            stations.forEach(station => {
-                const code = station.getAttribute("code") || "";
-                const name = (station.querySelector("stationname")?.textContent || "未知監測點").trim();
-                let waterLevel = station.querySelector("Waterlevel > Value")?.textContent?.trim() || "--";
-                floodDataList.push({ name, code, waterLevel });
-            });
-        });
-}
-
-function loadAllData() {
-    Promise.all([fetchWeatherData(), fetchFloodData()])
-        .then(([pubTime]) => {
-            saveHistorySnapshot(pubTime);
-            updateMapMarkers();
-            updateLegendPanel(currentTab);
-            renderDataTable(currentTab);
-
-            if (selectedStationInfo) {
-                renderTrendOnlyCard(selectedStationInfo.name, selectedStationInfo.isFlood);
-            }
-        })
-        .catch(err => console.error("數據載入失敗：", err));
-}
-
-// ========== 8. Navbar & 主題腳本 ==========
+/* ========== 主題切換邏輯 (Light / Dark Mode) ========== */
 function applyTheme(theme) {
-    if (theme === 'light') {
-        document.body.classList.add('light-theme');
-    } else {
-        document.body.classList.remove('light-theme');
-    }
+  if (theme === 'light') {
+    document.body.classList.add('light-theme');
+  } else {
+    document.body.classList.remove('light-theme');
+  }
+  updateChartColors();
 }
+
 function toggleTheme() {
-    const isLight = document.body.classList.contains('light-theme');
-    const newTheme = isLight ? 'dark' : 'light';
-    localStorage.setItem('msso_theme', newTheme);
-    applyTheme(newTheme);
+  const isLight = document.body.classList.contains('light-theme');
+  const newTheme = isLight ? 'dark' : 'light';
+  localStorage.setItem('msso_theme', newTheme);
+  applyTheme(newTheme);
 }
+
+// 初始化主題
 (function initTheme() {
-    const savedTheme = localStorage.getItem('msso_theme');
+  const savedTheme = localStorage.getItem('msso_theme');
+  if (savedTheme) {
     if (savedTheme === 'light') document.body.classList.add('light-theme');
+  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+    document.body.classList.add('light-theme');
+  }
 })();
 
+let chart24hUpdateTime = "";
+let chart7dUpdateTime = "";
+
+let openMeteo24hX = [];
+let openMeteo24hTemp = [];
+
+let dynamic7dLabels = [];
+let dynamic7dMax = [];
+let dynamic7dMin = [];
+
 function toggleMenu() {
-    const nav = document.getElementById("navMenu");
-    const btn = document.querySelector(".menu-toggle");
-    nav.classList.toggle("active");
-    btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
+  const nav = document.getElementById("navMenu");
+  const btn = document.querySelector(".menu-toggle");
+  nav.classList.toggle("active");
+  btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
 
+/* ========== 下拉選單點擊事件處理（相容行動端與觸控） ========== */
+document.addEventListener('DOMContentLoaded', () => {
+  const dropdownBtns = document.querySelectorAll('.dropdown-btn');
+  
+  dropdownBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const currentDropdown = btn.parentElement;
+      
+      // 關閉其他已打開的下拉選單
+      document.querySelectorAll('.dropdown').forEach(d => {
+        if (d !== currentDropdown) d.classList.remove('active');
+      });
+
+      // 切換當前選單狀態
+      currentDropdown.classList.toggle('active');
+    });
+  });
+
+  // 點擊頁面其他區域時自動收起下拉選單
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('active'));
+  });
+});
+
 function updateHeaderClock() {
-    const clockEl = document.getElementById('headerClock');
-    if (clockEl) {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const date = String(now.getDate()).padStart(2, '0');
-        const hrs = String(now.getHours()).padStart(2, '0');
-        const mins = String(now.getMinutes()).padStart(2, '0');
-        const secs = String(now.getSeconds()).padStart(2, '0');
-        clockEl.textContent = ` ${year}年${month}月${date}日 ${hrs}:${mins}:${secs} MST`;
+  const clockEl = document.getElementById('headerClock');
+  if (clockEl) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const date = String(now.getDate()).padStart(2, '0');
+    const hrs = String(now.getHours()).padStart(2, '0');
+    const mins = String(now.getMinutes()).padStart(2, '0');
+    const secs = String(now.getSeconds()).padStart(2, '0');
+    clockEl.textContent = ` ${year}年${month}月${date}日 ${hrs}:${mins}:${secs} MST`;
+  }
+}
+
+const forecastXmlUrl = "https://xml.smg.gov.mo/c_forecast.xml";
+const forecastProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(forecastXmlUrl)}`;
+
+async function loadForecastXML() {
+  try {
+    const res = await fetch(forecastProxyUrl, { cache: "no-store" });
+    if (!res.ok) throw new Error("預報數據請求失敗");
+
+    const xmlText = await res.text();
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+    const pubDate = xmlDoc.querySelector("SysPubdate")?.textContent.trim() || "2026-08-12 21:00";
+    const situation = xmlDoc.querySelector("TodaySituation")?.textContent.trim() || "";
+    
+    const wfNodes = xmlDoc.querySelectorAll("WeatherForecast");
+    
+    const todayValid = wfNodes[0]?.querySelector("ValidFor")?.textContent.trim() || "";
+    const todayDesc = wfNodes[0]?.querySelector("WeatherDescription")?.textContent.trim() || "暫無資料";
+
+    const tomorrowValid = wfNodes[1]?.querySelector("ValidFor")?.textContent.trim() || "";
+    const tomorrowDesc = wfNodes[1]?.querySelector("WeatherDescription")?.textContent.trim() || "暫無資料";
+
+    if (pubDate) {
+      document.getElementById("forecastTime").innerText = `發佈時間：${pubDate}`;
+    }
+    
+    if (situation) {
+      document.getElementById("tab0").innerHTML = situation.replaceAll("\n", "<br>");
+    }
+
+    if (todayDesc) {
+      let cleanTodayValid = todayValid.replace(/有效時間[：:]\s*/g, "").trim();
+      let todayHtml = "";
+      if (cleanTodayValid) {
+        todayHtml += `<div class="valid-time-row">${cleanTodayValid}</div>`;
+      }
+      todayHtml += `<div>${todayDesc.replaceAll("\n", "<br>")}</div>`;
+      document.getElementById("tab1").innerHTML = todayHtml;
+    }
+
+    if (tomorrowDesc) {
+      let cleanTomorrowValid = tomorrowValid.replace(/有效時間[：:]\s*/g, "").trim();
+      let tomorrowHtml = "";
+      if (cleanTomorrowValid) {
+        tomorrowHtml += `<div class="valid-time-row">${cleanTomorrowValid}</div>`;
+      }
+      tomorrowHtml += `<div>${tomorrowDesc.replaceAll("\n", "<br>")}</div>`;
+      document.getElementById("tab2").innerHTML = tomorrowHtml;
+    }
+  } catch (err) {
+    console.error("天氣預報 XML 解析異常：", err);
+  }
+}
+
+/* ========== 圖標與文字解析輔助函式 ========== */
+function resolveIcon(iconKey) {
+  if (!iconKey) return "";
+  const key = iconKey.trim();
+
+  // 1. Check inside ICON_PRESETS map in webdata.js
+  if (typeof ICON_PRESETS !== 'undefined' && ICON_PRESETS[key]) {
+    return ICON_PRESETS[key];
+  }
+
+  // 2. If it is already a path or full URL
+  if (key.includes('/') || key.includes('.')) {
+    return key;
+  }
+
+  // 3. Fallback conversion for short forms (e.g. "t1" -> "icons/t1.jpg")
+  return `icons/${key.toLowerCase()}.jpg`;
+}
+  
+function renderTcForecastTable(tableData) {
+  const tableCard = document.getElementById('tcForecastTableCard');
+  const tableContent = document.getElementById('tcTableContent');
+
+  if (tableData && tableData.length > 0) {
+    tableCard.style.display = 'block';
+  } else {
+    tableCard.style.display = 'none';
+  }
+}
+function formatTextBoxContent(data) {
+  if (Array.isArray(data)) {
+    const validItems = data.filter(item => item && item.trim());
+    if (validItems.length === 0) return "";
+    return validItems.length === 1 ? validItems[0] : validItems.map(item => `• ${item}`).join('<br>');
+  }
+  return typeof data === 'string' ? data.trim() : "";
+}
+
+function renderTextBox(boxId, contentId, data) {
+  const box = document.getElementById(boxId);
+  const content = document.getElementById(contentId);
+  if (!box || !content) return;
+
+  const htmlContent = formatTextBoxContent(data);
+  if (htmlContent) {
+    box.style.display = 'block';
+    content.innerHTML = htmlContent;
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+function renderWarnings(data, containerId, cardId) {
+  const container = document.getElementById(containerId);
+  const card = document.getElementById(cardId);
+  if (!container || !card || !Array.isArray(data)) return;
+  
+  let html = "";
+  let validCount = 0;
+
+  data.forEach((item) => {
+    if ((!item.icon || !item.icon.trim()) && (!item.text || !item.text.trim())) return;
+    
+    const iconSrc = resolveIcon(item.icon);
+
+    if (validCount > 0) html += `<div class="divider"></div>`;
+    html += `
+         <div class="warning-item">
+           ${iconSrc ? `<div class="icon-box"><img src="${iconSrc}" alt="Warning Icon"></div>` : ""}
+           ${item.text ? `<div class="text-box">${item.text}</div>` : ""}
+         </div>
+       `;
+    validCount++;
+  });
+
+  container.innerHTML = html;
+  card.style.display = validCount > 0 ? "block" : "none";
+}
+
+window.addEventListener('DOMContentLoaded', function(){
+    updateHeaderClock();
+    setInterval(updateHeaderClock, 1000);
+
+    // 渲染三個提示框 (支援字串或陣列)
+    if (typeof alertipsText !== 'undefined') renderTextBox('alertBox', 'alertContent', alertipsText);
+    if (typeof swtText !== 'undefined') renderTextBox('swtBox', 'swtContent', swtText);
+    if (typeof tideText !== 'undefined') {
+      renderTextBox('tideBox', 'tideContent', tideText);
+    } else if (typeof TideText !== 'undefined') {
+      renderTextBox('tideBox', 'tideContent', TideText);
+    }
+
+    // 渲染警告卡片
+    if (typeof tcWarnings !== 'undefined') renderWarnings(tcWarnings, "tcContent", "tcCard");
+    if (typeof warnWarnings !== 'undefined') renderWarnings(warnWarnings, "warnContent", "warnCard");
+
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabItems = document.querySelectorAll('.tab-content');
+    tabBtns.forEach(btn => {
+      btn.onclick = function(){
+        tabBtns.forEach(b => b.classList.remove('active'));
+        tabItems.forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        let idx = this.dataset.index;
+        document.getElementById('tab' + idx).classList.add('active');
+      }
+    });
+
+    loadForecastXML();
+});
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+let tempChart;
+const dateDom = document.getElementById("chartDate");
+
+async function fetchOpenMeteo24h() {
+  try {
+    const url = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=temperature_2m&timezone=Asia%2FSingapore&forecast_days=1";
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Open-Meteo 請求失敗");
+    const data = await res.json();
+    
+    if (data && data.hourly && data.hourly.time && data.hourly.temperature_2m) {
+      // 確保歷史紀錄嚴格限制為 24 小時（跨設備數據標準化）
+      openMeteo24hX = data.hourly.time.slice(-24).map(t => {
+        const parts = t.split("T");
+        return parts[1] || t;
+      });
+      openMeteo24hTemp = data.hourly.temperature_2m.slice(-24);
+      
+      const now = new Date();
+      chart24hUpdateTime = `更新於 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    }
+  } catch (err) {
+    console.error("Open-Meteo API 解析錯誤：", err);
+  }
+}
+
+function updateChartColors() {
+  if (typeof Chart === 'undefined') return;
+  const isLight = document.body.classList.contains('light-theme');
+  Chart.defaults.color = isLight ? '#475569' : '#94a3b8';
+  Chart.defaults.borderColor = isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.08)';
+  Chart.defaults.plugins.title.color = isLight ? '#0f172a' : '#f1f5f9';
+
+  if (tempChart) {
+    const activeBtn = document.querySelector('.chart-btn.active');
+    const type = activeBtn ? activeBtn.dataset.type : '24h';
+    const ctx = document.getElementById('tempChart')?.getContext('2d');
+    if (ctx) {
+      tempChart.destroy();
+      if (type === '24h') render24hChart(ctx);
+      else render7dChart(ctx);
+    }
+  }
+}
+
+async function initChart(){
+  if (typeof Chart === 'undefined') return;
+
+  const isLight = document.body.classList.contains('light-theme');
+  Chart.defaults.color = isLight ? '#475569' : '#94a3b8';
+  Chart.defaults.borderColor = isLight ? 'rgba(0, 0, 0, 0.1)' : 'rgba(255, 255, 255, 0.08)';
+  Chart.defaults.plugins.title.color = isLight ? '#0f172a' : '#f1f5f9';
+
+  if (typeof chartRightDate !== 'undefined') {
+    chart24hUpdateTime = chartRightDate;
+  }
+
+  await fetchOpenMeteo24h();
+
+  const ctx = document.getElementById('tempChart').getContext('2d');
+  render24hChart(ctx);
+
+  document.querySelectorAll('.chart-btn').forEach(btn=>{
+    btn.onclick = async function(){
+      document.querySelectorAll('.chart-btn').forEach(b=>b.classList.remove('active'));
+      this.classList.add('active');
+      if(tempChart) tempChart.destroy();
+      const type = this.dataset.type;
+      if (type === '24h') {
+        render24hChart(ctx);
+      } else {
+        render7dChart(ctx);
+      }
+    }
+  });
+}
+
+function render24hChart(ctx){
+  if (typeof Chart === 'undefined') return;
+
+  dateDom.innerText = chart24hUpdateTime || (typeof chartRightDate !== 'undefined' ? chartRightDate : "");
+
+  const labels = openMeteo24hX.length > 0 ? openMeteo24hX : (typeof label24hX !== 'undefined' ? label24hX : []);
+  const temps = openMeteo24hTemp.length > 0 ? openMeteo24hTemp : (typeof temp24h !== 'undefined' ? temp24h : []);
+
+  const minTemp = temps.length ? Math.floor(Math.min(...temps) - 2) : 20;
+  const maxTemp = temps.length ? Math.ceil(Math.max(...temps) + 2) : 38;
+
+  tempChart = new Chart(ctx,{
+    type:"line",
+    data:{
+      labels: labels,
+      datasets:[{
+        label:"氣溫(°C)",
+        data: temps,
+        borderColor:"#38bdf8",
+        backgroundColor:"rgba(56, 189, 248, 0.12)",
+        fill:true,
+        tension:0.3,
+        pointRadius:4,
+        pointBackgroundColor: "#38bdf8"
+      }]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{title:{display:true,text:"24小時逐時氣溫預報 (Open-Meteo)"}},
+      scales:{
+        x:{display:true,title:{display:true,text:"時間"},ticks:{maxTicksLimit:12}},
+        y:{
+          display:true,
+          title:{display:true,text:"溫度℃"},
+          min: minTemp,
+          max: maxTemp
+        }
+      }
+    }
+  });
+}
+
+function render7dChart(ctx){
+  if (typeof Chart === 'undefined') return;
+
+  dateDom.innerText = chart7dUpdateTime || "";
+
+  const labels = dynamic7dLabels.length > 0 ? dynamic7dLabels : (typeof label7dX !== 'undefined' ? label7dX : []);
+  const maxArr = dynamic7dMax.length > 0 ? dynamic7dMax : (typeof temp7dMax !== 'undefined' ? temp7dMax : []);
+  const minArr = dynamic7dMin.length > 0 ? dynamic7dMin : (typeof temp7dMin !== 'undefined' ? temp7dMin : []);
+
+  const allTemps = [...maxArr, ...minArr];
+  const minTemp = allTemps.length ? Math.floor(Math.min(...allTemps) - 2) : 15;
+  const maxTemp = allTemps.length ? Math.ceil(Math.max(...allTemps) + 2) : 38;
+
+  tempChart = new Chart(ctx,{
+    type:"line",
+    data:{
+      labels: labels,
+      datasets:[
+        {label:"最高氣溫",data:maxArr,borderColor:"#ef4444",backgroundColor:"#ef4444",fill:false,tension:0.3,pointRadius:4},
+        {label:"最低氣溫",data:minArr,borderColor:"#34d399",backgroundColor:"#34d399",fill:false,tension:0.3,pointRadius:4}
+      ]
+    },
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{title:{display:true,text:"7日氣溫預報 "}},
+      scales:{
+        x:{display:true,title:{display:true,text:"日期"}},
+        y:{
+          display:true,
+          title:{display:true,text:"溫度℃"},
+          min: minTemp,
+          max: maxTemp
+        }
+      }
+    }
+  });
+}
+
+window.addEventListener('DOMContentLoaded', initChart);
+</script>
+
+<script>
+const loadTip = document.getElementById('load-tip');
+const errorTip = document.getElementById('error-tip');
+const weatherMain = document.getElementById('weather-main');
+const pubTime = document.getElementById('pub-time');
+const weatherIcon = document.getElementById('weather-icon');
+const tempNum = document.getElementById('temp-num');
+const feelsDesc = document.getElementById('feels-desc');
+const humValue = document.getElementById('hum-value');
+const windSpeed = document.getElementById('wind-speed');
+const windDir = document.getElementById('wind-dir');
+const uvValue = document.getElementById('uv-value');
+
+const uvXmlUrl = "https://xml.smg.gov.mo/c_actualUVI.xml";
+const uvProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(uvXmlUrl)}`;
+let currentUV = "--";
+
+const originXmlUrl = "https://xml.smg.gov.mo/c_actual_brief.xml";
+const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(originXmlUrl)}`;
+
+async function loadHourlyWeather() {
+    try {
+        loadTip.style.display = 'none';
+        errorTip.style.display = 'none';
+
+        const response = await fetch(proxyUrl, { method: 'GET', cache: 'no-cache' });
+        if (!response.ok) throw new Error('接口請求失敗');
+
+        const xmlText = await response.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+        const sysPubdate = xmlDoc.querySelector("SysPubdate")?.textContent || "未知時間";
+        const temp = xmlDoc.querySelector("Temperature > Value")?.textContent || "--";
+        const hum = xmlDoc.querySelector("Humidity > Value")?.textContent || "--";
+        const windSpd = xmlDoc.querySelector("WindSpeed > Value")?.textContent || "--";
+        const windSpdDesc = xmlDoc.querySelector("WindSpeedDescription")?.textContent || "";
+        const windDirText = xmlDoc.querySelector("WindDirection > WindDescription")?.textContent || "--";
+        const iconUrl = xmlDoc.querySelector("IconURL")?.textContent || "";
+        const feelDescRaw = xmlDoc.querySelector("FeelsLikeDescription")?.textContent || "--";
+
+        pubTime.textContent = sysPubdate;
+        tempNum.textContent = `${temp} °C`;
+        feelsDesc.textContent = `體感溫度：${feelDescRaw}`;
+        humValue.textContent = `${hum} %`;
+        windSpeed.textContent = `${windSpd} km/h (${windSpdDesc})`;
+        windDir.textContent = windDirText;
+
+        if (iconUrl) {
+            weatherIcon.src = iconUrl;
+            weatherIcon.onerror = () => weatherIcon.style.display = 'none';
+        }
+
+    } catch (err) {
+        console.error("整點天氣數據解析異常：", err);
+        errorTip.style.display = 'block';
+    }
+}
+
+async function loadUVData() {
+    try {
+        const res = await fetch(uvProxyUrl, { cache: "no-store" });
+        if (!res.ok) throw new Error("UV數據載入失敗");
+        const xmlText = await res.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+        const uvVal = xmlDoc.querySelector("UV-Index > Value")?.textContent || "--";
+        currentUV = uvVal;
+        uvValue.textContent = currentUV;
+        uvValue.style.color = getUVColor(parseFloat(currentUV));
+    } catch (err) {
+        console.error("UV載入錯誤：", err);
+        uvValue.textContent = "--";
+    }
+}
+
+function getUVColor(uv) {
+    if (isNaN(uv)) return "#cbd5e1";
+    if (uv >= 11) return "#c084fc";
+    if (uv >= 8) return "#ef4444";
+    if (uv >= 6) return "#f59e0b";
+    if (uv >= 3) return "#facc15";
+    return "#34d399";
+}
+
+const fourDayXmlUrl = "https://xml.smg.gov.mo/c_7daysforecast.xml";
+const fourDayProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(fourDayXmlUrl)}`;
+
+async function load4DaysForecastXML() {
+    const loadingEl = document.getElementById('7day-xml-loading');
+    const errorEl = document.getElementById('7day-xml-error');
+    const containerEl = document.getElementById('7day-xml-container');
+
+    try {
+        if (loadingEl && containerEl.children.length === 0) loadingEl.style.display = 'block';
+        if (errorEl) errorEl.style.display = 'none';
+
+        const res = await fetch(fourDayProxyUrl, { cache: "no-store" });
+        if (!res.ok) throw new Error("7日預報數據請求失敗");
+
+        const xmlText = await res.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+        const pubDateStr = xmlDoc.querySelector("SysPubdate")?.textContent.trim();
+        if (pubDateStr) {
+          chart7dUpdateTime = `${pubDateStr} 更新`;
+        } else {
+          const now = new Date();
+          chart7dUpdateTime = `更新於 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        }
+
+        let forecastNodes = Array.from(xmlDoc.querySelectorAll("ForecastData, WeatherForecast, DayForecast, CustomData, Item"));
+        if (forecastNodes.length === 0) {
+            forecastNodes = Array.from(xmlDoc.querySelectorAll("FourDaysForecast > *, SevenDaysForecast > *"));
+        }
+
+        if (forecastNodes.length === 0) throw new Error("未能讀取預報數據");
+
+        dynamic7dLabels = [];
+        dynamic7dMax = [];
+        dynamic7dMin = [];
+
+        let html = '';
+        forecastNodes.forEach(node => {
+            const allElements = Array.from(node.getElementsByTagName("*"));
+
+            let date = "";
+            for (let el of allElements) {
+                const name = el.nodeName.toLowerCase();
+                if (name.includes("validfor") || name.includes("validdate") || name.includes("forecastdate") || name === "date") {
+                    if (el.children.length === 0 && el.textContent.trim()) {
+                        date = el.textContent.trim();
+                        break;
+                    }
+                }
+            }
+
+            let dayOfWeek = "";
+            for (let el of allElements) {
+                const name = el.nodeName.toLowerCase();
+                if (name.includes("dayofweek") || name.includes("week") || name === "day") {
+                    if (el.children.length === 0 && el.textContent.trim()) {
+                        dayOfWeek = el.textContent.trim();
+                        break;
+                    }
+                }
+            }
+
+            let weather = "";
+            for (let el of allElements) {
+                const name = el.nodeName.toLowerCase();
+                if (name.includes("weatherdescription") || name.includes("weathersummary") || name === "weather") {
+                    if (el.textContent.trim()) {
+                        weather = el.textContent.trim();
+                        break;
+                    }
+                }
+            }
+
+            let rawIconUrl = "";
+            for (let el of allElements) {
+                const name = el.nodeName.toLowerCase();
+                if (name === "iconurl" || name === "c_iconurl") {
+                    const txt = el.textContent.trim();
+                    if (txt) { rawIconUrl = txt; break; }
+                }
+            }
+
+            let iconUrl = "";
+            if (rawIconUrl) {
+                if (rawIconUrl.startsWith("http://") || rawIconUrl.startsWith("https://")) {
+                    iconUrl = rawIconUrl;
+                } else if (rawIconUrl.startsWith("/")) {
+                    iconUrl = `https://www.smg.gov.mo${rawIconUrl}`;
+                } else {
+                    iconUrl = `https://www.smg.gov.mo/${rawIconUrl}`;
+                }
+            }
+
+            let tempNums = [];
+            for (let el of allElements) {
+                const name = el.nodeName.toLowerCase();
+                if (name.includes("temp") || name.includes("temperature")) {
+                    const matches = el.textContent.match(/\d+(\.\d+)?/g);
+                    if (matches) {
+                        matches.forEach(m => {
+                            const val = parseFloat(m);
+                            if (!isNaN(val) && val >= 5 && val <= 50) tempNums.push(val);
+                        });
+                    }
+                }
+            }
+            tempNums = [...new Set(tempNums)];
+            let tempMin = tempNums.length > 0 ? Math.min(...tempNums) : null;
+            let tempMax = tempNums.length > 0 ? Math.max(...tempNums) : null;
+            let tempDisplay = (tempMin !== null && tempMax !== null)
+                ? (tempMin === tempMax ? `${tempMin}°C` : `${tempMin}°C - ${tempMax}°C`)
+                : '--';
+
+            if (tempMin !== null && tempMax !== null) {
+                let chartLabel = date;
+                if (dayOfWeek) {
+                    chartLabel += ` (${dayOfWeek.replace("星期", "").replace("周", "")})`;
+                }
+                dynamic7dLabels.push(chartLabel || `第${dynamic7dLabels.length + 1}天`);
+                dynamic7dMin.push(tempMin);
+                dynamic7dMax.push(tempMax);
+            }
+
+            let rhNums = [];
+            for (let el of allElements) {
+                const name = el.nodeName.toLowerCase();
+                if (name.includes("humidity") || name.includes("rh")) {
+                    const matches = el.textContent.match(/\d+(\.\d+)?/g);
+                    if (matches) {
+                        matches.forEach(m => {
+                            const val = parseFloat(m);
+                            if (!isNaN(val) && val >= 10 && val <= 100) rhNums.push(val);
+                        });
+                    }
+                }
+            }
+            rhNums = [...new Set(rhNums)];
+            let rhMin = rhNums.length > 0 ? Math.min(...rhNums) : null;
+            let rhMax = rhNums.length > 0 ? Math.max(...rhNums) : null;
+            let rhDisplay = (rhMin !== null && rhMax !== null)
+                ? (rhMin === rhMax ? `${rhMin}%` : `${rhMin}% - ${rhMax}%`)
+                : '--';
+
+            if (!date && !weather && tempNums.length === 0) return;
+
+            html += `
+                <div class="forecast-card-mini">
+                    <div class="card-top">
+                        ${date || '預報'}${dayOfWeek ? ` (${dayOfWeek})` : ''}
+                    </div>
+
+                    <div class="card-middle">
+                        ${iconUrl 
+                            ? `<img src="${iconUrl}" class="card-icon-large" alt="weather icon" referrerpolicy="no-referrer" onerror="this.style.display='none'">` 
+                            : ''}
+                        <div class="temp-range-text">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+                          ${tempDisplay}
+                        </div>
+                        <div class="humid-range-text">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                          ${rhDisplay}
+                        </div>
+                    </div>
+
+                    <div class="card-bottom">
+                        <div class="card-condition">${weather || '無資料'}</div>
+                    </div>
+                </div>
+            `;
+        });
+
+        if (loadingEl) loadingEl.style.display = 'none';
+        containerEl.innerHTML = html;
+
+        const activeChartBtn = document.querySelector('.chart-btn.active');
+        if (activeChartBtn && activeChartBtn.dataset.type === '7d') {
+            const ctx = document.getElementById('tempChart').getContext('2d');
+            if (tempChart) tempChart.destroy();
+            render7dChart(ctx);
+        }
+
+    } catch (err) {
+        console.error("7日預報XML解析異常：", err);
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (errorEl && containerEl.children.length === 0) errorEl.style.display = 'block';
     }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    updateHeaderClock();
-    setInterval(updateHeaderClock, 1000);
-    loadAllData();
+    loadHourlyWeather();
+    loadUVData();
+    load4DaysForecastXML();
 });
-setInterval(loadAllData, 30000);
+
+setInterval(loadHourlyWeather, 100000);
+setInterval(loadUVData, 100000);
+setInterval(loadForecastXML, 100000);
+setInterval(load4DaysForecastXML, 100000);
 </script>
 </body>
 </html>
