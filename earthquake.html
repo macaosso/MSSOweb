@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="icons/MSSO.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<title>澳門民間氣象台 - 全球地震資訊</title>
+<style>
+/* ========== 1. 深太空 (Deep Space) 全域主題基礎 ========== */
+:root {
+  --bg-dark: #0b0f19;
+  --card-bg: rgba(22, 30, 46, 0.75);
+  --card-bg-light: rgba(255, 255, 255, 0.03);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  
+  --accent-blue: #38bdf8;
+  --accent-teal: #2dd4bf;
+  --accent-green: #34d399;
+  --accent-yellow: #facc15;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #c084fc;
+
+  --bg-red: rgba(239, 68, 68, 0.12);
+  --border-red: rgba(239, 68, 68, 0.35);
+  --bg-orange: rgba(245, 158, 11, 0.12);
+  --border-orange: rgba(245, 158, 11, 0.35);
+}
+
+/* ========== 明亮主題 (Light Theme) ========== */
+body.light-theme {
+  --bg-dark: #f8fafc;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-bg-light: rgba(0, 0, 0, 0.04);
+  --card-border: rgba(0, 0, 0, 0.12);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+
+  --accent-blue: #0284c7;
+  --accent-teal: #0d9488;
+  --accent-green: #059669;
+  --accent-yellow: #d97706;
+  --accent-orange: #d97706;
+  --accent-red: #dc2626;
+  --accent-purple: #9333ea;
+
+  --bg-red: rgba(239, 68, 68, 0.08);
+  --border-red: rgba(239, 68, 68, 0.25);
+  --bg-orange: rgba(245, 158, 11, 0.08);
+  --border-orange: rgba(245, 158, 11, 0.25);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 頁面最大寬度容器 */
+.page-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 15px 40px 15px;
+}
+
+/* ========== 2. Header & 導航列 ========== */
+.header-nav-container {
+  position: sticky;
+  top: 0;
+  z-index: 3000;
+  background: rgba(11, 15, 25, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  margin-bottom: 20px;
+  transition: background 0.3s ease;
+}
+body.light-theme .header-nav-container {
+  background: rgba(248, 250, 252, 0.88);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logo {
+  height: 38px;
+  width: auto;
+  filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.3));
+}
+.title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.header-clock {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--accent-teal);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.9;
+}
+
+.menu-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.theme-toggle-btn {
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  padding: 8px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  outline: none;
+}
+.theme-toggle-btn:hover {
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  transform: translateY(-1px);
+}
+.sun-icon { display: block; }
+.moon-icon { display: none; }
+body.light-theme .sun-icon { display: none; }
+body.light-theme .moon-icon { display: block; }
+
+.menu-toggle {
+  display: none;
+  font-size: 22px;
+  padding: 6px 12px;
+  cursor: pointer;
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.menu-toggle:hover { border-color: var(--accent-blue); }
+.menu-toggle.active {
+  border-color: var(--accent-blue);
+  background: rgba(56, 189, 248, 0.12);
+}
+
+.nav {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.nav a {
+  color: var(--text-muted);
+  padding: 8px 14px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  display: block;
+}
+.nav a:hover, .nav a.active {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+body.light-theme .nav a:hover, body.light-theme .nav a.active {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* 下拉選單 */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+.dropdown-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px 14px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  font-family: inherit;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dropdown-btn .arrow {
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+.dropdown:hover .dropdown-btn,
+.dropdown.active .dropdown-btn {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+body.light-theme .dropdown:hover .dropdown-btn,
+body.light-theme .dropdown.active .dropdown-btn {
+  background: rgba(0, 0, 0, 0.05);
+}
+.dropdown:hover .arrow,
+.dropdown.active .arrow {
+  transform: rotate(180deg);
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 190px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  z-index: 3100;
+  margin-top: 4px;
+}
+body.light-theme .dropdown-content {
+  background: rgba(255, 255, 255, 0.98);
+}
+.dropdown:hover .dropdown-content,
+.dropdown.active .dropdown-content {
+  display: block;
+}
+.dropdown-content a {
+  padding: 8px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+  font-size: 0.88rem;
+}
+
+/* ========== 3. 地震模組特有樣式 ========== */
+.eq-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 15px;
+  margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--accent-blue);
+  font-variant-numeric: tabular-nums;
+}
+
+.map-container-wrap {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 25px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+.map-header {
+  padding: 14px 20px;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+#eqMap {
+  height: 460px;
+  width: 100%;
+  z-index: 1;
+}
+
+.filter-btn-group {
+  display: flex;
+  gap: 6px;
+}
+.filter-btn {
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.filter-btn.active, .filter-btn:hover {
+  background: var(--accent-blue);
+  color: #fff;
+  border-color: var(--accent-blue);
+}
+
+/* 地震列表表格 */
+.eq-table-wrap {
+  max-height: 400px;
+  overflow-y: auto;
+  padding: 0 15px 15px 15px;
+}
+.eq-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.eq-table th, .eq-table td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--card-border);
+}
+.eq-table th {
+  color: var(--text-muted);
+  font-weight: 600;
+  position: sticky;
+  top: 0;
+  background: var(--bg-dark);
+}
+.mag-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: #ffffff;
+  text-align: center;
+  min-width: 48px;
+}
+.mag-low { background-color: var(--accent-green); }
+.mag-med { background-color: var(--accent-orange); }
+.mag-high { background-color: var(--accent-red); box-shadow: 0 0 8px rgba(239, 68, 68, 0.4); }
+
+/* 科普卡片 */
+.info-section-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  margin: 30px 0 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.info-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+}
+.info-card h3 {
+  font-size: 1.1rem;
+  color: var(--accent-teal);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.info-card p {
+  margin-bottom: 12px;
+  color: var(--text-main);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+.info-card ul {
+  padding-left: 20px;
+  margin-bottom: 12px;
+}
+.info-card li {
+  margin-bottom: 6px;
+  color: var(--text-main);
+  font-size: 0.92rem;
+}
+
+/* 響應式適配 */
+@media (max-width: 768px) {
+  .header-nav-container { padding: 0.75rem 1rem; }
+  .menu-toggle { display: block; }
+  .nav {
+    display: none;
+    flex-direction: column;
+    width: 230px;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  }
+  body.light-theme .nav { background: rgba(255, 255, 255, 0.98); }
+  .nav.active { display: flex; }
+  .dropdown { width: 100%; }
+  .dropdown-btn { width: 100%; justify-content: space-between; }
+  .dropdown-content {
+    position: static;
+    box-shadow: none;
+    border: none;
+    background: rgba(255, 255, 255, 0.03);
+    padding-left: 10px;
+    border-left: 2px solid var(--accent-blue);
+  }
+  #eqMap { height: 350px; }
+}
+@media (min-width: 769px) {
+  .nav { display: flex !important; }
+  .menu-toggle { display: none !important; }
+}
+</style>
+</head>
+
+<body>
+
+<!-- ========== Header 導航列 ========== -->
+<div class="header-nav-container">
+  <div class="header">
+    <img src="icons/MSSO.png" class="logo" alt="MSSO Logo" onerror="this.style.display='none'">
+    <div class="title">
+      澳門民間氣象台 MSSO
+      <span id="headerClock" class="header-clock"></span>
+    </div>
+  </div>
+
+  <div class="menu-container">
+    <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+      <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+    <div class="nav" id="navMenu">
+      <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
+
+      <div class="dropdown">
+        <button class="dropdown-btn">天氣 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/Apparent_Temperature/">溫度計算</a>
+          <a href="map.html">澳門綜合氣象實況</a>
+          <a href="https://macaosso.github.io/MSSOweb/morain.html">澳門降雨預報</a>
+          <a href="https://macaosso.github.io/MSSOweb/moweather.html">澳門天氣實況及預報</a>
+          <a href="https://macaosso.github.io/MSSOweb/AQImap.html">澳門空氣質量實況</a>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-btn">熱帶氣旋 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
+          <a href="https://macaosso.github.io/MSSOweb/TCtracker.html">熱帶氣旋襲澳追蹤</a>
+          <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋計算工具</a>
+          <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑GIS地圖</a>
+        </div>
+      </div>
+      
+      <div class="dropdown">
+        <button class="dropdown-btn">天文與地質 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/astro.html">天文專頁</a>
+          <a href="earthquake.html" class="active">全球地震資訊</a>
+        </div>
+      </div>
+      
+      <div class="dropdown">
+        <button class="dropdown-btn">其他 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+          <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== 頁面主要內容 ========== -->
+<div class="page-wrapper">
+
+  <!-- 即時數據統計指標卡片 -->
+  <div class="eq-stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        最新全球地震
+      </div>
+      <div class="stat-value" id="latestEqVal">載入中...</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted);" id="latestEqTime">--</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        過去 24 小時最大地震
+      </div>
+      <div class="stat-value" style="color: var(--accent-red);" id="maxEqVal">M --</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted);" id="maxEqLoc">--</div>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-label">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/><path d="M9 12l2 2 4-4"/></svg>
+        24小時內記錄總數 (M2.5+)
+      </div>
+      <div class="stat-value" style="color: var(--accent-teal);" id="totalEqVal">0</div>
+      <div style="font-size: 0.8rem; color: var(--text-muted);">每 3 分鐘自動更新</div>
+    </div>
+  </div>
+
+  <!-- 地圖與列表模組 -->
+  <div class="map-container-wrap">
+    <div class="map-header">
+      <div style="font-weight: 700; font-size: 1.05rem; display: flex; align-items: center; gap: 8px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        即時全球地震震央地圖 (USGS Feed)
+      </div>
+      <div class="filter-btn-group">
+        <button class="filter-btn active" onclick="filterMap('all', this)">全部 (M2.5+)</button>
+        <button class="filter-btn" onclick="filterMap('m4.5', this)">M4.5+</button>
+        <button class="filter-btn" onclick="filterMap('m6.0', this)">M6.0+ 強震</button>
+      </div>
+    </div>
+    
+    <div id="eqMap"></div>
+
+    <div class="eq-table-wrap">
+      <table class="eq-table">
+        <thead>
+          <tr>
+            <th>震級 (M)</th>
+            <th>位置 / 地理區域</th>
+            <th>震源深度</th>
+            <th>發生時間 (MST / UTC+8)</th>
+          </tr>
+        </thead>
+        <tbody id="eqTableBody">
+          <tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding: 20px;">正在讀取地震實況數據...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 科普專區 (Earthquake Knowledge) -->
+  <div class="info-section-title">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    地震氣象與地質科普專題
+  </div>
+
+  <div class="info-card">
+    <h3>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>
+      一、什麼是地震？ (What is an Earthquake?)
+    </h3>
+    <p>
+      <b>地震（Earthquake）</b>是指地球內部的能量快速釋放，產生彈性波並引發地面快速震動與晃動的地質現象。
+    </p>
+    <p>
+      地球構造主要分為地殼、地函與地核。地震釋放的能量會以<b>地震波（Seismic Waves）</b>的形式向四周傳播，主要分為以下幾種：
+    </p>
+    <ul>
+      <li><b>P波（初波 / 縱波）</b>：傳播速度最快，使岩石質點沿波傳播方向進行前後壓縮與伸展，通常是人體感知的第一次輕微垂直上下震動。</li>
+      <li><b>S波（剪切波 / 橫波）</b>：傳播速度較慢，質點震動方向與波傳播方向垂直，會造成地表劇烈的左右或前後剪切晃動，破壞力較大。</li>
+      <li><b>表面波（面波）</b>：沿地表傳播，頻率較低、波長較長，能造成地面持續大範圍的起伏與劇烈搖晃，是造成建築物倒塌的主因之一。</li>
+    </ul>
+  </div>
+
+  <div class="info-card">
+    <h3>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+      二、地震是如何形成的？ (How Earthquakes Form?)
+    </h3>
+    <p>
+      地震的形成主要源自<b>板塊構造運動（Plate Tectonics）</b>與<b>斷層錯動（Fault Movement）</b>：
+    </p>
+    <ul>
+      <li><b>板塊運動與應力累積</b>：地球岩石圈被分割為數個巨大板塊（如太平洋板塊、歐亞板塊等）。在地球內部熱對流的驅動下，板塊之間會發生相對移動（張裂、碰撞擠壓或錯動）。</li>
+      <li><b>彈性回跳與應力釋放</b>：在板塊交界處，岩石受到巨大的擠壓與摩擦力阻礙無法順暢移動，因而發生形變並累積極大的「應力」。當應力累積超過岩石所能承受的強度極限時，斷層會瞬間破裂錯動，累積的能量在一瞬間釋放出來，形成地震（此過程稱為<b>彈性回跳理論 Elastic Rebound Theory</b>）。</li>
+    </ul>
+    <p style="margin-top: 10px;">
+      <b>震源與震央概念：</b>
+    </p>
+    <ul>
+      <li><b>震源 (Hypocenter / Focus)</b>：地下岩石破裂並首次釋放地震波的起始點。</li>
+      <li><b>震央 (Epicenter)</b>：震源正上方對應的地表位置。</li>
+    </ul>
+  </div>
+
+  <div class="info-card">
+    <h3>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/></svg>
+      三、震級 (Magnitude) 與 烈度 (Intensity) 的差別
+    </h3>
+    <p>
+      大眾常混淆「震級」與「烈度」，兩者代表完全不同的物理量：
+    </p>
+    <ul>
+      <li><b>震級 (Magnitude，如芮氏規模 $M_L$ 或矩震級 $M_w$)</b>：代表<b>一次地震所釋放的總能量大小</b>。每次地震只有一個震級數值，不隨距離改變。</li>
+      <li><b>烈度 / 震度 (Seismic Intensity)</b>：代表<b>特定地點感受到的地面震動劇烈程度及破壞狀況</b>。同一場地震，離震央越近或地質越軟弱的地方，烈度通常越高。</li>
+    </ul>
+  </div>
+
+</div>
+
+<script>
+/* ========== 1. 全域時間與選單/主題邏輯 ========== */
+function updateHeaderClock() {
+  const clockEl = document.getElementById('headerClock');
+  if (clockEl) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const date = String(now.getDate()).padStart(2, '0');
+    const hrs = String(now.getHours()).padStart(2, '0');
+    const mins = String(now.getMinutes()).padStart(2, '0');
+    const secs = String(now.getSeconds()).padStart(2, '0');
+    clockEl.textContent = ` ${year}年${month}月${date}日 ${hrs}:${mins}:${secs} MST`;
+  }
+}
+
+function toggleMenu() {
+  const nav = document.getElementById("navMenu");
+  const btn = document.querySelector(".menu-toggle");
+  nav.classList.toggle("active");
+  btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
+}
+
+function applyTheme(theme) {
+  if (theme === 'light') {
+    document.body.classList.add('light-theme');
+  } else {
+    document.body.classList.remove('light-theme');
+  }
+  updateMapTileLayer();
+}
+
+function toggleTheme() {
+  const isLight = document.body.classList.contains('light-theme');
+  const newTheme = isLight ? 'dark' : 'light';
+  localStorage.setItem('msso_theme', newTheme);
+  applyTheme(newTheme);
+}
+
+(function initTheme() {
+  const savedTheme = localStorage.getItem('msso_theme');
+  if (savedTheme) {
+    if (savedTheme === 'light') document.body.classList.add('light-theme');
+  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+    document.body.classList.add('light-theme');
+  }
+})();
+
+document.addEventListener('DOMContentLoaded', () => {
+  updateHeaderClock();
+  setInterval(updateHeaderClock, 1000);
+
+  // 下拉選單處理
+  const dropdownBtns = document.querySelectorAll('.dropdown-btn');
+  dropdownBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const currentDropdown = btn.parentElement;
+      document.querySelectorAll('.dropdown').forEach(d => {
+        if (d !== currentDropdown) d.classList.remove('active');
+      });
+      currentDropdown.classList.toggle('active');
+    });
+  });
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('active'));
+  });
+});
+
+/* ========== 2. Leaflet 地圖與 USGS 自動即時 API 邏輯 ========== */
+let map;
+let currentTileLayer;
+let earthquakeMarkers = [];
+let rawEqFeatures = [];
+let currentFilter = 'all';
+
+const USGS_API_URL = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/2.5_day.geojson";
+
+function initMap() {
+  // 初始化 Leaflet 地圖，預設以東亞/太平洋為中心
+  map = L.map('eqMap', {
+    center: [20.0, 120.0],
+    zoom: 3,
+    minZoom: 2,
+    worldCopyJump: true
+  });
+
+  updateMapTileLayer();
+}
+
+function updateMapTileLayer() {
+  if (!map) return;
+  if (currentTileLayer) map.removeLayer(currentTileLayer);
+
+  const isLight = document.body.classList.contains('light-theme');
+  const tileUrl = isLight 
+    ? 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+    : 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+
+  currentTileLayer = L.tileLayer(tileUrl, {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
+    maxZoom: 18
+  }).addTo(map);
+}
+
+function getMagColor(mag) {
+  if (mag >= 6.0) return '#ef4444'; // 高強震 - 紅色
+  if (mag >= 4.5) return '#f59e0b'; // 中強震 - 橙色
+  return '#34d399';                 // 輕微 - 綠色
+}
+
+function getMagClass(mag) {
+  if (mag >= 6.0) return 'mag-high';
+  if (mag >= 4.5) return 'mag-med';
+  return 'mag-low';
+}
+
+function formatMSTTime(timestamp) {
+  const date = new Date(timestamp);
+  return date.toLocaleString('zh-TW', {
+    timeZone: 'Asia/Macau',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+}
+
+async function fetchEarthquakeData() {
+  try {
+    const response = await fetch(USGS_API_URL, { cache: 'no-store' });
+    if (!response.ok) throw new Error("USGS 數據請求失敗");
+    
+    const data = await response.json();
+    rawEqFeatures = data.features || [];
+    
+    renderEarthquakes();
+  } catch (err) {
+    console.error("地震數據讀取異常:", err);
+    document.getElementById('eqTableBody').innerHTML = 
+      `<tr><td colspan="4" style="text-align:center; color:var(--accent-red); padding: 20px;">數據讀取失敗，請檢查網路後重試。</td></tr>`;
+  }
+}
+
+function renderEarthquakes() {
+  // 清除舊標記
+  earthquakeMarkers.forEach(m => map.removeLayer(m));
+  earthquakeMarkers = [];
+
+  let filtered = rawEqFeatures.filter(f => {
+    const mag = f.properties.mag || 0;
+    if (currentFilter === 'm4.5') return mag >= 4.5;
+    if (currentFilter === 'm6.0') return mag >= 6.0;
+    return true;
+  });
+
+  // 更新統計指標
+  document.getElementById('totalEqVal').textContent = rawEqFeatures.length;
+
+  if (rawEqFeatures.length > 0) {
+    // 最新地震
+    const latest = rawEqFeatures[0];
+    document.getElementById('latestEqVal').textContent = `M ${(latest.properties.mag || 0).toFixed(1)}`;
+    document.getElementById('latestEqTime').textContent = `${latest.properties.place || ''} (${formatMSTTime(latest.properties.time)})`;
+
+    // 最大地震
+    let maxEq = rawEqFeatures.reduce((prev, curr) => (prev.properties.mag > curr.properties.mag) ? prev : curr, rawEqFeatures[0]);
+    document.getElementById('maxEqVal').textContent = `M ${(maxEq.properties.mag || 0).toFixed(1)}`;
+    document.getElementById('maxEqLoc').textContent = maxEq.properties.place || '--';
+  }
+
+  // 渲染表格與地圖圓圈標記
+  const tableBody = document.getElementById('eqTableBody');
+  if (filtered.length === 0) {
+    tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:var(--text-muted); padding: 20px;">當前篩選條件下無符合地震紀錄。</td></tr>`;
+    return;
+  }
+
+  let tableHtml = '';
+
+  filtered.forEach(feature => {
+    const props = feature.properties;
+    const coords = feature.geometry.coordinates; // [lon, lat, depth]
+    const lon = coords[0];
+    const lat = coords[1];
+    const depth = coords[2];
+    const mag = props.mag !== null ? props.mag.toFixed(1) : '--';
+    const place = props.place || '未知位置';
+    const timeStr = formatMSTTime(props.time);
+
+    // 繪製 Leaflet 圓圈標記
+    const radius = Math.max(parseFloat(mag) * 3, 4);
+    const color = getMagColor(parseFloat(mag));
+
+    const marker = L.circleMarker([lat, lon], {
+      radius: radius,
+      fillColor: color,
+      color: '#ffffff',
+      weight: 1,
+      opacity: 0.9,
+      fillOpacity: 0.75
+    }).addTo(map);
+
+    marker.bindPopup(`
+      <div style="font-family: sans-serif; color: #0f172a; padding: 4px;">
+        <strong style="font-size: 1.05rem; color: ${color};">震級：M ${mag}</strong><br/>
+        <b>位置：</b>${place}<br/>
+        <b>深度：</b>${depth.toFixed(1)} km<br/>
+        <b>時間：</b>${timeStr} (MST)
+      </div>
+    `);
+
+    earthquakeMarkers.push(marker);
+
+    // 構建表格行
+    tableHtml += `
+      <tr>
+        <td><span class="mag-badge ${getMagClass(parseFloat(mag))}">M ${mag}</span></td>
+        <td>${place}</td>
+        <td>${depth.toFixed(1)} km</td>
+        <td>${timeStr}</td>
+      </tr>
+    `;
+  });
+
+  tableBody.innerHTML = tableHtml;
+}
+
+function filterMap(type, btn) {
+  currentFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderEarthquakes();
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  initMap();
+  fetchEarthquakeData();
+  // 每 3 分鐘自動刷新數據
+  setInterval(fetchEarthquakeData, 180000);
+});
+</script>
+</body>
+</html>
