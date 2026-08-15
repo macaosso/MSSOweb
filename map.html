@@ -6,6 +6,9 @@
     <title>澳門各氣象站數據 - 澳門民間氣象台 MSSO</title>
     <link rel="icon" type="image/png" href="icons/MSSO.png">
     
+    <!-- Chart.js for rendering history trend graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
         /* ========== 主題基礎變數 ========== */
         :root {
@@ -439,7 +442,7 @@
             right: 25px;
         }
 
-        /* Station Card */
+        /* Station Card & Chart Container */
         .station-single {
             min-height: 500px;
             display: flex;
@@ -464,7 +467,7 @@
             border-right: 1px solid var(--card-border);
             border-bottom: 1px solid var(--card-border);
             width: 100%;
-            max-width: 440px;
+            max-width: 500px;
             font-size: 13px;
         }
         .station-card:hover {
@@ -524,6 +527,15 @@
         .metric strong {
             color: var(--text-main);
             font-size: 0.95rem;
+        }
+
+        .chart-box {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid var(--card-border);
+            position: relative;
+            height: 220px;
+            width: 100%;
         }
 
         /* Status Colors */
@@ -677,7 +689,7 @@
     <header>
         <div>
             <h1>澳門各氣象站數據</h1>
-            <small style="color: #2ecc71;">● 點擊地圖標記查看數據 | 切換分類查看不同指標</small>
+            <small style="color: #2ecc71;">● 點擊地圖標記查看數據及歷史走勢圖 | 切換分類查看不同指標</small>
         </div>
         <div class="meta-info">
             <div>更新時間：<span id="pub-date">載入中...</span></div>
@@ -722,7 +734,7 @@
         </div>
     </div>
 
-    <!-- 地圖視圖 (使用 moWGBT 地圖圖片與 Pin 標記渲染法) -->
+    <!-- 地圖視圖 -->
     <div class="main-layout" id="map-view">
         <div class="map-card">
             <div class="wbgt-map-wrapper">
@@ -741,7 +753,7 @@
         </div>
 
         <div id="single-card-box" class="station-single">
-            <div class="empty-tip">請點擊地圖上標記查看測站實時數據</div>
+            <div class="empty-tip">請點擊地圖上標記查看測站實時數據及走勢</div>
         </div>
     </div>
 
@@ -1137,11 +1149,107 @@ function updateLegendPanel(tabType) {
     legendContent.innerHTML = legendHTML;
 }
 
-// ========== 6. 全局變數與初始化 ==========
+// ========== 6. 全局變數與數據存儲 ==========
 let currentTab = "tempCurrent";
 let pointDataList = [];
 let floodDataList = [];
+let selectedStationInfo = null; // 紀錄目前選取的測站，切換標籤時自動更新圖表
+let activeChartInstance = null;
 const singleCardBox = document.getElementById("single-card-box");
+
+// 數據快照儲存於 localStorage
+function saveHistorySnapshot(pubTime) {
+    if (!pointDataList.length && !floodDataList.length) return;
+
+    let history = [];
+    try {
+        history = JSON.parse(localStorage.getItem('msso_weather_history') || '[]');
+    } catch(e) { history = []; }
+
+    const timeLabel = pubTime || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    // 避免重複寫入相同時間點的紀錄
+    if (history.length > 0 && history[history.length - 1].time === timeLabel) {
+        return;
+    }
+
+    history.push({
+        time: timeLabel,
+        stations: pointDataList,
+        floods: floodDataList
+    });
+
+    // 保留最近 200 筆快照 (約 16 小時)
+    if (history.length > 200) history.shift();
+
+    localStorage.setItem('msso_weather_history', JSON.stringify(history));
+}
+
+// 繪製 Station 歷史走勢圖
+function renderStationChart(stationName, isFlood = false) {
+    const canvas = document.getElementById('stationChartCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+
+    let history = [];
+    try {
+        history = JSON.parse(localStorage.getItem('msso_weather_history') || '[]');
+    } catch(e) { history = []; }
+
+    if (history.length === 0) return;
+
+    const cfg = fieldMap[currentTab] || fieldMap['tempCurrent'];
+    const field = cfg.field;
+
+    const labels = history.map(item => item.time);
+    const datasetValues = history.map(item => {
+        const list = isFlood ? item.floods : item.stations;
+        const match = list ? list.find(s => s.name === stationName) : null;
+        if (!match) return null;
+        const val = parseFloat(match[field]);
+        return isNaN(val) ? null : val;
+    });
+
+    if (activeChartInstance) {
+        activeChartInstance.destroy();
+    }
+
+    activeChartInstance = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: `${stationName} - ${cfg.label} (${cfg.unit})`,
+                data: datasetValues,
+                borderColor: '#38bdf8',
+                backgroundColor: 'rgba(56, 189, 248, 0.15)',
+                borderWidth: 2,
+                pointRadius: 3,
+                fill: true,
+                tension: 0.35
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    labels: { color: getComputedStyle(document.body).getPropertyValue('--text-main') }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-muted'), maxRotation: 45 },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                },
+                y: {
+                    ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-muted') },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                }
+            }
+        }
+    });
+}
 
 // 介面切換與按鈕監聽
 document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1155,6 +1263,15 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         updateMapMarkers();
         updateLegendPanel(currentTab);
         renderDataTable(currentTab);
+
+        // 如果目前有已選取的測站，切換標籤時重新繪製相應項目的走勢圖
+        if (selectedStationInfo) {
+            if (selectedStationInfo.isFlood) {
+                renderSingleFloodCard(selectedStationInfo.data);
+            } else {
+                renderSingleCard(selectedStationInfo.data);
+            }
+        }
     });
 });
 
@@ -1167,7 +1284,6 @@ document.getElementById('btn-map').addEventListener('click', function(){
 document.getElementById('btn-table').addEventListener('click', function(){
     this.classList.add('active');
     document.getElementById('btn-map').classList.remove('active');
-    document.getElementById('map-view').classList.hide = false;
     document.getElementById('map-view').classList.add('hide');
     document.getElementById('table-view').classList.remove('hide');
     renderDataTable(currentTab);
@@ -1244,23 +1360,34 @@ function updateMapMarkers() {
 
         pin.addEventListener('click', () => {
             if (currentTab === "waterLevel") {
-                singleCardBox.innerHTML = `
-                <div class="station-card">
-                    <div class="station-name">${name}</div>
-                    <div class="metrics-grid">
-                        <div class="metric" style="grid-column: span 6;">
-                            <span>實時水位</span>
-                            <strong>${formatVal(point.waterLevel, 'm')}</strong>
-                        </div>
-                    </div>
-                </div>`;
+                selectedStationInfo = { name: point.name, isFlood: true, data: point };
+                renderSingleFloodCard(point);
             } else {
-                renderSingleCard({...point, code: stationCoordinates[name]?.code || ""});
+                const fullData = {...point, code: stationCoordinates[name]?.code || ""};
+                selectedStationInfo = { name: point.name, isFlood: false, data: fullData };
+                renderSingleCard(fullData);
             }
         });
 
         container.appendChild(pin);
     });
+}
+
+function renderSingleFloodCard(point) {
+    singleCardBox.innerHTML = `
+    <div class="station-card">
+        <div class="station-name">${point.name}</div>
+        <div class="metrics-grid">
+            <div class="metric" style="grid-column: span 6;">
+                <span>實時水位</span>
+                <strong>${formatVal(point.waterLevel, 'm')}</strong>
+            </div>
+        </div>
+        <div class="chart-box">
+            <canvas id="stationChartCanvas"></canvas>
+        </div>
+    </div>`;
+    renderStationChart(point.name, true);
 }
 
 function renderSingleCard(data) {
@@ -1303,8 +1430,12 @@ function renderSingleCard(data) {
             <div class="${rTotalClass}"><span>日總雨量</span><strong>${formatVal(rainTotal, 'mm')}</strong></div>
             <div class="${wlClass}" style="grid-column: span 6;"><span>實時水位</span><strong>${formatVal(waterLevel, 'm')}</strong></div>
         </div>
+        <div class="chart-box">
+            <canvas id="stationChartCanvas"></canvas>
+        </div>
     </div>`;
     singleCardBox.innerHTML = card;
+    renderStationChart(name, false);
 }
 
 // 表格渲染
@@ -1404,6 +1535,7 @@ function fetchWeatherData() {
                     waterLevel: "--", wbgt
                 });
             });
+            return pubTime;
         });
 }
 
@@ -1429,10 +1561,19 @@ function fetchFloodData() {
 
 function loadAllData() {
     Promise.all([fetchWeatherData(), fetchFloodData()])
-        .then(() => {
+        .then(([pubTime]) => {
+            saveHistorySnapshot(pubTime);
             updateMapMarkers();
             updateLegendPanel(currentTab);
             renderDataTable(currentTab);
+
+            if (selectedStationInfo) {
+                if (selectedStationInfo.isFlood) {
+                    renderSingleFloodCard(selectedStationInfo.data);
+                } else {
+                    renderSingleCard(selectedStationInfo.data);
+                }
+            }
         })
         .catch(err => console.error("數據載入失敗：", err));
 }
