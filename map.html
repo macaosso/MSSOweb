@@ -870,11 +870,11 @@ function getHeatIndexColor(hiStr) {
 function getWBGTColor(wbgtStr){
     let w=parseFloat(wbgtStr);
     if(isNaN(w)) return "#78797a";
-    if(w>=33.5) return "#000000";
-    if(w>=31.5) return "#ff0000";
-    if(w>=29.5) return "#e06c00";
-    if(w>=27.5) return "#c9b200";
-    if(w>=24.5) return "#38b000";
+    if(w>=33) return "#000000";
+    if(w>=31) return "#ff0000";
+    if(w>=28) return "#e06c00";
+    if(w>=25) return "#c9b200";
+    if(w>=21) return "#38b000";
     return "#0077b6";
 }
 function getHumidityColor(humStr) {
@@ -962,65 +962,64 @@ function getWaterLevelColor(wlStr) {
     return "#1b6009";
 }
 
-// ========== 4. 圖例更新面板 ==========
 function updateLegendPanel(tabType) {
     const legendContent = document.getElementById('legend-content');
     let legendHTML = '';
     switch(tabType) {
         case "tempCurrent":case "tempMax":case "tempMin":case "apparentTemp":
             legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#330101"></div>≥37.5℃ 極為酷熱</div>
-            <div class="legend-item"><div class="legend-color" style="background:#8d1919"></div>35.5~37.4℃ 非常酷熱</div>
-            <div class="legend-item"><div class="legend-color" style="background:#f12828"></div>32.5~35.4℃ 酷熱</div>
-            <div class="legend-item"><div class="legend-color" style="background:#ff7a00"></div>27.5~32.4℃ 炎熱</div>
-            <div class="legend-item"><div class="legend-color" style="background:#b37802"></div>22.5~27.4℃ 溫暖</div>
-            <div class="legend-item"><div class="legend-color" style="background:#919107"></div>17.5~22.4℃ 和暖</div>
-            <div class="legend-item"><div class="legend-color" style="background:#19aa75"></div>12.5~17.4℃ 清涼</div>
-            <div class="legend-item"><div class="legend-color" style="background:#0d517a"></div>7.5~12.4℃ 寒冷</div>
-            <div class="legend-item"><div class="legend-color" style="background:#141970"></div>3.5~7.4℃ 非常寒冷</div>
-            <div class="legend-item"><div class="legend-color" style="background:#300c46"></div><3.5℃ 極為寒冷</div>`;
+            <div class="legend-item"><div class="legend-color" style="background:#330101"></div>極為酷熱</div>
+            <div class="legend-item"><div class="legend-color" style="background:#8d1919"></div>非常酷熱</div>
+            <div class="legend-item"><div class="legend-color" style="background:#f12828"></div>酷熱</div>
+            <div class="legend-item"><div class="legend-color" style="background:#ff7a00"></div>炎熱</div>
+            <div class="legend-item"><div class="legend-color" style="background:#b37802"></div>溫暖</div>
+            <div class="legend-item"><div class="legend-color" style="background:#919107"></div>和暖</div>
+            <div class="legend-item"><div class="legend-color" style="background:#19aa75"></div>清涼</div>
+            <div class="legend-item"><div class="legend-color" style="background:#0d517a"></div>寒冷</div>
+            <div class="legend-item"><div class="legend-color" style="background:#141970"></div>非常寒冷</div>
+            <div class="legend-item"><div class="legend-color" style="background:#300c46"></div>極為寒冷</div>`;
             break;
         case "wbgt":
             legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>≥33.5℃ 極度危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#ff0000"></div>31.5~33.4℃ 非常危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#e06c00"></div>29.5~31.4℃ 危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#c9b200"></div>27.5~29.4℃ 警戒</div>
-            <div class="legend-item"><div class="legend-color" style="background:#38b000"></div>24.5~27.4℃ 注意</div>
-            <div class="legend-item"><div class="legend-color" style="background:#0077b6"></div><24.4℃ 正常</div>`;
+            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>極度危險</div>
+            <div class="legend-item"><div class="legend-color" style="background:#ff0000"></div>非常危險</div>
+            <div class="legend-item"><div class="legend-color" style="background:#e06c00"></div>危險</div>
+            <div class="legend-item"><div class="legend-color" style="background:#c9b200"></div>警戒</div>
+            <div class="legend-item"><div class="legend-color" style="background:#38b000"></div>注意</div>
+            <div class="legend-item"><div class="legend-color" style="background:#0077b6"></div>正常</div>`;
             break;
         case "heatIndex":
             legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>≥54.5℃ 極度危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#ff0000"></div>49.5~54.4℃ 非常危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#e06c00"></div>44.5~49.4℃ 危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#c9b200"></div>39.5~44.4℃ 警戒</div>
-            <div class="legend-item"><div class="legend-color" style="background:#38b000"></div>35.5~39.4℃ 注意</div>
-            <div class="legend-item"><div class="legend-color" style="background:#0077b6"></div><35.5℃ 正常</div>`;
+            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>極度危險</div>
+            <div class="legend-item"><div class="legend-color" style="background:#ff0000"></div>非常危險</div>
+            <div class="legend-item"><div class="legend-color" style="background:#e06c00"></div>危險</div>
+            <div class="legend-item"><div class="legend-color" style="background:#c9b200"></div>警戒</div>
+            <div class="legend-item"><div class="legend-color" style="background:#38b000"></div>注意</div>
+            <div class="legend-item"><div class="legend-color" style="background:#0077b6"></div>正常</div>`;
             break;
         case "dewPoint":
             legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#470f64"></div>≥28℃ 危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#a82020"></div>24~27.9℃ 悶熱</div>
-            <div class="legend-item"><div class="legend-color" style="background:#347b28"></div>18~23.9℃ 舒適</div>
-            <div class="legend-item"><div class="legend-color" style="background:#8f6825"></div>12~17.9℃ 乾爽</div>
-            <div class="legend-item"><div class="legend-color" style="background:#8a462b"></div><12℃ 乾燥</div>`;
+            <div class="legend-item"><div class="legend-color" style="background:#470f64"></div>危險</div>
+            <div class="legend-item"><div class="legend-color" style="background:#a82020"></div>悶熱</div>
+            <div class="legend-item"><div class="legend-color" style="background:#347b28"></div>舒適</div>
+            <div class="legend-item"><div class="legend-color" style="background:#8f6825"></div>乾爽</div>
+            <div class="legend-item"><div class="legend-color" style="background:#8a462b"></div>乾燥</div>`;
             break;
         case "humidity":
             legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#071770"></div>≥94.5% 非常潮濕</div>
-            <div class="legend-item"><div class="legend-color" style="background:#147ccd"></div>84.5~94.4% 潮濕</div>
-            <div class="legend-item"><div class="legend-color" style="background:#0b8743"></div>49.5~84.4% 正常</div>
-            <div class="legend-item"><div class="legend-color" style="background:#96592d"></div>30.5~49.4% 乾燥</div>
-            <div class="legend-item"><div class="legend-color" style="background:#641515"></div><30.5% 非常乾燥</div>`;
+            <div class="legend-item"><div class="legend-color" style="background:#071770"></div>非常潮濕</div>
+            <div class="legend-item"><div class="legend-color" style="background:#147ccd"></div>潮濕</div>
+            <div class="legend-item"><div class="legend-color" style="background:#0b8743"></div>正常</div>
+            <div class="legend-item"><div class="legend-color" style="background:#96592d"></div>乾燥</div>
+            <div class="legend-item"><div class="legend-color" style="background:#641515"></div>非常乾燥</div>`;
             break;
         case "windSpeed":case "windGust":
             legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#6a0606"></div>≥117.5km/h 颶風</div>
-            <div class="legend-item"><div class="legend-color" style="background:#b1510d"></div>87.5~117.4km/h 暴風</div>
-            <div class="legend-item"><div class="legend-color" style="background:#7f710b"></div>62.5~87.4km/h 烈風</div>
-            <div class="legend-item"><div class="legend-color" style="background:#154c83"></div>40.5~62.4km/h 強風</div>
-            <div class="legend-item"><div class="legend-color" style="background:#11750a"></div><40.5km/h 強風以下</div>`;
+            <div class="legend-item"><div class="legend-color" style="background:#6a0606"></div>颶風</div>
+            <div class="legend-item"><div class="legend-color" style="background:#b1510d"></div>暴風</div>
+            <div class="legend-item"><div class="legend-color" style="background:#7f710b"></div>烈風</div>
+            <div class="legend-item"><div class="legend-color" style="background:#154c83"></div>強風</div>
+            <div class="legend-item"><div class="legend-color" style="background:#11750a"></div>強風以下</div>`;
             break;
         case "waterLevel":
             legendHTML = `
