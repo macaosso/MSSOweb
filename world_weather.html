@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>世界主要城市天氣預報 | 澳門民間氣象台 MSSO</title>
+    <link rel="icon" type="image/png" href="icons/MSSO.png">
+    
+    <!-- Leaflet.js Map Library -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #121212;
+            --card-bg: #1e1e2f;
+            --card-bg-light: rgba(255, 255, 255, 0.05);
+            --card-border: #2d2d50;
+            --text-main: #ffffff;
+            --text-muted: #a0a0a0;
+            --accent-blue: #38bdf8;
+            --accent-teal: #2dd4bf;
+            --accent-orange: #f97316;
+        }
+
+        body.light-theme {
+            --bg-dark: #f8fafc;
+            --card-bg: #ffffff;
+            --card-bg-light: rgba(0, 0, 0, 0.04);
+            --card-border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --accent-blue: #0284c7;
+            --accent-teal: #0d9488;
+            --accent-orange: #ea580c;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            padding-bottom: 30px;
+            font-size: 14px;
+            line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+
+        /* Header Navigation */
+        .header-nav-container {
+            position: sticky;
+            top: 0;
+            z-index: 3000;
+            background: rgba(18, 18, 18, 0.88);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1.5rem;
+            margin-bottom: 20px;
+        }
+        body.light-theme .header-nav-container { background: rgba(248, 250, 252, 0.88); }
+        .header { display: flex; align-items: center; gap: 12px; }
+        .logo { height: 38px; width: auto; }
+        .title { font-size: 1.15rem; font-weight: 700; color: var(--accent-blue); display: flex; align-items: baseline; gap: 10px; }
+        .header-clock { font-size: 0.88rem; font-weight: 500; color: var(--accent-teal); font-variant-numeric: tabular-nums; }
+
+        .theme-toggle-btn {
+            background: var(--card-bg-light);
+            border: 1px solid var(--card-border);
+            color: var(--text-main);
+            padding: 8px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.25s ease;
+        }
+
+        /* Banner Header */
+        header {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            color: #f0f0f0;
+            padding: 20px 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        body.light-theme header {
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            color: #0f172a;
+        }
+
+        /* Controls & Filter Bar */
+        .controls-bar {
+            background: var(--card-bg);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .region-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
+        .tab-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            background: var(--card-bg-light);
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .tab-btn.active, .tab-btn:hover {
+            background: var(--accent-blue);
+            color: #fff;
+            border-color: var(--accent-blue);
+        }
+        .search-box {
+            padding: 7px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--card-border);
+            background: var(--card-bg-light);
+            color: var(--text-main);
+            outline: none;
+            min-width: 220px;
+        }
+
+        /* Map Container */
+        .map-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--card-border);
+            margin-bottom: 25px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+        }
+        #worldMap {
+            width: 100%;
+            height: 480px;
+            border-radius: 8px;
+            z-index: 1;
+        }
+        /* Dark tile adaptation for map */
+        body:not(.light-theme) .leaflet-tile-pane {
+            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+        }
+
+        /* Table Section */
+        .table-section {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--card-border);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.92rem;
+            margin-top: 15px;
+        }
+        .data-table th, .data-table td {
+            border: 1px solid var(--card-border);
+            padding: 10px 14px;
+            text-align: center;
+        }
+        .data-table th { background: var(--card-bg-light); font-weight: 600; }
+        .temp-range { font-weight: bold; color: var(--accent-orange); }
+
+        .action-btn {
+            padding: 7px 14px;
+            border: 1px solid var(--card-border);
+            border-radius: 6px;
+            background: var(--card-bg-light);
+            color: var(--text-main);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .action-btn:hover { background: var(--accent-blue); color: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="header-nav-container">
+    <div class="header">
+        <img src="icons/MSSO.png" class="logo" alt="MSSO Logo" onerror="this.style.display='none'">
+        <div class="title">
+            澳門民間氣象台 MSSO
+            <span id="headerClock" class="header-clock"></span>
+        </div>
+    </div>
+    <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()">🌓 切換模式</button>
+</div>
+
+<div class="container">
+    <header>
+        <div>
+            <h1>世界主要城市天氣預報</h1>
+            <small style="opacity: 0.8;">氣象數據源自 澳門地球物理氣象局 (SMG)</small>
+        </div>
+        <div>
+            資料更新時間：<span id="last-updated">載入中...</span>
+        </div>
+    </header>
+
+    <!-- Controls Bar -->
+    <div class="controls-bar">
+        <div class="region-tabs" id="regionTabs">
+            <button class="tab-btn active" data-region="all">全部地區</button>
+            <button class="tab-btn" data-region="china">中國</button>
+            <button class="tab-btn" data-region="gdcity">廣東省</button>
+            <button class="tab-btn" data-region="asia">亞洲</button>
+            <button class="tab-btn" data-region="europe">歐洲</button>
+            <button class="tab-btn" data-region="africa">非洲</button>
+            <button class="tab-btn" data-region="australia">大洋洲</button>
+            <button class="tab-btn" data-region="namerica">北美洲</button>
+            <button class="tab-btn" data-region="samerica">南美洲</button>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+            <input type="text" id="searchInput" class="search-box" placeholder="搜尋城市名稱..." oninput="filterData()">
+            <button class="action-btn" onclick="refreshAllData()">🔄 刷新</button>
+        </div>
+    </div>
+
+    <!-- Map View -->
+    <div class="map-section">
+        <div id="worldMap"></div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-section">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
+            <h3 style="color: var(--accent-blue);">📋 城市天氣數據列表 (<span id="cityCount">0</span>)</h3>
+            <small style="color: var(--text-muted);">自動更新倒數: <span id="refreshCountdown">300</span> 秒</small>
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>地區</th>
+                        <th>城市名稱</th>
+                        <th>天氣狀況</th>
+                        <th>氣溫範圍 (°C)</th>
+                    </tr>
+                </thead>
+                <tbody id="weatherTableBody">
+                    <tr><td colspan="4" style="text-align:center; padding: 20px; color:#888;">數據載入中...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+// XML Feeds Configuration
+const feeds = [
+    { key: "china", name: "中國", url: "https://xml.smg.gov.mo/c_china.xml" },
+    { key: "gdcity", name: "廣東省", url: "https://xml.smg.gov.mo/c_gdcity.xml" },
+    { key: "asia", name: "亞洲", url: "https://xml.smg.gov.mo/c_asia.xml" },
+    { key: "europe", name: "歐洲", url: "https://xml.smg.gov.mo/c_europe.xml" },
+    { key: "africa", name: "非洲", url: "https://xml.smg.gov.mo/c_africa.xml" },
+    { key: "australia", name: "大洋洲", url: "https://xml.smg.gov.mo/c_australia.xml" },
+    { key: "namerica", name: "北美洲", url: "https://xml.smg.gov.mo/c_namerica.xml" },
+    { key: "samerica", name: "南美洲", url: "https://xml.smg.gov.mo/c_samerica.xml" }
+];
+
+// Predefined Coordinates for Map Marker Plotting
+const cityCoords = {
+    "北京": [39.9042, 116.4074], "上海": [31.2304, 121.4737], "廣州": [23.1291, 113.2644], "深圳": [22.5431, 114.0579],
+    "珠海": [22.2710, 113.5767], "香港": [22.3193, 114.1694], "臺北": [25.0330, 121.5654], "東京": [35.6762, 139.6503],
+    "首爾": [37.5665, 126.9780], "新加坡": [1.3521, 103.8198], "曼谷": [13.7563, 100.5018], "倫敦": [51.5074, -0.1278],
+    "巴黎": [48.8566, 2.3522], "柏林": [52.5200, 13.4050], "羅馬": [41.9028, 12.4964], "莫斯科": [55.7558, 37.6173],
+    "紐約": [40.7128, -74.0060], "洛杉磯": [34.0522, -118.2437], "芝加哥": [41.8781, -87.6298], "雪梨": [-33.8688, 151.2093],
+    "墨爾本": [-37.8136, 144.9631], "開羅": [30.0444, 31.2357], "約翰尼斯堡": [-26.2041, 28.0473], "里約熱內盧": [-22.9068, -43.1729],
+    "布宜諾斯艾利斯": [-34.6037, -58.3816]
+};
+
+let allWeatherData = [];
+let activeRegion = "all";
+let map, markerGroup;
+let countdown = 300;
+let timer = null;
+
+// Initialize Leaflet Map
+function initMap() {
+    map = L.map('worldMap').setView([20, 15], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+    markerGroup = L.layerGroup().addTo(map);
+}
+
+// Clock updates
+function updateClock() {
+    const clockEl = document.getElementById('headerClock');
+    if (clockEl) {
+        const now = new Date();
+        clockEl.textContent = ` ${now.getFullYear()}年${String(now.getMonth()+1).padStart(2,'0')}月${String(now.getDate()).padStart(2,'0')}日 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+    }
+}
+setInterval(updateClock, 1000);
+
+// Fetch Single Feed
+async function fetchFeed(feed) {
+    const corsProxy = "https://corsproxy.io/?";
+    const targetUrl = `${corsProxy}${encodeURIComponent(feed.url)}?t=${Date.now()}`;
+    try {
+        const res = await fetch(targetUrl);
+        if (!res.ok) throw new Error("Fetch failed");
+        const xmlText = await res.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+        const pubDate = xmlDoc.querySelector("SysPubdate")?.textContent || "";
+        const cityNodes = xmlDoc.querySelectorAll("City, city, Station, station");
+        const list = [];
+
+        cityNodes.forEach(node => {
+            const name = node.querySelector("CityName, name, CName")?.textContent?.trim() || "";
+            const weather = node.querySelector("Weather, weather, Status")?.textContent?.trim() || "晴/多雲";
+            const tempLow = node.querySelector("TempLow, minTemp, Low")?.textContent?.trim() || "--";
+            const tempHigh = node.querySelector("TempHigh, maxTemp, High")?.textContent?.trim() || "--";
+
+            if (name) {
+                list.push({
+                    regionKey: feed.key,
+                    regionName: feed.name,
+                    name: name,
+                    weather: weather,
+                    tempLow: tempLow,
+                    tempHigh: tempHigh,
+                    pubDate: pubDate
+                });
+            }
+        });
+        return { pubDate, list };
+    } catch (e) {
+        console.warn(`Error fetching ${feed.name}:`, e);
+        return { pubDate: "", list: [] };
+    }
+}
+
+// Fetch All Feeds & Process Data
+async function refreshAllData() {
+    countdown = 300;
+    document.getElementById("weatherTableBody").innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px;">更新數據中...</td></tr>`;
+
+    const results = await Promise.all(feeds.map(f => fetchFeed(f)));
+    allWeatherData = [];
+    let latestPubDate = "";
+
+    results.forEach(res => {
+        if (res.pubDate && !latestPubDate) latestPubDate = res.pubDate;
+        allWeatherData.push(...res.list);
+    });
+
+    document.getElementById("last-updated").textContent = latestPubDate || new Date().toLocaleString();
+    filterData();
+}
+
+// Filter Data by Tab and Search Term
+function filterData() {
+    const searchTerm = document.getElementById("searchInput").value.trim().toLowerCase();
+    
+    const filtered = allWeatherData.filter(item => {
+        const matchesRegion = (activeRegion === "all" || item.regionKey === activeRegion);
+        const matchesSearch = item.name.toLowerCase().includes(searchTerm) || item.weather.toLowerCase().includes(searchTerm);
+        return matchesRegion && matchesSearch;
+    });
+
+    renderTable(filtered);
+    renderMapMarkers(filtered);
+}
+
+// Render Table
+function renderTable(data) {
+    const tbody = document.getElementById("weatherTableBody");
+    document.getElementById("cityCount").textContent = data.length;
+
+    if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px;">無匹配城市數據</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = data.map(item => `
+        <tr>
+            <td><strong>${item.regionName}</strong></td>
+            <td>${item.name}</td>
+            <td>${item.weather}</td>
+            <td class="temp-range">${item.tempLow}°C ~ ${item.tempHigh}°C</td>
+        </tr>
+    `).join('');
+}
+
+// Render Map Markers
+function renderMapMarkers(data) {
+    markerGroup.clearLayers();
+
+    data.forEach(item => {
+        const coords = cityCoords[item.name];
+        if (coords) {
+            const marker = L.marker(coords);
+            marker.bindPopup(`
+                <div style="font-size:14px; text-align:center;">
+                    <strong style="font-size:16px;">${item.name}</strong> (${item.regionName})<br>
+                    天氣: ${item.weather}<br>
+                    氣溫: <span style="color:#f97316; font-weight:bold;">${item.tempLow}°C ~ ${item.tempHigh}°C</span>
+                </div>
+            `);
+            markerGroup.addLayer(marker);
+        }
+    });
+}
+
+// Tab Switching
+document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeRegion = btn.dataset.region;
+        filterData();
+    });
+});
+
+// Theme Toggle
+function toggleTheme() {
+    document.body.classList.toggle("light-theme");
+}
+
+// Timer Countdown
+setInterval(() => {
+    countdown--;
+    document.getElementById("refreshCountdown").textContent = countdown;
+    if (countdown <= 0) {
+        refreshAllData();
+    }
+}, 1000);
+
+// Init
+window.addEventListener("DOMContentLoaded", () => {
+    initMap();
+    updateClock();
+    refreshAllData();
+});
+</script>
+</body>
+</html>
