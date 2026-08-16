@@ -330,6 +330,32 @@
             position: relative;
         }
 
+        /* 水位區域切換按鈕 */
+        .flood-region-selector {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+        .flood-region-btn {
+            padding: 6px 22px;
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            background: #ffffff;
+            color: #333333;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+        .flood-region-btn.active {
+            background: #ffffff;
+            color: #0284c7;
+            border-color: #0284c7;
+            box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+        }
+
         /* 地圖與標記 CSS */
         .wbgt-map-wrapper {
             position: relative;
@@ -674,9 +700,15 @@
     <!-- 地圖視圖 -->
     <div class="main-layout" id="map-view">
         <div class="map-card">
+            <!-- 實時水位區域切換按鈕 -->
+            <div id="floodRegionToggle" class="flood-region-selector hide">
+                <button id="btn-region-macau" class="flood-region-btn active" onclick="switchFloodRegion('macau')">澳門</button>
+                <button id="btn-region-cotai" class="flood-region-btn" onclick="switchFloodRegion('cotai')">路氹</button>
+            </div>
+
             <div class="wbgt-map-wrapper">
                 <div class="map-image-container">
-                    <img src="map/map.png" alt="澳門氣象地圖" class="map-base-img">
+                    <img id="baseMapImg" src="map/map.png" alt="澳門氣象地圖" class="map-base-img">
                     <div id="stationPinsGroup"></div>
                     <div id="time-stamp" class="time-stamp"></div>
                     <div id="current-indicator" class="time-stamp-indicator">實時氣溫</div>
@@ -725,16 +757,33 @@ function calculateApparentTemp(T, RH, windSpeedKmH) {
     const apparentTemp = 1.04 * T + 0.2 * e - 0.65 * V - 2.7;
     return isNaN(apparentTemp) ? '--' : apparentTemp.toFixed(1);
 }
+
+// 修正：標準 NOAA 酷熱指數 (Heat Index) 計算公式
 function calculateHeatIndex(T, RH) {
     if (isNaN(T) || isNaN(RH)) return '--';
-    let hi = -8.7846947556 + 1.61139411 * T + 2.3385488388 * RH
-             - 0.14611605 * T * RH - 0.012308094 * Math.pow(T, 2)
-             - 0.0164248278 * Math.pow(RH, 2)
-             + 0.0002211732 * Math.pow(T, 2) * RH
-             + 0.00072546 * T * Math.pow(RH, 2)
-             - 0.000003582 * Math.pow(T, 2) * Math.pow(RH, 2);
-    return hi.toFixed(1);
+    if (T < 20) return T.toFixed(1); // 低於20°C時不適用酷熱指數，返回氣溫
+
+    const tf = T * 1.8 + 32;
+    let hi = 0.5 * (tf + 61.0 + ((tf - 68.0) * 1.2) + (RH * 0.094));
+
+    if (hi >= 80) {
+        hi = -42.379 + 2.04901523 * tf + 10.14333127 * RH
+             - 0.22475541 * tf * RH - 0.00683783 * tf * tf
+             - 0.05481717 * RH * RH + 0.00122874 * tf * tf * RH
+             + 0.00085282 * tf * RH * RH - 0.00000199 * tf * tf * RH * RH;
+
+        if (RH < 13 && tf >= 80 && tf <= 112) {
+            const adj = ((13 - RH) / 4) * Math.sqrt((17 - Math.abs(tf - 95.0)) / 17);
+            hi -= adj;
+        } else if (RH > 85 && tf >= 80 && tf <= 87) {
+            const adj = ((RH - 85) / 10) * ((87 - tf) / 5);
+            hi += adj;
+        }
+    }
+    const hiC = (hi - 32) / 1.8;
+    return hiC.toFixed(1);
 }
+
 function calculateDewPoint(T, RH) {
     if (isNaN(T) || isNaN(RH) || RH <= 0) return '--';
     const a = 17.27;
@@ -799,26 +848,31 @@ const stationCoordinates = {
     "路環市區":         { code: "DC", top: 86.5, left: 40.5 }
 };
 
-const floodCoordinates = {
-    "青洲河邊馬路": { top: 8.0, left: 29.0 },
-    "花地瑪教會街": { top: 9.0, left: 39.0 },
-    "紅街市":       { top: 15.0, left: 34.0 },
-    "光復街":       { top: 18.0, left: 35.0 },
-    "永樂戲院":     { top: 18.0, left: 32.0 },
-    "內港北":       { top: 21.0, left: 27.0 },
-    "內港":         { top: 23.0, left: 27.0 },
-    "康公廟":       { top: 24.0, left: 29.0 },
-    "司打口":       { top: 27.0, left: 28.0 },
-    "內港南":       { top: 29.0, left: 25.0 },
-    "下環街":       { top: 30.0, left: 27.0 },
-    "菜園路":       { top: 53.0, left: 54.0 },
-    "沙維斯街":     { top: 54.0, left: 43.0 },
-    "柯維納馬路":   { top: 54.0, left: 40.0 },
-    "益隆":         { top: 56.0, left: 54.0 },
-    "松樹尾":       { top: 57.0, left: 51.0 },
-    "黑橋街":       { top: 58.0, left: 50.0 },
-    "石排灣":       { top: 78.0, left: 52.0 },
-    "聖方濟各堂":   { top: 86.0, left: 41.0 }
+// 實時水位 - 澳門半島地圖對應坐標
+const floodCoordinatesMacau = {
+    "花地瑪教會街": { top: 22.5, left: 47.5 },
+    "青洲河邊馬路": { top: 25.5, left: 31.5 },
+    "紅街市":       { top: 28.5, left: 31.5 },
+    "永樂戲院":     { top: 35.5, left: 44.5 },
+    "光復街":       { top: 39.5, left: 44.5 },
+    "內港北":       { top: 48.0, left: 21.0 },
+    "內港":         { top: 52.0, left: 23.0 },
+    "康公廟":       { top: 57.0, left: 24.5 },
+    "司打口":       { top: 61.5, left: 21.0 },
+    "內港南":       { top: 66.5, left: 17.5 },
+    "下環街":       { top: 71.5, left: 14.5 }
+};
+
+// 實時水位 - 路氹離島地圖對應坐標
+const floodCoordinatesCotai = {
+    "柯維納馬路":   { top: 28.0, left: 17.5 },
+    "菜園路":       { top: 28.0, left: 33.0 },
+    "沙維斯街":     { top: 39.5, left: 31.0 },
+    "益隆":         { top: 44.0, left: 33.0 },
+    "松樹尾":       { top: 48.0, left: 20.5 },
+    "黑橋街":       { top: 51.5, left: 22.5 },
+    "石排灣":       { top: 66.5, left: 15.5 },
+    "聖方濟各堂":   { top: 71.5, left: 14.0 }
 };
 
 // 欄位對應
@@ -1038,10 +1092,26 @@ function updateLegendPanel(tabType) {
 
 // ========== 5. 全局變數與數據存儲 ==========
 let currentTab = "tempCurrent";
+let currentFloodRegion = "macau"; // 水位地圖區域切換：'macau' 或 'cotai'
 let pointDataList = [];
 let floodDataList = [];
 let selectedStationInfo = null; // 紀錄目前選取的測站，切換標籤或數據刷新時自動更新趨勢圖
 let activeChartInstance = null;
+
+// 水位區域切換函數
+function switchFloodRegion(region) {
+    currentFloodRegion = region;
+    const btnMacau = document.getElementById('btn-region-macau');
+    const btnCotai = document.getElementById('btn-region-cotai');
+    if (region === 'macau') {
+        if (btnMacau) btnMacau.classList.add('active');
+        if (btnCotai) btnCotai.classList.remove('active');
+    } else {
+        if (btnCotai) btnCotai.classList.add('active');
+        if (btnMacau) btnMacau.classList.remove('active');
+    }
+    updateMapMarkers();
+}
 
 // 數據快照儲存於 localStorage（保留最近 24 小時）
 function saveHistorySnapshot(pubTime) {
@@ -1188,7 +1258,6 @@ document.getElementById('btn-map').addEventListener('click', function(){
 document.getElementById('btn-table').addEventListener('click', function(){
     this.classList.add('active');
     document.getElementById('btn-map').classList.remove('active');
-    document.getElementById('map-view').classList.hide = true; // backward compatible
     document.getElementById('map-view').classList.add('hide');
     document.getElementById('table-view').classList.remove('hide');
     renderDataTable(currentTab);
@@ -1197,14 +1266,26 @@ document.getElementById('btn-table').addEventListener('click', function(){
 // ========== 6. 地圖 Pin 標記渲染 ==========
 function updateMapMarkers() {
     const container = document.getElementById('stationPinsGroup');
+    const floodToggle = document.getElementById('floodRegionToggle');
+    const baseMapImg = document.getElementById('baseMapImg');
     if (!container) return;
     container.innerHTML = "";
 
     let sourceList, pointCoords;
     if (currentTab === "waterLevel") {
+        if (floodToggle) floodToggle.classList.remove('hide');
+        
+        if (currentFloodRegion === "macau") {
+            if (baseMapImg) baseMapImg.src = "map/map_macau.png";
+            pointCoords = floodCoordinatesMacau;
+        } else {
+            if (baseMapImg) baseMapImg.src = "map/map_cotai.png";
+            pointCoords = floodCoordinatesCotai;
+        }
         sourceList = floodDataList;
-        pointCoords = floodCoordinates;
     } else {
+        if (floodToggle) floodToggle.classList.add('hide');
+        if (baseMapImg) baseMapImg.src = "map/map.png";
         sourceList = pointDataList;
         pointCoords = stationCoordinates;
     }
@@ -1233,7 +1314,8 @@ function updateMapMarkers() {
             case "heatIndex":
                 showVal = point.heatIndex;
                 bgColor = getHeatIndexColor(showVal);
-                if (isNaN(parseFloat(showVal)) || parseFloat(showVal) < 32.5) skipMarker = true;
+                // 修正：顯示所有酷熱指數數值，不再隱藏低於 32.5°C 的標記
+                if (isNaN(parseFloat(showVal))) skipMarker = true;
                 break;
             case "wbgt":
                 showVal = point.wbgt;
