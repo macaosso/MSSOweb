@@ -1298,34 +1298,67 @@ function updateHeaderClock() {
 const forecastXmlUrl = "https://xml.smg.gov.mo/c_forecast.xml";
 const forecastProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(forecastXmlUrl)}`;
 
+const coastalXmlUrl = "https://xml.smg.gov.mo/c_coastal_forecast.xml";
+const coastalProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(coastalXmlUrl)}`;
+
 async function loadForecastXML() {
   try {
-    const res = await fetch(forecastProxyUrl, { cache: "no-store" });
-    if (!res.ok) throw new Error("預報數據請求失敗");
+    // 同時異步請求天氣概況與海上天氣預報 XML
+    const [forecastRes, coastalRes] = await Promise.allSettled([
+      fetch(forecastProxyUrl, { cache: "no-store" }),
+      fetch(coastalProxyUrl, { cache: "no-store" })
+    ]);
 
-    const xmlText = await res.text();
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+    let pubDate = "";
+    let situation = "";
+    let todayValid = "", todayDesc = "";
+    let tomorrowValid = "", tomorrowDesc = "";
 
-    const pubDate = xmlDoc.querySelector("SysPubdate")?.textContent.trim() || "2026-08-12 21:00";
-    const situation = xmlDoc.querySelector("TodaySituation")?.textContent.trim() || "";
-    
-    const wfNodes = xmlDoc.querySelectorAll("WeatherForecast");
-    
-    const todayValid = wfNodes[0]?.querySelector("ValidFor")?.textContent.trim() || "";
-    const todayDesc = wfNodes[0]?.querySelector("WeatherDescription")?.textContent.trim() || "暫無資料";
+    // 解析綜合天氣預報 XML
+    if (forecastRes.status === "fulfilled" && forecastRes.value.ok) {
+      const xmlText = await forecastRes.value.text();
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlText, "text/xml");
 
-    const tomorrowValid = wfNodes[1]?.querySelector("ValidFor")?.textContent.trim() || "";
-    const tomorrowDesc = wfNodes[1]?.querySelector("WeatherDescription")?.textContent.trim() || "暫無資料";
+      pubDate = xmlDoc.querySelector("SysPubdate")?.textContent.trim() || "";
+      situation = xmlDoc.querySelector("TodaySituation")?.textContent.trim() || "";
+      
+      const wfNodes = xmlDoc.querySelectorAll("WeatherForecast");
+      todayValid = wfNodes[0]?.querySelector("ValidFor")?.textContent.trim() || "";
+      todayDesc = wfNodes[0]?.querySelector("WeatherDescription")?.textContent.trim() || "暫無資料";
 
+      tomorrowValid = wfNodes[1]?.querySelector("ValidFor")?.textContent.trim() || "";
+      tomorrowDesc = wfNodes[1]?.querySelector("WeatherDescription")?.textContent.trim() || "暫無資料";
+    }
+
+    // 解析澳門海上天氣預報 XML
+    let coastalDesc = "";
+    if (coastalRes.status === "fulfilled" && coastalRes.value.ok) {
+      const coastalXmlText = await coastalRes.value.text();
+      const parser = new DOMParser();
+      const coastalXmlDoc = parser.parseFromString(coastalXmlText, "text/xml");
+      coastalDesc = coastalXmlDoc.querySelector("WeatherDescription")?.textContent.trim() || "";
+    }
+
+    // 更新發佈時間
     if (pubDate) {
       document.getElementById("forecastTime").innerText = `發佈時間：${pubDate}`;
     }
     
+    // 合併天氣概況與澳門海上天氣至 tab0 (天氣概況)
+    let tab0Html = "";
     if (situation) {
-      document.getElementById("tab0").innerHTML = situation.replaceAll("\n", "<br>");
+      tab0Html += situation.replaceAll("\n", "<br>");
+    }
+    if (coastalDesc) {
+      if (tab0Html) tab0Html += "<br><br>";
+      tab0Html += `<strong>澳門海上天氣：</strong><br>${coastalDesc.replaceAll("\n", "<br>")}`;
+    }
+    if (tab0Html) {
+      document.getElementById("tab0").innerHTML = tab0Html;
     }
 
+    // 今日天氣
     if (todayDesc) {
       let cleanTodayValid = todayValid.replace(/有效時間[：:]\s*/g, "").trim();
       let todayHtml = "";
@@ -1336,6 +1369,7 @@ async function loadForecastXML() {
       document.getElementById("tab1").innerHTML = todayHtml;
     }
 
+    // 明日天氣
     if (tomorrowDesc) {
       let cleanTomorrowValid = tomorrowValid.replace(/有效時間[：:]\s*/g, "").trim();
       let tomorrowHtml = "";
