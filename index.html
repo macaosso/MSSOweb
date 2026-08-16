@@ -1337,7 +1337,7 @@ async function loadForecastXML() {
       const coastalXmlText = await coastalRes.value.text();
       const parser = new DOMParser();
       const coastalXmlDoc = parser.parseFromString(coastalXmlText, "text/xml");
-      coastalDesc = coastalXmlDoc.querySelector("WeatherDescription")?.textContent.trim() || "";
+      coastalDesc = coastalXmlDoc.querySelector("TTS")?.textContent.trim() || "";
     }
 
     // 更新發佈時間
@@ -1345,10 +1345,10 @@ async function loadForecastXML() {
       document.getElementById("forecastTime").innerText = `發佈時間：${pubDate}`;
     }
     
-    // 合併天氣概況與澳門海上天氣至 tab0 (天氣概況)
+// 合併天氣概況與澳門海上天氣至 tab0 (天氣概況)
     let tab0Html = "";
     if (situation) {
-      tab0Html += situation.replaceAll("\n", "<br>");
+      tab0Html += `<strong>澳門天氣：</strong><br>${situation.replaceAll("\n", "<br>")}`;
     }
     if (coastalDesc) {
       if (tab0Html) tab0Html += "<br><br>";
