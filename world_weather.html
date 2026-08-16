@@ -1,460 +1,909 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>世界主要城市天氣預報 | 澳門民間氣象台 MSSO</title>
-    <link rel="icon" type="image/png" href="icons/MSSO.png">
-    
-    <!-- Leaflet.js Map Library -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="icons/MSSO.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<title>澳門民間氣象台 - 世界城市天氣預報</title>
+<style>
+/* ========== 1. 深太空 全域主題基礎 ========== */
+:root {
+  --bg-dark: #0b0f19;
+  --card-bg: rgba(22, 30, 46, 0.75);
+  --card-bg-light: rgba(255, 255, 255, 0.03);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  
+  --accent-blue: #38bdf8;
+  --accent-teal: #2dd4bf;
+  --accent-green: #34d399;
+  --accent-yellow: #facc15;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #c084fc;
+}
 
-    <style>
-        :root {
-            --bg-dark: #121212;
-            --card-bg: #1e1e2f;
-            --card-bg-light: rgba(255, 255, 255, 0.05);
-            --card-border: #2d2d50;
-            --text-main: #ffffff;
-            --text-muted: #a0a0a0;
-            --accent-blue: #38bdf8;
-            --accent-teal: #2dd4bf;
-            --accent-orange: #f97316;
-        }
+body.light-theme {
+  --bg-dark: #f8fafc;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-bg-light: rgba(0, 0, 0, 0.04);
+  --card-border: rgba(0, 0, 0, 0.12);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
 
-        body.light-theme {
-            --bg-dark: #f8fafc;
-            --card-bg: #ffffff;
-            --card-bg-light: rgba(0, 0, 0, 0.04);
-            --card-border: #e2e8f0;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --accent-blue: #0284c7;
-            --accent-teal: #0d9488;
-            --accent-orange: #ea580c;
-        }
+  --accent-blue: #0284c7;
+  --accent-teal: #0d9488;
+  --accent-green: #059669;
+  --accent-yellow: #d97706;
+  --accent-orange: #d97706;
+  --accent-red: #dc2626;
+  --accent-purple: #9333ea;
+}
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            padding-bottom: 30px;
-            font-size: 14px;
-            line-height: 1.6;
-            transition: background-color 0.3s ease, color 0.3s ease;
-        }
+html { scroll-behavior: smooth; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
 
-        .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+.page-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 15px 40px 15px;
+}
 
-        /* Header Navigation */
-        .header-nav-container {
-            position: sticky;
-            top: 0;
-            z-index: 3000;
-            background: rgba(18, 18, 18, 0.88);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid var(--card-border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0.75rem 1.5rem;
-            margin-bottom: 20px;
-        }
-        body.light-theme .header-nav-container { background: rgba(248, 250, 252, 0.88); }
-        .header { display: flex; align-items: center; gap: 12px; }
-        .logo { height: 38px; width: auto; }
-        .title { font-size: 1.15rem; font-weight: 700; color: var(--accent-blue); display: flex; align-items: baseline; gap: 10px; }
-        .header-clock { font-size: 0.88rem; font-weight: 500; color: var(--accent-teal); font-variant-numeric: tabular-nums; }
+/* ========== 2. 頂欄導航 ========== */
+.header-nav-container {
+  position: sticky;
+  top: 0;
+  z-index: 3000;
+  background: rgba(11, 15, 25, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  margin-bottom: 20px;
+  transition: background 0.3s ease;
+}
+body.light-theme .header-nav-container { background: rgba(248, 250, 252, 0.88); }
 
-        .theme-toggle-btn {
-            background: var(--card-bg-light);
-            border: 1px solid var(--card-border);
-            color: var(--text-main);
-            padding: 8px 14px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.25s ease;
-        }
+.header { display: flex; align-items: center; gap: 12px; }
+.logo { height: 38px; width: auto; filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.3)); }
+.title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.header-clock {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--accent-teal);
+  font-variant-numeric: tabular-nums;
+}
 
-        /* Banner Header */
-        header {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            color: #f0f0f0;
-            padding: 20px 30px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-        }
-        body.light-theme header {
-            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
-            color: #0f172a;
-        }
+.menu-container { position: relative; display: flex; align-items: center; gap: 10px; }
 
-        /* Controls & Filter Bar */
-        .controls-bar {
-            background: var(--card-bg);
-            padding: 16px;
-            border-radius: 12px;
-            border: 1px solid var(--card-border);
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .region-tabs { display: flex; gap: 6px; flex-wrap: wrap; }
-        .tab-btn {
-            padding: 6px 12px;
-            border: 1px solid var(--card-border);
-            border-radius: 20px;
-            background: var(--card-bg-light);
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-        }
-        .tab-btn.active, .tab-btn:hover {
-            background: var(--accent-blue);
-            color: #fff;
-            border-color: var(--accent-blue);
-        }
-        .search-box {
-            padding: 7px 14px;
-            border-radius: 20px;
-            border: 1px solid var(--card-border);
-            background: var(--card-bg-light);
-            color: var(--text-main);
-            outline: none;
-            min-width: 220px;
-        }
+.theme-toggle-btn {
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  padding: 8px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.25s ease;
+}
+.theme-toggle-btn:hover { border-color: var(--accent-blue); color: var(--accent-blue); }
+.sun-icon { display: block; }
+.moon-icon { display: none; }
+body.light-theme .sun-icon { display: none; }
+body.light-theme .moon-icon { display: block; }
 
-        /* Map Container */
-        .map-section {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 16px;
-            border: 1px solid var(--card-border);
-            margin-bottom: 25px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
-        }
-        #worldMap {
-            width: 100%;
-            height: 480px;
-            border-radius: 8px;
-            z-index: 1;
-        }
-        /* Dark tile adaptation for map */
-        body:not(.light-theme) .leaflet-tile-pane {
-            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
-        }
+.menu-toggle {
+  display: none;
+  font-size: 22px;
+  padding: 6px 12px;
+  cursor: pointer;
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  border-radius: 8px;
+}
 
-        /* Table Section */
-        .table-section {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 20px;
-            border: 1px solid var(--card-border);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.2);
-        }
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.92rem;
-            margin-top: 15px;
-        }
-        .data-table th, .data-table td {
-            border: 1px solid var(--card-border);
-            padding: 10px 14px;
-            text-align: center;
-        }
-        .data-table th { background: var(--card-bg-light); font-weight: 600; }
-        .temp-range { font-weight: bold; color: var(--accent-orange); }
+.nav { display: flex; gap: 8px; align-items: center; }
+.nav a {
+  color: var(--text-muted);
+  padding: 8px 14px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+}
+.nav a:hover, .nav a.active { color: var(--text-main); background: rgba(255, 255, 255, 0.08); }
 
-        .action-btn {
-            padding: 7px 14px;
-            border: 1px solid var(--card-border);
-            border-radius: 6px;
-            background: var(--card-bg-light);
-            color: var(--text-main);
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.2s;
-        }
-        .action-btn:hover { background: var(--accent-blue); color: #fff; }
-    </style>
+/* 下拉選單 */
+.dropdown { position: relative; display: inline-block; }
+.dropdown-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px 14px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dropdown-content {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 190px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0s linear 0.25s;
+  z-index: 3100;
+}
+body.light-theme .dropdown-content { background: rgba(255, 255, 255, 0.98); }
+.dropdown:hover .dropdown-content { opacity: 1; visibility: visible; transition-delay: 0s; }
+.dropdown-content a { display: block; padding: 8px 12px; border-radius: 8px; white-space: nowrap; }
+
+/* ========== 3. 世界天氣主控面板 ========== */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.section-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.controls-bar {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.region-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.tab-chip {
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.tab-chip:hover { border-color: var(--accent-blue); color: var(--text-main); }
+.tab-chip.active {
+  background: var(--accent-blue);
+  color: #fff;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+}
+
+.search-box-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  max-width: 320px;
+  min-width: 200px;
+}
+.search-input {
+  width: 100%;
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 13.5px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--accent-blue); }
+
+.auto-update-status {
+  font-size: 12px;
+  color: var(--accent-teal);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+.refresh-btn {
+  background: rgba(45, 212, 191, 0.15);
+  border: 1px solid rgba(45, 212, 191, 0.3);
+  color: var(--accent-teal);
+  padding: 4px 10px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.refresh-btn:hover { background: var(--accent-teal); color: #fff; }
+
+/* ========== 4. 地圖容器 ========== */
+.map-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  margin-bottom: 24px;
+}
+#worldMap {
+  height: 480px;
+  width: 100%;
+  z-index: 100;
+}
+
+/* Custom Popup Style */
+.custom-popup .leaflet-popup-content-wrapper {
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(10px);
+  color: #f1f5f9;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 12px;
+  padding: 4px;
+}
+body.light-theme .custom-popup .leaflet-popup-content-wrapper {
+  background: rgba(255, 255, 255, 0.95);
+  color: #0f172a;
+  border-color: rgba(0, 0, 0, 0.12);
+}
+.custom-popup .leaflet-popup-tip {
+  background: rgba(15, 23, 42, 0.92);
+}
+body.light-theme .custom-popup .leaflet-popup-tip {
+  background: rgba(255, 255, 255, 0.95);
+}
+.popup-content { text-align: center; padding: 6px 10px; }
+.popup-city { font-size: 15px; font-weight: 700; color: var(--accent-blue); margin-bottom: 4px; }
+.popup-temp { font-size: 20px; font-weight: 800; color: var(--accent-yellow); margin: 4px 0; }
+.popup-desc { font-size: 13px; color: var(--text-muted); }
+
+/* ========== 5. 天氣列表表格 ========== */
+.table-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+}
+.table-header-row {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+.weather-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 14px;
+}
+.weather-table th {
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--text-muted);
+  font-weight: 600;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--card-border);
+  white-space: nowrap;
+}
+body.light-theme .weather-table th { background: rgba(0, 0, 0, 0.03); }
+.weather-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--card-border);
+  color: var(--text-main);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+.weather-table tr:hover {
+  background: rgba(56, 189, 248, 0.05);
+}
+.city-name-td {
+  font-weight: 700;
+  color: var(--accent-blue);
+}
+.temp-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--accent-blue);
+  font-weight: 700;
+}
+.region-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border);
+  color: var(--accent-teal);
+}
+
+.weather-icon-inline {
+  width: 28px;
+  height: 28px;
+  vertical-align: middle;
+  margin-right: 6px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+}
+
+#statusMsg {
+  text-align: center;
+  padding: 30px;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .menu-toggle { display: block; }
+  .nav {
+    display: none;
+    flex-direction: column;
+    width: 230px;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 10px;
+  }
+  .nav.active { display: flex; }
+  .controls-bar { flex-direction: column; align-items: stretch; }
+  .search-box-wrap { max-width: 100%; }
+  #worldMap { height: 360px; }
+}
+</style>
 </head>
+
 <body>
 
+<!-- 頂欄導航 -->
 <div class="header-nav-container">
-    <div class="header">
-        <img src="icons/MSSO.png" class="logo" alt="MSSO Logo" onerror="this.style.display='none'">
-        <div class="title">
-            澳門民間氣象台 MSSO
-            <span id="headerClock" class="header-clock"></span>
-        </div>
+  <div class="header">
+    <img src="icons/MSSO.png" class="logo" alt="MSSO Logo" onerror="this.style.display='none'">
+    <div class="title">
+      澳門民間氣象台 MSSO
+      <span id="headerClock" class="header-clock"></span>
     </div>
-    <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()">🌓 切換模式</button>
+  </div>
+
+  <div class="menu-container">
+    <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+      <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+    <div class="nav" id="navMenu">
+      <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
+      <div class="dropdown">
+        <button class="dropdown-btn">澳門天氣 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="map.html">綜合氣象實況</a>
+          <a href="https://macaosso.github.io/MSSOweb/moWBGT.html">暑熱監測</a>
+          <a href="https://macaosso.github.io/MSSOweb/AQImap.html">空氣質量實況</a>
+        </div>
+      </div>
+      <a href="#" class="active">世界城市天氣</a>
+    </div>
+  </div>
 </div>
 
-<div class="container">
-    <header>
-        <div>
-            <h1>世界主要城市天氣預報</h1>
-            <small style="opacity: 0.8;">氣象數據源自 澳門地球物理氣象局 (SMG)</small>
-        </div>
-        <div>
-            資料更新時間：<span id="last-updated">載入中...</span>
-        </div>
-    </header>
+<div class="page-wrapper">
 
-    <!-- Controls Bar -->
-    <div class="controls-bar">
-        <div class="region-tabs" id="regionTabs">
-            <button class="tab-btn active" data-region="all">全部地區</button>
-            <button class="tab-btn" data-region="china">中國</button>
-            <button class="tab-btn" data-region="gdcity">廣東省</button>
-            <button class="tab-btn" data-region="asia">亞洲</button>
-            <button class="tab-btn" data-region="europe">歐洲</button>
-            <button class="tab-btn" data-region="africa">非洲</button>
-            <button class="tab-btn" data-region="australia">大洋洲</button>
-            <button class="tab-btn" data-region="namerica">北美洲</button>
-            <button class="tab-btn" data-region="samerica">南美洲</button>
-        </div>
-        <div style="display: flex; gap: 8px; align-items: center;">
-            <input type="text" id="searchInput" class="search-box" placeholder="搜尋城市名稱..." oninput="filterData()">
-            <button class="action-btn" onclick="refreshAllData()">🔄 刷新</button>
-        </div>
+  <!-- 控制面板 -->
+  <div class="controls-bar">
+    <div class="region-tabs" id="regionTabs">
+      <div class="tab-chip active" data-region="ALL">全部地區</div>
+      <div class="tab-chip" data-region="china">中國主要城市</div>
+      <div class="tab-chip" data-region="gdcity">廣東省城市</div>
+      <div class="tab-chip" data-region="asia">亞洲</div>
+      <div class="tab-chip" data-region="europe">歐洲</div>
+      <div class="tab-chip" data-region="africa">非洲</div>
+      <div class="tab-chip" data-region="australia">澳洲/大洋洲</div>
+      <div class="tab-chip" data-region="namerica">北美洲</div>
+      <div class="tab-chip" data-region="samerica">南美洲</div>
     </div>
 
-    <!-- Map View -->
-    <div class="map-section">
-        <div id="worldMap"></div>
+    <div class="search-box-wrap">
+      <input type="text" id="searchInput" class="search-input" placeholder="搜尋城市名稱或天氣...">
     </div>
 
-    <!-- Data Table -->
-    <div class="table-section">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap;">
-            <h3 style="color: var(--accent-blue);">📋 城市天氣數據列表 (<span id="cityCount">0</span>)</h3>
-            <small style="color: var(--text-muted);">自動更新倒數: <span id="refreshCountdown">300</span> 秒</small>
-        </div>
-
-        <div style="overflow-x: auto;">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>地區</th>
-                        <th>城市名稱</th>
-                        <th>天氣狀況</th>
-                        <th>氣溫範圍 (°C)</th>
-                    </tr>
-                </thead>
-                <tbody id="weatherTableBody">
-                    <tr><td colspan="4" style="text-align:center; padding: 20px; color:#888;">數據載入中...</td></tr>
-                </tbody>
-            </table>
-        </div>
+    <div class="auto-update-status">
+      <span id="updateTimer">自動更新：300s</span>
+      <button class="refresh-btn" onclick="fetchAllFeeds()">立即刷新</button>
     </div>
+  </div>
+
+  <!-- 地圖卡片 -->
+  <div class="map-card">
+    <div id="worldMap"></div>
+  </div>
+
+  <!-- 天氣數據表格 -->
+  <div class="table-card">
+    <div class="table-header-row">
+      <div class="section-title">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+        城市天氣氣象列表
+      </div>
+      <div id="pubTimeBadge" style="font-size: 12px; color: var(--text-muted);">最後更新時間：--</div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="weather-table">
+        <thead>
+          <tr>
+            <th>區域</th>
+            <th>城市</th>
+            <th>天氣狀況</th>
+            <th>氣溫範圍</th>
+            <th>最低 / 最高</th>
+            <th>數據來源時間</th>
+          </tr>
+        </thead>
+        <tbody id="weatherTableBody">
+          <!-- 動態渲染表格內容 -->
+        </tbody>
+      </table>
+      <div id="statusMsg">數據載入中，請稍候...</div>
+    </div>
+  </div>
+
 </div>
 
 <script>
-// XML Feeds Configuration
-const feeds = [
-    { key: "china", name: "中國", url: "https://xml.smg.gov.mo/c_china.xml" },
-    { key: "gdcity", name: "廣東省", url: "https://xml.smg.gov.mo/c_gdcity.xml" },
-    { key: "asia", name: "亞洲", url: "https://xml.smg.gov.mo/c_asia.xml" },
-    { key: "europe", name: "歐洲", url: "https://xml.smg.gov.mo/c_europe.xml" },
-    { key: "africa", name: "非洲", url: "https://xml.smg.gov.mo/c_africa.xml" },
-    { key: "australia", name: "大洋洲", url: "https://xml.smg.gov.mo/c_australia.xml" },
-    { key: "namerica", name: "北美洲", url: "https://xml.smg.gov.mo/c_namerica.xml" },
-    { key: "samerica", name: "南美洲", url: "https://xml.smg.gov.mo/c_samerica.xml" }
-];
+/* ========== 1. 預設城市座標映射數據庫 (確保地圖精確標註) ========== */
+const CITY_COORDS = {
+  // 中國主要城市
+  "北京": [39.9042, 116.4074], "上海": [31.2304, 121.4737], "天津": [39.3434, 117.3616], "重慶": [29.5630, 106.5516],
+  "廣州": [23.1291, 113.2644], "深圳": [22.5431, 114.0579], "南京": [32.0603, 118.7969], "杭州": [30.2741, 120.1551],
+  "成都": [30.5728, 104.0668], "武漢": [30.5928, 114.3055], "西安": [34.3416, 108.9398], "長沙": [28.2282, 112.9388],
+  "昆明": [24.8801, 102.8329], "貴陽": [26.6470, 106.6302], "福州": [26.0745, 119.2965], "廈門": [24.4798, 118.0894],
+  "南寧": [22.8170, 108.3665], "海口": [20.0440, 110.1999], "三亞": [18.2528, 109.5119], "哈爾濱": [45.8038, 126.5349],
+  "沈陽": [41.8057, 123.4315], "長春": [43.8171, 125.3235], "大連": [38.9140, 121.6147], "青島": [36.0671, 120.3826],
+  "濟南": [36.6512, 117.1201], "鄭州": [34.7466, 113.6253], "太原": [37.8706, 112.5489], "石家莊": [38.0428, 114.5149],
+  "合肥": [31.8206, 117.2272], "南昌": [28.6820, 115.8579], "蘭州": [36.0611, 103.8343], "西寧": [36.6232, 101.7782],
+  "銀川": [38.4872, 106.2309], "烏魯木齊": [43.8256, 87.6168], "拉薩": [29.6525, 91.1721], "呼和浩特": [40.8425, 111.7492],
+  "香港": [22.3193, 114.1694], "澳門": [22.1987, 113.5439], "台北": [25.0330, 121.5654],
 
-// Predefined Coordinates for Map Marker Plotting
-const cityCoords = {
-    "北京": [39.9042, 116.4074], "上海": [31.2304, 121.4737], "廣州": [23.1291, 113.2644], "深圳": [22.5431, 114.0579],
-    "珠海": [22.2710, 113.5767], "香港": [22.3193, 114.1694], "臺北": [25.0330, 121.5654], "東京": [35.6762, 139.6503],
-    "首爾": [37.5665, 126.9780], "新加坡": [1.3521, 103.8198], "曼谷": [13.7563, 100.5018], "倫敦": [51.5074, -0.1278],
-    "巴黎": [48.8566, 2.3522], "柏林": [52.5200, 13.4050], "羅馬": [41.9028, 12.4964], "莫斯科": [55.7558, 37.6173],
-    "紐約": [40.7128, -74.0060], "洛杉磯": [34.0522, -118.2437], "芝加哥": [41.8781, -87.6298], "雪梨": [-33.8688, 151.2093],
-    "墨爾本": [-37.8136, 144.9631], "開羅": [30.0444, 31.2357], "約翰尼斯堡": [-26.2041, 28.0473], "里約熱內盧": [-22.9068, -43.1729],
-    "布宜諾斯艾利斯": [-34.6037, -58.3816]
+  // 廣東省縣市
+  "珠海": [22.2707, 113.5767], "佛山": [23.0215, 113.1214], "東莞": [23.0205, 113.7518], "中山": [22.5170, 113.3926],
+  "江門": [22.5788, 113.0819], "惠州": [23.1118, 114.4162], "汕頭": [23.3541, 116.6819], "湛江": [21.2707, 110.3594],
+  "茂名": [21.6630, 110.9255], "肇慶": [23.0470, 112.4651], "梅州": [24.2886, 116.1225], "汕尾": [22.7862, 115.3652],
+  "河源": [23.7462, 114.7001], "陽江": [21.8590, 111.9822], "清遠": [23.6820, 113.0560], "潮州": [23.6569, 116.6226],
+  "揭陽": [23.5497, 116.3729], "雲浮": [22.9298, 112.0444], "韶關": [24.8104, 113.5975],
+
+  // 亞洲亞洲城市
+  "東京": [35.6762, 139.6503], "首爾": [37.5665, 126.9780], "大阪": [34.6937, 135.5023], "曼谷": [13.7563, 100.5018],
+  "新加坡": [1.3521, 103.8198], "吉隆坡": [3.1390, 101.6869], "雅加達": [-6.2088, 106.8456], "馬尼拉": [14.5995, 120.9842],
+  "新德里": [28.6139, 77.2090], "孟買": [19.0760, 72.8777], "河內": [21.0285, 105.8542], "胡志明市": [10.8231, 106.6297],
+  "迪拜": [25.2048, 55.2708], "多哈": [25.2854, 51.5310], "利雅得": [24.7136, 46.6753],
+
+  // 歐洲城市
+  "倫敦": [51.5074, -0.1278], "巴黎": [48.8566, 2.3522], "柏林": [52.5200, 13.4050], "羅馬": [41.9028, 12.4964],
+  "馬德里": [40.4168, -3.7038], "阿姆斯特丹": [52.3676, 4.9041], "維也納": [48.2082, 16.3738], "莫斯科": [55.7558, 37.6173],
+  "雅典": [37.9838, 23.7275], "里斯本": [38.7223, -9.1393], "日內瓦": [46.2044, 6.1432],
+
+  // 非洲城市
+  "開羅": [30.0444, 31.2357], "約翰尼斯堡": [-26.2041, 28.0473], "開普敦": [-33.9249, 18.4241], "內羅畢": [-1.2921, 36.8219],
+  "卡薩布蘭卡": [33.5731, -7.5898], "阿爾及爾": [36.7538, 3.0588],
+
+  // 澳洲及大洋洲
+  "悉尼": [-33.8688, 151.2093], "墨爾本": [-37.8136, 144.9631], "布里斯班": [-27.4705, 153.0260], "珀斯": [-31.9505, 115.8605],
+  "奧克蘭": [-36.8485, 174.7633], "威靈頓": [-41.2865, 174.7762],
+
+  // 北美洲
+  "紐約": [40.7128, -74.0060], "洛杉磯": [34.0522, -118.2437], "芝加哥": [41.8781, -87.6298], "舊金山": [37.7749, -122.4194],
+  "多倫多": [43.6532, -79.3832], "溫哥華": [49.2827, -123.1207], "墨西哥城": [19.4326, -99.1332],
+
+  // 南美洲
+  "聖保羅": [-23.5505, -46.6333], "里約熱內盧": [-22.9068, -43.1729], "布宜諾斯艾利斯": [-34.6037, -58.3816], "波哥大": [4.7110, -74.0721],
+  "利馬": [-12.0463, -77.0428], "聖地亞哥": [-33.4489, -70.6693]
 };
 
+/* ========== 2. 數據源 URL 清單 ========== */
+const XML_SOURCES = [
+  { region: "china", name: "中國主要城市", url: "https://xml.smg.gov.mo/c_china.xml" },
+  { region: "gdcity", name: "廣東省城市", url: "https://xml.smg.gov.mo/c_gdcity.xml" },
+  { region: "asia", name: "亞洲", url: "https://xml.smg.gov.mo/c_asia.xml" },
+  { region: "europe", name: "歐洲", url: "https://xml.smg.gov.mo/c_europe.xml" },
+  { region: "africa", name: "非洲", url: "https://xml.smg.gov.mo/c_africa.xml" },
+  { region: "australia", name: "澳洲及大洋洲", url: "https://xml.smg.gov.mo/c_australia.xml" },
+  { region: "namerica", name: "北美洲", url: "https://xml.smg.gov.mo/c_namerica.xml" },
+  { region: "samerica", name: "南美洲", url: "https://xml.smg.gov.mo/c_samerica.xml" }
+];
+
 let allWeatherData = [];
-let activeRegion = "all";
-let map, markerGroup;
-let countdown = 300;
-let timer = null;
+let currentRegionFilter = "ALL";
+let currentSearchQuery = "";
+let map, markersGroup;
+let tileLayerDark, tileLayerLight;
+let refreshTimerSec = 300;
+let timerInterval = null;
 
-// Initialize Leaflet Map
+/* ========== 3. 地圖與主題初始化 ========== */
 function initMap() {
-    map = L.map('worldMap').setView([20, 15], 2);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 18,
-        attribution: '© OpenStreetMap contributors'
-    }).addTo(map);
-    markerGroup = L.layerGroup().addTo(map);
+  map = L.map('worldMap', {
+    center: [20, 10],
+    zoom: 2,
+    zoomControl: true
+  });
+
+  tileLayerDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    maxZoom: 18
+  });
+
+  tileLayerLight = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO',
+    maxZoom: 18
+  });
+
+  const isLight = document.body.classList.contains('light-theme');
+  if (isLight) tileLayerLight.addTo(map);
+  else tileLayerDark.addTo(map);
+
+  markersGroup = L.layerGroup().addTo(map);
 }
 
-// Clock updates
-function updateClock() {
-    const clockEl = document.getElementById('headerClock');
-    if (clockEl) {
-        const now = new Date();
-        clockEl.textContent = ` ${now.getFullYear()}年${String(now.getMonth()+1).padStart(2,'0')}月${String(now.getDate()).padStart(2,'0')}日 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
-    }
-}
-setInterval(updateClock, 1000);
-
-// Fetch Single Feed
-async function fetchFeed(feed) {
-    const corsProxy = "https://corsproxy.io/?";
-    const targetUrl = `${corsProxy}${encodeURIComponent(feed.url)}?t=${Date.now()}`;
-    try {
-        const res = await fetch(targetUrl);
-        if (!res.ok) throw new Error("Fetch failed");
-        const xmlText = await res.text();
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-
-        const pubDate = xmlDoc.querySelector("SysPubdate")?.textContent || "";
-        const cityNodes = xmlDoc.querySelectorAll("City, city, Station, station");
-        const list = [];
-
-        cityNodes.forEach(node => {
-            const name = node.querySelector("CityName, name, CName")?.textContent?.trim() || "";
-            const weather = node.querySelector("Weather, weather, Status")?.textContent?.trim() || "晴/多雲";
-            const tempLow = node.querySelector("TempLow, minTemp, Low")?.textContent?.trim() || "--";
-            const tempHigh = node.querySelector("TempHigh, maxTemp, High")?.textContent?.trim() || "--";
-
-            if (name) {
-                list.push({
-                    regionKey: feed.key,
-                    regionName: feed.name,
-                    name: name,
-                    weather: weather,
-                    tempLow: tempLow,
-                    tempHigh: tempHigh,
-                    pubDate: pubDate
-                });
-            }
-        });
-        return { pubDate, list };
-    } catch (e) {
-        console.warn(`Error fetching ${feed.name}:`, e);
-        return { pubDate: "", list: [] };
-    }
+function updateMapTiles() {
+  const isLight = document.body.classList.contains('light-theme');
+  if (isLight) {
+    if (map.hasLayer(tileLayerDark)) map.removeLayer(tileLayerDark);
+    tileLayerLight.addTo(map);
+  } else {
+    if (map.hasLayer(tileLayerLight)) map.removeLayer(tileLayerLight);
+    tileLayerDark.addTo(map);
+  }
 }
 
-// Fetch All Feeds & Process Data
-async function refreshAllData() {
-    countdown = 300;
-    document.getElementById("weatherTableBody").innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px;">更新數據中...</td></tr>`;
-
-    const results = await Promise.all(feeds.map(f => fetchFeed(f)));
-    allWeatherData = [];
-    let latestPubDate = "";
-
-    results.forEach(res => {
-        if (res.pubDate && !latestPubDate) latestPubDate = res.pubDate;
-        allWeatherData.push(...res.list);
-    });
-
-    document.getElementById("last-updated").textContent = latestPubDate || new Date().toLocaleString();
-    filterData();
+function applyTheme(theme) {
+  if (theme === 'light') {
+    document.body.classList.add('light-theme');
+  } else {
+    document.body.classList.remove('light-theme');
+  }
+  updateMapTiles();
 }
 
-// Filter Data by Tab and Search Term
-function filterData() {
-    const searchTerm = document.getElementById("searchInput").value.trim().toLowerCase();
-    
-    const filtered = allWeatherData.filter(item => {
-        const matchesRegion = (activeRegion === "all" || item.regionKey === activeRegion);
-        const matchesSearch = item.name.toLowerCase().includes(searchTerm) || item.weather.toLowerCase().includes(searchTerm);
-        return matchesRegion && matchesSearch;
-    });
-
-    renderTable(filtered);
-    renderMapMarkers(filtered);
-}
-
-// Render Table
-function renderTable(data) {
-    const tbody = document.getElementById("weatherTableBody");
-    document.getElementById("cityCount").textContent = data.length;
-
-    if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 20px;">無匹配城市數據</td></tr>`;
-        return;
-    }
-
-    tbody.innerHTML = data.map(item => `
-        <tr>
-            <td><strong>${item.regionName}</strong></td>
-            <td>${item.name}</td>
-            <td>${item.weather}</td>
-            <td class="temp-range">${item.tempLow}°C ~ ${item.tempHigh}°C</td>
-        </tr>
-    `).join('');
-}
-
-// Render Map Markers
-function renderMapMarkers(data) {
-    markerGroup.clearLayers();
-
-    data.forEach(item => {
-        const coords = cityCoords[item.name];
-        if (coords) {
-            const marker = L.marker(coords);
-            marker.bindPopup(`
-                <div style="font-size:14px; text-align:center;">
-                    <strong style="font-size:16px;">${item.name}</strong> (${item.regionName})<br>
-                    天氣: ${item.weather}<br>
-                    氣溫: <span style="color:#f97316; font-weight:bold;">${item.tempLow}°C ~ ${item.tempHigh}°C</span>
-                </div>
-            `);
-            markerGroup.addLayer(marker);
-        }
-    });
-}
-
-// Tab Switching
-document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-        document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        activeRegion = btn.dataset.region;
-        filterData();
-    });
-});
-
-// Theme Toggle
 function toggleTheme() {
-    document.body.classList.toggle("light-theme");
+  const isLight = document.body.classList.contains('light-theme');
+  const newTheme = isLight ? 'dark' : 'light';
+  localStorage.setItem('msso_theme', newTheme);
+  applyTheme(newTheme);
 }
 
-// Timer Countdown
-setInterval(() => {
-    countdown--;
-    document.getElementById("refreshCountdown").textContent = countdown;
-    if (countdown <= 0) {
-        refreshAllData();
-    }
-}, 1000);
+(function initTheme() {
+  const savedTheme = localStorage.getItem('msso_theme');
+  if (savedTheme === 'light') document.body.classList.add('light-theme');
+})();
 
-// Init
-window.addEventListener("DOMContentLoaded", () => {
-    initMap();
-    updateClock();
-    refreshAllData();
+function toggleMenu() {
+  const nav = document.getElementById("navMenu");
+  nav.classList.toggle("active");
+}
+
+function updateHeaderClock() {
+  const clockEl = document.getElementById('headerClock');
+  if (clockEl) {
+    const now = new Date();
+    const hrs = String(now.getHours()).padStart(2, '0');
+    const mins = String(now.getMinutes()).padStart(2, '0');
+    const secs = String(now.getSeconds()).padStart(2, '0');
+    clockEl.textContent = ` ${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${hrs}:${mins}:${secs}`;
+  }
+}
+
+/* ========== 4. 多源 XML 通用強健解析邏輯 ========== */
+async function fetchSingleFeed(source) {
+  const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(source.url)}`;
+  try {
+    const response = await fetch(proxyUrl, { cache: "no-store" });
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const xmlText = await response.text();
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+
+    const pubDate = xmlDoc.querySelector("SysPubdate")?.textContent?.trim() || 
+                    xmlDoc.querySelector("PubDate")?.textContent?.trim() || "";
+
+    // 獲取所有可能的城市標籤節點
+    const cityNodes = Array.from(xmlDoc.querySelectorAll("City, WeatherCity, CityForecast, Item, Record, CityData, Weather"));
+    
+    let items = [];
+    cityNodes.forEach(node => {
+      const allEls = Array.from(node.getElementsByTagName("*"));
+      
+      let cityName = "";
+      let weatherDesc = "";
+      let iconUrl = "";
+      let tempMin = null, tempMax = null, tempVal = "";
+
+      // 解析城市名稱
+      for (let el of allEls) {
+        const tag = el.nodeName.toLowerCase();
+        if (tag.includes("cityname") || tag.includes("c_name") || tag === "city" || tag === "name") {
+          cityName = el.textContent.trim();
+          if (cityName) break;
+        }
+      }
+      if (!cityName && node.getAttribute("name")) cityName = node.getAttribute("name");
+
+      // 解析天氣狀況描述
+      for (let el of allEls) {
+        const tag = el.nodeName.toLowerCase();
+        if (tag.includes("weather") || tag.includes("desc") || tag.includes("summary")) {
+          weatherDesc = el.textContent.trim();
+          if (weatherDesc && !/^\d+$/.test(weatherDesc)) break;
+        }
+      }
+
+      // 解析天氣圖標
+      for (let el of allEls) {
+        const tag = el.nodeName.toLowerCase();
+        if (tag.includes("icon")) {
+          const txt = el.textContent.trim();
+          if (txt) {
+            iconUrl = txt.startsWith("http") ? txt : `https://www.smg.gov.mo/${txt.replace(/^\//, '')}`;
+            break;
+          }
+        }
+      }
+
+      // 解析氣溫數字
+      let nums = [];
+      for (let el of allEls) {
+        const tag = el.nodeName.toLowerCase();
+        if (tag.includes("temp") || tag.includes("temperature")) {
+          const m = el.textContent.match(/-?\d+(\.\d+)?/g);
+          if (m) {
+            m.forEach(v => {
+              const n = parseFloat(v);
+              if (!isNaN(n) && n >= -60 && n <= 60) nums.push(n);
+            });
+          }
+        }
+      }
+      nums = [...new Set(nums)];
+      if (nums.length >= 2) {
+        tempMin = Math.min(...nums);
+        tempMax = Math.max(...nums);
+        tempVal = `${tempMin} ~ ${tempMax} °C`;
+      } else if (nums.length === 1) {
+        tempVal = `${nums[0]} °C`;
+      }
+
+      // 解析經緯度
+      let lat = null, lon = null;
+      for (let el of allEls) {
+        const tag = el.nodeName.toLowerCase();
+        if (tag.includes("lat")) lat = parseFloat(el.textContent);
+        if (tag.includes("lon") || tag.includes("lng")) lon = parseFloat(el.textContent);
+      }
+
+      if (cityName && (weatherDesc || tempVal)) {
+        items.push({
+          regionKey: source.region,
+          regionName: source.name,
+          city: cityName,
+          weather: weatherDesc || "多雲",
+          tempDisplay: tempVal || "-- °C",
+          tempMin: tempMin,
+          tempMax: tempMax,
+          iconUrl: iconUrl,
+          pubDate: pubDate,
+          coords: (lat && lon) ? [lat, lon] : (CITY_COORDS[cityName] || null)
+        });
+      }
+    });
+
+    return items;
+  } catch (err) {
+    console.warn(`[SMG XML] 載入 ${source.name} 失敗:`, err);
+    return [];
+  }
+}
+
+async function fetchAllFeeds() {
+  const statusEl = document.getElementById("statusMsg");
+  statusEl.innerText = "正在從澳門氣象局載入最新天氣數據...";
+  statusEl.style.display = "block";
+
+  const promises = XML_SOURCES.map(source => fetchSingleFeed(source));
+  const results = await Promise.all(promises);
+  
+  allWeatherData = results.flat();
+
+  if (allWeatherData.length === 0) {
+    statusEl.innerText = "數據載入失敗，請稍後重試。";
+  } else {
+    statusEl.style.display = "none";
+    const now = new Date();
+    document.getElementById("pubTimeBadge").innerText = `最後更新時間：${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+  }
+
+  renderData();
+  resetTimer();
+}
+
+/* ========== 5. 地圖與表格渲染引擎 ========== */
+function getFilteredData() {
+  return allWeatherData.filter(item => {
+    const matchRegion = (currentRegionFilter === "ALL" || item.regionKey === currentRegionFilter);
+    const matchSearch = !currentSearchQuery || 
+      item.city.toLowerCase().includes(currentSearchQuery) || 
+      item.weather.toLowerCase().includes(currentSearchQuery) ||
+      item.regionName.toLowerCase().includes(currentSearchQuery);
+    return matchRegion && matchSearch;
+  });
+}
+
+function renderData() {
+  const filtered = getFilteredData();
+  
+  // 1. 渲染表格
+  const tbody = document.getElementById("weatherTableBody");
+  tbody.innerHTML = "";
+
+  if (filtered.length === 0) {
+    document.getElementById("statusMsg").innerText = "沒有符合條件的城市天氣數據。";
+    document.getElementById("statusMsg").style.display = "block";
+  } else {
+    document.getElementById("statusMsg").style.display = "none";
+  }
+
+  filtered.forEach(item => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td><span class="region-badge">${item.regionName}</span></td>
+      <td class="city-name-td">${item.city}</td>
+      <td>
+        ${item.iconUrl ? `<img src="${item.iconUrl}" class="weather-icon-inline" alt="icon" onerror="this.style.display='none'">` : ''}
+        ${item.weather}
+      </td>
+      <td><span class="temp-badge">${item.tempDisplay}</span></td>
+      <td>${item.tempMin !== null ? `${item.tempMin}℃` : '--'} / ${item.tempMax !== null ? `${item.tempMax}℃` : '--'}</td>
+      <td style="font-size:12px; color:var(--text-muted);">${item.pubDate || '實時'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // 2. 渲染地圖 Marker
+  markersGroup.clearLayers();
+  const validBounds = [];
+
+  filtered.forEach(item => {
+    if (item.coords) {
+      const marker = L.circleMarker(item.coords, {
+        radius: 7,
+        fillColor: "#38bdf8",
+        color: "#ffffff",
+        weight: 2,
+        opacity: 0.9,
+        fillOpacity: 0.8
+      });
+
+      const popupHtml = `
+        <div class="popup-content">
+          <div class="popup-city">${item.city} <span style="font-size:11px; opacity:0.8;">(${item.regionName})</span></div>
+          ${item.iconUrl ? `<img src="${item.iconUrl}" style="width:36px;height:36px;" alt="weather icon">` : ''}
+          <div class="popup-temp">${item.tempDisplay}</div>
+          <div class="popup-desc">${item.weather}</div>
+        </div>
+      `;
+
+      marker.bindPopup(popupHtml, { className: 'custom-popup' });
+      markersGroup.addLayer(marker);
+      validBounds.push(item.coords);
+    }
+  });
+
+  if (validBounds.length > 0 && currentRegionFilter !== "ALL") {
+    map.fitBounds(validBounds, { padding: [40, 40], maxZoom: 6 });
+  } else if (currentRegionFilter === "ALL") {
+    map.setView([20, 10], 2);
+  }
+}
+
+/* ========== 6. 自動定時器與事件處理 ========== */
+function resetTimer() {
+  refreshTimerSec = 300;
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(() => {
+    refreshTimerSec--;
+    document.getElementById("updateTimer").innerText = `自動更新：${refreshTimerSec}s`;
+    if (refreshTimerSec <= 0) {
+      fetchAllFeeds();
+    }
+  }, 1000);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  updateHeaderClock();
+  setInterval(updateHeaderClock, 1000);
+  initMap();
+
+  // 區域切換
+  document.getElementById("regionTabs").addEventListener("click", (e) => {
+    if (e.target.classList.contains("tab-chip")) {
+      document.querySelectorAll(".tab-chip").forEach(c => c.classList.remove("active"));
+      e.target.classList.add("active");
+      currentRegionFilter = e.target.dataset.region;
+      renderData();
+    }
+  });
+
+  // 即時搜尋
+  document.getElementById("searchInput").addEventListener("input", (e) => {
+    currentSearchQuery = e.target.value.trim().toLowerCase();
+    renderData();
+  });
+
+  // 載入 XML 數據
+  fetchAllFeeds();
 });
 </script>
 </body>
