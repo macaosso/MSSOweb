@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="icons/MSSO.png">
+<title>澳門民間氣象台 - 二十四節氣專頁</title>
+<style>
+/* ========== 1. 深太空 (Deep Space) 全域主題基礎 ========== */
+:root {
+  --bg-dark: #0b0f19;
+  --card-bg: rgba(22, 30, 46, 0.75);
+  --card-bg-light: rgba(255, 255, 255, 0.03);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  
+  --accent-blue: #38bdf8;
+  --accent-teal: #2dd4bf;
+  --accent-green: #34d399;
+  --accent-yellow: #facc15;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #c084fc;
+
+  --bg-orange: rgba(245, 158, 11, 0.12);
+  --border-orange: rgba(245, 158, 11, 0.35);
+}
+
+/* ========== 明亮主題 (Light Theme) ========== */
+body.light-theme {
+  --bg-dark: #f8fafc;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-bg-light: rgba(0, 0, 0, 0.04);
+  --card-border: rgba(0, 0, 0, 0.12);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+
+  --accent-blue: #0284c7;
+  --accent-teal: #0d9488;
+  --accent-green: #059669;
+  --accent-yellow: #d97706;
+  --accent-orange: #d97706;
+  --accent-red: #dc2626;
+  --accent-purple: #9333ea;
+
+  --bg-orange: rgba(245, 158, 11, 0.08);
+  --border-orange: rgba(245, 158, 11, 0.25);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* 頁面最大寬度容器 */
+.page-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 15px 40px 15px;
+}
+
+/* ========== 2. 頁頭 Header & 頂欄導航 ========== */
+.header-nav-container {
+  position: sticky;
+  top: 0;
+  z-index: 3000;
+  background: rgba(11, 15, 25, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1.5rem;
+  margin-bottom: 20px;
+  transition: background 0.3s ease;
+}
+body.light-theme .header-nav-container {
+  background: rgba(248, 250, 252, 0.88);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logo {
+  height: 38px;
+  width: auto;
+  filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.3));
+}
+.title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.header-clock {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--accent-teal);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.9;
+}
+
+.menu-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 主題切換按鈕 */
+.theme-toggle-btn {
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  padding: 8px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.25s ease;
+  outline: none;
+}
+.theme-toggle-btn:hover {
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  transform: translateY(-1px);
+}
+.sun-icon { display: block; }
+.moon-icon { display: none; }
+body.light-theme .sun-icon { display: none; }
+body.light-theme .moon-icon { display: block; }
+
+.menu-toggle {
+  display: none;
+  font-size: 22px;
+  padding: 6px 12px;
+  cursor: pointer;
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  border-radius: 8px;
+}
+
+.nav {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.nav a {
+  color: var(--text-muted);
+  padding: 8px 14px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+}
+.nav a:hover, .nav a.active {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+.dropdown-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px 14px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dropdown-content {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 190px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  z-index: 3100;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0s linear 0.4s;
+}
+body.light-theme .dropdown-content { background: rgba(255, 255, 255, 0.98); }
+.dropdown:hover .dropdown-content {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.25s ease;
+}
+.dropdown-content a {
+  padding: 8px 12px;
+  border-radius: 8px;
+  display: block;
+}
+
+/* ========== 3. 節氣高亮英雄卡片 ========== */
+.current-term-card {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(45, 212, 191, 0.05));
+  border: 1px solid var(--accent-blue);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 25px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 20px;
+  align-items: center;
+}
+.term-hero-left {
+  text-align: center;
+  border-right: 1px solid var(--card-border);
+  padding-right: 20px;
+}
+.term-badge {
+  display: inline-block;
+  background: var(--accent-blue);
+  color: #0b0f19;
+  font-weight: 700;
+  font-size: 0.8rem;
+  padding: 3px 12px;
+  border-radius: 20px;
+  margin-bottom: 8px;
+}
+.term-hero-title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: var(--accent-blue);
+  line-height: 1.1;
+}
+.term-hero-subtitle {
+  font-size: 0.95rem;
+  color: var(--accent-teal);
+  margin-top: 6px;
+  font-weight: 600;
+}
+.term-hero-right h3 {
+  font-size: 1.2rem;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+.term-hero-right p {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.term-tags {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.tag-item {
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border);
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: var(--accent-yellow);
+}
+
+/* ========== 4. 橙色提示與知識區塊 ========== */
+.box {
+  margin: 20px 0;
+  border-radius: 16px;
+  background: var(--bg-orange);
+  border: 1px solid var(--border-orange);
+  padding: 18px 20px;
+}
+.header-orange {
+  color: var(--accent-yellow);
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.rhyme-text {
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  line-height: 1.8;
+  color: var(--text-main);
+}
+
+/* ========== 5. 節氣分類網格 ========== */
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 30px 0 15px 0;
+}
+.section-title h2 {
+  font-size: 1.3rem;
+  color: var(--accent-blue);
+}
+.season-filter {
+  display: flex;
+  gap: 6px;
+}
+.filter-btn {
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.filter-btn.active, .filter-btn:hover {
+  background: var(--accent-blue);
+  color: #fff;
+  border-color: var(--accent-blue);
+}
+
+.terms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+.term-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 18px;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.term-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-blue);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.15);
+}
+.term-card.active-card {
+  border: 2px solid var(--accent-teal);
+  background: rgba(45, 212, 191, 0.08);
+}
+.term-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.term-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.term-card-season {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+.season-spring { background: rgba(52, 211, 153, 0.2); color: #34d399; }
+.season-summer { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
+.season-autumn { background: rgba(245, 158, 11, 0.2); color: #facc15; }
+.season-winter { background: rgba(56, 189, 248, 0.2); color: #38bdf8; }
+
+.term-card-date {
+  font-size: 0.85rem;
+  color: var(--accent-teal);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.term-card-desc {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* ========== 6. 圖表卡片區塊 ========== */
+.chart-wrap {
+  border-radius: 16px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  padding: 20px;
+  margin-top: 30px;
+  height: 400px;
+  display: flex;
+  flex-direction: column;
+}
+.chart-container {
+  flex: 1;
+  position: relative;
+  width: 100%;
+}
+
+/* 響應式適配 */
+@media (max-width: 768px) {
+  .current-term-card {
+    grid-template-columns: 1fr;
+    text-align: center;
+  }
+  .term-hero-left {
+    border-right: none;
+    border-bottom: 1px solid var(--card-border);
+    padding-right: 0;
+    padding-bottom: 15px;
+  }
+  .section-title {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .nav {
+    display: none;
+  }
+  .menu-toggle {
+    display: block;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<!-- 頂欄導航 -->
+<div class="header-nav-container">
+  <div class="header">
+    <img src="icons/MSSO.png" class="logo" alt="MSSO Logo" onerror="this.style.display='none'">
+    <div class="title">
+      澳門民間氣象台 MSSO
+      <span id="headerClock" class="header-clock"></span>
+    </div>
+  </div>
+
+  <div class="menu-container">
+    <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+      <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+
+    <div class="nav" id="navMenu">
+      <a href="index.html">首頁</a>
+      <div class="dropdown">
+        <button class="dropdown-btn">氣候專區 ▼</button>
+        <div class="dropdown-content">
+          <a href="climate.html">澳門氣候概況</a>
+          <a href="solar_terms.html" class="active">二十四節氣</a>
+        </div>
+      </div>
+      <a href="about.html">關於我們</a>
+    </div>
+  </div>
+</div>
+
+<div class="page-wrapper">
+
+  <!-- 動態當前/最近節氣卡片 -->
+  <div class="current-term-card" id="currentTermCard">
+    <div class="term-hero-left">
+      <span class="term-badge" id="heroBadge">當前節氣</span>
+      <div class="term-hero-title" id="heroTitle">--</div>
+      <div class="term-hero-subtitle" id="heroDate">--</div>
+    </div>
+    <div class="term-hero-right">
+      <h3 id="heroClimateTitle">氣候特徵與含義</h3>
+      <p id="heroDesc">正在計算當前天文與氣候節氣...</p>
+      <div class="term-tags" id="heroTags">
+        <!-- 動態標籤 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 節氣歌與背景知識 -->
+  <div class="box">
+    <div class="header-orange">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+      傳統二十四節氣歌（順口溜）
+    </div>
+    <div class="rhyme-text">
+      春雨驚春清穀天，夏滿芒夏暑相連。<br>
+      秋處露秋寒霜降，冬雪雪冬小大寒。<br>
+      <small style="color:var(--text-muted);">* 二十四節氣起源於黃河流域，古代勞動人民根據太陽在黃道上的位置變化劃分，指導農事與日常生活。</small>
+    </div>
+  </div>
+
+  <!-- 節氣網格與過濾 -->
+  <div class="section-title">
+    <h2>二十四節氣全覽</h2>
+    <div class="season-filter">
+      <button class="filter-btn active" onclick="filterSeason('all', this)">全部</button>
+      <button class="filter-btn" onclick="filterSeason('春', this)">春季</button>
+      <button class="filter-btn" onclick="filterSeason('夏', this)">夏季</button>
+      <button class="filter-btn" onclick="filterSeason('秋', this)">秋季</button>
+      <button class="filter-btn" onclick="filterSeason('冬', this)">冬季</button>
+    </div>
+  </div>
+
+  <div class="terms-grid" id="termsGrid">
+    <!-- 由 JavaScript 動態生成 24 個節氣卡片 -->
+  </div>
+
+  <!-- 太陽黃經與氣候曲線圖表 -->
+  <div class="chart-wrap">
+    <div style="font-weight: 700; color: var(--accent-blue); margin-bottom: 10px;">
+      ☀️ 二十四節氣與太陽黃經（Ecliptic Longitude）對照圖
+    </div>
+    <div class="chart-container">
+      <canvas id="solarChart"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+/* ========== 1. 24 節氣完整數據庫 ========== */
+const SOLAR_TERMS = [
+  { name: "立春", season: "春", month: 2, day: 4, longitude: 315, desc: "春季開始，萬物復甦，氣溫逐漸回升。", advice: "宜疏肝理氣，少酸增甘。" },
+  { name: "雨水", season: "春", month: 2, day: 19, longitude: 330, desc: "降水開始，雨量漸增，氣溫回暖明顯。", advice: "注意保暖防濕，養護脾胃。" },
+  { name: "驚蟄", season: "春", month: 3, day: 6, longitude: 345, desc: "春雷始鳴，驚醒冬眠昆蟲，大地春耕。", advice: "宜多吃梨與清淡食物。" },
+  { name: "春分", season: "春", month: 3, day: 21, longitude: 0, desc: "太陽直射赤道，晝夜平分，春意盎然。", advice: "保持作息規律，陰陽平衡。" },
+  { name: "清明", season: "春", month: 4, day: 5, longitude: 15, desc: "氣清景明，萬物皆潔齊，傳統祭祖踏青。", advice: "多進行戶外活動，舒暢身心。" },
+  { name: "穀雨", season: "春", month: 4, day: 20, longitude: 30, desc: "雨生百穀，春季最後一個節氣，濕氣加重。", advice: "注意祛濕，補血益氣。" },
+
+  { name: "立夏", season: "夏", month: 5, day: 6, longitude: 45, desc: "夏季開始，萬物至此皆長，氣溫升高。", advice: "宜清心養神，飲食清淡。" },
+  { name: "小滿", season: "夏", month: 5, day: 21, longitude: 60, desc: "夏熟作物籽粒開始灌漿飽滿，但未成熟。", advice: "防暑降溫，清熱利濕。" },
+  { name: "芒種", season: "夏", month: 6, day: 6, longitude: 75, desc: "有芒作物搶收搶種，氣候炎熱潮濕。", advice: "補水防暑，多吃蔬果。" },
+  { name: "夏至", season: "夏", month: 6, day: 21, longitude: 90, desc: "太陽直射北回歸線，北半球白晝最長。", advice: "防曬防暑，宜食苦瓜涼麵。" },
+  { name: "小暑", season: "夏", month: 7, day: 7, longitude: 105, desc: "天氣開始炎熱，但尚未達到最熱。", advice: "少劇烈運動，補充水分。" },
+  { name: "大暑", season: "夏", month: 7, day: 23, longitude: 120, desc: "一年中最炎熱的時期，濕熱交加。", advice: "防中暑、防腸胃不適。" },
+
+  { name: "立秋", season: "秋", month: 8, day: 8, longitude: 135, desc: "秋季開始，暑氣難消，華南仍多熱帶氣旋。", advice: "潤肺生津，貼秋膘需適度。" },
+  { name: "處暑", season: "秋", month: 8, day: 23, longitude: 150, desc: "即「出暑」，炎熱暑氣漸退，秋意漸濃。", advice: "保證充足睡眠，防止「秋乏」。" },
+  { name: "白露", season: "秋", month: 9, day: 8, longitude: 165, desc: "夜間氣溫下降，水汽凝結成白色露珠。", advice: "注意添衣保暖，滋陰潤燥。" },
+  { name: "秋分", season: "秋", month: 9, day: 23, longitude: 180, desc: "太陽再次直射赤道，晝夜平分，涼爽宜人。", advice: "多吃甘潤食物，預防秋燥。" },
+  { name: "寒露", season: "秋", month: 10, day: 8, longitude: 195, desc: "氣溫更低，露水寒冷，即將結霜。", advice: "注重足部保暖，潤肺防燥。" },
+  { name: "霜降", season: "秋", month: 10, day: 23, longitude: 210, desc: "秋季最後一個節氣，天氣漸冷，初霜出現。", advice: "防寒保暖，適度平補。" },
+
+  { name: "立冬", season: "冬", month: 11, day: 7, longitude: 225, desc: "冬季開始，萬物收藏，規避寒冷。", advice: "補冬養生，早睡晚起。" },
+  { name: "小雪", season: "冬", month: 11, day: 22, longitude: 240, desc: "氣溫降至零下，北方開始降雪。", advice: "多曬太陽，溫補禦寒。" },
+  { name: "大雪", season: "冬", month: 12, day: 7, longitude: 255, desc: "降雪量增多，地積雪，寒氣逼人。", advice: "溫胃散寒，吃羊肉蘿蔔。" },
+  { name: "冬至", season: "冬", month: 12, day: 22, longitude: 270, desc: "北半球白晝最短，黑夜最長，陽氣始生。", advice: "吃湯圓或餃子，防寒保暖。" },
+  { name: "小寒", season: "冬", month: 1, day: 5, longitude: 285, desc: "冷氣積久而寒，進入一年中最冷時節。", advice: "加強鍛鍊，注意頭部保暖。" },
+  { name: "大寒", season: "冬", month: 1, day: 20, longitude: 300, desc: "一年最後一個節氣，極寒之期，迎春臨門。", advice: "防寒防風，準備迎新年。" }
+];
+
+/* ========== 2. 自動計算最接近/當前節氣 ========== */
+function getClosestSolarTerm() {
+  const now = new Date();
+  const currentMonth = now.getMonth() + 1;
+  const currentDay = now.getDate();
+
+  let activeIndex = 0;
+  let minDiff = Infinity;
+
+  // 將月日轉換為一年中的概略天數進行比對
+  const getDayOfYear = (m, d) => m * 31 + d;
+  const todayVal = getDayOfYear(currentMonth, currentDay);
+
+  SOLAR_TERMS.forEach((term, index) => {
+    const termVal = getDayOfYear(term.month, term.day);
+    let diff = todayVal - termVal;
+    
+    // 取當前日期已過或最接近的節氣
+    if (diff >= -5 && diff < minDiff) {
+      minDiff = diff;
+      activeIndex = index;
+    }
+  });
+
+  return activeIndex;
+}
+
+/* ========== 3. DOM 渲染 logic ========== */
+function renderSolarTerms() {
+  const grid = document.getElementById('termsGrid');
+  const activeIdx = getClosestSolarTerm();
+  const activeTerm = SOLAR_TERMS[activeIdx];
+
+  // 渲染當前高亮卡片
+  document.getElementById('heroTitle').innerText = activeTerm.name;
+  document.getElementById('heroDate').innerText = `大約每年 ${activeTerm.month}月${activeTerm.day}日前後 (黃經 ${activeTerm.longitude}°)`;
+  document.getElementById('heroDesc').innerText = activeTerm.desc;
+  document.getElementById('heroTags').innerHTML = `
+    <span class="tag-item">🍵 養生: ${activeTerm.advice}</span>
+    <span class="tag-item">🍂 季節: ${activeTerm.season}季</span>
+  `;
+
+  // 渲染 24 卡片網格
+  grid.innerHTML = "";
+  SOLAR_TERMS.forEach((term, index) => {
+    const isActive = index === activeIdx;
+    const seasonClass = {
+      '春': 'season-spring', '夏': 'season-summer',
+      '秋': 'season-autumn', '冬': 'season-winter'
+    }[term.season];
+
+    const cardHtml = `
+      <div class="term-card ${isActive ? 'active-card' : ''}" data-season="${term.season}">
+        <div class="term-card-header">
+          <span class="term-card-title">${term.name} ${isActive ? '📍' : ''}</span>
+          <span class="term-card-season ${seasonClass}">${term.season}季</span>
+        </div>
+        <div class="term-card-date">約 ${term.month}月${term.day}日 (黃經 ${term.longitude}°)</div>
+        <div class="term-card-desc">${term.desc}</div>
+      </div>
+    `;
+    grid.insertAdjacentHTML('beforeend', cardHtml);
+  });
+}
+
+function filterSeason(season, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  const cards = document.querySelectorAll('.term-card');
+  cards.forEach(card => {
+    if (season === 'all' || card.dataset.season === season) {
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+/* ========== 4. Chart.js 太陽黃經渲染 ========== */
+function initSolarChart() {
+  const ctx = document.getElementById('solarChart').getContext('2d');
+  
+  const labels = SOLAR_TERMS.map(t => t.name);
+  const dataLongitudes = SOLAR_TERMS.map(t => t.longitude);
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '太陽黃經 (°)',
+        data: dataLongitudes,
+        borderColor: '#38bdf8',
+        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+        fill: true,
+        tension: 0.2,
+        pointRadius: 4,
+        pointBackgroundColor: '#2dd4bf'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: { ticks: { color: '#94a3b8', font: { size: 11 } } },
+        y: { 
+          min: 0, 
+          max: 360, 
+          ticks: { stepSize: 90, color: '#94a3b8' },
+          title: { display: true, text: '黃經角度 (°)', color: '#94a3b8' }
+        }
+      }
+    }
+  });
+}
+
+/* ========== 5. 通用主題與時鐘功能 ========== */
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light-theme');
+  localStorage.setItem('msso_theme', isLight ? 'light' : 'dark');
+}
+
+function updateHeaderClock() {
+  const clockEl = document.getElementById('headerClock');
+  if (clockEl) {
+    const now = new Date();
+    clockEl.textContent = ` ${now.getFullYear()}年${String(now.getMonth()+1).padStart(2,'0')}月${String(now.getDate()).padStart(2,'0')}日 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')} MST`;
+  }
+}
+
+// 初始化
+window.addEventListener('DOMContentLoaded', () => {
+  if (localStorage.getItem('msso_theme') === 'light') {
+    document.body.classList.add('light-theme');
+  }
+  updateHeaderClock();
+  setInterval(updateHeaderClock, 1000);
+  renderSolarTerms();
+  initSolarChart();
+});
+</script>
+</body>
+</html>
