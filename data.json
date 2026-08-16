@@ -1,5 +1,5 @@
 {
-  "datetime": "2026-08-17 05:35",
+  "datetime": "2026-08-17 05:45",
   "pohopolu": {
     "Chinese": "荷蘭園（路邊）",
     "Portuguese": "Conselheiro Ferreira de Almeida (Berma da Estrada)",
@@ -8,10 +8,10 @@
     "CODE": "PO",
     "HE_CO": null,
     "HE_O3": null,
-    "HE_PM2_5": "5.000",
     "HE_NO2": null,
-    "HE_SO2": null,
-    "HE_PM10": "19.000"
+    "HE_PM2_5": "5.000",
+    "HE_PM10": "19.000",
+    "HE_SO2": null
   },
   "khhopolu": {
     "Chinese": "九澳（路邊）",
@@ -21,10 +21,10 @@
     "CODE": "KH",
     "HE_CO": "0.763",
     "HE_O3": "51.652",
-    "HE_PM2_5": "7.000",
     "HE_NO2": "6.106",
-    "HE_SO2": "4.621",
-    "HE_PM10": "13.000"
+    "HE_PM2_5": "7.000",
+    "HE_PM10": "13.000",
+    "HE_SO2": "4.621"
   },
   "enhopolu": {
     "Chinese": "台山（高密度住宅區）",
@@ -34,10 +34,10 @@
     "CODE": "EN",
     "HE_CO": "0.478",
     "HE_O3": "50.540",
-    "HE_PM2_5": "4.000",
     "HE_NO2": "14.721",
-    "HE_SO2": "1.098",
-    "HE_PM10": "14.000"
+    "HE_PM2_5": "4.000",
+    "HE_PM10": "14.000",
+    "HE_SO2": "1.098"
   },
   "tchopolu": {
     "Chinese": "氹仔中心區（高密度住宅區）",
@@ -47,10 +47,10 @@
     "CODE": "TC",
     "HE_CO": null,
     "HE_O3": null,
-    "HE_PM2_5": "12.000",
     "HE_NO2": null,
-    "HE_SO2": null,
-    "HE_PM10": "17.000"
+    "HE_PM2_5": "12.000",
+    "HE_PM10": "17.000",
+    "HE_SO2": null
   },
   "tghopolu": {
     "Chinese": "大潭山（一般性）",
@@ -60,10 +60,10 @@
     "CODE": "TG",
     "HE_CO": "0.624",
     "HE_O3": "63.236",
-    "HE_PM2_5": "10.000",
     "HE_NO2": "7.146",
-    "HE_SO2": "1.799",
-    "HE_PM10": "14.000"
+    "HE_PM2_5": "10.000",
+    "HE_PM10": "14.000",
+    "HE_SO2": "1.799"
   },
   "cdhopolu": {
     "Chinese": "石排灣（一般性）",
@@ -73,9 +73,9 @@
     "CODE": "CD",
     "HE_CO": null,
     "HE_O3": null,
-    "HE_PM2_5": "4.000",
     "HE_NO2": null,
-    "HE_SO2": null,
-    "HE_PM10": "15.000"
+    "HE_PM2_5": "4.000",
+    "HE_PM10": "15.000",
+    "HE_SO2": null
   }
 }
