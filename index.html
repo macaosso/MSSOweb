@@ -264,11 +264,13 @@ body.light-theme .dropdown.active .dropdown-btn {
   z-index: 3100;
   margin-top: 4px;
 
+  /* Hidden state with fade-out delay */
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.25s ease, visibility 0s linear 0.4s;
 }
 
+/* Hover Bridge: Bridge the gap between the button and the menu */
 .dropdown-content::before {
   content: "";
   position: absolute;
@@ -1204,68 +1206,6 @@ body.light-theme .card-bottom {
     </div>
   </div>
 
-  <!-- ========== 底部綜合實時監測模組 (雷達、衛星、閃電、紫外線、潮汐) ========== -->
-  <div class="three-tab-weather-wrap" style="margin-top: 30px;" id="monitoring-bottom-section">
-    <div class="three-tab-header" style="overflow-x: auto; white-space: nowrap;">
-      <div class="three-tab-item active" onclick="switchMonitorTab('radar')" style="cursor: pointer;">雷達圖</div>
-      <div class="three-tab-item" onclick="switchMonitorTab('satellite')" style="cursor: pointer;">衛星雲圖</div>
-      <div class="three-tab-item" onclick="switchMonitorTab('lightning')" style="cursor: pointer;">珠三角閃電</div>
-      <div class="three-tab-item" onclick="switchMonitorTab('uv')" style="cursor: pointer;">紫外線指數</div>
-      <div class="three-tab-item" onclick="switchMonitorTab('tide')" style="cursor: pointer;">實時潮汐</div>
-    </div>
-
-    <div class="three-tab-content-box" style="text-align: center;">
-      
-      <!-- 1. 雷達圖面板 -->
-      <div id="panel-radar" class="monitor-panel" style="display: block;">
-        <div class="publishing-time" style="margin-bottom: 12px;">資料來源：澳門地球物理氣象局 (SMG) 雷達圖 | 自動更新中</div>
-        <div style="position: relative; max-width: 700px; margin: 0 auto; overflow: hidden; border-radius: 12px; border: 1px solid var(--card-border);">
-          <img id="smg-radar-img" src="https://www.smg.gov.mo/uploads/radar/radar.jpg" alt="澳門雷達圖" style="width: 100%; height: auto; display: block;" onerror="this.src='https://xml.smg.gov.mo/radar.jpg'">
-        </div>
-        <div class="forecast-time-bottom" id="radar-update-time">更新時間載入中...</div>
-      </div>
-
-      <!-- 2. 衛星雲圖面板 -->
-      <div id="panel-satellite" class="monitor-panel" style="display: none;">
-        <div class="publishing-time" style="margin-bottom: 12px;">資料來源：澳門地球物理氣象局 (SMG) 衛星雲圖 | 自動更新中</div>
-        <div style="position: relative; max-width: 700px; margin: 0 auto; overflow: hidden; border-radius: 12px; border: 1px solid var(--card-border);">
-          <img id="smg-sat-img" src="https://www.smg.gov.mo/uploads/satellite/IR.jpg" alt="衛星紅外光雲圖" style="width: 100%; height: auto; display: block;">
-        </div>
-        <div class="forecast-time-bottom" id="sat-update-time">更新時間載入中...</div>
-      </div>
-
-      <!-- 3. 珠三角閃電圖面板 -->
-      <div id="panel-lightning" class="monitor-panel" style="display: none;">
-        <div class="publishing-time" style="margin-bottom: 12px;">資料來源：珠三角閃電定位圖 | 自動更新中</div>
-        <div style="position: relative; max-width: 700px; margin: 0 auto; overflow: hidden; border-radius: 12px; border: 1px solid var(--card-border);">
-          <img id="smg-lightning-img" src="https://www.smg.gov.mo/uploads/lightning/lightning.jpg" alt="珠三角閃電圖" style="width: 100%; height: auto; display: block;">
-        </div>
-        <div class="forecast-time-bottom" id="lightning-update-time">更新時間載入中...</div>
-      </div>
-
-      <!-- 4. 紫外線指數面板 -->
-      <div id="panel-uv" class="monitor-panel" style="display: none;">
-        <div class="publishing-time" style="margin-bottom: 12px;">即時紫外線監測數據</div>
-        <div style="padding: 30px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--card-border); max-width: 400px; margin: 0 auto;">
-          <div style="font-size: 15px; color: var(--text-muted); margin-bottom: 10px;">當前最高紫外線指數</div>
-          <div id="bottom-uv-val" style="font-size: 48px; font-weight: 800; color: var(--accent-yellow);">--</div>
-          <div id="bottom-uv-desc" style="font-size: 16px; margin-top: 10px; color: var(--accent-teal);">載入中...</div>
-        </div>
-        <div class="forecast-time-bottom" id="uv-update-time" style="margin-top: 15px;"></div>
-      </div>
-
-      <!-- 5. 實時潮汐面板 -->
-      <div id="panel-tide" class="monitor-panel" style="display: none;">
-        <div class="publishing-time" style="margin-bottom: 12px;">澳門實時水位與天文潮監測</div>
-        <div id="tide-data-box" style="padding: 20px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid var(--card-border); max-width: 500px; margin: 0 auto; text-align: left; font-size: 15px; line-height: 1.8;">
-          正在獲取最新潮汐水位數據...
-        </div>
-        <div class="forecast-time-bottom" id="tide-update-time" style="margin-top: 15px;"></div>
-      </div>
-
-    </div>
-  </div>
-
 </div>
 
 <script src="webdata.js"></script>
@@ -1323,14 +1263,17 @@ document.addEventListener('DOMContentLoaded', () => {
       e.stopPropagation();
       const currentDropdown = btn.parentElement;
       
+      // 關閉其他已打開的下拉選單
       document.querySelectorAll('.dropdown').forEach(d => {
         if (d !== currentDropdown) d.classList.remove('active');
       });
 
+      // 切換當前選單狀態
       currentDropdown.classList.toggle('active');
     });
   });
 
+  // 點擊頁面其他區域時自動收起下拉選單
   document.addEventListener('click', () => {
     document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('active'));
   });
@@ -1410,14 +1353,17 @@ function resolveIcon(iconKey) {
   if (!iconKey) return "";
   const key = iconKey.trim();
 
+  // 1. Check inside ICON_PRESETS map in webdata.js
   if (typeof ICON_PRESETS !== 'undefined' && ICON_PRESETS[key]) {
     return ICON_PRESETS[key];
   }
 
+  // 2. If it is already a path or full URL
   if (key.includes('/') || key.includes('.')) {
     return key;
   }
 
+  // 3. Fallback conversion for short forms (e.g. "t1" -> "icons/t1.jpg")
   return `icons/${key.toLowerCase()}.jpg`;
 }
   
@@ -1426,8 +1372,10 @@ function renderTcForecastTable(tableData) {
   const tableContent = document.getElementById('tcTableContent');
 
   if (tableData && tableData.length > 0) {
+    // Populate your table here...
     tableCard.style.display = 'block';
   } else {
+    // Hide card if no data
     tableCard.style.display = 'none';
   }
 }
@@ -1485,6 +1433,7 @@ window.addEventListener('DOMContentLoaded', function(){
     updateHeaderClock();
     setInterval(updateHeaderClock, 1000);
 
+    // 渲染三個提示框 (支援字串或陣列)
     if (typeof alertipsText !== 'undefined') renderTextBox('alertBox', 'alertContent', alertipsText);
     if (typeof swtText !== 'undefined') renderTextBox('swtBox', 'swtContent', swtText);
     if (typeof tideText !== 'undefined') {
@@ -1493,6 +1442,7 @@ window.addEventListener('DOMContentLoaded', function(){
       renderTextBox('tideBox', 'tideContent', TideText);
     }
 
+    // 渲染警告卡片
     if (typeof tcWarnings !== 'undefined') renderWarnings(tcWarnings, "tcContent", "tcCard");
     if (typeof warnWarnings !== 'undefined') renderWarnings(warnWarnings, "warnContent", "warnCard");
 
@@ -1956,100 +1906,16 @@ async function load4DaysForecastXML() {
     }
 }
 
-/* ========== 底部檢視頁籤切換與自動更新邏輯 ========== */
-function switchMonitorTab(type) {
-  const items = document.querySelectorAll('#monitoring-bottom-section .three-tab-item');
-  items.forEach(item => item.classList.remove('active'));
-  event.currentTarget.classList.add('active');
-
-  const panels = document.querySelectorAll('.monitor-panel');
-  panels.forEach(panel => panel.style.display = 'none');
-  
-  const targetPanel = document.getElementById('panel-' + type);
-  if (targetPanel) targetPanel.style.display = 'block';
-}
-
-function refreshMonitorImages() {
-  const timestamp = new Date().getTime();
-  
-  const radarImg = document.getElementById('smg-radar-img');
-  if (radarImg) radarImg.src = `https://www.smg.gov.mo/uploads/radar/radar.jpg?t=${timestamp}`;
-
-  const satImg = document.getElementById('smg-sat-img');
-  if (satImg) satImg.src = `https://www.smg.gov.mo/uploads/satellite/IR.jpg?t=${timestamp}`;
-
-  const lightImg = document.getElementById('smg-lightning-img');
-  if (lightImg) lightImg.src = `https://www.smg.gov.mo/uploads/lightning/lightning.jpg?t=${timestamp}`;
-
-  const nowStr = new Date().toLocaleString();
-  document.getElementById('radar-update-time').innerText = `更新時間：${nowStr} (每5分鐘自動更新)`;
-  document.getElementById('sat-update-time').innerText = `更新時間：${nowStr} (每30分鐘自動更新)`;
-  document.getElementById('lightning-update-time').innerText = `更新時間：${nowStr} (每15分鐘自動更新)`;
-}
-
-async function fetchBottomTideAndUV() {
-  try {
-    const uvRes = await fetch(`https://corsproxy.io/?url=${encodeURIComponent('https://xml.smg.gov.mo/c_actualUVI.xml')}`);
-    if (uvRes.ok) {
-      const xmlText = await uvRes.text();
-      const xmlDoc = new DOMParser().parseFromString(xmlText, "text/xml");
-      const val = xmlDoc.querySelector("UV-Index > Value")?.textContent || "--";
-      document.getElementById('bottom-uv-val').innerText = val;
-      
-      let desc = "正常";
-      const numVal = parseFloat(val);
-      if (numVal >= 11) desc = "極高 (Extreme) - 須採取嚴格防曬措施";
-      else if (numVal >= 8) desc = "很高 (Very High) - 應避免戶外曝曬";
-      else if (numVal >= 6) desc = "高 (High) - 建議塗抹防曬";
-      document.getElementById('bottom-uv-desc').innerText = desc;
-      document.getElementById('uv-update-time').innerText = `更新時間：${new Date().toLocaleTimeString()}`;
-    }
-  } catch (e) {
-    console.error("底部紫外線數據載入失敗", e);
-  }
-
-  try {
-    const tideRes = await fetch(`https://corsproxy.io/?url=${encodeURIComponent('https://xml.smg.gov.mo/c_tide.xml')}`);
-    if (tideRes.ok) {
-      const tideText = await tideRes.text();
-      const tideDoc = new DOMParser().parseFromString(tideText, "text/xml");
-      const items = tideDoc.querySelectorAll("Item, TideData, Record");
-      
-      let tideHtml = "<ul style='padding-left: 20px; margin: 0;'>";
-      if (items.length > 0) {
-        let count = 0;
-        items.forEach(el => {
-          if (count < 4) {
-            tideHtml += `<li>${el.textContent.trim()}</li>`;
-            count++;
-          }
-        });
-        tideHtml += "</ul>";
-      } else {
-        tideHtml = "當前天文潮與水位監測數據已連線同步。";
-      }
-      document.getElementById('tide-data-box').innerHTML = tideHtml;
-      document.getElementById('tide-update-time').innerText = `更新時間：${new Date().toLocaleTimeString()} (每5分鐘自動更新)`;
-    }
-  } catch (e) {
-    document.getElementById('tide-data-box').innerHTML = "實時潮汐數據同步中...";
-  }
-}
-
 window.addEventListener('DOMContentLoaded', () => {
     loadHourlyWeather();
     loadUVData();
     load4DaysForecastXML();
-    refreshMonitorImages();
-    fetchBottomTideAndUV();
 });
 
 setInterval(loadHourlyWeather, 100000);
 setInterval(loadUVData, 100000);
 setInterval(loadForecastXML, 100000);
 setInterval(load4DaysForecastXML, 100000);
-setInterval(refreshMonitorImages, 300000);
-setInterval(fetchBottomTideAndUV, 300000);
 </script>
 </body>
 </html>
