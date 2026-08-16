@@ -1161,6 +1161,15 @@ function renderChart(labels, dataValues) {
 
     const colors = getChartThemeColors();
 
+    // 1. ADDED: Filter out invalid data and compute dynamic min/max
+    const validData = dataValues.filter(val => val !== null && !isNaN(val));
+    const dataMin = validData.length ? Math.min(...validData) : 18;
+    const dataMax = validData.length ? Math.max(...validData) : 36;
+
+    // 2. ADDED: Add 1°C - 2°C padding so data line points aren't clipped on edges
+    const dynamicMin = Math.floor(dataMin - 1.5);
+    const dynamicMax = Math.ceil(dataMax + 1.5);
+
     wbgtChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
@@ -1234,8 +1243,10 @@ function renderChart(labels, dataValues) {
                     title: { display: true, text: 'WBGT (°C)', color: colors.mutedText },
                     ticks: { color: colors.mutedText },
                     grid: { color: colors.gridColor },
-                    suggestedMin: 18,
-                    suggestedMax: 36
+                    
+                    // 3. REPLACED suggestedMin/suggestedMax with dynamic bounds
+                    min: dynamicMin,
+                    max: dynamicMax
                 }
             }
         }
