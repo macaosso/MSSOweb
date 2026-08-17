@@ -976,7 +976,7 @@ body.light-theme .card-bottom {
     <!-- 切換主題按鈕 (太陽 / 月亮圖標) -->
     <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
       <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-      <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 0 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
 
     <div class="menu-toggle" onclick="toggleMenu()">☰</div>
@@ -1218,6 +1218,7 @@ body.light-theme .card-bottom {
         七日預報數據載入失敗，請稍後重試
       </div>
       <div id="7day-xml-container" class="seven-day-scroll-row"></div>
+      <div id="7dayUpdateTime" class="forecast-time-bottom"></div>
     </div>
   </div>
 
@@ -1771,6 +1772,7 @@ async function load4DaysForecastXML() {
     const loadingEl = document.getElementById('7day-xml-loading');
     const errorEl = document.getElementById('7day-xml-error');
     const containerEl = document.getElementById('7day-xml-container');
+    const updateTimeEl = document.getElementById('7dayUpdateTime');
 
     try {
         if (loadingEl && containerEl.children.length === 0) loadingEl.style.display = 'block';
@@ -1786,9 +1788,12 @@ async function load4DaysForecastXML() {
         const pubDateStr = xmlDoc.querySelector("SysPubdate")?.textContent.trim();
         if (pubDateStr) {
           chart7dUpdateTime = `${pubDateStr} 更新`;
+          if (updateTimeEl) updateTimeEl.innerText = `發佈時間：${pubDateStr}`;
         } else {
           const now = new Date();
-          chart7dUpdateTime = `更新於 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+          const timeStr = `更新於 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+          chart7dUpdateTime = timeStr;
+          if (updateTimeEl) updateTimeEl.innerText = timeStr;
         }
 
         let forecastNodes = Array.from(xmlDoc.querySelectorAll("ForecastData, WeatherForecast, DayForecast, CustomData, Item"));
@@ -1858,6 +1863,14 @@ async function load4DaysForecastXML() {
                     iconUrl = `https://www.smg.gov.mo/${rawIconUrl}`;
                 }
             }
+
+            // Map SMG weather icons to local icon paths
+            if (iconUrl.includes("ww-c01.gif")) iconUrl = "icons/s.png";
+            else if (iconUrl.includes("ww-c02.gif")) iconUrl = "icons/sc.png";
+            else if (iconUrl.includes("ww-c03.gif")) iconUrl = "icons/c.png";
+            else if (iconUrl.includes("ww-c16.gif")) iconUrl = "icons/r.png";
+            else if (iconUrl.includes("ww-c18.gif")) iconUrl = "icons/tr.png";
+            else if (iconUrl.includes("ww-c29.gif")) iconUrl = "icons/scr.png";
 
             let tempNums = [];
             for (let el of allElements) {
