@@ -1352,18 +1352,64 @@ document.getElementById('btn-table').addEventListener('click', function(){
     document.getElementById('table-view').classList.remove('hide');
     renderDataTable(currentTab);
 });
+// 計算並生成標準氣象 Wind Barb SVG（預設風速單位：km/h，自動轉為 knots）
+function generateWindBarbSVG(speedKmH, degree) {
+    const speed = parseFloat(speedKmH) || 0;
+    const knots = Math.round(speed / 1.852); // 轉為 knots
+    const deg = parseFloat(degree) || 0;
 
+    // 靜風 (Calm < 2.5 knots)
+    if (knots < 2.5) {
+        return `
+        <svg width="28" height="28" viewBox="0 0 32 32">
+            <circle cx="16" cy="16" r="7" stroke="currentColor" stroke-width="2" fill="none"/>
+            <circle cx="16" cy="16" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
+        </svg>`;
+    }
+
+    let numFlags = Math.floor(knots / 50);
+    let rem = knots % 50;
+    let numFull = Math.floor(rem / 10);
+    let numHalf = (rem % 10) >= 2.5 ? 1 : 0;
+
+    let paths = [];
+    // 主風軸線 (從底部 (16,28) 延伸至頂端 (16,4))
+    paths.push(`<line x1="16" y1="28" x2="16" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`);
+
+    let currentY = 4;
+
+    // 50 浬三角旗 (Pennants / Flags)
+    for (let i = 0; i < numFlags; i++) {
+        paths.push(`<polygon points="16,${currentY} 25,${currentY + 3} 16,${currentY + 6}" fill="currentColor" />`);
+        currentY += 7;
+    }
+
+    // 10 浬長線 (Full Barbs)
+    for (let i = 0; i < numFull; i++) {
+        paths.push(`<line x1="16" y1="${currentY}" x2="25" y2="${currentY - 3}" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`);
+        currentY += 5;
+    }
+
+    // 5 浬短線 (Half Barb)
+    if (numHalf) {
+        if (numFlags === 0 && numFull === 0) currentY += 3; // 僅有短線時略為下移
+        paths.push(`<line x1="16" y1="${currentY}" x2="20.5" y2="${currentY - 1.5}" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`);
+    }
+
+    return `
+    <svg width="28" height="28" viewBox="0 0 32 32" style="transform: rotate(${deg}deg); transform-origin: center;">
+        ${paths.join('')}
+    </svg>`;
+}
 // ========== 6. 地圖 Pin 標記渲染 ==========
 function updateMapMarkers() {
     const container = document.getElementById('stationPinsGroup');
     const floodToggle = document.getElementById('floodRegionToggle');
-    const baseMapImg = document.getElementById('baseMapImg');
     if (!container) return;
     container.innerHTML = "";
 
     let sourceList, pointCoords;
 
-    // 1. 根據目前選取的頁籤設定資料源與座標系
     if (currentTab === "waterLevel") {
         if (floodToggle) floodToggle.classList.remove('hide');
         sourceList = floodDataList;
@@ -1374,7 +1420,6 @@ function updateMapMarkers() {
         pointCoords = stationCoordinates;
     }
 
-    // 2. 遍歷測站資料並渲染標記
     sourceList.forEach(point => {
         const name = point.name;
         const coords = pointCoords[name];
@@ -1424,14 +1469,11 @@ function updateMapMarkers() {
         pin.style.left = coords.left + "%";
 
         if (currentTab === "windDir") {
-            const deg = point.windDegree || 0;
+            const barbSVG = generateWindBarbSVG(point.windSpeed, point.windDegree);
             pin.innerHTML = `
-                <div class="pin-badge" style="background-color: ${bgColor}; border-color: ${bgColor}; display: inline-flex; align-items: center; gap: 4px;">
+                <div class="pin-badge" style="background-color: ${bgColor}; border-color: ${bgColor}; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px;">
                     <span>${showVal}</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transform: rotate(${deg}deg); transform-origin: center;">
-                        <line x1="12" y1="19" x2="12" y2="5"></line>
-                        <polyline points="5 12 12 5 19 12"></polyline>
-                    </svg>
+                    ${barbSVG}
                 </div>
             `;
         } else {
@@ -1452,60 +1494,6 @@ function updateMapMarkers() {
     });
 }
     
-function getWindBarbSVG(windSpeedKmH, windDegree) {
-    const speed = parseFloat(windSpeedKmH);
-    const deg = parseFloat(windDegree) || 0;
-    
-    // Calm wind (< 3 km/h or < ~1.5 knots)
-    if (isNaN(speed) || speed < 3) {
-        return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="7"/>
-            <circle cx="12" cy="12" r="3"/>
-        </svg>`;
-    }
-
-    // Convert km/h to knots and round to nearest 5 kt
-    const knots = Math.round(speed / 1.852);
-    let k = Math.round(knots / 5) * 5;
-    if (k < 5) k = 5;
-
-    let flags = Math.floor(k / 50);
-    let rem = k % 50;
-    let full = Math.floor(rem / 10);
-    let half = (rem % 10) >= 5 ? 1 : 0;
-
-    let paths = [];
-    // Base staff pointing North (0 deg) from center (12, 20) to (12, 2)
-    paths.push('<line x1="12" y1="20" x2="12" y2="2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>');
-
-    let currentY = 2;
-    const barbSpacing = 3;
-    const dx = 6; // Horizontal barb extent
-    const dy = 3.5; // Vertical barb angle drop
-
-    // Draw 50-knot Flags (Triangles)
-    for (let i = 0; i < flags; i++) {
-        const yBottom = currentY + barbSpacing + 1;
-        paths.push(`<polygon points="12,${currentY} ${12 + dx},${currentY + dy} 12,${yBottom}" fill="currentColor"/>`);
-        currentY = yBottom + 1;
-    }
-
-    // Draw 10-knot Full Barbs
-    for (let i = 0; i < full; i++) {
-        paths.push(`<line x1="12" y1="${currentY}" x2="${12 + dx}" y2="${currentY + dy}" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`);
-        currentY += barbSpacing;
-    }
-
-    // Draw 5-knot Half Barb
-    if (half) {
-        if (flags === 0 && full === 0) currentY += barbSpacing; // Offset if half barb only
-        paths.push(`<line x1="12" y1="${currentY}" x2="${12 + dx * 0.5}" y2="${currentY + dy * 0.5}" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>`);
-    }
-
-    return `<svg width="22" height="22" viewBox="0 0 24 24" style="transform: rotate(${deg}deg); transform-origin: center; display: block;">
-        ${paths.join('')}
-    </svg>`;
-}
 // 表格渲染
 let lastSort = "default";
 function renderDataTable(type, sortType = lastSort) {
