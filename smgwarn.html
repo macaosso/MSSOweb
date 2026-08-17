@@ -3,88 +3,138 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>澳門地球物理氣象局 (SMG) 實時天氣警告</title>
+  <title>澳門地球物理氣象局 (SMG) 氣象警告監測</title>
   <style>
     :root {
-      --bg-color: #0f172a;
+      --bg-main: #0f172a;
       --card-bg: #1e293b;
-      --text-main: #f8fafc;
-      --text-sub: #94a3b8;
-      --accent: #38bdf8;
-      --border: #334155;
+      --nav-bg: #111827;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --accent-color: #38bdf8;
+      --border-color: #334155;
+      --error-color: #ef4444;
     }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      margin: 0;
-      padding: 20px;
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      min-height: 100vh;
     }
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-    }
-    header {
+
+    /* 導航欄 Menu Bar */
+    .menu-bar {
+      background-color: var(--nav-bg);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0 24px;
+      height: 60px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid var(--border);
-      flex-wrap: wrap;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .menu-brand {
+      display: flex;
+      align-items: center;
       gap: 12px;
     }
-    h1 { margin: 0; font-size: 1.5rem; color: var(--accent); }
-    .status-bar { font-size: 0.9rem; color: var(--text-sub); }
-    .grid {
+
+    .menu-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--accent-color);
+    }
+
+    .menu-info {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    /* 主容器 swtBox */
+    .swtBox {
+      max-width: 1280px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    .swtGrid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
       gap: 16px;
     }
-    .card {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
+
+    /* 卡片 warning-card */
+    .warning-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
       border-radius: 8px;
-      padding: 16px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    }
-    .card-header {
+      padding: 20px;
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+    }
+
+    .warning-card-header {
+      display: flex;
       align-items: center;
-      margin-bottom: 12px;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
     }
-    .card-title {
-      font-weight: bold;
+
+    .warning-card-title {
       font-size: 1.1rem;
-      color: #e2e8f0;
+      font-weight: 600;
+      color: var(--text-primary);
     }
-    .card-content {
+
+    .warning-card-time {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .warning-card-body {
       font-size: 0.95rem;
-      color: var(--text-sub);
       line-height: 1.6;
+      color: #cbd5e1;
       white-space: pre-wrap;
       word-break: break-word;
+      min-height: 48px;
     }
-    .badge {
-      font-size: 0.75rem;
-      padding: 3px 8px;
-      border-radius: 12px;
-      background: #334155;
-      color: #e2e8f0;
+
+    .error-msg {
+      color: var(--error-color);
+      font-size: 0.85rem;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <h1>澳門氣象局 (SMG) 實時警告監測</h1>
-      <div class="status-bar">
-        最後更新：<span id="last-updated">更新中...</span> | 每 60 秒自動刷新
-      </div>
-    </header>
-    <div class="grid" id="weather-grid"></div>
-  </div>
+
+  <!-- Menu Bar -->
+  <header class="menu-bar">
+    <div class="menu-brand">
+      <span class="menu-title">澳門氣象局 (SMG) 警告監測面板</span>
+    </div>
+    <div class="menu-info">
+      最後自動更新：<span id="last-updated">讀取中...</span>
+    </div>
+  </header>
+
+  <!-- swtBox Main Area -->
+  <main class="swtBox">
+    <div class="swtGrid" id="warning-grid"></div>
+  </main>
 
   <script>
     const SOURCES = [
@@ -97,75 +147,71 @@
       { id: 'tsunami', title: '海嘯警告信號', url: 'https://xml.smg.gov.mo/c_tsunami.xml' }
     ];
 
-    // 使用公共 CORS 代理避免瀏覽器跨域阻擋 (Cross-Origin Block)
     const PROXY = 'https://corsproxy.io/?';
 
-    function initUI() {
-      const grid = document.getElementById('weather-grid');
+    function initLayout() {
+      const grid = document.getElementById('warning-grid');
       grid.innerHTML = SOURCES.map(src => `
-        <div class="card" id="card-${src.id}">
-          <div class="card-header">
-            <span class="card-title">${src.title}</span>
-            <span class="badge" id="badge-${src.id}">連線中...</span>
+        <div class="warning-card" id="card-${src.id}">
+          <div class="warning-card-header">
+            <span class="warning-card-title">${src.title}</span>
+            <span class="warning-card-time" id="time-${src.id}">--:--</span>
           </div>
-          <div class="card-content" id="content-${src.id}">載入中...</div>
+          <div class="warning-card-body" id="body-${src.id}">資料載入中...</div>
         </div>
       `).join('');
     }
 
-    async function fetchAndParse(url) {
+    async function fetchXML(url) {
       const response = await fetch(PROXY + encodeURIComponent(url));
-      if (!response.ok) throw new Error(`HTTP 錯誤: ${response.status}`);
-      
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
       const xmlText = await response.text();
       const parser = new DOMParser();
-      const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
-
-      if (xmlDoc.querySelector('parsererror')) {
-        throw new Error('XML 格式解析失敗');
-      }
-
-      return extractWeatherInfo(xmlDoc);
+      return parser.parseFromString(xmlText, 'text/xml');
     }
 
-    function extractWeatherInfo(xmlDoc) {
-      // 提取項目節點 (適應不同的 SMG XML 標籤架構)
-      const items = Array.from(xmlDoc.querySelectorAll('Item, item, info, WeatherInfo'));
+    function parseSMGData(xmlDoc) {
+      // 專門提煉中文主要欄位
+      const contentNodes = Array.from(xmlDoc.querySelectorAll('C_Content, Content, C_Remark, Remark, C_Name, description'));
+      const timeNode = xmlDoc.querySelector('IssueTime, pubDate, Date, Time');
       
-      if (items.length > 0) {
-        return items.map(item => {
-          const title = item.querySelector('title, Signal, Type, Name')?.textContent?.trim();
-          const desc = item.querySelector('description, Content, Remark, Text, Info')?.textContent?.trim();
-          const time = item.querySelector('pubDate, IssueTime, Date, Time')?.textContent?.trim();
+      const issueTime = timeNode ? timeNode.textContent.trim() : '';
 
-          let textParts = [];
-          if (title) textParts.push(`【${title}】`);
-          if (desc) textParts.push(desc);
-          if (time) textParts.push(`發佈時間: ${time}`);
+      // 清理與過濾無用雜訊（0, NIL, SMG, 網址等）
+      const extractedTexts = contentNodes
+        .map(node => node.textContent.trim())
+        .filter(text => {
+          if (!text) return false;
+          if (/^(0|NIL|SMG|SMG-CPT|WARNING|RAINSTORM|THUNDERSTORM|TSUNAMI)$/i.test(text)) return false;
+          if (text.startsWith('http://') || text.startsWith('https://')) return false;
+          return true;
+        });
 
-          return textParts.join('\n');
-        }).filter(Boolean).join('\n\n');
-      }
+      // 去除重複內容
+      const uniqueTexts = [...new Set(extractedTexts)];
 
-      // 若無層級節點，直接讀取文字內容
-      const rawText = xmlDoc.documentElement.textContent.trim();
-      return rawText || '暫無警告訊息 / 正常';
+      return {
+        time: issueTime,
+        content: uniqueTexts.length > 0 ? uniqueTexts.join('\n\n') : '現時沒有相關警告信號。'
+      };
     }
 
-    async function updateAllData() {
+    async function updateData() {
       for (const src of SOURCES) {
-        const contentEl = document.getElementById(`content-${src.id}`);
-        const badgeEl = document.getElementById(`badge-${src.id}`);
+        const bodyEl = document.getElementById(`body-${src.id}`);
+        const timeEl = document.getElementById(`time-${src.id}`);
 
         try {
-          const text = await fetchAndParse(src.url);
-          contentEl.textContent = text;
-          badgeEl.textContent = '更新成功';
-          badgeEl.style.background = '#059669'; // 綠色標籤
+          const xmlDoc = await fetchXML(src.url);
+          const { time, content } = parseSMGData(xmlDoc);
+
+          bodyEl.textContent = content;
+          bodyEl.classList.remove('error-msg');
+          timeEl.textContent = time ? time.split(' ')[0] : '實時';
         } catch (err) {
-          contentEl.textContent = `無法讀取資料: ${err.message}`;
-          badgeEl.textContent = '異常';
-          badgeEl.style.background = '#dc2626'; // 紅色標籤
+          bodyEl.textContent = `無法載入資料 (${err.message})`;
+          bodyEl.classList.add('error-msg');
+          timeEl.textContent = '錯誤';
         }
       }
 
@@ -173,10 +219,10 @@
       document.getElementById('last-updated').textContent = now.toLocaleTimeString('zh-HK');
     }
 
-    // 初始化網頁與觸發定時更新
-    initUI();
-    updateAllData();
-    setInterval(updateAllData, 60000); // 60 秒自動更新一次
+    // 初始化與 60 秒定時刷新
+    initLayout();
+    updateData();
+    setInterval(updateData, 60000);
   </script>
 </body>
 </html>
