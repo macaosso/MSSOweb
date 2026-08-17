@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>澳門地球物理氣象局 (SMG) 實時天氣警告</title>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-sub: #94a3b8;
+      --accent: #38bdf8;
+      --border: #334155;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    h1 { margin: 0; font-size: 1.5rem; color: var(--accent); }
+    .status-bar { font-size: 0.9rem; color: var(--text-sub); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .card-title {
+      font-weight: bold;
+      font-size: 1.1rem;
+      color: #e2e8f0;
+    }
+    .card-content {
+      font-size: 0.95rem;
+      color: var(--text-sub);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .badge {
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: #334155;
+      color: #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>澳門氣象局 (SMG) 實時警告監測</h1>
+      <div class="status-bar">
+        最後更新：<span id="last-updated">更新中...</span> | 每 60 秒自動刷新
+      </div>
+    </header>
+    <div class="grid" id="weather-grid"></div>
+  </div>
+
+  <script>
+    const SOURCES = [
+      { id: 'specInfo', title: '特別天氣訊息', url: 'https://www.smg.gov.mo/smg/xml/specInfo.xml' },
+      { id: 'typhoon', title: '熱帶氣旋信號', url: 'https://xml.smg.gov.mo/c_typhoon.xml' },
+      { id: 'rainstorm', title: '暴雨警告', url: 'https://xml.smg.gov.mo/c_rainstorm.xml' },
+      { id: 'stormsurge', title: '風暴潮警告', url: 'https://xml.smg.gov.mo/c_stormsurge.xml' },
+      { id: 'thunderstorm', title: '雷暴警告', url: 'https://xml.smg.gov.mo/c_thunderstorm.xml' },
+      { id: 'monsoon', title: '強烈季候風警告', url: 'https://xml.smg.gov.mo/c_monsoon.xml' },
+      { id: 'tsunami', title: '海嘯警告信號', url: 'https://xml.smg.gov.mo/c_tsunami.xml' }
+    ];
+
+    // 使用公共 CORS 代理避免瀏覽器跨域阻擋 (Cross-Origin Block)
+    const PROXY = 'https://corsproxy.io/?';
+
+    function initUI() {
+      const grid = document.getElementById('weather-grid');
+      grid.innerHTML = SOURCES.map(src => `
+        <div class="card" id="card-${src.id}">
+          <div class="card-header">
+            <span class="card-title">${src.title}</span>
+            <span class="badge" id="badge-${src.id}">連線中...</span>
+          </div>
+          <div class="card-content" id="content-${src.id}">載入中...</div>
+        </div>
+      `).join('');
+    }
+
+    async function fetchAndParse(url) {
+      const response = await fetch(PROXY + encodeURIComponent(url));
+      if (!response.ok) throw new Error(`HTTP 錯誤: ${response.status}`);
+      
+      const xmlText = await response.text();
+      const parser = new DOMParser();
+      const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+
+      if (xmlDoc.querySelector('parsererror')) {
+        throw new Error('XML 格式解析失敗');
+      }
+
+      return extractWeatherInfo(xmlDoc);
+    }
+
+    function extractWeatherInfo(xmlDoc) {
+      // 提取項目節點 (適應不同的 SMG XML 標籤架構)
+      const items = Array.from(xmlDoc.querySelectorAll('Item, item, info, WeatherInfo'));
+      
+      if (items.length > 0) {
+        return items.map(item => {
+          const title = item.querySelector('title, Signal, Type, Name')?.textContent?.trim();
+          const desc = item.querySelector('description, Content, Remark, Text, Info')?.textContent?.trim();
+          const time = item.querySelector('pubDate, IssueTime, Date, Time')?.textContent?.trim();
+
+          let textParts = [];
+          if (title) textParts.push(`【${title}】`);
+          if (desc) textParts.push(desc);
+          if (time) textParts.push(`發佈時間: ${time}`);
+
+          return textParts.join('\n');
+        }).filter(Boolean).join('\n\n');
+      }
+
+      // 若無層級節點，直接讀取文字內容
+      const rawText = xmlDoc.documentElement.textContent.trim();
+      return rawText || '暫無警告訊息 / 正常';
+    }
+
+    async function updateAllData() {
+      for (const src of SOURCES) {
+        const contentEl = document.getElementById(`content-${src.id}`);
+        const badgeEl = document.getElementById(`badge-${src.id}`);
+
+        try {
+          const text = await fetchAndParse(src.url);
+          contentEl.textContent = text;
+          badgeEl.textContent = '更新成功';
+          badgeEl.style.background = '#059669'; // 綠色標籤
+        } catch (err) {
+          contentEl.textContent = `無法讀取資料: ${err.message}`;
+          badgeEl.textContent = '異常';
+          badgeEl.style.background = '#dc2626'; // 紅色標籤
+        }
+      }
+
+      const now = new Date();
+      document.getElementById('last-updated').textContent = now.toLocaleTimeString('zh-HK');
+    }
+
+    // 初始化網頁與觸發定時更新
+    initUI();
+    updateAllData();
+    setInterval(updateAllData, 60000); // 60 秒自動更新一次
+  </script>
+</body>
+</html>
