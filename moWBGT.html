@@ -1018,12 +1018,12 @@ function updateSummaryCounts() {
     rawStationData.forEach(item => {
         let w = parseFloat(item.wbgt);
         if (isNaN(w)) return;
-        if (w >= 34) extreme++;
-        else if (w >= 33) veryDanger++;
-        else if (w >= 31) danger++;
-        else if (w >= 28) highAlert++;
-        else if (w >= 25) alert++;
-        else if (w >= 21) caution++;
+        if (w >= 33.5) extreme++;
+        else if (w >= 32.5) veryDanger++;
+        else if (w >= 30.5) danger++;
+        else if (w >= 27.5) highAlert++;
+        else if (w >= 24.5) alert++;
+        else if (w >= 20.5) caution++;
         else normal++;
     });
 
@@ -1208,28 +1208,28 @@ function renderChart(labels, dataValues) {
                 annotation: {
                     annotations: {
                         caution: {
-                            type: 'line', yMin: 21, yMax: 21, borderColor: '#38b000', borderWidth: 1.5, borderDash: [4, 4],
-                            label: { display: true, content: '21°C 注意', position: 'start', backgroundColor: '#38b000', color: '#111', font: { size: 10, weight: 'bold' } }
+                            type: 'line', yMin: 20.5, yMax: 20.5, borderColor: '#38b000', borderWidth: 1.5, borderDash: [4, 4],
+                            label: { display: true, content: '注意', position: 'start', backgroundColor: '#38b000', color: '#111', font: { size: 10, weight: 'bold' } }
                         },
                         alert: {
-                            type: 'line', yMin: 25, yMax: 25, borderColor: '#c9b200', borderWidth: 1.5, borderDash: [4, 4],
-                            label: { display: true, content: '25°C 警戒', position: 'start', backgroundColor: '#c9b200', color: '#111', font: { size: 10, weight: 'bold' } }
+                            type: 'line', yMin: 24:5, yMax: 24.5, borderColor: '#c9b200', borderWidth: 1.5, borderDash: [4, 4],
+                            label: { display: true, content: '警戒', position: 'start', backgroundColor: '#c9b200', color: '#111', font: { size: 10, weight: 'bold' } }
                         },
                         highAlert: {
-                            type: 'line', yMin: 28, yMax: 28, borderColor: '#e06c00', borderWidth: 1.5, borderDash: [4, 4],
-                            label: { display: true, content: '28°C 高度警戒', position: 'start', backgroundColor: '#e06c00', color: '#fff', font: { size: 10, weight: 'bold' } }
+                            type: 'line', yMin: 27.5, yMax: 27.5, borderColor: '#e06c00', borderWidth: 1.5, borderDash: [4, 4],
+                            label: { display: true, content: '高度警戒', position: 'start', backgroundColor: '#e06c00', color: '#fff', font: { size: 10, weight: 'bold' } }
                         },
                         danger: {
-                            type: 'line', yMin: 31, yMax: 31, borderColor: '#ef4444', borderWidth: 1.5, borderDash: [4, 4],
-                            label: { display: true, content: '31°C 危險', position: 'start', backgroundColor: '#ef4444', color: '#fff', font: { size: 10, weight: 'bold' } }
+                            type: 'line', yMin: 30.5, yMax: 30.5, borderColor: '#ef4444', borderWidth: 1.5, borderDash: [4, 4],
+                            label: { display: true, content: '危險', position: 'start', backgroundColor: '#ef4444', color: '#fff', font: { size: 10, weight: 'bold' } }
                         },
                         veryDanger: {
-                            type: 'line', yMin: 33, yMax: 33, borderColor: '#b91c1c', borderWidth: 1.5, borderDash: [4, 4],
-                            label: { display: true, content: '33°C 非常危險', position: 'start', backgroundColor: '#b91c1c', color: '#fff', font: { size: 10, weight: 'bold' } }
+                            type: 'line', yMin: 32.5, yMax: 32.5, borderColor: '#b91c1c', borderWidth: 1.5, borderDash: [4, 4],
+                            label: { display: true, content: '非常危險', position: 'start', backgroundColor: '#b91c1c', color: '#fff', font: { size: 10, weight: 'bold' } }
                         },
                         extreme: {
-                            type: 'line', yMin: 34, yMax: 34, borderColor: '#7f1d1d', borderWidth: 1.5, borderDash: [4, 4],
-                            label: { display: true, content: '34°C 極度危險', position: 'start', backgroundColor: '#7f1d1d', color: '#fff', font: { size: 10, weight: 'bold' } }
+                            type: 'line', yMin: 33.5, yMax: 33.5, borderColor: '#7f1d1d', borderWidth: 1.5, borderDash: [4, 4],
+                            label: { display: true, content: '極度危險', position: 'start', backgroundColor: '#7f1d1d', color: '#fff', font: { size: 10, weight: 'bold' } }
                         }
                     }
                 }
