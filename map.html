@@ -276,6 +276,9 @@
         .tab-group {
             margin-bottom: 12px;
         }
+        .tab-group:last-child {
+            margin-bottom: 0;
+        }
         .group-title {
             font-size: 1rem;
             font-weight: 600;
@@ -298,6 +301,7 @@
             font-size: 0.9rem;
             font-weight: 500;
             transition: all 0.25s ease;
+            white-space: nowrap;
         }
         .tab-btn.active {
             background: #3b82f6;
@@ -441,6 +445,7 @@
             border-radius: 3px;
             margin-right: 6px;
             border: 1px solid rgba(255,255,255,0.2);
+            flex-shrink: 0;
         }
 
         /* Timestamp */
@@ -460,12 +465,12 @@
             color: #0f172a;
         }
         .time-stamp {
-            top: 25px;
-            right: 25px;
+            top: 15px;
+            right: 15px;
         }
         .time-stamp-indicator {
-            top: 65px;
-            right: 25px;
+            top: 52px;
+            right: 15px;
         }
 
         /* Dedicated Trend Chart Container */
@@ -563,7 +568,48 @@
         }
         .hide { display: none !important; }
 
+        /* ========== 手機端 UI 響應式優化 ========== */
         @media (max-width: 768px) {
+            .container {
+                padding: 0 10px;
+            }
+            .header-nav-container {
+                padding: 0.6rem 1rem;
+            }
+            .title {
+                font-size: 1rem;
+                flex-direction: column;
+                gap: 2px;
+            }
+            .header-clock {
+                font-size: 0.78rem;
+            }
+            header {
+                padding: 15px;
+            }
+            header h1 {
+                font-size: 1.35rem;
+            }
+            .meta-info {
+                text-align: left;
+                margin-top: 8px;
+                font-size: 0.8rem;
+            }
+
+            /* 分類按鈕改為水平可滑動選單，避免垂直推疊占據太大空間 */
+            .group-buttons {
+                padding-left: 0;
+                overflow-x: auto;
+                flex-wrap: nowrap;
+                padding-bottom: 6px;
+                -webkit-overflow-scrolling: touch;
+            }
+            .tab-btn {
+                font-size: 0.82rem;
+                padding: 6px 12px;
+                flex-shrink: 0;
+            }
+
             .menu-toggle { display: block; }
             .nav {
                 display: none;
@@ -582,6 +628,41 @@
             .pin-badge {
                 font-size: 0.72rem;
                 padding: 2px 5px;
+            }
+
+            /* 地圖標註與圖例排版改進 (防止圖例遮擋地圖數據) */
+            .time-stamp {
+                top: 8px;
+                right: 8px;
+                font-size: 0.72rem;
+                padding: 3px 6px;
+            }
+            .time-stamp-indicator {
+                top: 36px;
+                right: 8px;
+                font-size: 0.72rem;
+                padding: 3px 6px;
+            }
+            .map-card {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+            .map-legend {
+                position: static;
+                width: 100%;
+                margin-top: 5px;
+                box-shadow: none;
+            }
+            .legend-items {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 6px 12px;
+                max-height: none;
+            }
+            .legend-item {
+                margin-bottom: 0;
+                font-size: 0.75rem;
             }
         }
     </style>
@@ -758,10 +839,9 @@ function calculateApparentTemp(T, RH, windSpeedKmH) {
     return isNaN(apparentTemp) ? '--' : apparentTemp.toFixed(1);
 }
 
-// 修正：標準 NOAA 酷熱指數 (Heat Index) 計算公式
 function calculateHeatIndex(T, RH) {
     if (isNaN(T) || isNaN(RH)) return '--';
-    if (T < 20) return T.toFixed(1); // 低於20°C時不適用酷熱指數，返回氣溫
+    if (T < 20) return T.toFixed(1);
 
     const tf = T * 1.8 + 32;
     let hi = 0.5 * (tf + 61.0 + ((tf - 68.0) * 1.2) + (RH * 0.094));
@@ -848,7 +928,6 @@ const stationCoordinates = {
     "路環市區":         { code: "DC", top: 86.5, left: 40.5 }
 };
 
-// 實時水位 - 澳門半島地圖對應坐標
 const floodCoordinatesMacau = {
     "花地瑪教會街": { top: 22.5, left: 47.5 },
     "青洲河邊馬路": { top: 25.5, left: 31.5 },
@@ -863,7 +942,6 @@ const floodCoordinatesMacau = {
     "下環街":       { top: 71.5, left: 14.5 }
 };
 
-// 實時水位 - 路氹離島地圖對應坐標
 const floodCoordinatesCotai = {
     "柯維納馬路":   { top: 28.0, left: 17.5 },
     "菜園路":       { top: 28.0, left: 33.0 },
@@ -875,7 +953,6 @@ const floodCoordinatesCotai = {
     "聖方濟各堂":   { top: 71.5, left: 14.0 }
 };
 
-// 欄位對應
 const fieldMap = {
     tempCurrent: {field:'temp', label:'實時氣溫', unit:'℃'},
     tempMax: {field:'tempMax', label:'最高氣溫', unit:'℃'},
@@ -896,7 +973,7 @@ const fieldMap = {
     waterLevel: {field:'waterLevel', label:'實時水位', unit:'m'}
 };
 
-// ========== 3. 數據色標函數 ==========
+// ========== 3. 數據色標函數 (更新 WBGT 自訂邏輯) ==========
 function getTempColor(tempStr) {
     const temp = parseFloat(tempStr);
     if (isNaN(temp)) return "#78797a";
@@ -921,16 +998,20 @@ function getHeatIndexColor(hiStr) {
     if (hi >= 35.5) return "#38b000";
     return "#0077b6";
 }
-function getWBGTColor(wbgtStr){
-    let w=parseFloat(wbgtStr);
-    if(isNaN(w)) return "#78797a";
-    if(w>=33) return "#000000";
-    if(w>=31) return "#ff0000";
-    if(w>=28) return "#e06c00";
-    if(w>=25) return "#c9b200";
-    if(w>=21) return "#38b000";
+
+// 根據要求更新 WBGT 顏色對應邏輯
+function getWBGTColor(wbgtStr) {
+    let w = parseFloat(wbgtStr);
+    if (isNaN(w)) return "#555555";
+    if (w >= 32.5) return "#7f1d1d";
+    if (w >= 31.5) return "#b91c1c";
+    if (w >= 30.5) return "#ef4444";
+    if (w >= 27.5) return "#e06c00";
+    if (w >= 24.5) return "#c9b200";
+    if (w >= 20.5) return "#38b000";
     return "#0077b6";
 }
+
 function getHumidityColor(humStr) {
     const hum = parseFloat(humStr);
     if (isNaN(hum)) return "#78797a";
@@ -1035,12 +1116,13 @@ function updateLegendPanel(tabType) {
             break;
         case "wbgt":
             legendHTML = `
-            <div class="legend-item"><div class="legend-color" style="background:#000000"></div>極度危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#ff0000"></div>非常危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#e06c00"></div>危險</div>
-            <div class="legend-item"><div class="legend-color" style="background:#c9b200"></div>警戒</div>
-            <div class="legend-item"><div class="legend-color" style="background:#38b000"></div>注意</div>
-            <div class="legend-item"><div class="legend-color" style="background:#0077b6"></div>正常</div>`;
+            <div class="legend-item"><div class="legend-color" style="background:#7f1d1d"></div>極度危險 (≥32.5)</div>
+            <div class="legend-item"><div class="legend-color" style="background:#b91c1c"></div>非常危險 (≥31.5)</div>
+            <div class="legend-item"><div class="legend-color" style="background:#ef4444"></div>危險 (≥30.5)</div>
+            <div class="legend-item"><div class="legend-color" style="background:#e06c00"></div>高度警戒 (≥27.5)</div>
+            <div class="legend-item"><div class="legend-color" style="background:#c9b200"></div>警戒 (≥24.5)</div>
+            <div class="legend-item"><div class="legend-color" style="background:#38b000"></div>注意 (≥20.5)</div>
+            <div class="legend-item"><div class="legend-color" style="background:#0077b6"></div>正常 (<20.5)</div>`;
             break;
         case "heatIndex":
             legendHTML = `
@@ -1092,13 +1174,12 @@ function updateLegendPanel(tabType) {
 
 // ========== 5. 全局變數與數據存儲 ==========
 let currentTab = "tempCurrent";
-let currentFloodRegion = "macau"; // 水位地圖區域切換：'macau' 或 'cotai'
+let currentFloodRegion = "macau";
 let pointDataList = [];
 let floodDataList = [];
-let selectedStationInfo = null; // 紀錄目前選取的測站，切換標籤或數據刷新時自動更新趨勢圖
+let selectedStationInfo = null;
 let activeChartInstance = null;
 
-// 水位區域切換函數
 function switchFloodRegion(region) {
     currentFloodRegion = region;
     const btnMacau = document.getElementById('btn-region-macau');
@@ -1113,7 +1194,6 @@ function switchFloodRegion(region) {
     updateMapMarkers();
 }
 
-// 數據快照儲存於 localStorage（保留最近 24 小時）
 function saveHistorySnapshot(pubTime) {
     if (!pointDataList.length && !floodDataList.length) return;
 
@@ -1125,7 +1205,6 @@ function saveHistorySnapshot(pubTime) {
     const now = Date.now();
     const timeLabel = pubTime || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-    // 避免重複寫入相同時間點的紀錄
     if (history.length > 0 && history[history.length - 1].time === timeLabel) {
         return;
     }
@@ -1137,14 +1216,12 @@ function saveHistorySnapshot(pubTime) {
         floods: floodDataList
     });
 
-    // 保留最近 24 小時數據 (24 * 60 * 60 * 1000 毫秒)
     const cutoff = now - (24 * 60 * 60 * 1000);
     history = history.filter(item => (item.timestamp || now) >= cutoff);
 
     localStorage.setItem('msso_weather_history', JSON.stringify(history));
 }
 
-// 渲染純趨勢圖外框
 function renderTrendOnlyCard(stationName, isFlood = false) {
     const trendBox = document.getElementById("trend-card-box");
     const cfg = fieldMap[currentTab] || fieldMap['tempCurrent'];
@@ -1163,7 +1240,6 @@ function renderTrendOnlyCard(stationName, isFlood = false) {
     renderStationChart(stationName, isFlood);
 }
 
-// 繪製 Station 歷史走勢圖
 function renderStationChart(stationName, isFlood = false) {
     const canvas = document.getElementById('stationChartCanvas');
     if (!canvas) return;
@@ -1229,7 +1305,6 @@ function renderStationChart(stationName, isFlood = false) {
     });
 }
 
-// 介面切換與按鈕監聽
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -1242,7 +1317,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         updateLegendPanel(currentTab);
         renderDataTable(currentTab);
 
-        // 如果目前有已選取的測站，切換標籤時重新繪製該指標走勢圖
         if (selectedStationInfo) {
             renderTrendOnlyCard(selectedStationInfo.name, selectedStationInfo.isFlood);
         }
@@ -1314,7 +1388,6 @@ function updateMapMarkers() {
             case "heatIndex":
                 showVal = point.heatIndex;
                 bgColor = getHeatIndexColor(showVal);
-                // 修正：顯示所有酷熱指數數值，不再隱藏低於 32.5°C 的標記
                 if (isNaN(parseFloat(showVal))) skipMarker = true;
                 break;
             case "wbgt":
