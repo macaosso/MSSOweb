@@ -1,16 +1,16 @@
 {
-  "datetime": "2026-08-18 05:35",
+  "datetime": "2026-08-18 05:45",
   "pohopolu": {
     "Chinese": "荷蘭園（路邊）",
     "Portuguese": "Conselheiro Ferreira de Almeida (Berma da Estrada)",
     "English": "Conselheiro Ferreira de Almeida (Roadside)",
     "DDTT": "2026081805",
     "CODE": "PO",
-    "HE_NO2": null,
     "HE_PM10": "23.000",
-    "HE_SO2": null,
     "HE_CO": null,
     "HE_PM2_5": "14.000",
+    "HE_NO2": null,
+    "HE_SO2": null,
     "HE_O3": null
   },
   "khhopolu": {
@@ -19,11 +19,11 @@
     "English": "Ka-Hó (Roadside)",
     "DDTT": "2026081805",
     "CODE": "KH",
-    "HE_NO2": null,
     "HE_PM10": "18.000",
-    "HE_SO2": null,
     "HE_CO": null,
     "HE_PM2_5": "14.000",
+    "HE_NO2": null,
+    "HE_SO2": null,
     "HE_O3": null
   },
   "enhopolu": {
@@ -32,11 +32,11 @@
     "English": "Bairro de Tamagnini Barbosa (High Density Residental Area)",
     "DDTT": "2026081805",
     "CODE": "EN",
-    "HE_NO2": "23.784",
     "HE_PM10": "23.000",
-    "HE_SO2": "1.720",
     "HE_CO": "0.590",
     "HE_PM2_5": "13.000",
+    "HE_NO2": "23.784",
+    "HE_SO2": "1.720",
     "HE_O3": "62.657"
   },
   "tchopolu": {
@@ -45,11 +45,11 @@
     "English": "Baixa da Taipa (High Density Residental Area)",
     "DDTT": "2026081805",
     "CODE": "TC",
-    "HE_NO2": null,
     "HE_PM10": "28.000",
-    "HE_SO2": null,
     "HE_CO": null,
     "HE_PM2_5": "17.000",
+    "HE_NO2": null,
+    "HE_SO2": null,
     "HE_O3": null
   },
   "tghopolu": {
@@ -58,11 +58,11 @@
     "English": "Taipa Grande (Ambient)",
     "DDTT": "2026081805",
     "CODE": "TG",
-    "HE_NO2": "15.987",
     "HE_PM10": "19.000",
-    "HE_SO2": "0.921",
     "HE_CO": "0.729",
     "HE_PM2_5": "17.000",
+    "HE_NO2": "15.987",
+    "HE_SO2": "0.921",
     "HE_O3": "72.318"
   },
   "cdhopolu": {
@@ -71,11 +71,11 @@
     "English": "Seac Pai Van (Ambient)",
     "DDTT": "2026081805",
     "CODE": "CD",
-    "HE_NO2": null,
     "HE_PM10": "15.000",
-    "HE_SO2": null,
     "HE_CO": null,
     "HE_PM2_5": "14.000",
+    "HE_NO2": null,
+    "HE_SO2": null,
     "HE_O3": null
   }
 }
