@@ -1362,22 +1362,19 @@ function updateMapMarkers() {
     container.innerHTML = "";
 
     let sourceList, pointCoords;
-    if (currentTab === "windDir") {
-        const windBarbSVG = getWindBarbSVG(point.windSpeed, point.windDegree);
-        pin.innerHTML = `
-            <div class="pin-badge" style="background-color: ${bgColor}; border-color: ${bgColor}; display: inline-flex; align-items: center; gap: 4px;">
-                <span>${showVal}</span>
-                ${windBarbSVG}
-            </div>
-        `;
+
+    // 1. 根據目前選取的頁籤設定資料源與座標系
+    if (currentTab === "waterLevel") {
+        if (floodToggle) floodToggle.classList.remove('hide');
+        sourceList = floodDataList;
+        pointCoords = (currentFloodRegion === "macau") ? floodCoordinatesMacau : floodCoordinatesCotai;
     } else {
-        pin.innerHTML = `
-            <div class="pin-badge" style="background-color: ${bgColor}; border-color: ${bgColor};">
-                ${showVal}
-            </div>
-        `;
+        if (floodToggle) floodToggle.classList.add('hide');
+        sourceList = pointDataList;
+        pointCoords = stationCoordinates;
     }
 
+    // 2. 遍歷測站資料並渲染標記
     sourceList.forEach(point => {
         const name = point.name;
         const coords = pointCoords[name];
@@ -1407,7 +1404,7 @@ function updateMapMarkers() {
             case "wbgt":
                 showVal = point.wbgt;
                 bgColor = getWBGTColor(showVal);
-                if(isNaN(parseFloat(showVal))) skipMarker = true;
+                if (isNaN(parseFloat(showVal))) skipMarker = true;
                 break;
             case "rain1m": showVal = point.rain1m; bgColor = getRain1mColor(showVal); break;
             case "rain1h": showVal = point.rain1h; bgColor = getRain1hColor(showVal); break;
@@ -1454,6 +1451,7 @@ function updateMapMarkers() {
         container.appendChild(pin);
     });
 }
+    
 function getWindBarbSVG(windSpeedKmH, windDegree) {
     const speed = parseFloat(windSpeedKmH);
     const deg = parseFloat(windDegree) || 0;
