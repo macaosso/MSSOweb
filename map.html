@@ -596,7 +596,6 @@
                 font-size: 0.8rem;
             }
 
-            /* 分類按鈕改為水平可滑動選單，避免垂直推疊占據太大空間 */
             .group-buttons {
                 padding-left: 0;
                 overflow-x: auto;
@@ -630,7 +629,6 @@
                 padding: 2px 5px;
             }
 
-            /* 地圖標註與圖例排版改進 (防止圖例遮擋地圖數據) */
             .time-stamp {
                 top: 8px;
                 right: 8px;
@@ -757,7 +755,7 @@
                 <button class="tab-btn" data-type="tempMin">最低氣溫 (°C)</button>
                 <button class="tab-btn" data-type="apparentTemp">體感溫度 (°C)</button>
                 <button class="tab-btn" data-type="heatIndex">酷熱指數 (°C)</button>
-                <button class="tab-btn" data-type="wbgt">暑熱指數 WBGT (°C)</button>
+                <button class="tab-btn" data-type="wbgt">暑熱指數 WBGT</button>
                 <button class="tab-btn" data-type="dewPoint">露點溫度 (°C)</button>
                 <button class="tab-btn" data-type="humidity">相對濕度 (%)</button>
                 <button class="tab-btn" data-type="windDir">風向</button>
@@ -959,10 +957,10 @@ const fieldMap = {
     tempMin: {field:'tempMin', label:'最低氣溫', unit:'℃'},
     apparentTemp: {field:'apparentTemp', label:'體感溫度', unit:'℃'},
     heatIndex: {field:'heatIndex', label:'酷熱指數', unit:'℃'},
-    wbgt:{field:'wbgt',label:'暑熱指數 WBGT',unit:'℃'},
+    wbgt:{field:'wbgt',label:'暑熱指數 WBGT',unit:''},
     dewPoint: {field:'dewPoint', label:'露點溫度', unit:'℃'},
     humidity: {field:'humidity', label:'相對濕度', unit:'%'},
-    windDir: {field:'windDir', label:'風向', unit:''},
+    windDir: {field:'windDegree', label:'風向', unit:'°'},
     windSpeed: {field:'windSpeed', label:'風速', unit:'km/h'},
     windGust: {field:'windGust', label:'陣風', unit:'km/h'},
     rain1m:{field:'rain1m',label:'一分鐘雨量',unit:'mm'},
@@ -973,7 +971,7 @@ const fieldMap = {
     waterLevel: {field:'waterLevel', label:'實時水位', unit:'m'}
 };
 
-// ========== 3. 數據色標函數 (更新 WBGT 自訂邏輯) ==========
+// ========== 3. 數據色標函數 ==========
 function getTempColor(tempStr) {
     const temp = parseFloat(tempStr);
     if (isNaN(temp)) return "#78797a";
@@ -999,7 +997,6 @@ function getHeatIndexColor(hiStr) {
     return "#0077b6";
 }
 
-// 根據要求更新 WBGT 顏色對應邏輯
 function getWBGTColor(wbgtStr) {
     let w = parseFloat(wbgtStr);
     if (isNaN(w)) return "#555555";
@@ -1149,7 +1146,7 @@ function updateLegendPanel(tabType) {
             <div class="legend-item"><div class="legend-color" style="background:#96592d"></div>乾燥</div>
             <div class="legend-item"><div class="legend-color" style="background:#641515"></div>非常乾燥</div>`;
             break;
-        case "windSpeed":case "windGust":
+        case "windSpeed":case "windGust":case "windDir":
             legendHTML = `
             <div class="legend-item"><div class="legend-color" style="background:#6a0606"></div>颶風</div>
             <div class="legend-item"><div class="legend-color" style="background:#b1510d"></div>暴風</div>
@@ -1268,6 +1265,28 @@ function renderStationChart(stationName, isFlood = false) {
         activeChartInstance.destroy();
     }
 
+    // 動態設定 Y 軸 Scale 屬性
+    let yScaleConfig = {
+        ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-muted') },
+        grid: { color: 'rgba(255,255,255,0.05)' }
+    };
+
+    if (currentTab === 'windDir') {
+        yScaleConfig = {
+            min: 0,
+            max: 360,
+            ticks: {
+                color: getComputedStyle(document.body).getPropertyValue('--text-muted'),
+                stepSize: 90,
+                callback: (val) => {
+                    const labels = { 0: 'N (0°)', 90: 'E (90°)', 180: 'S (180°)', 270: 'W (270°)', 360: 'N (360°)' };
+                    return labels[val] || `${val}°`;
+                }
+            },
+            grid: { color: 'rgba(255,255,255,0.05)' }
+        };
+    }
+
     activeChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
@@ -1296,10 +1315,7 @@ function renderStationChart(stationName, isFlood = false) {
                     ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-muted'), maxRotation: 45 },
                     grid: { color: 'rgba(255,255,255,0.05)' }
                 },
-                y: {
-                    ticks: { color: getComputedStyle(document.body).getPropertyValue('--text-muted') },
-                    grid: { color: 'rgba(255,255,255,0.05)' }
-                }
+                y: yScaleConfig
             }
         }
     });
@@ -1379,7 +1395,7 @@ function updateMapMarkers() {
             case "tempMin": showVal = point.tempMin; bgColor = getTempColor(showVal); break;
             case "humidity": showVal = point.humidity; bgColor = getHumidityColor(showVal); break;
             case "dewPoint": showVal = point.dewPoint; bgColor = getDewColor(showVal); break;
-            case "windDir": showVal = point.windDir || "--"; bgColor = "#9b59b6"; break;
+            case "windDir": showVal = point.windDir || "--"; bgColor = getWindColor(point.windSpeed); break;
             case "windSpeed": showVal = point.windSpeed; bgColor = getWindColor(showVal); break;
             case "windGust": showVal = point.windGust; bgColor = getWindColor(showVal); break;
             case "pressSea": showVal = point.pressSea; bgColor = getPressSeaColor(showVal); break;
@@ -1412,11 +1428,24 @@ function updateMapMarkers() {
         pin.style.top = coords.top + "%";
         pin.style.left = coords.left + "%";
 
-        pin.innerHTML = `
-            <div class="pin-badge" style="background-color: ${bgColor}; border-color: ${bgColor};">
-                ${showVal}
-            </div>
-        `;
+        if (currentTab === "windDir") {
+            const deg = point.windDegree || 0;
+            pin.innerHTML = `
+                <div class="pin-badge" style="background-color: ${bgColor}; border-color: ${bgColor}; display: inline-flex; align-items: center; gap: 4px;">
+                    <span>${showVal}</span>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transform: rotate(${deg}deg); transform-origin: center;">
+                        <line x1="12" y1="19" x2="12" y2="5"></line>
+                        <polyline points="5 12 12 5 19 12"></polyline>
+                    </svg>
+                </div>
+            `;
+        } else {
+            pin.innerHTML = `
+                <div class="pin-badge" style="background-color: ${bgColor}; border-color: ${bgColor};">
+                    ${showVal}
+                </div>
+            `;
+        }
 
         pin.addEventListener('click', () => {
             const isFlood = (currentTab === "waterLevel");
@@ -1453,6 +1482,9 @@ function renderDataTable(type, sortType = lastSort) {
         const code = stationCoordinates[name]?.code || item.code || "";
         let val = item[field];
         let displayVal = val + (cfg.unit ? " " + cfg.unit : "");
+        if (type === 'windDir' && item.windDir) {
+            displayVal = `${item.windDir} (${val}°)`;
+        }
         const tr = document.createElement('tr');
         tr.innerHTML = `<td>${name}</td><td>${code}</td><td>${displayVal}</td>`;
         tbody.appendChild(tr);
@@ -1498,8 +1530,10 @@ function fetchWeatherData() {
                 const windGust = extractNodeValue("WindGust", station);
                 const pressSea = extractNodeValue("MeanSeaLevelPressure", station);
                 const pressStation = extractNodeValue("StationPressure", station);
+
                 const windDirNode = station.querySelector("WindDirection");
                 const windDir = windDirNode?.querySelector("dValue")?.textContent || "";
+                const windDegree = parseFloat(windDirNode?.querySelector("Degree")?.textContent || "0");
 
                 let rain1m = "", rain1h = "", rainTotal = "";
                 station.querySelectorAll("Rainfall").forEach(r => {
@@ -1519,7 +1553,7 @@ function fetchWeatherData() {
                 const wbgt = calcWBGT(T, RH, windSpeedKmH);
 
                 pointDataList.push({
-                    name, temp, tempMax, tempMin, humidity, windDir,
+                    name, temp, tempMax, tempMin, humidity, windDir, windDegree,
                     windSpeed, windGust, rain1m, rain1h, rainTotal,
                     pressSea, pressStation, apparentTemp, heatIndex, dewPoint,
                     waterLevel: "--", wbgt
