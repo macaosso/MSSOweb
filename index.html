@@ -896,6 +896,9 @@ body.light-theme .card-bottom {
   }
   .dropdown-content {
     position: static;
+    display: none; /* 改用 display: none 避免隱藏選單佔用高度 */
+    opacity: 1;
+    visibility: visible;
     box-shadow: none;
     border: none;
     background: rgba(255, 255, 255, 0.03);
@@ -903,7 +906,17 @@ body.light-theme .card-bottom {
     padding-left: 10px;
     border-left: 2px solid var(--accent-blue);
     border-radius: 0 8px 8px 0;
+    transition: none;
   }
+  body.light-theme .dropdown-content {
+    background: rgba(0, 0, 0, 0.03);
+  }
+
+  /* 當點擊展開時才顯示內容 */
+  .dropdown.active .dropdown-content {
+    display: block;
+  }
+
   body.light-theme .dropdown-content {
     background: rgba(0, 0, 0, 0.03);
   }
