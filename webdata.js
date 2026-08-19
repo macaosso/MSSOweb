@@ -64,7 +64,7 @@ const tcWarnings = [
 const warnWarnings = [
   {
     icon: "h1",
-    text: "酷熱警報，現正生效，預料本澳今日天氣酷熱，最高氣溫約32-33度，部分地區34-35度。"
+    text: "酷熱警報，現正生效，預料本澳今日天氣酷熱，最高氣溫約32-33度，部分地區34度。"
   },
   {
     icon: "",
@@ -84,7 +84,7 @@ const warnWarnings = [
 // 3. 特別天氣提示 (swtText) [原 1 條 + 新增 2 條]
 // ==========================================================================
 const swtText = [
-  "（08-08 10:45 MST）一道季風槽正位於南海中北部，槽上的一個低壓區（95W）正在發展，預計未來兩三日將會逐漸向西移動，靠近海南島一帶，並可能有所發展。廣東沿岸受季風槽及高壓脊東風匯聚影響，風勢有所加強。未來數日天氣有所轉變，部分地區雨勢頻密，請市民留意天氣變化。",
+  "（08=19 14:40 MST）現時位於南海北部的一個低壓區（95W）正在發展，預計將會逐漸靠近海南島一帶，並可能有所發展。現時廣東沿岸受該低壓區及高壓脊東風匯聚影響，風勢仍然頗大。因此，黃色大風提示現正生效，進行高空工作或戶外活動人士要注意大風所帶來的威脅。該低壓區在今明兩日將有機會進一步發展為熱帶氣旋，本台會視乎本地風力變化及其發展動向，屆時評估是否直接發出強風警報。受低壓區相關雨帶影響，週末期間天氣不穩定，雨勢有時較大。請市民留意天氣變化。",
   "",
   ""
 ];
@@ -110,16 +110,16 @@ const tideText = [
 // 6. 熱帶氣旋可能發佈之警報預測 (TC_WARNING_DATA)
 // ==========================================================================
 const TC_WARNING_DATA = {
-  mainTitle: "受熱帶氣旋「紅霞」可能發佈之警報",
-  updateTimeText: "2026-07-24  22:00 MST 更新",
+  mainTitle: "受低壓區（95W）可能發佈之警報",
+  updateTimeText: "2026-08-19  14:40 MST 更新",
   tableRows: [
-    { signal: "注意警報", period: "07月24日08時20分發出", probability: "" },
-    { signal: "戒備警報", period: "07月24日22時20分發出", probability: "" },
-    { signal: "強風警報", period: "25日下午至黃昏", probability: "" },
-    { signal: "烈風警報", period: "26日初時", probability: "" },
+    { signal: "注意警報", period: "", probability: "" },
+    { signal: "戒備警報", period: "08月19日晚上至08月20日", probability: "偏低至中等" },
+    { signal: "強風警報", period: "08月19日晚上至08月20日", probability: "中等" },
+    { signal: "烈風警報", period: "", probability: "" },
     { signal: "暴風警報", period: "", probability: "" },
     { signal: "颶風警報", period: "", probability: "" },
-    { signal: "風暴潮觀察警報", period: "25日晚上至26日早上", probability: "" },
+    { signal: "風暴潮觀察警報", period: "", probability: "偏低" },
     { signal: "風暴潮戒備警報", period: "", probability: "" },
     { signal: "風暴潮危險警報", period: "", probability: "" },    
   ]
