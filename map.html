@@ -1405,6 +1405,7 @@ function generateWindBarbSVG(speedKmH, degree) {
 function updateMapMarkers() {
     const container = document.getElementById('stationPinsGroup');
     const floodToggle = document.getElementById('floodRegionToggle');
+    const baseMapImg = document.getElementById('baseMapImg');
     if (!container) return;
     container.innerHTML = "";
 
@@ -1414,10 +1415,20 @@ function updateMapMarkers() {
         if (floodToggle) floodToggle.classList.remove('hide');
         sourceList = floodDataList;
         pointCoords = (currentFloodRegion === "macau") ? floodCoordinatesMacau : floodCoordinatesCotai;
+        
+        // 切換水位地圖底圖 (預設澳門 map_macau.png，路氹則切換為 map_cotai.png)
+        if (baseMapImg) {
+            baseMapImg.src = (currentFloodRegion === "macau") ? "map/map_macau.png" : "map/map_cotai.png";
+        }
     } else {
         if (floodToggle) floodToggle.classList.add('hide');
         sourceList = pointDataList;
         pointCoords = stationCoordinates;
+        
+        // 其他氣象數據恢復預設地圖
+        if (baseMapImg) {
+            baseMapImg.src = "map/map.png";
+        }
     }
 
     sourceList.forEach(point => {
@@ -1470,9 +1481,9 @@ function updateMapMarkers() {
 
         if (currentTab === "windDir") {
             const barbSVG = generateWindBarbSVG(point.windSpeed, point.windDegree);
+            // 移除英文字母 (N, NE...)，僅保留風向標 SVG
             pin.innerHTML = `
-                <div class="pin-badge" style="background-color: ${bgColor}; border-color: ${bgColor}; display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px;">
-                    <span>${showVal}</span>
+                <div class="pin-badge" style="background-color: ${bgColor}; border-color: ${bgColor}; display: inline-flex; align-items: center; justify-content: center; padding: 2px 4px;">
                     ${barbSVG}
                 </div>
             `;
