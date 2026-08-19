@@ -2,15 +2,15 @@
 <ActualWeatherBrief>
 <System>
 <SysAuthor>DINF</SysAuthor>
-<SysPubdate>2026-08-20 01:56</SysPubdate>
+<SysPubdate>2026-08-20 02:52</SysPubdate>
 <SysLanguage>0</SysLanguage>
 </System>
 <Custom>
-<ValidFor>2026-08-20 02:00</ValidFor>
+<ValidFor>2026-08-20 03:00</ValidFor>
 <Temperature>
 <MeasureUnit>°C</MeasureUnit>
 <Type>3</Type>
-<Value>27</Value>
+<Value>28</Value>
 </Temperature>
 <Humidity>
 <MeasureUnit>%</MeasureUnit>
@@ -26,8 +26,8 @@
 <WindDirection>
 <MeasureUnit>°</MeasureUnit>
 <Type>3</Type>
-<Value>E</Value>
-<WindDescription>東</WindDescription>
+<Value>ENE</Value>
+<WindDescription>東北偏東</WindDescription>
 </WindDirection>
 <Icon>
 <IconName>ww-c03.gif</IconName>
