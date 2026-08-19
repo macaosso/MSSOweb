@@ -84,7 +84,7 @@ const warnWarnings = [
 // 3. 特別天氣提示 (swtText) [原 1 條 + 新增 2 條]
 // ==========================================================================
 const swtText = [
-  "（08-19 14:40 MST）現時位於南海北部的一個低壓區（95W）正在發展，預計將會逐漸靠近海南島一帶，並可能有所發展。現時廣東沿岸受該低壓區及高壓脊東風匯聚影響，風勢仍然頗大。因此，黃色大風提示現正生效，進行高空工作或戶外活動人士要注意大風所帶來的威脅。該低壓區在今明兩日將有機會進一步發展為熱帶氣旋，本台會視乎本地風力變化及其發展動向，屆時評估是否直接發出強風警報。受低壓區相關雨帶影響，週末期間天氣不穩定，雨勢有時較大。請市民留意天氣變化。",
+  "",
   "",
   ""
 ];
@@ -114,9 +114,9 @@ const TC_WARNING_DATA = {
   updateTimeText: "2026-08-19  14:40 MST 更新",
   tableRows: [
     { signal: "注意警報", period: "", probability: "" },
-    { signal: "戒備警報", period: "08月19日晚上至08月20日", probability: "" },
+    { signal: "戒備警報", period: "08月20日", probability: "中等至偏高" },
     { signal: "強風警報", period: "08月19日晚上9時20分", probability: "已發出" },
-    { signal: "烈風警報", period: "", probability: "" },
+    { signal: "烈風警報", period: "", probability: "低" },
     { signal: "暴風警報", period: "", probability: "" },
     { signal: "颶風警報", period: "", probability: "" },
     { signal: "風暴潮觀察警報", period: "", probability: "偏低" },
