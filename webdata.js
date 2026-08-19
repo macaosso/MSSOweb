@@ -28,12 +28,12 @@ const ICON_PRESETS = {
   s3: "warn_icon/s3.jpg",
 
   // 熱帶氣旋警告信號 (Tropical Cyclone)
-  t1: "warn_icon/t1.jpg",
-  t2: "warn_icon/t2.jpg",
-  t3: "warn_icon/t3.jpg",
-  t4: "warn_icon/t4.jpg",
-  t5: "warn_icon/t5.jpg",
-  t6: "warn_icon/t6.jpg"
+  t0: "warn_icon/t1.jpg",
+  t1: "warn_icon/t2.jpg",
+  t2: "warn_icon/t3.jpg",
+  t3: "warn_icon/t4.jpg",
+  t4: "warn_icon/t5.jpg",
+  t5: "warn_icon/t6.jpg"
 };
 
 // ==========================================================================
@@ -41,8 +41,8 @@ const ICON_PRESETS = {
 // ==========================================================================
 const tcWarnings = [
   {
-    icon: "",
-    text: "（08-19 14:40 MST）現時位於南海北部的一個低壓區（95W）正在發展，預計將會逐漸靠近海南島一帶，並可能有所發展。現時廣東沿岸受該低壓區及高壓脊東風匯聚影響，風勢仍然頗大。該低壓區在今明兩日將有機會進一步發展為熱帶氣旋，本台會視乎本地風力變化及其發展動向，屆時評估是否直接發出強風警報。 "
+    icon: "t2",
+    text: "強風警報於本地時間08月19日21時20分發出。強風警報將會在今日及明日初時維持。"
   },
   {
     icon: "",
@@ -114,8 +114,8 @@ const TC_WARNING_DATA = {
   updateTimeText: "2026-08-19  14:40 MST 更新",
   tableRows: [
     { signal: "注意警報", period: "", probability: "" },
-    { signal: "戒備警報", period: "08月19日晚上至08月20日", probability: "偏低至中等" },
-    { signal: "強風警報", period: "08月19日晚上至08月20日", probability: "中等" },
+    { signal: "戒備警報", period: "08月19日晚上至08月20日", probability: "" },
+    { signal: "強風警報", period: "08月19日晚上9時20分", probability: "已發出" },
     { signal: "烈風警報", period: "", probability: "" },
     { signal: "暴風警報", period: "", probability: "" },
     { signal: "颶風警報", period: "", probability: "" },
