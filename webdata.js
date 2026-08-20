@@ -110,8 +110,8 @@ const tideText = [
 // 6. 熱帶氣旋可能發佈之警報預測 (TC_WARNING_DATA)
 // ==========================================================================
 const TC_WARNING_DATA = {
-  mainTitle: "受低壓區（95W）可能發佈之警報",
-  updateTimeText: "2026-08-19  14:40 MST 更新",
+  mainTitle: "受熱帶氣旋 95W 可能發佈之警報",
+  updateTimeText: "2026-08-20  12:00 MST 更新",
   tableRows: [
     { signal: "注意警報", period: "", probability: "" },
     { signal: "戒備警報", period: "", probability: "" },
