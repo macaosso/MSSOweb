@@ -42,11 +42,11 @@ const ICON_PRESETS = {
 const tcWarnings = [
   {
     icon: "t2",
-    text: "強風警報於本地時間08月19日21時20分發出。強風警報將會在今日及明日初時維持。"
+    text: "強風警報於本地時間08月20日13時20分取消。"
   },
   {
     icon: "",
-    text: "持續受熱帶低氣壓及高壓脊影響，預計本澳今日餘下時間及明日早上風勢間中較大，風力間中達6-7級，陣風7-8級。隨着熱帶低氣壓逐漸向西遠離，本澳風力今日將會逐漸減弱，視乎本地風力變化，及熱帶低氣壓的動向，評估是否在今日改發較低警報或取消所有熱帶氣旋警報。"
+    text: "下午1時，熱帶低氣壓集結在本澳西南約490公里，即在北緯19.4度，東經109.9度附近，其中心附近最高持續風速約為每小時45公里，向西移動，時速10公里，橫過海南島，隨後在北部灣徘徊。現時熱帶低氣壓正橫過海南島。同時，與熱帶低氣壓相關的外圍雨帶正為珠江口及南海北部帶來驟雨，預計本澳今日間中有驟雨，部分地區雨勢較為頻密。隨着熱帶低氣壓逐漸遠離，本澳風力正逐漸減弱，因此已取消所有熱帶氣旋警報。但熱帶低氣壓進入北部灣後會在該區徘徊及發展，但路徑仍然存在較大不確定性，暫時未能排除採取較為偏東路徑再次靠近廣東沿岸的可能性。本台會視乎其發展動向，評估再次發出熱帶氣旋警報的可能性。無論如何，週末期間至下週初本澳驟雨增多，雨勢間中較為頻密，請市民留意最新天氣資訊。"
   },
   {
     icon: "",
@@ -64,7 +64,7 @@ const tcWarnings = [
 const warnWarnings = [
   {
     icon: "h1",
-    text: "酷熱警報，現正生效，預料本澳今日天氣酷熱，最高氣溫約32-33度，部分地區34度。"
+    text: "酷熱警報於本地時間08月20日11時20分取消。"
   },
   {
     icon: "",
@@ -114,12 +114,12 @@ const TC_WARNING_DATA = {
   updateTimeText: "2026-08-19  14:40 MST 更新",
   tableRows: [
     { signal: "注意警報", period: "", probability: "" },
-    { signal: "戒備警報", period: "08月20日", probability: "中等至偏高" },
-    { signal: "強風警報", period: "08月19日晚上9時20分", probability: "已發出" },
-    { signal: "烈風警報", period: "", probability: "低" },
+    { signal: "戒備警報", period: "", probability: "" },
+    { signal: "強風警報", period: "08月20日13時20分", probability: "取消" },
+    { signal: "烈風警報", period: "", probability: "" },
     { signal: "暴風警報", period: "", probability: "" },
     { signal: "颶風警報", period: "", probability: "" },
-    { signal: "風暴潮觀察警報", period: "", probability: "偏低" },
+    { signal: "風暴潮觀察警報", period: "", probability: "" },
     { signal: "風暴潮戒備警報", period: "", probability: "" },
     { signal: "風暴潮危險警報", period: "", probability: "" },    
   ]
