@@ -1763,7 +1763,7 @@ async function loadHourlyWeather() {
         const windSpd = xmlDoc.querySelector("WindSpeed > Value")?.textContent || "--";
         const windSpdDesc = xmlDoc.querySelector("WindSpeedDescription")?.textContent || "";
         const windDirText = xmlDoc.querySelector("WindDirection > WindDescription")?.textContent || "--";
-        const iconUrl = xmlDoc.querySelector("IconURL")?.textContent || "";
+        let iconUrl = xmlDoc.querySelector("IconURL")?.textContent || "";
         const feelDescRaw = xmlDoc.querySelector("FeelsLikeDescription")?.textContent || "--";
 
         pubTime.textContent = sysPubdate;
@@ -1772,6 +1772,19 @@ async function loadHourlyWeather() {
         humValue.textContent = `${hum} %`;
         windSpeed.textContent = `${windSpd} km/h (${windSpdDesc})`;
         windDir.textContent = windDirText;
+
+        // Map SMG weather icons to local icon paths
+        if (iconUrl.includes("ww-c01.gif")) iconUrl = "icons/s.png";
+        else if (iconUrl.includes("ww-c02.gif")) iconUrl = "icons/sc.png";
+        else if (iconUrl.includes("ww-c03.gif")) iconUrl = "icons/c.png";
+        else if (iconUrl.includes("ww-c04.gif")) iconUrl = "icons/Overcast.png";
+        else if (iconUrl.includes("ww-c06.gif")) iconUrl = "icons/Fog.png";
+        else if (iconUrl.includes("ww-c07.gif")) iconUrl = "icons/Haze.png";
+        else if (iconUrl.includes("ww-c08.gif")) iconUrl = "icons/Mist.png";
+        else if (iconUrl.includes("ww-c16.gif")) iconUrl = "icons/r.png";
+        else if (iconUrl.includes("ww-c18.gif")) iconUrl = "icons/tr.png";
+        else if (iconUrl.includes("ww-c25.gif")) iconUrl = "icons/t.png";
+        else if (iconUrl.includes("ww-c29.gif")) iconUrl = "icons/scr.png";
 
         if (iconUrl) {
             weatherIcon.src = iconUrl;
