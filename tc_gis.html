@@ -43,7 +43,7 @@ html, body {
 
 /* ========== MSSO 統一玻璃擬態 (Glassmorphism) ========== */
 .glass-panel {
-  background: rgba(15, 23, 42, 0.82);
+  background: rgba(15, 23, 42, 0.85);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -190,7 +190,7 @@ html, body {
   z-index: 1000;
   right: 20px;
   bottom: 24px;
-  width: 270px; /* Width increased to fit 2 text columns comfortably */
+  width: 270px;
   max-height: 60vh;
   overflow-y: auto;
   padding: 14px 16px;
@@ -222,7 +222,7 @@ html, body {
 .legend-grid div, .legend-list div {
   display: flex;
   align-items: center;
-  white-space: nowrap; /* Prevents 4-character Chinese text from wrapping vertically */
+  white-space: nowrap;
   font-size: 12px;
   line-height: 1.4;
 }
@@ -301,10 +301,11 @@ html, body {
   left: 20px;
   bottom: 18px;
   font-size: 11px;
-  z-index: 1000;
+  z-index: 1500;
   padding: 5px 12px;
   border-radius: 20px;
-  color: #94a3b8;
+  color: #f8fafc;
+  pointer-events: none;
 }
 
 /* 移動端資訊切換按鈕 */
@@ -313,7 +314,7 @@ html, body {
   position: fixed;
   bottom: 18px;
   right: 18px;
-  z-index: 1100;
+  z-index: 1600;
   padding: 8px 14px;
   font-size: 13px;
   font-weight: 600;
@@ -454,26 +455,33 @@ html, body {
     pointer-events: none;
     transform: translateY(20px);
   }
-  .legend.mobile-show {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transform: translateY(0);
-    right: 14px;
-    bottom: 65px;
-    width: calc(100vw - 28px);
-    max-width: 320px;
-  }
+
+  /* Requirement #2: Stack boxes vertically on phone */
   .tc-info-box.mobile-show {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
     transform: translateY(0);
     left: 14px;
-    bottom: 65px;
+    right: 14px;
+    bottom: 275px; /* Sits directly above legend */
     width: calc(100vw - 28px);
-    max-width: 320px;
+    max-width: 340px;
+    max-height: 28vh;
   }
+  .legend.mobile-show {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+    left: 14px;
+    right: 14px;
+    bottom: 60px; /* Sits at bottom */
+    width: calc(100vw - 28px);
+    max-width: 340px;
+    max-height: 28vh;
+  }
+
   #updateTime {
     left: 14px;
     bottom: 18px;
@@ -485,7 +493,6 @@ html, body {
 <body>
 
 <style>
-  /* Toggle visibility of forecast hour labels when .hide-time-labels is active on #map */
   #map.hide-time-labels .time-label {
     display: none !important;
   }
@@ -493,7 +500,7 @@ html, body {
 
 <!-- Header Top Bar -->
 <div class="header glass-panel">
-  <a href="#" class="brand">
+  <a href="index.html" class="brand">
     <img src="icons/MSSO.png" class="logo" alt="MSSO Logo">
     <div class="title">MSSO 熱帶氣旋路徑</div>
   </a>
@@ -506,21 +513,21 @@ html, body {
     </select>
   </div>
 
-  <!-- 時間標籤切換按鈕 -->
   <button id="toggleLabelBtn" class="tc-select" style="margin-left:8px;" onclick="toggleForecastLabels()">
     隱藏時間標籤
   </button>
 
+  <!-- Requirement #1: Updated Menu identical to index.html -->
   <div class="menu-container">
     <button class="menu-toggle" onclick="toggleMenu(event)" aria-label="選單">☰</button>
     <div class="nav" id="navMenu">
-      <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
+      <a href="index.html">首頁</a>
       <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
-      <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">距離計算</a> 
-      <a href="https://macaosso.github.io/MSSOweb/tc_gis.html" class="active">路徑地圖</a>  
-      <a href="https://macaosso.github.io/MSSOweb/tc.html">氣旋資訊</a>
-      <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
-      <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
+      <a href="cal_dis.html">距離計算</a> 
+      <a href="tc_gis.html" class="active">路徑地圖</a>  
+      <a href="tc.html">氣旋資訊</a>
+      <a href="about.html">關於我們</a>
+      <a href="ver.html">版本記錄</a>
     </div>
   </div>
 </div>
@@ -570,7 +577,6 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; OpenStreetMap &copy; CARTO'
 }).addTo(map);
 
-// 圖層順序 Pane
 map.createPane('conePane');
 map.getPane('conePane').style.zIndex = 300;
 map.createPane('wind41Pane');
@@ -578,24 +584,18 @@ map.getPane('wind41Pane').style.zIndex = 350;
 map.createPane('wind88Pane');
 map.getPane('wind88Pane').style.zIndex = 360;
 
-// 動態圖層組
 let tcLayersGroup = L.layerGroup().addTo(map);
 
-// 全域已載入氣旋資料快取
 const tcKeys = ['A', 'B', 'C', 'D', 'E'];
 let loadedTCs = {};
-
-// 預報標籤開關狀態
 let showForecastLabels = true;
 
-// 強度配色常量
 const colors = {
   "SuTY":"#A230FF", "STY":"#FF6F6F", "TY":"#F78A31",
   "STS":"#FFD363", "TS":"#9DD79C", "TD":"#6DD8FA",
   "LPA":"#DDDFE2", "Ex":"#DDDFE2"
 };
 
-// 澳門固定標記 & 警戒圈
 const macauMarker = L.marker(macauCoords, {
   icon: L.divIcon({ className: "macau-marker", iconSize: [12, 12], iconAnchor: [6, 6] })
 }).addTo(map);
@@ -645,13 +645,12 @@ function toggleMobilePanel() {
 document.addEventListener("click", (e) => {
   const nav = document.getElementById("navMenu");
   const toggleBtn = document.querySelector(".menu-toggle");
-  if (nav.classList.contains("active") && !toggleBtn.contains(e.target) && !nav.contains(e.target)) {
+  if (nav && nav.classList.contains("active") && !toggleBtn.contains(e.target) && !nav.contains(e.target)) {
     nav.classList.remove("active");
     toggleBtn.innerHTML = "☰";
   }
 });
 
-// 安全切換標籤顯示（修復 TypeError 及切換氣旋重置問題）
 function toggleForecastLabels() {
   showForecastLabels = !showForecastLabels;
   const mapElement = document.getElementById("map");
@@ -740,26 +739,6 @@ function createWindRadii(lat, lon, radii) {
   return turf.polygon([coords]);
 }
 
-function smoothPoints(points, segments = 20) {
-  let newPts = [];
-  for (let i = 0; i < points.length - 1; i++) {
-    let p0 = points[i - 1] || points[i];
-    let p1 = points[i];
-    let p2 = points[i + 1];
-    let p3 = points[i + 2] || p2;
-
-    let maxJ = (i === points.length - 2) ? segments : segments - 1;
-
-    for (let j = 0; j <= maxJ; j++) {
-      let t = j / segments;
-      let lat = 0.5 * ((2 * p1.lat) + (-p0.lat + p2.lat) * t + (2 * p0.lat - 5 * p1.lat + 4 * p2.lat - p3.lat) * t * t + (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * t * t * t);
-      let lon = 0.5 * ((2 * p1.lon) + (-p0.lon + p2.lon) * t + (2 * p0.lon - 5 * p1.lon + 4 * p2.lon - p3.lon) * t * t + (-p0.lon + 3 * p1.lon - 3 * p2.lon + p3.lon) * t * t * t);
-      newPts.push({ lat, lon });
-    }
-  }
-  return newPts;
-}
-
 function smoothPointsWithTime(points, hoursArr, segments = 20) {
   let newPts = [];
   for (let i = 0; i < points.length - 1; i++) {
@@ -776,7 +755,7 @@ function smoothPointsWithTime(points, hoursArr, segments = 20) {
     for (let j = 0; j <= maxJ; j++) {
       let t = j / segments;
       let lat = 0.5 * ((2 * p1.lat) + (-p0.lat + p2.lat) * t + (2 * p0.lat - 5 * p1.lat + 4 * p2.lat - p3.lat) * t * t + (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * t * t * t);
-      let lon = 0.5 * ((2 * p1.lon) + (-p0.lon + p2.lon) * t + (2 * p0.lon - 5 * p1.lon + 4 * p2.lon - p3.lon) * t * t + (-p0.lon + 3 * p1.lon - 3 * p2.lon + p3.lon) * t * t * t);
+      let lon = 0.5 * ((2 * p1.lon) + (-p0.lon + p2.lon) * t + (2 * p0.lon - 5 * p1.lon + 4 * p2.lon - p3.lon) * t * t + (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * t * t * t);
       let hour = hStart + t * (hEnd - hStart);
 
       newPts.push({ lat, lon, hour });
@@ -816,7 +795,6 @@ function catmullRom2bezier(points) {
   return path;
 }
 
-// Turf相容性包裝
 function safeUnion(p1, p2) {
   if (!p1) return p2;
   if (!p2) return p1;
@@ -883,12 +861,23 @@ function makeSplitCone(points, hoursArr, radiiArr) {
   return { first: cone1, second: cone2 };
 }
 
+// Helper to extract update time safely
+function getUpdateTimeFromData(data) {
+  if (!data) return "--";
+  if (data.forecastInfo && (data.forecastInfo.updated || data.forecastInfo.time)) {
+    return data.forecastInfo.updated || data.forecastInfo.time;
+  }
+  if (data.tcInfo && (data.tcInfo.updated || data.tcInfo.time)) {
+    return data.tcInfo.updated || data.tcInfo.time;
+  }
+  return "--";
+}
+
 // ================= 氣旋圖層繪製 =================
 function drawTCLayers(data) {
   const { forecastPoints, pastPoints, hours, radii } = data;
   const pts = [];
 
-  // 1. 過去路徑線與標記
   if (pastPoints && pastPoints.length > 0) {
     const pastPolyline = L.polyline(pastPoints.map(p => [p.lat, p.lon]), {
       color: "rgba(255, 255, 255, 0.85)",
@@ -919,7 +908,6 @@ function drawTCLayers(data) {
     });
   }
 
-  // 2. 預報誤差圓錐
   if (forecastPoints && forecastPoints.length > 1 && hours && radii) {
     const cones = makeSplitCone(forecastPoints, hours, radii);
     if (cones.first) {
@@ -934,7 +922,6 @@ function drawTCLayers(data) {
     }
   }
 
-  // 3. 預報虛線路徑
   if (forecastPoints && forecastPoints.length > 1) {
     const trackLine = L.curve(catmullRom2bezier(forecastPoints), {
       color: "#ffffff", weight: 2.5, dashArray: "8,6"
@@ -942,7 +929,6 @@ function drawTCLayers(data) {
     tcLayersGroup.addLayer(trackLine);
   }
 
-  // 4. 預報標記點
   forecastPoints.forEach(p => {
     pts.push([p.lat, p.lon]);
     const type = getTypeFromWind(p.wind);
@@ -969,7 +955,6 @@ function drawTCLayers(data) {
     tcLayersGroup.addLayer(marker);
   });
 
-  // 5. 強風圈與暴風圈
   const p0 = forecastPoints[0];
   if (p0 && p0.wind41) {
     tcLayersGroup.addLayer(L.geoJSON(createWindRadii(p0.lat, p0.lon, p0.wind41), {
@@ -990,7 +975,9 @@ function renderTCData(data) {
   tcLayersGroup.clearLayers();
   const pts = drawTCLayers(data);
 
-  document.getElementById("updateTime").innerHTML = "更新時間: " + (data.forecastInfo ? data.forecastInfo.updated : "--");
+  // Requirement #3: Fixed Update Time Reading
+  const updateStr = getUpdateTimeFromData(data);
+  document.getElementById("updateTime").innerHTML = "更新時間: " + updateStr;
 
   const p0 = data.forecastPoints[0];
   if (data.tcInfo && p0) {
@@ -1018,7 +1005,7 @@ function renderTCData(data) {
   }
 }
 
-// ================= Requirement #1: 全部熱帶氣旋同時渲染 =================
+// ================= 全部熱帶氣旋渲染 =================
 function renderAllTCs() {
   tcLayersGroup.clearLayers();
   let allPts = [macauCoords];
@@ -1038,8 +1025,9 @@ function renderAllTCs() {
     const pts = drawTCLayers(data);
     allPts.push(...pts);
 
-    if (data.forecastInfo && data.forecastInfo.updated !== "--") {
-      latestUpdate = data.forecastInfo.updated;
+    const checkTime = getUpdateTimeFromData(data);
+    if (checkTime !== "--") {
+      latestUpdate = checkTime;
     }
 
     const p0 = data.forecastPoints[0];
@@ -1065,7 +1053,7 @@ function renderAllTCs() {
   }
 }
 
-// ================= Requirement #2 & #3: CSV 解析與自動偵測/過濾 =================
+// ================= CSV 解析 & 下拉選單 =================
 async function initTCDropdown() {
   const selectEl = document.getElementById("tcSelect");
   selectEl.innerHTML = '<option value="all">全部熱帶氣旋</option>';
@@ -1128,8 +1116,8 @@ function parseCSVToTCData(csvText) {
     const category = cols[0].toLowerCase();
 
     if (category === "tc_info") {
-      tcInfo.name = cols[2] || "熱帶氣旋";
-      forecastInfo.updated = cols[3] || "--";
+      tcInfo.name = cols[2] || cols[1] || "熱帶氣旋";
+      forecastInfo.updated = cols[3] || cols[1] || "--";
       tcInfo.wind = cols[5] || "--";
       tcInfo.pressure = cols[6] || "--";
 
@@ -1172,7 +1160,6 @@ function parseCSVToTCData(csvText) {
     }
   });
 
-  // 動態擴充 radii 陣列長度以預防超出界線 (Out-of-bounds Fix)
   const defaultRadii = [15, 50, 100, 135, 170, 255, 345, 465];
   const reqLen = hours.length > 0 ? hours.length : 8;
 
@@ -1205,5 +1192,4 @@ window.addEventListener("DOMContentLoaded", () => {
 </script>
 
 </body>
-  
 </html>
