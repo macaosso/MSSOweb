@@ -109,7 +109,7 @@ html, body {
   box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
 }
 
-/* ========== 導航選單 ========== */
+/* ========== 導航選單 & 下拉選單 ========== */
 .menu-container {
   position: relative;
   z-index: 3000;
@@ -131,18 +131,83 @@ html, body {
 }
 .nav {
   display: flex;
-  gap: 6px;
+  align-items: center;
+  gap: 4px;
 }
-.nav a {
+.nav-theme-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f8fafc;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: 6px;
+  transition: background 0.2s;
+}
+.nav-theme-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
+}
+.nav a, .dropdown-toggle {
   color: #cbd5e1;
-  padding: 8px 14px;
+  padding: 8px 12px;
   font-size: 14px;
   font-weight: 500;
   text-decoration: none;
   border-radius: 8px;
   transition: all 0.2s ease;
+  cursor: pointer;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
-.nav a:hover, .nav a.active {
+.nav a:hover, .nav a.active, .dropdown-toggle:hover, .dropdown-toggle.active {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+}
+
+/* 下拉選單結構 */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+.arrow {
+  font-size: 10px;
+  opacity: 0.8;
+}
+.dropdown-content {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 140px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  z-index: 3100;
+  padding: 6px 0;
+  margin-top: 4px;
+}
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+.dropdown-content a {
+  display: block;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #cbd5e1;
+  border-radius: 0;
+  white-space: nowrap;
+}
+.dropdown-content a:hover, .dropdown-content a.active {
   background: rgba(56, 189, 248, 0.15);
   color: #38bdf8;
 }
@@ -190,7 +255,7 @@ html, body {
   z-index: 1000;
   right: 20px;
   bottom: 24px;
-  width: 270px; /* Width increased to fit 2 text columns comfortably */
+  width: 270px;
   max-height: 60vh;
   overflow-y: auto;
   padding: 14px 16px;
@@ -222,7 +287,7 @@ html, body {
 .legend-grid div, .legend-list div {
   display: flex;
   align-items: center;
-  white-space: nowrap; /* Prevents 4-character Chinese text from wrapping vertically */
+  white-space: nowrap;
   font-size: 12px;
   line-height: 1.4;
 }
@@ -415,10 +480,11 @@ html, body {
   .nav {
     display: flex;
     flex-direction: column;
+    align-items: stretch;
     position: absolute;
     top: 55px;
     right: 14px;
-    width: 190px;
+    width: 210px;
     background: rgba(15, 23, 42, 0.95);
     backdrop-filter: blur(16px);
     border: 1px solid rgba(255,255,255,0.12);
@@ -437,43 +503,72 @@ html, body {
     transform: translateY(0);
     pointer-events: auto;
   }
-  .nav a {
+  .dropdown {
+    width: 100%;
+  }
+  .dropdown-content {
+    position: static;
+    display: none;
+    background: rgba(255, 255, 255, 0.04);
+    border: none;
+    box-shadow: none;
+    border-radius: 6px;
+    margin: 4px 0 4px 10px;
+    padding: 2px 0;
+  }
+  .dropdown:hover .dropdown-content {
+    display: block;
+  }
+  .nav a, .dropdown-toggle {
+    width: 100%;
+    justify-content: space-between;
     padding: 10px 14px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
-  }
-  .nav a:last-child {
-    border-bottom: none;
   }
 
   .mobile-toggle-btn {
     display: block;
   }
-  .legend, .tc-info-box {
+
+  /* 移動端容器：實現面板垂直疊加 Stack */
+  .mobile-panels-container {
+    position: fixed;
+    bottom: 60px;
+    left: 14px;
+    right: 14px;
+    z-index: 1050;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: calc(100vh - 130px);
+    overflow-y: auto;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
     transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  .legend.mobile-show {
+  .mobile-panels-container.mobile-show {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
     transform: translateY(0);
-    right: 14px;
-    bottom: 65px;
-    width: calc(100vw - 28px);
-    max-width: 320px;
   }
-  .tc-info-box.mobile-show {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    transform: translateY(0);
-    left: 14px;
-    bottom: 65px;
-    width: calc(100vw - 28px);
-    max-width: 320px;
+
+  .legend, .tc-info-box {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
+    pointer-events: auto !important;
   }
+
   #updateTime {
     left: 14px;
     bottom: 18px;
@@ -485,7 +580,6 @@ html, body {
 <body>
 
 <style>
-  /* Toggle visibility of forecast hour labels when .hide-time-labels is active on #map */
   #map.hide-time-labels .time-label {
     display: none !important;
   }
@@ -514,46 +608,94 @@ html, body {
   <div class="menu-container">
     <button class="menu-toggle" onclick="toggleMenu(event)" aria-label="選單">☰</button>
     <div class="nav" id="navMenu">
+      <button class="nav-theme-btn" title="切換模式">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M18.36 5.64l1.41-1.41"/></svg>
+      </button>
+
       <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
-      <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
-      <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">距離計算</a> 
-      <a href="https://macaosso.github.io/MSSOweb/tc_gis.html" class="active">路徑地圖</a>  
-      <a href="https://macaosso.github.io/MSSOweb/tc.html">氣旋資訊</a>
-      <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
-      <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
+
+      <div class="dropdown">
+        <button class="dropdown-toggle">澳門天氣 <span class="arrow">▾</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
+          <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">距離計算</a>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-toggle active">熱帶氣旋 <span class="arrow">▾</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/tc_gis.html" class="active">路徑地圖</a>
+          <a href="https://macaosso.github.io/MSSOweb/tc.html">氣旋資訊</a>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-toggle">天文 <span class="arrow">▾</span></button>
+        <div class="dropdown-content">
+          <a href="#">天文預報</a>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-toggle">氣候 <span class="arrow">▾</span></button>
+        <div class="dropdown-content">
+          <a href="#">氣候數據</a>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-toggle">地球物理 <span class="arrow">▾</span></button>
+        <div class="dropdown-content">
+          <a href="#">地震監測</a>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-toggle">其他 <span class="arrow">▾</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+          <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
+        </div>
+      </div>
     </div>
   </div>
 </div>
 
 <div id="map"></div>
 
-<!-- Floating Time & Panels -->
+<!-- Floating Time -->
 <div id="updateTime" class="glass-panel">更新時間: --</div>
-<div id="tcInfoBox" class="tc-info-box glass-panel">載入中...</div>
 
+<!-- Mobile Trigger Button -->
 <button class="mobile-toggle-btn glass-panel" onclick="toggleMobilePanel()">📊 氣旋資訊 / 圖例</button>
 
-<div id="legendBox" class="legend glass-panel">
-  <b>圖例</b>
-  <div class="legend-grid">
-    <div><span class="line past"></span> 過去路徑</div>
-    <div><span class="line forecast"></span> 預報路徑</div>
-    <div><span class="box"></span> 誤差圈</div>
-    <div><span class="wind yellow"></span> 強風圈</div>
-    <div><span class="wind red"></span> 暴風圈</div>
-    <div><span class="macau-legend"></span> 澳門</div>
-  </div>
+<!-- Mobile Flex/Stack Container wrapping TC Info and Legend -->
+<div id="mobilePanelsContainer" class="mobile-panels-container">
+  <div id="tcInfoBox" class="tc-info-box glass-panel">載入中...</div>
 
-  <b>強度指標</b>
-  <div class="legend-list">
-    <div><span class="dot" style="background:#DDDFE2"></span> LPA 低壓區</div>
-    <div><span class="dot" style="background:#6DD8FA"></span> TD 熱帶低氣壓</div>
-    <div><span class="dot" style="background:#9DD79C"></span> TS 熱帶風暴</div>
-    <div><span class="dot" style="background:#FFD363"></span> STS 強烈熱帶風暴</div>
-    <div><span class="dot" style="background:#F78A31"></span> TY 颱風</div>
-    <div><span class="dot" style="background:#FF6F6F"></span> STY 強颱風</div>
-    <div><span class="dot" style="background:#A230FF"></span> SuTY 超強颱風</div>
-    <div><span class="dot" style="background:#DDDFE2"></span> Ex 溫帶氣旋</div>
+  <div id="legendBox" class="legend glass-panel">
+    <b>圖例</b>
+    <div class="legend-grid">
+      <div><span class="line past"></span> 過去路徑</div>
+      <div><span class="line forecast"></span> 預報路徑</div>
+      <div><span class="box"></span> 誤差圈</div>
+      <div><span class="wind yellow"></span> 強風圈</div>
+      <div><span class="wind red"></span> 暴風圈</div>
+      <div><span class="macau-legend"></span> 澳門</div>
+    </div>
+
+    <b>強度指標</b>
+    <div class="legend-list">
+      <div><span class="dot" style="background:#DDDFE2"></span> LPA 低壓區</div>
+      <div><span class="dot" style="background:#6DD8FA"></span> TD 熱帶低氣壓</div>
+      <div><span class="dot" style="background:#9DD79C"></span> TS 熱帶風暴</div>
+      <div><span class="dot" style="background:#FFD363"></span> STS 強烈熱帶風暴</div>
+      <div><span class="dot" style="background:#F78A31"></span> TY 颱風</div>
+      <div><span class="dot" style="background:#FF6F6F"></span> STY 強颱風</div>
+      <div><span class="dot" style="background:#A230FF"></span> SuTY 超強颱風</div>
+      <div><span class="dot" style="background:#DDDFE2"></span> Ex 溫帶氣旋</div>
+    </div>
   </div>
 </div>
 
@@ -629,17 +771,8 @@ function toggleMenu(e) {
 }
 
 function toggleMobilePanel() {
-  const tcBox = document.getElementById("tcInfoBox");
-  const legendBox = document.getElementById("legendBox");
-  const isShowing = tcBox.classList.contains("mobile-show");
-  
-  if (!isShowing) {
-    tcBox.classList.add("mobile-show");
-    legendBox.classList.add("mobile-show");
-  } else {
-    tcBox.classList.remove("mobile-show");
-    legendBox.classList.remove("mobile-show");
-  }
+  const container = document.getElementById("mobilePanelsContainer");
+  container.classList.toggle("mobile-show");
 }
 
 document.addEventListener("click", (e) => {
@@ -651,7 +784,6 @@ document.addEventListener("click", (e) => {
   }
 });
 
-// 安全切換標籤顯示（修復 TypeError 及切換氣旋重置問題）
 function toggleForecastLabels() {
   showForecastLabels = !showForecastLabels;
   const mapElement = document.getElementById("map");
@@ -740,26 +872,6 @@ function createWindRadii(lat, lon, radii) {
   return turf.polygon([coords]);
 }
 
-function smoothPoints(points, segments = 20) {
-  let newPts = [];
-  for (let i = 0; i < points.length - 1; i++) {
-    let p0 = points[i - 1] || points[i];
-    let p1 = points[i];
-    let p2 = points[i + 1];
-    let p3 = points[i + 2] || p2;
-
-    let maxJ = (i === points.length - 2) ? segments : segments - 1;
-
-    for (let j = 0; j <= maxJ; j++) {
-      let t = j / segments;
-      let lat = 0.5 * ((2 * p1.lat) + (-p0.lat + p2.lat) * t + (2 * p0.lat - 5 * p1.lat + 4 * p2.lat - p3.lat) * t * t + (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * t * t * t);
-      let lon = 0.5 * ((2 * p1.lon) + (-p0.lon + p2.lon) * t + (2 * p0.lon - 5 * p1.lon + 4 * p2.lon - p3.lon) * t * t + (-p0.lon + 3 * p1.lon - 3 * p2.lon + p3.lon) * t * t * t);
-      newPts.push({ lat, lon });
-    }
-  }
-  return newPts;
-}
-
 function smoothPointsWithTime(points, hoursArr, segments = 20) {
   let newPts = [];
   for (let i = 0; i < points.length - 1; i++) {
@@ -776,7 +888,7 @@ function smoothPointsWithTime(points, hoursArr, segments = 20) {
     for (let j = 0; j <= maxJ; j++) {
       let t = j / segments;
       let lat = 0.5 * ((2 * p1.lat) + (-p0.lat + p2.lat) * t + (2 * p0.lat - 5 * p1.lat + 4 * p2.lat - p3.lat) * t * t + (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * t * t * t);
-      let lon = 0.5 * ((2 * p1.lon) + (-p0.lon + p2.lon) * t + (2 * p0.lon - 5 * p1.lon + 4 * p2.lon - p3.lon) * t * t + (-p0.lon + 3 * p1.lon - 3 * p2.lon + p3.lon) * t * t * t);
+      let lon = 0.5 * ((2 * p1.lon) + (-p0.lon + p2.lon) * t + (2 * p0.lon - 5 * p1.lon + 4 * p2.lon - p3.lon) * t * t + (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * t * t * t);
       let hour = hStart + t * (hEnd - hStart);
 
       newPts.push({ lat, lon, hour });
@@ -816,7 +928,6 @@ function catmullRom2bezier(points) {
   return path;
 }
 
-// Turf相容性包裝
 function safeUnion(p1, p2) {
   if (!p1) return p2;
   if (!p2) return p1;
@@ -888,7 +999,6 @@ function drawTCLayers(data) {
   const { forecastPoints, pastPoints, hours, radii } = data;
   const pts = [];
 
-  // 1. 過去路徑線與標記
   if (pastPoints && pastPoints.length > 0) {
     const pastPolyline = L.polyline(pastPoints.map(p => [p.lat, p.lon]), {
       color: "rgba(255, 255, 255, 0.85)",
@@ -919,7 +1029,6 @@ function drawTCLayers(data) {
     });
   }
 
-  // 2. 預報誤差圓錐
   if (forecastPoints && forecastPoints.length > 1 && hours && radii) {
     const cones = makeSplitCone(forecastPoints, hours, radii);
     if (cones.first) {
@@ -934,7 +1043,6 @@ function drawTCLayers(data) {
     }
   }
 
-  // 3. 預報虛線路徑
   if (forecastPoints && forecastPoints.length > 1) {
     const trackLine = L.curve(catmullRom2bezier(forecastPoints), {
       color: "#ffffff", weight: 2.5, dashArray: "8,6"
@@ -942,7 +1050,6 @@ function drawTCLayers(data) {
     tcLayersGroup.addLayer(trackLine);
   }
 
-  // 4. 預報標記點
   forecastPoints.forEach(p => {
     pts.push([p.lat, p.lon]);
     const type = getTypeFromWind(p.wind);
@@ -969,7 +1076,6 @@ function drawTCLayers(data) {
     tcLayersGroup.addLayer(marker);
   });
 
-  // 5. 強風圈與暴風圈
   const p0 = forecastPoints[0];
   if (p0 && p0.wind41) {
     tcLayersGroup.addLayer(L.geoJSON(createWindRadii(p0.lat, p0.lon, p0.wind41), {
@@ -1018,7 +1124,7 @@ function renderTCData(data) {
   }
 }
 
-// ================= Requirement #1: 全部熱帶氣旋同時渲染 =================
+// ================= 全部熱帶氣旋渲染 =================
 function renderAllTCs() {
   tcLayersGroup.clearLayers();
   let allPts = [macauCoords];
@@ -1065,7 +1171,7 @@ function renderAllTCs() {
   }
 }
 
-// ================= Requirement #2 & #3: CSV 解析與自動偵測/過濾 =================
+// ================= CSV 解析與動態載入 =================
 async function initTCDropdown() {
   const selectEl = document.getElementById("tcSelect");
   selectEl.innerHTML = '<option value="all">全部熱帶氣旋</option>';
@@ -1172,7 +1278,6 @@ function parseCSVToTCData(csvText) {
     }
   });
 
-  // 動態擴充 radii 陣列長度以預防超出界線 (Out-of-bounds Fix)
   const defaultRadii = [15, 50, 100, 135, 170, 255, 345, 465];
   const reqLen = hours.length > 0 ? hours.length : 8;
 
@@ -1205,5 +1310,4 @@ window.addEventListener("DOMContentLoaded", () => {
 </script>
 
 </body>
-  
 </html>
