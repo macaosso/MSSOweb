@@ -115,7 +115,7 @@ const TC_WARNING_DATA = {
   tableRows: [
     { signal: "注意警報", period: "", probability: "" },
     { signal: "戒備警報", period: "", probability: "" },
-    { signal: "強風警報", period: "08月20日13時20分", probability: "取消" },
+    { signal: "強風警報", period: "08月20日13時20分", probability: "" },
     { signal: "烈風警報", period: "", probability: "" },
     { signal: "暴風警報", period: "", probability: "" },
     { signal: "颶風警報", period: "", probability: "" },
