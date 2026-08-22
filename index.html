@@ -619,6 +619,77 @@ body.light-theme .weather-item {
   gap: 6px;
 }
 
+/* ========== 整點天氣橫向逐時預報 (Open-Meteo) ========== */
+.hourly-forecast-section {
+  margin-top: 25px;
+  border-top: 1px solid var(--card-border);
+  padding-top: 18px;
+}
+.hourly-forecast-date-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 14px;
+  padding-left: 4px;
+}
+.hourly-forecast-scroll {
+  display: flex;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+body.light-theme .hourly-forecast-scroll {
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+.hourly-forecast-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+.hourly-forecast-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+body.light-theme .hourly-forecast-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+}
+.hourly-item-col {
+  flex: 0 0 62px;
+  min-width: 62px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 1px dashed var(--card-border);
+  padding: 0 4px;
+}
+.hourly-item-col:last-child {
+  border-right: none;
+}
+.hourly-col-time {
+  font-size: 14px;
+  color: var(--text-main);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.hourly-col-temp {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+.hourly-col-icon {
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+.hourly-col-pop {
+  font-size: 12px;
+  color: #3b82f6;
+  font-weight: 600;
+  min-height: 16px;
+}
+
 /* ========== 7. 天氣預報 & 圖表並排模塊 ========== */
 .forecast-chart-row {
   display: grid;
@@ -1158,6 +1229,13 @@ body.light-theme .card-bottom {
                 <div id="uv-value" style="font-size: 18px; font-weight: 700; margin-top: 6px;"></div>
               </div>
             </div>
+
+            <!-- 整點逐時天氣預報組件 (新增於整點天氣下方) -->
+            <div class="hourly-forecast-section">
+              <div class="hourly-forecast-date-title" id="hourlyForecastDateHeader">--月--日 --</div>
+              <div class="hourly-forecast-scroll" id="hourlyForecastScrollContainer"></div>
+            </div>
+
           </div>
 
           <div id="error-tip" style="display: none; text-align: center; padding: 30px 0;">
@@ -1729,6 +1807,62 @@ let currentUV = "--";
 const originXmlUrl = "https://xml.smg.gov.mo/c_actual_brief.xml";
 const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(originXmlUrl)}`;
 
+// 載入 Open-Meteo 逐時天氣預報
+async function fetchOpenMeteoHourlyForecast() {
+  const OPEN_METEO_URL = 'https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=precipitation_probability,precipitation,temperature_2m,weather_code&timezone=Asia%2FSingapore&forecast_days=1';
+  try {
+    const res = await fetch(OPEN_METEO_URL);
+    if (!res.ok) return;
+    const data = await res.json();
+
+    const { time, temperature_2m, precipitation_probability, weather_code } = data.hourly;
+
+    if (time && time.length > 0) {
+      const firstDate = new Date(time[0]);
+      const month = firstDate.getMonth() + 1;
+      const day = firstDate.getDate();
+      const weekdays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+      const weekday = weekdays[firstDate.getDay()];
+      
+      const headerEl = document.getElementById('hourlyForecastDateHeader');
+      if (headerEl) headerEl.textContent = `${month}月${day}日 ${weekday}`;
+    }
+
+    const container = document.getElementById('hourlyForecastScrollContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const icons = {
+      cloud: `<svg class="weather-icon" width="22" height="22" viewBox="0 0 24 24" fill="var(--text-muted)"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>`,
+      rain: `<svg class="weather-icon rain" width="22" height="22" viewBox="0 0 24 24" fill="#3b82f6"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM9 16v3m3-3v3m3-3v3" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/></svg>`
+    };
+
+    time.forEach((t, idx) => {
+      const dateObj = new Date(t);
+      const hour = dateObj.getHours() + '時';
+      const temp = Math.round(temperature_2m[idx]) + '°';
+      const pop = precipitation_probability[idx];
+      const code = weather_code[idx];
+
+      const isRain = pop > 20 || [51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99].includes(code);
+
+      const item = document.createElement('div');
+      item.className = 'hourly-item-col';
+      item.innerHTML = `
+        <div class="hourly-col-time">${hour}</div>
+        <div class="hourly-col-temp">${temp}</div>
+        <div class="hourly-col-icon">
+          ${isRain ? icons.rain : icons.cloud}
+        </div>
+        <div class="hourly-col-pop">${pop > 0 ? pop + '%' : ''}</div>
+      `;
+      container.appendChild(item);
+    });
+  } catch (err) {
+    console.error("Open-Meteo 逐時預報讀取失敗:", err);
+  }
+}
+
 async function loadHourlyWeather() {
     try {
         loadTip.style.display = 'block';
@@ -1780,6 +1914,9 @@ async function loadHourlyWeather() {
 
         loadTip.style.display = 'none';
         weatherMain.style.display = 'block';
+
+        // 載入 Open-Meteo 逐時天氣列表
+        fetchOpenMeteoHourlyForecast();
 
     } catch (err) {
         console.error("整點天氣數據解析異常：", err);
