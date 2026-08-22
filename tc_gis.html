@@ -502,6 +502,23 @@ body.light-mode .leaflet-popup-content b {
   color: #0284c7;
   border-bottom-color: rgba(0,0,0,0.1);
 }
+
+/* Popup 行文字與 Light Mode 顏色適應 */
+.leaflet-popup-content .popup-row {
+  color: #cbd5e1;
+  margin-bottom: 2px;
+}
+.leaflet-popup-content .popup-row span {
+  color: #f8fafc;
+  font-weight: 500;
+}
+body.light-mode .leaflet-popup-content .popup-row {
+  color: #64748b;
+}
+body.light-mode .leaflet-popup-content .popup-row span {
+  color: #0f172a;
+}
+
 .time-label {
   color: #cbd5e1;
   font-size: 11px;
@@ -1003,7 +1020,7 @@ function createWindRadii(lat, lon, radii) {
   return turf.polygon([coords]);
 }
 
-// ================= 修正後的平滑曲線與誤差圈邏輯 =================
+// ================= 平滑曲線與誤差圈邏輯 =================
 function smoothPointsWithTime(points, segments = 20) {
   let newPts = [];
   for (let i = 0; i < points.length - 1; i++) {
@@ -1022,7 +1039,6 @@ function smoothPointsWithTime(points, segments = 20) {
     for (let j = 0; j <= maxJ; j++) {
       let t = j / segments;
       let lat = 0.5 * ((2 * p1.lat) + (-p0.lat + p2.lat) * t + (2 * p0.lat - 5 * p1.lat + 4 * p2.lat - p3.lat) * t * t + (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * t * t * t);
-      // 【修正 Bug】：將 lon 樣條內積公式由 lat 改為對應 lon 變數
       let lon = 0.5 * ((2 * p1.lon) + (-p0.lon + p2.lon) * t + (2 * p0.lon - 5 * p1.lon + 4 * p2.lon - p3.lon) * t * t + (-p0.lon + 3 * p1.lon - 3 * p2.lon + p3.lon) * t * t * t);
       let hour = hStart + t * (hEnd - hStart);
       let radius = rStart + t * (rEnd - rStart);
@@ -1069,7 +1085,6 @@ function safeDifference(p1, p2) {
 }
 
 function makeSplitCone(points) {
-  // 過濾無效或缺乏 lead_time 半徑對應的預報點
   const validPoints = points.filter(p => p.radius !== null && p.radius !== undefined && !isNaN(p.radius));
   if (!validPoints || validPoints.length < 2) return { first: null, second: null };
 
@@ -1141,10 +1156,10 @@ function drawTCLayers(data) {
       });
       marker.bindPopup(`
         <b>過去位置</b>
-        <div style="margin-top:6px; color:#cbd5e1;">時間: <span style="color:#fff;">${p.time}</span></div>
-        <div style="color:#cbd5e1;">位置: <span style="color:#fff;">${p.lat.toFixed(1)}°N, ${p.lon.toFixed(1)}°E</span></div>
-        <div style="color:#cbd5e1;">強度: <span style="color:${getColor(type)};">${getTypeName(type)}</span> (${type})</div>
-        <div style="color:#cbd5e1;">中心風力: <span style="color:#fff;">${p.wind} km/h</span></div>
+        <div class="popup-row" style="margin-top:6px;">時間: <span>${p.time}</span></div>
+        <div class="popup-row">位置: <span>${p.lat.toFixed(1)}°N, ${p.lon.toFixed(1)}°E</span></div>
+        <div class="popup-row">強度: <span style="color:${getColor(type)};">${getTypeName(type)}</span> (${type})</div>
+        <div class="popup-row">中心風力: <span>${p.wind} km/h</span></div>
       `);
       marker.on("mouseover", function(){ this.setStyle({radius:6}); this.openPopup(); });
       marker.on("mouseout", function(){ this.setStyle({radius: isMobile ? 4 : 3.5}); this.closePopup(); });
@@ -1180,10 +1195,10 @@ function drawTCLayers(data) {
 
     marker.bindPopup(`
       <b>${data.tcInfo ? data.tcInfo.name : '預報位置'}</b>
-      <div style="margin-top:6px; color:#cbd5e1;">時間: <span style="color:#fff;">${p.time}</span></div>
-      <div style="color:#cbd5e1;">位置: <span style="color:#fff;">${p.lat.toFixed(1)}°N, ${p.lon.toFixed(1)}°E</span></div>
-      <div style="color:#cbd5e1;">強度: <span style="color:${getColor(type)};">${getTypeName(type)}</span> (${type})</div>
-      <div style="color:#cbd5e1;">中心風力: <span style="color:#fff;">${p.wind} km/h</span></div>
+      <div class="popup-row" style="margin-top:6px;">時間: <span>${p.time}</span></div>
+      <div class="popup-row">位置: <span>${p.lat.toFixed(1)}°N, ${p.lon.toFixed(1)}°E</span></div>
+      <div class="popup-row">強度: <span style="color:${getColor(type)};">${getTypeName(type)}</span> (${type})</div>
+      <div class="popup-row">中心風力: <span>${p.wind} km/h</span></div>
     `);
 
     marker.bindTooltip(p.time, {
@@ -1328,7 +1343,6 @@ async function initTCDropdown() {
   });
 
   if (Object.keys(loadedTCs).length === 0 && window.forecastPoints) {
-    // 預設 webdata.js 的相容補充處理
     const enrichedForecast = window.forecastPoints.map((pt, idx) => {
       const hr = (window.hours && window.hours[idx] !== undefined) ? window.hours[idx] : idx * 12;
       const rad = LEAD_TIME_RADII_MAP.hasOwnProperty(hr) ? LEAD_TIME_RADII_MAP[hr] : null;
@@ -1367,7 +1381,10 @@ function parseCSVToTCData(csvText) {
 
     if (category === "tc_info") {
       tcInfo.name = cols[2] || "熱帶氣旋";
-      forecastInfo.updated = cols[3] || "--";
+      
+      // 取用 lead_time 欄位 (cols[1]) 作為更新時間；無效時備用 cols[3]
+      forecastInfo.updated = cols[1] || cols[3] || "--";
+      
       tcInfo.wind = cols[5] || "--";
       tcInfo.pressure = cols[6] || "--";
 
@@ -1379,10 +1396,8 @@ function parseCSVToTCData(csvText) {
 
       if (isNaN(lat) || isNaN(lon)) return;
 
-      // 解析 lead_time 數字 (如 '0H' -> 0, '12H' -> 12)
       const hourNum = parseInt(leadStr.replace(/[^0-9]/g, ''), 10);
       
-      // 【需求1實作】：匹配 lead_time (0H->15, 12H->50, 不存在則設為 null 忽略)
       const radius = (!isNaN(hourNum) && LEAD_TIME_RADII_MAP.hasOwnProperty(hourNum)) 
                       ? LEAD_TIME_RADII_MAP[hourNum] 
                       : null;
