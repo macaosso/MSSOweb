@@ -1840,7 +1840,7 @@ function getPopInfo(pop) {
 
 // 載入 Open-Meteo 逐時天氣預報
 async function fetchOpenMeteoHourlyForecast() {
-  const OPEN_METEO_URL = 'https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=precipitation_probability,precipitation,temperature_2m,weather_code&timezone=Asia%2FSingapore&forecast_days=1';
+  const OPEN_METEO_URL = 'https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=precipitation_probability,precipitation,temperature_2m,weather_code&models=ecmwf_ifs025&timezone=Asia%2FSingapore&forecast_days=1';
   try {
     const res = await fetch(OPEN_METEO_URL);
     if (!res.ok) return;
