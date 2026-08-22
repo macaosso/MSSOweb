@@ -341,7 +341,7 @@ body.light-mode .time-label {
   margin-top: 0;
 }
 
-/* 2-Column Grid Layout */
+/* Grid Layouts */
 .legend-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -629,6 +629,20 @@ body.light-mode .country-label {
     justify-content: space-between;
     padding: 10px 14px;
     border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  /* 移動端 圖例: 3列, 強度指標: 2列 */
+  .legend-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px 4px !important;
+  }
+  .legend-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 6px 8px !important;
+  }
+  .legend-grid div, .legend-list div {
+    font-size: 11px !important;
   }
 
   .mobile-toggle-btn {
@@ -1039,7 +1053,7 @@ function smoothPointsWithTime(points, segments = 20) {
     for (let j = 0; j <= maxJ; j++) {
       let t = j / segments;
       let lat = 0.5 * ((2 * p1.lat) + (-p0.lat + p2.lat) * t + (2 * p0.lat - 5 * p1.lat + 4 * p2.lat - p3.lat) * t * t + (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * t * t * t);
-      let lon = 0.5 * ((2 * p1.lon) + (-p0.lon + p2.lon) * t + (2 * p0.lon - 5 * p1.lon + 4 * p2.lon - p3.lon) * t * t + (-p0.lon + 3 * p1.lon - 3 * p2.lon + p3.lon) * t * t * t);
+      let lon = 0.5 * ((2 * p1.lon) + (-p0.lon + p2.lon) * t + (2 * p0.lon - 5 * p1.lon + 4 * p2.lon - p3.lon) * t * t + (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * t * t * t);
       let hour = hStart + t * (hEnd - hStart);
       let radius = rStart + t * (rEnd - rStart);
 
@@ -1381,10 +1395,7 @@ function parseCSVToTCData(csvText) {
 
     if (category === "tc_info") {
       tcInfo.name = cols[2] || "熱帶氣旋";
-      
-      // 取用 lead_time 欄位 (cols[1]) 作為更新時間；無效時備用 cols[3]
       forecastInfo.updated = cols[1] || cols[3] || "--";
-      
       tcInfo.wind = cols[5] || "--";
       tcInfo.pressure = cols[6] || "--";
 
