@@ -264,13 +264,11 @@ body.light-theme .dropdown.active .dropdown-btn {
   z-index: 3100;
   margin-top: 4px;
 
-  /* Hidden state with fade-out delay */
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.25s ease, visibility 0s linear 0.4s;
 }
 
-/* Hover Bridge: Bridge the gap between the button and the menu */
 .dropdown-content::before {
   content: "";
   position: absolute;
@@ -523,6 +521,14 @@ body.light-theme .header-orange {
 }
 body.light-theme .content-yellow {
   color: #78350f;
+}
+.box-divider {
+  height: 1px;
+  background: rgba(245, 158, 11, 0.25);
+  margin: 14px 0;
+}
+body.light-theme .box-divider {
+  background: rgba(245, 158, 11, 0.35);
 }
 
 /* ========== 6. 澳門整點實時天氣 ========== */
@@ -884,7 +890,6 @@ body.light-theme .card-bottom {
     display: flex;
   }
 
-  /* 行動端下拉選單調整 */
   .dropdown {
     width: 100%;
   }
@@ -896,7 +901,7 @@ body.light-theme .card-bottom {
   }
   .dropdown-content {
     position: static;
-    display: none; /* 改用 display: none 避免隱藏選單佔用高度 */
+    display: none;
     opacity: 1;
     visibility: visible;
     box-shadow: none;
@@ -912,13 +917,8 @@ body.light-theme .card-bottom {
     background: rgba(0, 0, 0, 0.03);
   }
 
-  /* 當點擊展開時才顯示內容 */
   .dropdown.active .dropdown-content {
     display: block;
-  }
-
-  body.light-theme .dropdown-content {
-    background: rgba(0, 0, 0, 0.03);
   }
 
   .forecast-chart-row {
@@ -982,7 +982,6 @@ body.light-theme .card-bottom {
     <div class="nav" id="navMenu">
       <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
 
-      <!-- 天氣 下拉選單 -->
       <div class="dropdown">
         <button class="dropdown-btn">澳門天氣 <span class="arrow">▼</span></button>
         <div class="dropdown-content">
@@ -994,7 +993,6 @@ body.light-theme .card-bottom {
         </div>
       </div>
 
-      <!-- 熱帶氣旋 下拉選單 -->
       <div class="dropdown">
         <button class="dropdown-btn">熱帶氣旋 <span class="arrow">▼</span></button>
         <div class="dropdown-content">
@@ -1029,7 +1027,6 @@ body.light-theme .card-bottom {
         </div>
       </div>
       
-      <!-- 其他 下拉選單 -->
       <div class="dropdown">
         <button class="dropdown-btn">其他 <span class="arrow">▼</span></button>
         <div class="dropdown-content">
@@ -1091,7 +1088,6 @@ body.light-theme .card-bottom {
     <div id="alertContent" class="content-yellow"></div>
   </div>
 
-  <!-- 天文潮特別提示 -->
   <div id="tideBox" class="box">
     <div class="header-orange">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12c5-4 7 4 10 0s7 4 10 0"/><path d="M2 18c5-4 7 4 10 0s7 4 10 0"/></svg>
@@ -1172,7 +1168,6 @@ body.light-theme .card-bottom {
     </div>
   </div>
 
-  <!-- 預報 & 圖表 並排模塊 -->
   <div class="forecast-chart-row">
     <div class="forecast-tab-wrap">
       <div class="tab-header">
@@ -1228,7 +1223,6 @@ body.light-theme .card-bottom {
 
 <script src="webdata.js"></script>
 <script>
-/* ========== 主題切換邏輯 (Light / Dark Mode) ========== */
 function applyTheme(theme) {
   if (theme === 'light') {
     document.body.classList.add('light-theme');
@@ -1245,7 +1239,6 @@ function toggleTheme() {
   applyTheme(newTheme);
 }
 
-// 初始化主題
 (function initTheme() {
   const savedTheme = localStorage.getItem('msso_theme');
   if (savedTheme) {
@@ -1272,7 +1265,6 @@ function toggleMenu() {
   btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
 
-/* ========== 下拉選單點擊事件處理（相容行動端與觸控） ========== */
 document.addEventListener('DOMContentLoaded', () => {
   const dropdownBtns = document.querySelectorAll('.dropdown-btn');
   
@@ -1281,17 +1273,14 @@ document.addEventListener('DOMContentLoaded', () => {
       e.stopPropagation();
       const currentDropdown = btn.parentElement;
       
-      // 關閉其他已打開的下拉選單
       document.querySelectorAll('.dropdown').forEach(d => {
         if (d !== currentDropdown) d.classList.remove('active');
       });
 
-      // 切換當前選單狀態
       currentDropdown.classList.toggle('active');
     });
   });
 
-  // 點擊頁面其他區域時自動收起下拉選單
   document.addEventListener('click', () => {
     document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('active'));
   });
@@ -1319,7 +1308,6 @@ const coastalProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(coastalX
 
 async function loadForecastXML() {
   try {
-    // 同時異步請求天氣概況與海上天氣預報 XML
     const [forecastRes, coastalRes] = await Promise.allSettled([
       fetch(forecastProxyUrl, { cache: "no-store" }),
       fetch(coastalProxyUrl, { cache: "no-store" })
@@ -1330,7 +1318,6 @@ async function loadForecastXML() {
     let todayValid = "", todayDesc = "";
     let tomorrowValid = "", tomorrowDesc = "";
 
-    // 解析綜合天氣預報 XML
     if (forecastRes.status === "fulfilled" && forecastRes.value.ok) {
       const xmlText = await forecastRes.value.text();
       const parser = new DOMParser();
@@ -1347,7 +1334,6 @@ async function loadForecastXML() {
       tomorrowDesc = wfNodes[1]?.querySelector("WeatherDescription")?.textContent.trim() || "暫無資料";
     }
 
-    // 解析澳門海上天氣預報 XML
     let coastalDesc = "";
     if (coastalRes.status === "fulfilled" && coastalRes.value.ok) {
       const coastalXmlText = await coastalRes.value.text();
@@ -1356,12 +1342,10 @@ async function loadForecastXML() {
       coastalDesc = coastalXmlDoc.querySelector("TTS")?.textContent.trim() || "";
     }
 
-    // 更新發佈時間
     if (pubDate) {
       document.getElementById("forecastTime").innerText = `發佈時間：${pubDate}`;
     }
     
-// 合併天氣概況與澳門海上天氣至 tab0 (天氣概況)
     let tab0Html = "";
     if (situation) {
       tab0Html += `<strong>澳門天氣：</strong><br>${situation.replaceAll("\n", "<br>")}`;
@@ -1374,7 +1358,6 @@ async function loadForecastXML() {
       document.getElementById("tab0").innerHTML = tab0Html;
     }
 
-    // 今日天氣
     if (todayDesc) {
       let cleanTodayValid = todayValid.replace(/有效時間[：:]\s*/g, "").trim();
       let todayHtml = "";
@@ -1385,7 +1368,6 @@ async function loadForecastXML() {
       document.getElementById("tab1").innerHTML = todayHtml;
     }
 
-    // 明日天氣
     if (tomorrowDesc) {
       let cleanTomorrowValid = tomorrowValid.replace(/有效時間[：:]\s*/g, "").trim();
       let tomorrowHtml = "";
@@ -1400,22 +1382,18 @@ async function loadForecastXML() {
   }
 }
 
-/* ========== 圖標與文字解析輔助函式 ========== */
 function resolveIcon(iconKey) {
   if (!iconKey) return "";
   const key = iconKey.trim();
 
-  // 1. Check inside ICON_PRESETS map in webdata.js
   if (typeof ICON_PRESETS !== 'undefined' && ICON_PRESETS[key]) {
     return ICON_PRESETS[key];
   }
 
-  // 2. If it is already a path or full URL
   if (key.includes('/') || key.includes('.')) {
     return key;
   }
 
-  // 3. Fallback conversion for short forms (e.g. "t1" -> "icons/t1.jpg")
   return `icons/${key.toLowerCase()}.jpg`;
 }
   
@@ -1430,20 +1408,16 @@ function renderTcForecastTable(data) {
     return;
   }
 
-  // Filter rows where probability is not empty
   const validRows = data.tableRows.filter(row => row.probability && row.probability.trim() !== '');
 
-  // Hide the section if no rows contain a probability value
   if (validRows.length === 0) {
     tableCard.style.display = 'none';
     return;
   }
 
-  // Set title & update time
   if (mainTitleEl) mainTitleEl.textContent = data.mainTitle || '';
   if (updateTimeEl) updateTimeEl.textContent = data.updateTimeText || '';
 
-  // Build the table markup
   let html = `
     <table class="tc-warning-table">
       <thead>
@@ -1474,11 +1448,12 @@ function renderTcForecastTable(data) {
   tableContent.innerHTML = html;
   tableCard.style.display = 'block';
 }
+
 function formatTextBoxContent(data) {
   if (Array.isArray(data)) {
-    const validItems = data.filter(item => item && item.trim());
+    const validItems = data.filter(item => item && typeof item === 'string' && item.trim());
     if (validItems.length === 0) return "";
-    return validItems.length === 1 ? validItems[0] : validItems.map(item => `• ${item}`).join('<br>');
+    return validItems.map(item => item.trim()).join('<div class="box-divider"></div>');
   }
   return typeof data === 'string' ? data.trim() : "";
 }
@@ -1506,15 +1481,27 @@ function renderWarnings(data, containerId, cardId) {
   let validCount = 0;
 
   data.forEach((item) => {
-    if ((!item.icon || !item.icon.trim()) && (!item.text || !item.text.trim())) return;
-    
-    const iconSrc = resolveIcon(item.icon);
+    if (!item) return;
+
+    let text = "";
+    let iconSrc = "";
+
+    if (typeof item === 'string') {
+      text = item.trim();
+    } else if (typeof item === 'object') {
+      text = item.text ? item.text.trim() : "";
+      if (item.icon && item.icon.trim()) {
+        iconSrc = resolveIcon(item.icon);
+      }
+    }
+
+    if (!text && !iconSrc) return;
 
     if (validCount > 0) html += `<div class="divider"></div>`;
     html += `
          <div class="warning-item">
            ${iconSrc ? `<div class="icon-box"><img src="${iconSrc}" alt="Warning Icon"></div>` : ""}
-           ${item.text ? `<div class="text-box">${item.text}</div>` : ""}
+           ${text ? `<div class="text-box">${text}</div>` : ""}
          </div>
        `;
     validCount++;
@@ -1528,12 +1515,10 @@ window.addEventListener('DOMContentLoaded', function(){
     updateHeaderClock();
     setInterval(updateHeaderClock, 1000);
 
-    // Render TC Warning Table if data exists
     if (typeof TC_WARNING_DATA !== 'undefined') {
       renderTcForecastTable(TC_WARNING_DATA);
     }
 
-    // Existing rendering calls...
     if (typeof alertipsText !== 'undefined') renderTextBox('alertBox', 'alertContent', alertipsText);
     if (typeof swtText !== 'undefined') renderTextBox('swtBox', 'swtContent', swtText);
     if (typeof tideText !== 'undefined') {
@@ -1763,8 +1748,23 @@ async function loadHourlyWeather() {
         const windSpd = xmlDoc.querySelector("WindSpeed > Value")?.textContent || "--";
         const windSpdDesc = xmlDoc.querySelector("WindSpeedDescription")?.textContent || "";
         const windDirText = xmlDoc.querySelector("WindDirection > WindDescription")?.textContent || "--";
-        const iconUrl = xmlDoc.querySelector("IconURL")?.textContent || "";
+        let iconUrl = xmlDoc.querySelector("IconURL")?.textContent || "";
         const feelDescRaw = xmlDoc.querySelector("FeelsLikeDescription")?.textContent || "--";
+
+        // Map SMG weather icons to local icon paths
+        if (iconUrl.includes("ww-c01.gif")) iconUrl = "icons/s.png";
+        else if (iconUrl.includes("ww-ca1.gif")) iconUrl = "icons/NightS.png";
+        else if (iconUrl.includes("ww-ca2.gif")) iconUrl = "icons/NightSC.png";
+        else if (iconUrl.includes("ww-c02.gif")) iconUrl = "icons/sc.png";
+        else if (iconUrl.includes("ww-c03.gif")) iconUrl = "icons/c.png";
+        else if (iconUrl.includes("ww-c04.gif")) iconUrl = "icons/Overcast.png";
+        else if (iconUrl.includes("ww-c06.gif")) iconUrl = "icons/Fog.png";
+        else if (iconUrl.includes("ww-c07.gif")) iconUrl = "icons/Haze.png";
+        else if (iconUrl.includes("ww-c08.gif")) iconUrl = "icons/Mist.png";
+        else if (iconUrl.includes("ww-c16.gif")) iconUrl = "icons/r.png";
+        else if (iconUrl.includes("ww-c18.gif")) iconUrl = "icons/tr.png";
+        else if (iconUrl.includes("ww-c25.gif")) iconUrl = "icons/t.png";
+        else if (iconUrl.includes("ww-c29.gif")) iconUrl = "icons/scr.png";
 
         pubTime.textContent = sysPubdate;
         tempNum.textContent = `${temp} °C`;
@@ -1913,7 +1913,6 @@ async function load4DaysForecastXML() {
                 }
             }
 
-            // Map SMG weather icons to local icon paths
             if (iconUrl.includes("ww-c01.gif")) iconUrl = "icons/s.png";
             else if (iconUrl.includes("ww-ca1.gif")) iconUrl = "icons/NightS.png";
             else if (iconUrl.includes("ww-ca2.gif")) iconUrl = "icons/NightSC.png";
