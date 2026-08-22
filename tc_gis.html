@@ -503,7 +503,6 @@ body.light-mode .leaflet-popup-content b {
   border-bottom-color: rgba(0,0,0,0.1);
 }
 
-/* Popup 行文字與 Light Mode 顏色適應 */
 .leaflet-popup-content .popup-row {
   color: #cbd5e1;
   margin-bottom: 2px;
@@ -1034,33 +1033,29 @@ function createWindRadii(lat, lon, radii) {
   return turf.polygon([coords]);
 }
 
-// ================= 平滑曲線與誤差圈邏輯 =================
-function smoothPointsWithTime(points, segments = 20) {
-  let newPts = [];
-  for (let i = 0; i < points.length - 1; i++) {
-    let p0 = points[i - 1] || points[i];
-    let p1 = points[i];
-    let p2 = points[i + 1];
-    let p3 = points[i + 2] || p2;
+// ================= 線性與平滑軌跡誤差圈邏輯 =================
+function generateConePoints(points, stepsPerSegment = 25) {
+  const valid = points.filter(p => p.radius !== null && p.radius !== undefined && !isNaN(p.radius));
+  if (valid.length < 2) return [];
 
-    let hStart = p1.hour;
-    let hEnd = p2.hour;
-    let rStart = p1.radius;
-    let rEnd = p2.radius;
+  let result = [];
+  for (let i = 0; i < valid.length - 1; i++) {
+    const p1 = valid[i];
+    const p2 = valid[i + 1];
 
-    let maxJ = (i === points.length - 2) ? segments : segments - 1;
+    const maxJ = (i === valid.length - 2) ? stepsPerSegment : stepsPerSegment - 1;
 
     for (let j = 0; j <= maxJ; j++) {
-      let t = j / segments;
-      let lat = 0.5 * ((2 * p1.lat) + (-p0.lat + p2.lat) * t + (2 * p0.lat - 5 * p1.lat + 4 * p2.lat - p3.lat) * t * t + (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * t * t * t);
-      let lon = 0.5 * ((2 * p1.lon) + (-p0.lon + p2.lon) * t + (2 * p0.lon - 5 * p1.lon + 4 * p2.lon - p3.lon) * t * t + (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * t * t * t);
-      let hour = hStart + t * (hEnd - hStart);
-      let radius = rStart + t * (rEnd - rStart);
+      const t = j / stepsPerSegment;
+      const lat = p1.lat + t * (p2.lat - p1.lat);
+      const lon = p1.lon + t * (p2.lon - p1.lon);
+      const hour = p1.hour + t * (p2.hour - p1.hour);
+      const radius = p1.radius + t * (p2.radius - p1.radius);
 
-      newPts.push({ lat, lon, hour, radius });
+      result.push({ lat, lon, hour, radius });
     }
   }
-  return newPts;
+  return result;
 }
 
 function catmullRom2bezier(points) {
@@ -1090,60 +1085,39 @@ function safeUnion(p1, p2) {
   }
 }
 
-function safeDifference(p1, p2) {
-  try {
-    return turf.difference(turf.featureCollection([p1, p2]));
-  } catch (e) {
-    try { return turf.difference(p1, p2); } catch (err) { return p1; }
-  }
-}
-
 function makeSplitCone(points) {
-  const validPoints = points.filter(p => p.radius !== null && p.radius !== undefined && !isNaN(p.radius));
-  if (!validPoints || validPoints.length < 2) return { first: null, second: null };
+  const interpolated = generateConePoints(points, 25);
+  if (interpolated.length < 2) return { fullCone: null, cone72: null };
 
-  const smoothPts = smoothPointsWithTime(validPoints, 20);
-  let circles1 = [], circles2 = [];
+  let circlesFull = [];
+  let circles72 = [];
 
-  for (let p of smoothPts) {
+  for (let p of interpolated) {
     if (p.radius > 0) {
-      const circle = turf.buffer(turf.point([p.lon, p.lat]), p.radius, { units: "kilometers", steps: 64 });
+      const circle = turf.buffer(turf.point([p.lon, p.lat]), p.radius, { units: "kilometers", steps: 32 });
+      circlesFull.push(circle);
       if (p.hour <= 72) {
-        circles1.push(circle);
-      } else {
-        circles2.push(circle);
+        circles72.push(circle);
       }
     }
   }
 
-  let cone1 = null, cone2 = null;
+  if (circlesFull.length === 0) return { fullCone: null, cone72: null };
 
-  if (circles1.length > 0) {
-    cone1 = circles1[0];
-    for (let i = 1; i < circles1.length; i++) {
-      cone1 = safeUnion(cone1, circles1[i]);
+  let fullCone = circlesFull[0];
+  for (let i = 1; i < circlesFull.length; i++) {
+    fullCone = safeUnion(fullCone, circlesFull[i]);
+  }
+
+  let cone72 = null;
+  if (circles72.length > 0) {
+    cone72 = circles72[0];
+    for (let i = 1; i < circles72.length; i++) {
+      cone72 = safeUnion(cone72, circles72[i]);
     }
   }
 
-  if (circles2.length > 0) {
-    cone2 = circles2[0];
-    for (let i = 1; i < circles2.length; i++) {
-      cone2 = safeUnion(cone2, circles2[i]);
-    }
-  }
-
-  if (cone1 && cone2) {
-    try {
-      const cleanCone1 = turf.buffer(cone1, 0);
-      const cleanCone2 = turf.buffer(cone2, 0);
-      const diff = safeDifference(cleanCone2, cleanCone1);
-      if (diff) cone2 = diff;
-    } catch (e) {
-      console.warn("Cone difference calculation skipped:", e);
-    }
-  }
-
-  return { first: cone1, second: cone2 };
+  return { fullCone, cone72 };
 }
 
 // ================= 氣旋圖層繪製 =================
@@ -1182,15 +1156,25 @@ function drawTCLayers(data) {
   }
 
   if (forecastPoints && forecastPoints.length > 1) {
-    const cones = makeSplitCone(forecastPoints);
-    if (cones.first) {
-      tcLayersGroup.addLayer(L.geoJSON(cones.first, {
-        pane: 'conePane', style: { fillColor: "#888888", fillOpacity: 0.25, stroke: false }
+    const { fullCone, cone72 } = makeSplitCone(forecastPoints);
+    const maxHour = Math.max(...forecastPoints.map(p => p.hour || 0));
+
+    if (maxHour > 72 && cone72 && fullCone) {
+      // 繪製全區底層 (0-120h, 0.15 透明度)
+      tcLayersGroup.addLayer(L.geoJSON(fullCone, {
+        pane: 'conePane',
+        style: { fillColor: "#888888", fillOpacity: 0.15, stroke: false }
       }));
-    }
-    if (cones.second) {
-      tcLayersGroup.addLayer(L.geoJSON(cones.second, {
-        pane: 'conePane', style: { fillColor: "#888888", fillOpacity: 0.15, stroke: false }
+      // 疊加 0-72h 上層 (0.10 透明度，總計 0.25 透明度)
+      tcLayersGroup.addLayer(L.geoJSON(cone72, {
+        pane: 'conePane',
+        style: { fillColor: "#888888", fillOpacity: 0.10, stroke: false }
+      }));
+    } else if (fullCone) {
+      // 僅 0-72h 預報點時，直接渲染 0.25 透明度
+      tcLayersGroup.addLayer(L.geoJSON(fullCone, {
+        pane: 'conePane',
+        style: { fillColor: "#888888", fillOpacity: 0.25, stroke: false }
       }));
     }
 
