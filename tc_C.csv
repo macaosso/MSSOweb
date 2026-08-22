@@ -1,3 +1,4 @@
+category,lead_time,time/name,lat,lon,wind,pressure,w41_ne,w41_se,w41_sw,w41_nw,w88_ne,w88_se,w88_sw,w88_nw
 tc_info,2026-08-22 08:00,沙德爾 (2619),17.9,146.5,155,,,,,,,,,
 past,,2026-08-18 20:00,8.3,154.6,45,,,,,,,,,
 past,,2026-08-19 04:00,7.9,154.9,45,,,,,,,,,
