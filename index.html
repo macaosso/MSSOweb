@@ -685,9 +685,14 @@ body.light-theme .hourly-forecast-scroll::-webkit-scrollbar-thumb {
 }
 .hourly-col-pop {
   font-size: 12px;
-  color: #3b82f6;
-  font-weight: 600;
+  font-weight: 700;
   min-height: 16px;
+}
+.hourly-col-precip {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-blue);
+  margin-top: 2px;
 }
 
 /* ========== 7. 天氣預報 & 圖表並排模塊 ========== */
@@ -1807,6 +1812,32 @@ let currentUV = "--";
 const originXmlUrl = "https://xml.smg.gov.mo/c_actual_brief.xml";
 const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(originXmlUrl)}`;
 
+// Helper: Open-Meteo Weather Code to Image Icon
+function getOpenMeteoIcon(code, hour) {
+  const isNight = (hour < 6 || hour >= 18);
+  if (code === 0) return isNight ? "icons/NightS.png" : "icons/s.png";
+  if (code === 1 || code === 2) return isNight ? "icons/NightSC.png" : "icons/sc.png";
+  if (code === 3) return "icons/c.png";
+  if (code === 4) return "icons/Overcast.png";
+  if (code === 45 || code === 48) return "icons/Fog.png";
+  if (code >= 51 && code <= 57) return "icons/r.png";
+  if (code >= 61 && code <= 65) return "icons/r.png";
+  if (code >= 66 && code <= 67) return "icons/tr.png";
+  if (code === 80) return "icons/scr.png";
+  if (code >= 81 && code <= 82) return "icons/tr.png";
+  if (code >= 95 && code <= 99) return "icons/t.png";
+  return isNight ? "icons/NightS.png" : "icons/s.png";
+}
+
+// Helper: Precipitate Probability Text & Color Mapping
+function getPopInfo(pop) {
+  if (pop >= 70) return { label: '高', color: 'red' };
+  if (pop >= 55) return { label: '中高', color: 'orange' };
+  if (pop >= 45) return { label: '中', color: 'yellow' };
+  if (pop >= 30) return { label: '中低', color: 'green' };
+  return { label: '低', color: 'blue' };
+}
+
 // 載入 Open-Meteo 逐時天氣預報
 async function fetchOpenMeteoHourlyForecast() {
   const OPEN_METEO_URL = 'https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=precipitation_probability,precipitation,temperature_2m,weather_code&timezone=Asia%2FSingapore&forecast_days=1';
@@ -1815,7 +1846,7 @@ async function fetchOpenMeteoHourlyForecast() {
     if (!res.ok) return;
     const data = await res.json();
 
-    const { time, temperature_2m, precipitation_probability, weather_code } = data.hourly;
+    const { time, temperature_2m, precipitation_probability, precipitation, weather_code } = data.hourly;
 
     if (time && time.length > 0) {
       const firstDate = new Date(time[0]);
@@ -1832,29 +1863,32 @@ async function fetchOpenMeteoHourlyForecast() {
     if (!container) return;
     container.innerHTML = '';
 
-    const icons = {
-      cloud: `<svg class="weather-icon" width="22" height="22" viewBox="0 0 24 24" fill="var(--text-muted)"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>`,
-      rain: `<svg class="weather-icon rain" width="22" height="22" viewBox="0 0 24 24" fill="#3b82f6"><path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM9 16v3m3-3v3m3-3v3" stroke="#3b82f6" stroke-width="1.5" stroke-linecap="round"/></svg>`
-    };
-
     time.forEach((t, idx) => {
       const dateObj = new Date(t);
-      const hour = dateObj.getHours() + '時';
+      const hourNum = dateObj.getHours();
+      const hourStr = hourNum + '時';
       const temp = Math.round(temperature_2m[idx]) + '°';
-      const pop = precipitation_probability[idx];
-      const code = weather_code[idx];
+      const pop = precipitation_probability ? precipitation_probability[idx] : 0;
+      const precip = precipitation ? precipitation[idx] : 0;
+      const code = weather_code ? weather_code[idx] : 0;
 
-      const isRain = pop > 20 || [51, 53, 55, 61, 63, 65, 80, 81, 82, 95, 96, 99].includes(code);
+      const iconSrc = getOpenMeteoIcon(code, hourNum);
+      const popInfo = getPopInfo(pop);
+
+      const precipHtml = (precip !== undefined && precip >= 0.1) 
+        ? `<div class="hourly-col-precip">${precip.toFixed(1)}mm</div>` 
+        : '';
 
       const item = document.createElement('div');
       item.className = 'hourly-item-col';
       item.innerHTML = `
-        <div class="hourly-col-time">${hour}</div>
+        <div class="hourly-col-time">${hourStr}</div>
         <div class="hourly-col-temp">${temp}</div>
         <div class="hourly-col-icon">
-          ${isRain ? icons.rain : icons.cloud}
+          <img src="${iconSrc}" style="width: 24px; height: 24px; object-fit: contain;" alt="weather icon">
         </div>
-        <div class="hourly-col-pop">${pop > 0 ? pop + '%' : ''}</div>
+        <div class="hourly-col-pop" style="color: ${popInfo.color}; font-weight: 700;">${popInfo.label}</div>
+        ${precipHtml}
       `;
       container.appendChild(item);
     });
