@@ -648,7 +648,12 @@ body.light-mode .country-label {
     display: block;
   }
 
-  /* 移動端容器：實現面板垂直疊加 Stack */
+  /* 隱藏手機端的 TC 資訊面板 */
+  #tcInfoBox {
+    display: none !important;
+  }
+
+  /* 移動端容器：僅顯示圖例與強度指標 */
   .mobile-panels-container {
     position: fixed;
     bottom: 60px;
@@ -673,7 +678,7 @@ body.light-mode .country-label {
     transform: translateY(0);
   }
 
-  .legend, .tc-info-box {
+  .legend {
     position: relative !important;
     left: auto !important;
     right: auto !important;
@@ -786,9 +791,9 @@ body.light-mode .country-label {
 <div id="updateTime" class="glass-panel">更新時間: --</div>
 
 <!-- Mobile Trigger Button -->
-<button class="mobile-toggle-btn glass-panel" onclick="toggleMobilePanel()">📊 氣旋資訊 / 圖例</button>
+<button class="mobile-toggle-btn glass-panel" onclick="toggleMobilePanel()">📊 圖例</button>
 
-<!-- Mobile Flex/Stack Container wrapping TC Info and Legend -->
+<!-- Mobile Flex/Stack Container wrapping Legend -->
 <div id="mobilePanelsContainer" class="mobile-panels-container">
   <div id="tcInfoBox" class="tc-info-box glass-panel">載入中...</div>
 
@@ -1160,18 +1165,15 @@ function drawTCLayers(data) {
     const maxHour = Math.max(...forecastPoints.map(p => p.hour || 0));
 
     if (maxHour > 72 && cone72 && fullCone) {
-      // 繪製全區底層 (0-120h, 0.15 透明度)
       tcLayersGroup.addLayer(L.geoJSON(fullCone, {
         pane: 'conePane',
         style: { fillColor: "#888888", fillOpacity: 0.15, stroke: false }
       }));
-      // 疊加 0-72h 上層 (0.10 透明度，總計 0.25 透明度)
       tcLayersGroup.addLayer(L.geoJSON(cone72, {
         pane: 'conePane',
         style: { fillColor: "#888888", fillOpacity: 0.10, stroke: false }
       }));
     } else if (fullCone) {
-      // 僅 0-72h 預報點時，直接渲染 0.25 透明度
       tcLayersGroup.addLayer(L.geoJSON(fullCone, {
         pane: 'conePane',
         style: { fillColor: "#888888", fillOpacity: 0.25, stroke: false }
