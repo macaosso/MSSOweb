@@ -1915,6 +1915,8 @@ async function load4DaysForecastXML() {
 
             // Map SMG weather icons to local icon paths
             if (iconUrl.includes("ww-c01.gif")) iconUrl = "icons/s.png";
+            else if (iconUrl.includes("ww-ca1.gif")) iconUrl = "icons/NightS.png";
+            else if (iconUrl.includes("ww-ca2.gif")) iconUrl = "icons/NightSC.png";
             else if (iconUrl.includes("ww-c02.gif")) iconUrl = "icons/sc.png";
             else if (iconUrl.includes("ww-c03.gif")) iconUrl = "icons/c.png";
             else if (iconUrl.includes("ww-c04.gif")) iconUrl = "icons/Overcast.png";
