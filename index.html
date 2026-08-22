@@ -1825,17 +1825,17 @@ function getOpenMeteoIcon(code, hour) {
   if (code >= 66 && code <= 67) return "icons/tr.png";
   if (code === 80) return "icons/scr.png";
   if (code >= 81 && code <= 82) return "icons/tr.png";
-  if (code >= 95 && code <= 99) return "icons/t.png";
+  if (code >= 95 && code <= 99) return "icons/tr.png";
   return isNight ? "icons/NightS.png" : "icons/s.png";
 }
 
 // Helper: Precipitate Probability Text & Color Mapping
 function getPopInfo(pop) {
-  if (pop >= 70) return { label: '高', color: 'red' };
-  if (pop >= 55) return { label: '中高', color: 'orange' };
-  if (pop >= 45) return { label: '中', color: 'yellow' };
-  if (pop >= 30) return { label: '中低', color: 'green' };
-  return { label: '低', color: 'blue' };
+  if (pop >= 70) return { label: '高', light: '#dc2626', dark: '#f87171' }; // Red
+  if (pop >= 55) return { label: '中高', light: '#ea580c', dark: '#fb923c' }; // Orange
+  if (pop >= 45) return { label: '中', light: '#ca8a04', dark: '#facc15' }; // Yellow/Amber
+  if (pop >= 30) return { label: '中低', light: '#16a34a', dark: '#4ade80' }; // Green
+  return { label: '低', light: '#2563eb', dark: '#60a5fa' }; // Blue
 }
 
 // 載入 Open-Meteo 逐時天氣預報
