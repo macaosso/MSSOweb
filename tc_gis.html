@@ -25,9 +25,72 @@ html, body {
   background-color: #0f172a;
   color: #f8fafc;
   box-sizing: border-box;
+  transition: background-color 0.3s, color 0.3s;
 }
 * {
   box-sizing: border-box;
+}
+
+/* ========== 日間模式 (Light Mode) 樣式覆蓋 ========== */
+body.light-mode {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+body.light-mode .glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  color: #0f172a;
+}
+body.light-mode .title, 
+body.light-mode .nav a, 
+body.light-mode .dropdown-toggle {
+  color: #0f172a;
+}
+body.light-mode .nav a:hover, 
+body.light-mode .nav a.active, 
+body.light-mode .dropdown-toggle:hover, 
+body.light-mode .dropdown-toggle.active {
+  background: rgba(14, 165, 233, 0.15);
+  color: #0284c7;
+}
+body.light-mode .tc-select {
+  background: rgba(255, 255, 255, 0.9);
+  color: #0284c7;
+  border-color: rgba(2, 132, 199, 0.4);
+}
+body.light-mode .dropdown-content {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+body.light-mode .dropdown-content a {
+  color: #334155;
+}
+body.light-mode .dropdown-content a:hover {
+  background: rgba(14, 165, 233, 0.15);
+  color: #0284c7;
+}
+body.light-mode .tc-title {
+  color: #0284c7;
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+}
+body.light-mode .tc-row {
+  color: #64748b;
+}
+body.light-mode .tc-row span {
+  color: #0f172a;
+}
+body.light-mode .legend b {
+  color: #0f172a;
+  border-bottom-color: rgba(0, 0, 0, 0.12);
+}
+body.light-mode #updateTime {
+  color: #64748b;
+}
+body.light-mode .time-label {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #0f172a !important;
+  border-color: rgba(0, 0, 0, 0.15) !important;
 }
 
 /* ========== 地圖容器 (滿版) ========== */
@@ -48,6 +111,7 @@ html, body {
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  transition: background 0.3s, border-color 0.3s;
 }
 
 /* ========== 頂部 Header ========== */
@@ -121,7 +185,7 @@ html, body {
   padding: 6px 12px;
   cursor: pointer;
   background: transparent;
-  color: white;
+  color: inherit;
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,0.2);
   transition: background 0.3s;
@@ -137,7 +201,7 @@ html, body {
 .nav-theme-btn {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #f8fafc;
+  color: inherit;
   border-radius: 50%;
   width: 32px;
   height: 32px;
@@ -196,7 +260,7 @@ html, body {
   padding: 6px 0;
   margin-top: 4px;
 }
-.dropdown:hover .dropdown-content {
+.dropdown:hover .dropdown-content, .dropdown.active .dropdown-content {
   display: block;
 }
 .dropdown-content a {
@@ -261,7 +325,7 @@ html, body {
   padding: 14px 16px;
   border-radius: 14px;
   font-size: 12px;
-  color: #cbd5e1;
+  color: inherit;
   transition: all 0.3s ease;
 }
 .legend b {
@@ -317,18 +381,18 @@ html, body {
   flex-shrink: 0;
 }
 .line.past {
-  border-top: 2.5px solid #ffffff;
+  border-top: 2.5px solid #888888;
   opacity: 0.85;
 }
 .line.forecast {
-  border-top: 2.5px dashed #ffffff;
+  border-top: 2.5px dashed #888888;
 }
 .box {
   display: inline-block;
   width: 12px;
   height: 12px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+  background: rgba(150, 150, 150, 0.2);
+  border: 1px solid rgba(150, 150, 150, 0.5);
   border-radius: 3px;
   margin-right: 8px;
   flex-shrink: 0;
@@ -338,10 +402,11 @@ html, body {
   width: 10px;
   height: 10px;
   background: #ffffff;
+  border: 1px solid #333;
   border-radius: 2px;
   margin-right: 8px;
   flex-shrink: 0;
-  box-shadow: 0 0 6px rgba(255,255,255,0.8);
+  box-shadow: 0 0 6px rgba(0,0,0,0.3);
 }
 .wind {
   display: inline-block;
@@ -399,8 +464,10 @@ html, body {
   border-color: rgba(255,255,255,0.12) !important;
   backdrop-filter: blur(8px);
 }
-.leaflet-control-zoom a:hover {
-  background: rgba(30, 41, 59, 0.95) !important;
+body.light-mode .leaflet-control-zoom a {
+  background: rgba(255, 255, 255, 0.9) !important;
+  color: #0f172a !important;
+  border-color: rgba(0,0,0,0.12) !important;
 }
 .leaflet-popup-content-wrapper {
   background: rgba(15, 23, 42, 0.9);
@@ -412,8 +479,16 @@ html, body {
   border: 1px solid rgba(255,255,255,0.15);
   box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
+body.light-mode .leaflet-popup-content-wrapper {
+  background: rgba(255, 255, 255, 0.95);
+  color: #0f172a;
+  border-color: rgba(0,0,0,0.15);
+}
 .leaflet-popup-tip {
   background: rgba(15, 23, 42, 0.9);
+}
+body.light-mode .leaflet-popup-tip {
+  background: rgba(255, 255, 255, 0.95);
 }
 .leaflet-popup-content b {
   color: #38bdf8;
@@ -422,6 +497,10 @@ html, body {
   margin-bottom: 6px;
   border-bottom: 1px solid rgba(255,255,255,0.1);
   padding-bottom: 4px;
+}
+body.light-mode .leaflet-popup-content b {
+  color: #0284c7;
+  border-bottom-color: rgba(0,0,0,0.1);
 }
 .time-label {
   color: #cbd5e1;
@@ -439,6 +518,7 @@ html, body {
   width: 12px;
   height: 12px;
   background: #ffffff;
+  border: 1px solid #333;
   border-radius: 3px;
   box-shadow: 0 0 8px rgba(255,255,255,0.9);
 }
@@ -450,6 +530,10 @@ html, body {
   white-space: nowrap;
   text-shadow: 0 2px 4px rgba(0,0,0,0.9);
   pointer-events: none;
+}
+body.light-mode .country-label {
+  color: rgba(15, 23, 42, 0.85);
+  text-shadow: 0 1px 3px rgba(255,255,255,0.9);
 }
 
 /* ========== 移動端 RWD 響應式佈局 ========== */
@@ -497,6 +581,10 @@ html, body {
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
   }
+  body.light-mode .nav {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.12);
+  }
   .nav.active {
     opacity: 1;
     visibility: visible;
@@ -516,7 +604,7 @@ html, body {
     margin: 4px 0 4px 10px;
     padding: 2px 0;
   }
-  .dropdown:hover .dropdown-content {
+  .dropdown.active .dropdown-content {
     display: block;
   }
   .nav a, .dropdown-toggle {
@@ -608,14 +696,14 @@ html, body {
   <div class="menu-container">
     <button class="menu-toggle" onclick="toggleMenu(event)" aria-label="選單">☰</button>
     <div class="nav" id="navMenu">
-      <button class="nav-theme-btn" title="切換模式">
+      <button class="nav-theme-btn" id="themeBtn" title="切換日夜模式" onclick="toggleTheme()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M18.36 5.64l1.41-1.41"/></svg>
       </button>
 
       <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
 
       <div class="dropdown">
-        <button class="dropdown-toggle">澳門天氣 <span class="arrow">▾</span></button>
+        <button class="dropdown-toggle" onclick="toggleDropdown(event)">澳門天氣 <span class="arrow">▾</span></button>
         <div class="dropdown-content">
           <a href="https://macaosso.github.io/Apparent_Temperature/">酷熱指數</a>
           <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">距離計算</a>
@@ -623,7 +711,7 @@ html, body {
       </div>
 
       <div class="dropdown">
-        <button class="dropdown-toggle active">熱帶氣旋 <span class="arrow">▾</span></button>
+        <button class="dropdown-toggle active" onclick="toggleDropdown(event)">熱帶氣旋 <span class="arrow">▾</span></button>
         <div class="dropdown-content">
           <a href="https://macaosso.github.io/MSSOweb/tc_gis.html" class="active">路徑地圖</a>
           <a href="https://macaosso.github.io/MSSOweb/tc.html">氣旋資訊</a>
@@ -631,28 +719,28 @@ html, body {
       </div>
 
       <div class="dropdown">
-        <button class="dropdown-toggle">天文 <span class="arrow">▾</span></button>
+        <button class="dropdown-toggle" onclick="toggleDropdown(event)">天文 <span class="arrow">▾</span></button>
         <div class="dropdown-content">
           <a href="#">天文預報</a>
         </div>
       </div>
 
       <div class="dropdown">
-        <button class="dropdown-toggle">氣候 <span class="arrow">▾</span></button>
+        <button class="dropdown-toggle" onclick="toggleDropdown(event)">氣候 <span class="arrow">▾</span></button>
         <div class="dropdown-content">
           <a href="#">氣候數據</a>
         </div>
       </div>
 
       <div class="dropdown">
-        <button class="dropdown-toggle">地球物理 <span class="arrow">▾</span></button>
+        <button class="dropdown-toggle" onclick="toggleDropdown(event)">地球物理 <span class="arrow">▾</span></button>
         <div class="dropdown-content">
           <a href="#">地震監測</a>
         </div>
       </div>
 
       <div class="dropdown">
-        <button class="dropdown-toggle">其他 <span class="arrow">▾</span></button>
+        <button class="dropdown-toggle" onclick="toggleDropdown(event)">其他 <span class="arrow">▾</span></button>
         <div class="dropdown-content">
           <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
           <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
@@ -700,6 +788,18 @@ html, body {
 </div>
 
 <script>
+// ================= Lead Time 到 誤差圈半徑(km) 映射對照表 =================
+const LEAD_TIME_RADII_MAP = {
+  0: 15,
+  12: 50,
+  24: 100,
+  36: 135,
+  48: 170,
+  72: 255,
+  96: 345,
+  120: 465
+};
+
 // ================= 地圖初始化 =================
 const macauCoords = [22.1595, 113.5685];
 const isMobile = window.innerWidth <= 768;
@@ -708,9 +808,29 @@ const map = L.map('map', { zoomControl: false }).setView([22.5, 118.0], 5);
 
 L.control.zoom({ position: 'topright' }).addTo(map);
 
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+// 底圖圖層 (深色 / 淺色)
+const darkTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
   attribution: '&copy; OpenStreetMap &copy; CARTO'
-}).addTo(map);
+});
+const lightTileLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; OpenStreetMap &copy; CARTO'
+});
+
+darkTileLayer.addTo(map);
+let isDarkMode = true;
+
+function toggleTheme() {
+  isDarkMode = !isDarkMode;
+  if (isDarkMode) {
+    document.body.classList.remove('light-mode');
+    map.removeLayer(lightTileLayer);
+    map.addLayer(darkTileLayer);
+  } else {
+    document.body.classList.add('light-mode');
+    map.removeLayer(darkTileLayer);
+    map.addLayer(lightTileLayer);
+  }
+}
 
 // 圖層順序 Pane
 map.createPane('conePane');
@@ -746,11 +866,11 @@ macauMarker.bindTooltip("澳門", { permanent: false, direction: "right", offset
 [50,100,200,400,600,800].forEach(r => {
   L.circle(macauCoords, {
     radius: r * 1000,
-    color: "#ffffff",
+    color: "#888888",
     weight: 1,
     dashArray: "4,8",
     fill: false,
-    opacity: 0.25
+    opacity: 0.35
   }).addTo(map);
 });
 
@@ -768,6 +888,17 @@ function toggleMenu(e) {
   const btn = document.querySelector(".menu-toggle");
   nav.classList.toggle("active");
   btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
+}
+
+function toggleDropdown(e) {
+  if (window.innerWidth <= 768) {
+    e.stopPropagation();
+    const parent = e.currentTarget.closest('.dropdown');
+    document.querySelectorAll('.dropdown').forEach(d => {
+      if (d !== parent) d.classList.remove('active');
+    });
+    parent.classList.toggle('active');
+  }
 }
 
 function toggleMobilePanel() {
@@ -872,7 +1003,8 @@ function createWindRadii(lat, lon, radii) {
   return turf.polygon([coords]);
 }
 
-function smoothPointsWithTime(points, hoursArr, segments = 20) {
+// ================= 修正後的平滑曲線與誤差圈邏輯 =================
+function smoothPointsWithTime(points, segments = 20) {
   let newPts = [];
   for (let i = 0; i < points.length - 1; i++) {
     let p0 = points[i - 1] || points[i];
@@ -880,35 +1012,25 @@ function smoothPointsWithTime(points, hoursArr, segments = 20) {
     let p2 = points[i + 1];
     let p3 = points[i + 2] || p2;
 
-    let hStart = hoursArr[i] !== undefined ? hoursArr[i] : 0;
-    let hEnd = hoursArr[i + 1] !== undefined ? hoursArr[i + 1] : hStart + 12;
+    let hStart = p1.hour;
+    let hEnd = p2.hour;
+    let rStart = p1.radius;
+    let rEnd = p2.radius;
 
     let maxJ = (i === points.length - 2) ? segments : segments - 1;
 
     for (let j = 0; j <= maxJ; j++) {
       let t = j / segments;
       let lat = 0.5 * ((2 * p1.lat) + (-p0.lat + p2.lat) * t + (2 * p0.lat - 5 * p1.lat + 4 * p2.lat - p3.lat) * t * t + (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * t * t * t);
-      let lon = 0.5 * ((2 * p1.lon) + (-p0.lon + p2.lon) * t + (2 * p0.lon - 5 * p1.lon + 4 * p2.lon - p3.lon) * t * t + (-p0.lat + 3 * p1.lat - 3 * p2.lat + p3.lat) * t * t * t);
+      // 【修正 Bug】：將 lon 樣條內積公式由 lat 改為對應 lon 變數
+      let lon = 0.5 * ((2 * p1.lon) + (-p0.lon + p2.lon) * t + (2 * p0.lon - 5 * p1.lon + 4 * p2.lon - p3.lon) * t * t + (-p0.lon + 3 * p1.lon - 3 * p2.lon + p3.lon) * t * t * t);
       let hour = hStart + t * (hEnd - hStart);
+      let radius = rStart + t * (rEnd - rStart);
 
-      newPts.push({ lat, lon, hour });
+      newPts.push({ lat, lon, hour, radius });
     }
   }
   return newPts;
-}
-
-function getRadius(hour, hoursArr, radiiArr) {
-  if (!hoursArr || hoursArr.length === 0) return 0;
-  if (hour <= hoursArr[0]) return radiiArr[0] || 0;
-  if (hour >= hoursArr[hoursArr.length - 1]) return radiiArr[radiiArr.length - 1] || 0;
-
-  for (let i = 0; i < hoursArr.length - 1; i++) {
-    if (hour >= hoursArr[i] && hour <= hoursArr[i + 1]) {
-      let t = (hour - hoursArr[i]) / (hoursArr[i + 1] - hoursArr[i]);
-      return radiiArr[i] + t * (radiiArr[i + 1] - radiiArr[i]);
-    }
-  }
-  return radiiArr[radiiArr.length - 1] || 0;
 }
 
 function catmullRom2bezier(points) {
@@ -946,16 +1068,17 @@ function safeDifference(p1, p2) {
   }
 }
 
-function makeSplitCone(points, hoursArr, radiiArr) {
-  if (!points || points.length < 2) return { first: null, second: null };
+function makeSplitCone(points) {
+  // 過濾無效或缺乏 lead_time 半徑對應的預報點
+  const validPoints = points.filter(p => p.radius !== null && p.radius !== undefined && !isNaN(p.radius));
+  if (!validPoints || validPoints.length < 2) return { first: null, second: null };
 
-  const smoothPts = smoothPointsWithTime(points, hoursArr, 20);
+  const smoothPts = smoothPointsWithTime(validPoints, 20);
   let circles1 = [], circles2 = [];
 
   for (let p of smoothPts) {
-    const r = getRadius(p.hour, hoursArr, radiiArr);
-    if (r > 0) {
-      const circle = turf.buffer(turf.point([p.lon, p.lat]), r, { units: "kilometers", steps: 64 });
+    if (p.radius > 0) {
+      const circle = turf.buffer(turf.point([p.lon, p.lat]), p.radius, { units: "kilometers", steps: 64 });
       if (p.hour <= 72) {
         circles1.push(circle);
       } else {
@@ -996,7 +1119,7 @@ function makeSplitCone(points, hoursArr, radiiArr) {
 
 // ================= 氣旋圖層繪製 =================
 function drawTCLayers(data) {
-  const { forecastPoints, pastPoints, hours, radii } = data;
+  const { forecastPoints, pastPoints } = data;
   const pts = [];
 
   if (pastPoints && pastPoints.length > 0) {
@@ -1029,23 +1152,21 @@ function drawTCLayers(data) {
     });
   }
 
-  if (forecastPoints && forecastPoints.length > 1 && hours && radii) {
-    const cones = makeSplitCone(forecastPoints, hours, radii);
+  if (forecastPoints && forecastPoints.length > 1) {
+    const cones = makeSplitCone(forecastPoints);
     if (cones.first) {
       tcLayersGroup.addLayer(L.geoJSON(cones.first, {
-        pane: 'conePane', style: { fillColor: "#ffffff", fillOpacity: 0.14, stroke: false }
+        pane: 'conePane', style: { fillColor: "#888888", fillOpacity: 0.25, stroke: false }
       }));
     }
     if (cones.second) {
       tcLayersGroup.addLayer(L.geoJSON(cones.second, {
-        pane: 'conePane', style: { fillColor: "#ffffff", fillOpacity: 0.07, stroke: false }
+        pane: 'conePane', style: { fillColor: "#888888", fillOpacity: 0.15, stroke: false }
       }));
     }
-  }
 
-  if (forecastPoints && forecastPoints.length > 1) {
     const trackLine = L.curve(catmullRom2bezier(forecastPoints), {
-      color: "#ffffff", weight: 2.5, dashArray: "8,6"
+      color: "#888888", weight: 2.5, dashArray: "8,6"
     });
     tcLayersGroup.addLayer(trackLine);
   }
@@ -1207,10 +1328,22 @@ async function initTCDropdown() {
   });
 
   if (Object.keys(loadedTCs).length === 0 && window.forecastPoints) {
-    loadedTCs['default'] = { forecastPoints, pastPoints, hours, radii, tcInfo, forecastInfo };
+    // 預設 webdata.js 的相容補充處理
+    const enrichedForecast = window.forecastPoints.map((pt, idx) => {
+      const hr = (window.hours && window.hours[idx] !== undefined) ? window.hours[idx] : idx * 12;
+      const rad = LEAD_TIME_RADII_MAP.hasOwnProperty(hr) ? LEAD_TIME_RADII_MAP[hr] : null;
+      return { ...pt, hour: hr, radius: rad };
+    });
+
+    loadedTCs['default'] = { 
+      forecastPoints: enrichedForecast, 
+      pastPoints: window.pastPoints || [], 
+      tcInfo: window.tcInfo || { name: "預設氣旋" }, 
+      forecastInfo: window.forecastInfo || { updated: "--" } 
+    };
     const opt = document.createElement("option");
     opt.value = "default";
-    opt.textContent = `${tcInfo.name || "預設氣旋"} (webdata.js)`;
+    opt.textContent = `${window.tcInfo ? window.tcInfo.name : "預設氣旋"} (webdata.js)`;
     selectEl.appendChild(opt);
   }
 
@@ -1221,7 +1354,6 @@ function parseCSVToTCData(csvText) {
   const lines = csvText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
   let forecastPoints = [];
   let pastPoints = [];
-  let hours = [];
   let tcInfo = { name: "未知", wind: "--", pressure: "--" };
   let forecastInfo = { updated: "--" };
 
@@ -1247,13 +1379,20 @@ function parseCSVToTCData(csvText) {
 
       if (isNaN(lat) || isNaN(lon)) return;
 
-      const hourNum = parseInt(leadStr.replace(/[^0-9]/g, ''), 10) || 0;
-      hours.push(hourNum);
+      // 解析 lead_time 數字 (如 '0H' -> 0, '12H' -> 12)
+      const hourNum = parseInt(leadStr.replace(/[^0-9]/g, ''), 10);
+      
+      // 【需求1實作】：匹配 lead_time (0H->15, 12H->50, 不存在則設為 null 忽略)
+      const radius = (!isNaN(hourNum) && LEAD_TIME_RADII_MAP.hasOwnProperty(hourNum)) 
+                      ? LEAD_TIME_RADII_MAP[hourNum] 
+                      : null;
 
       const displayLabel = leadStr ? `${timeStr} (${leadStr})` : timeStr;
 
       forecastPoints.push({
         leadTime: leadStr,
+        hour: isNaN(hourNum) ? 0 : hourNum,
+        radius: radius,
         time: displayLabel,
         lat: lat,
         lon: lon,
@@ -1278,19 +1417,9 @@ function parseCSVToTCData(csvText) {
     }
   });
 
-  const defaultRadii = [15, 50, 100, 135, 170, 255, 345, 465];
-  const reqLen = hours.length > 0 ? hours.length : 8;
-
-  let radii = [...defaultRadii];
-  while (radii.length < reqLen) {
-    radii.push((radii[radii.length - 1] || 100) + 100);
-  }
-
   return {
     forecastPoints,
     pastPoints,
-    hours: hours.length > 0 ? hours : [0, 12, 24, 36, 48, 72, 96, 120],
-    radii: radii.slice(0, reqLen),
     tcInfo,
     forecastInfo
   };
