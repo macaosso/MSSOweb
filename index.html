@@ -1115,7 +1115,17 @@ body.light-theme .card-bottom {
 </div>
 
 <div class="page-wrapper">
-
+  <!-- 新增：臨近降雨提示框（預設隱藏） -->
+  <div id="rainAlertBox" class="box" style="display: none;">
+    <div class="header-orange" style="background: rgba(56, 189, 248, 0.25); color: var(--accent-blue); border-bottom-color: rgba(56, 189, 248, 0.35);">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/><path d="M8 16v2"/><path d="M8 22v-2"/><path d="M12 18v2"/><path d="M12 14v2"/><path d="M16 16v2"/><path d="M16 22v-2"/>
+      </svg>
+      臨近降雨提示
+    </div>
+    <div id="rainAlertContent" class="content-yellow"></div>
+  </div>
+  
   <div class="warning-card" id="tcCard">
     <div class="warning-header">
       <span class="warning-title-text">
@@ -1850,15 +1860,57 @@ async function fetchOpenMeteoHourlyForecast() {
 
     if (!time || time.length === 0) return;
 
-    // 1. Get current hour start timestamp to filter out past forecasts
+    // 1. 取得當前整點索引
     const now = new Date();
     const currentHourStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours());
 
-    // 2. Find the index corresponding to the current hour
     let startIndex = time.findIndex(t => new Date(t) >= currentHourStart);
     if (startIndex === -1) startIndex = 0;
 
-    // 3. Update header date title using the first displayed forecast time
+    // ================= [新增：臨近降雨提示邏輯] =================
+    const rainAlertBox = document.getElementById('rainAlertBox');
+    const rainAlertContent = document.getElementById('rainAlertContent');
+
+    if (precipitation_probability && startIndex + 1 < precipitation_probability.length) {
+      // 提取未來 2 小時的降雨機率
+      const next2Pops = precipitation_probability.slice(startIndex, startIndex + 2);
+      const maxPop = Math.max(...next2Pops);
+
+      // 當降雨機率為中等或以上 (>= 45%) 時觸發
+      if (maxPop >= 45 && rainAlertBox && rainAlertContent) {
+        let popDesc = '';
+        if (maxPop >= 90) {
+          popDesc = '降雨機率為高：將會出現降雨情況';
+        } else if (maxPop >= 75) {
+          popDesc = '降雨機率為中高：較高機會有降雨情況';
+        } else {
+          popDesc = '降雨機率為中等：可能有降雨情況';
+        }
+
+        const startHourStr = new Date(time[startIndex]).getHours() + 'H';
+        const endHourStr = new Date(time[startIndex + 2] || time[startIndex + 1]).getHours() + 'H';
+
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hrs = String(now.getHours()).padStart(2, '0');
+        const mins = String(now.getMinutes()).padStart(2, '0');
+        const timeFormatted = `${year}-${month}-${day} ${hrs}:${mins} MST`;
+
+        rainAlertContent.innerHTML = `
+          未來2小時 ，（${startHourStr} - ${endHourStr}） ，<br>
+          ${popDesc}，<br>
+          請市民留意天氣變化及最新天氣資訊。<br>
+          （${timeFormatted}）
+        `;
+        rainAlertBox.style.display = 'block';
+      } else if (rainAlertBox) {
+        rainAlertBox.style.display = 'none';
+      }
+    }
+    // =========================================================
+
+    // 更新標題日期
     const firstForecastDate = new Date(time[startIndex]);
     const month = firstForecastDate.getMonth() + 1;
     const day = firstForecastDate.getDate();
@@ -1872,7 +1924,7 @@ async function fetchOpenMeteoHourlyForecast() {
     if (!container) return;
     container.innerHTML = '';
 
-    // 4. Fill exactly up to 24 hours from current hour
+    // 渲染逐時列表
     const endIndex = Math.min(startIndex + 24, time.length);
     const isLightTheme = document.body.classList.contains('light-theme');
 
@@ -2219,6 +2271,7 @@ setInterval(loadHourlyWeather, 100000);
 setInterval(loadUVData, 100000);
 setInterval(loadForecastXML, 100000);
 setInterval(load4DaysForecastXML, 100000);
+setInterval(fetchOpenMeteoHourlyForecast, 1800000);
 </script>
 </body>
 </html>
