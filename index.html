@@ -710,6 +710,7 @@ body.light-theme .hourly-forecast-scroll::-webkit-scrollbar-thumb {
   color: var(--text-main);
   margin-bottom: 8px;
   font-weight: 500;
+  text-align: center;
 }
 .hourly-col-temp {
   font-size: 16px;
@@ -1012,7 +1013,7 @@ body.light-theme .card-bottom {
   }
   .dropdown-btn {
     width: 100%;
-    justify-content: space-between;
+    justify-between: space-between;
     padding: 10px 14px;
     border-radius: 8px;
   }
@@ -1687,19 +1688,36 @@ const dateDom = document.getElementById("chartDate");
 
 async function fetchOpenMeteo24h() {
   try {
-    const url = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=temperature_2m&timezone=Asia%2FSingapore&forecast_days=1";
+    const url = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=temperature_2m&timezone=Asia%2FSingapore&forecast_days=3";
     const res = await fetch(url);
     if (!res.ok) throw new Error("Open-Meteo 請求失敗");
     const data = await res.json();
     
     if (data && data.hourly && data.hourly.time && data.hourly.temperature_2m) {
-      openMeteo24hX = data.hourly.time.map(t => {
-        const parts = t.split("T");
-        return parts[1] || t;
-      });
-      openMeteo24hTemp = data.hourly.temperature_2m;
-      
+      const times = data.hourly.time;
+      const temps = data.hourly.temperature_2m;
+
       const now = new Date();
+      const currentHourStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours());
+
+      let startIndex = times.findIndex(t => new Date(t) >= currentHourStart);
+      if (startIndex === -1) startIndex = 0;
+
+      const sliceTime = times.slice(startIndex, startIndex + 24);
+      const sliceTemp = temps.slice(startIndex, startIndex + 24);
+
+      const startDay = new Date(sliceTime[0]).getDate();
+
+      openMeteo24hX = sliceTime.map(t => {
+        const d = new Date(t);
+        const h = String(d.getHours()).padStart(2, '0') + ':00';
+        if (d.getDate() !== startDay) {
+          return `${d.getMonth() + 1}/${d.getDate()} ${h}`;
+        }
+        return h;
+      });
+      openMeteo24hTemp = sliceTemp;
+      
       chart24hUpdateTime = `更新於 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     }
   } catch (err) {
@@ -1912,13 +1930,30 @@ async function fetchOpenMeteoHourlyForecast() {
     const rainAlertBox = document.getElementById('rainAlertBox');
     const rainAlertContent = document.getElementById('rainAlertContent');
 
-    if (precipitation_probability && startIndex + 1 < precipitation_probability.length) {
-      // 提取未來 2 小時的降雨機率
-      const next2Pops = precipitation_probability.slice(startIndex, startIndex + 2);
-      const maxPop = Math.max(...next2Pops);
+    if (precipitation_probability && startIndex < precipitation_probability.length) {
+      const pop0 = precipitation_probability[startIndex] || 0;
+      const pop1 = precipitation_probability[startIndex + 1] || 0;
+      const pop2 = precipitation_probability[startIndex + 2] || 0;
 
-      // 當降雨機率為中等或以上 (>= 45%) 時觸發
-      if (maxPop >= 45 && rainAlertBox && rainAlertContent) {
+      let timePrefix = "";
+      let maxPop = 0;
+      let endIdx = startIndex;
+
+      if (pop0 >= 45) {
+        timePrefix = "現時";
+        maxPop = Math.max(pop0, pop1, pop2);
+        endIdx = (pop2 >= 45) ? startIndex + 2 : (pop1 >= 45 ? startIndex + 1 : startIndex);
+      } else if (pop1 >= 45) {
+        timePrefix = "未來1小時";
+        maxPop = Math.max(pop1, pop2);
+        endIdx = (pop2 >= 45) ? startIndex + 2 : startIndex + 1;
+      } else if (pop2 >= 45) {
+        timePrefix = "未來2小時";
+        maxPop = pop2;
+        endIdx = startIndex + 2;
+      }
+
+      if (timePrefix && maxPop >= 45 && rainAlertBox && rainAlertContent) {
         let popDesc = '';
         if (maxPop >= 90) {
           popDesc = '降雨機率為高：將會出現降雨情況';
@@ -1929,7 +1964,7 @@ async function fetchOpenMeteoHourlyForecast() {
         }
 
         const startHourStr = new Date(time[startIndex]).getHours() + 'H';
-        const endHourStr = new Date(time[startIndex + 2] || time[startIndex + 1]).getHours() + 'H';
+        const endHourStr = new Date(time[endIdx] || time[startIndex]).getHours() + 'H';
 
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -1938,7 +1973,9 @@ async function fetchOpenMeteoHourlyForecast() {
         const mins = String(now.getMinutes()).padStart(2, '0');
         const timeFormatted = `${year}-${month}-${day} ${hrs}:${mins} MST`;
 
-        rainAlertContent.innerHTML = `未來2小時 ，（${startHourStr} - ${endHourStr}），${popDesc}，請市民留意天氣變化及最新天氣資訊。（${timeFormatted}）`;
+        const hourSpanText = (startHourStr === endHourStr) ? startHourStr : `${startHourStr} - ${endHourStr}`;
+
+        rainAlertContent.innerHTML = `${timePrefix}，（${hourSpanText}），${popDesc}，請市民留意天氣變化及最新天氣資訊。（${timeFormatted}）`;
         rainAlertBox.style.display = 'block';
       } else if (rainAlertBox) {
         rainAlertBox.style.display = 'none';
@@ -1969,6 +2006,12 @@ async function fetchOpenMeteoHourlyForecast() {
       const dateObj = new Date(t);
       const hourNum = dateObj.getHours();
       const hourStr = hourNum + 'H';
+
+      const isNextDay = dateObj.getDate() !== firstForecastDate.getDate();
+      const timeDisplay = isNextDay 
+        ? `<div style="font-size: 10px; line-height: 1; opacity: 0.8;">${dateObj.getMonth() + 1}/${dateObj.getDate()}</div>${hourStr}` 
+        : hourStr;
+
       const temp = Math.round(temperature_2m[idx]) + '°C';
       const pop = precipitation_probability ? precipitation_probability[idx] : 0;
       const precip = precipitation ? precipitation[idx] : 0;
@@ -1985,7 +2028,7 @@ async function fetchOpenMeteoHourlyForecast() {
       const item = document.createElement('div');
       item.className = 'hourly-item-col';
       item.innerHTML = `
-        <div class="hourly-col-time">${hourStr}</div>
+        <div class="hourly-col-time">${timeDisplay}</div>
         <div class="hourly-col-temp">${temp}</div>
         <div class="hourly-col-icon">
           <img src="${iconSrc}" style="width: 24px; height: 24px; object-fit: contain;" alt="weather icon">
