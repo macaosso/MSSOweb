@@ -1840,7 +1840,7 @@ function getPopInfo(pop) {
 
 // 載入 Open-Meteo 逐時天氣預報
 async function fetchOpenMeteoHourlyForecast() {
-  const OPEN_METEO_URL = 'https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=precipitation_probability,precipitation,temperature_2m,weather_code&models=ecmwf_ifs025&timezone=Asia%2FSingapore&forecast_days=1';
+  const OPEN_METEO_URL = 'https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=precipitation_probability,precipitation,temperature_2m,weather_code&models=ecmwf_ifs025&timezone=Asia%2FSingapore&forecast_days=3';
   try {
     const res = await fetch(OPEN_METEO_URL);
     if (!res.ok) return;
@@ -1848,22 +1848,36 @@ async function fetchOpenMeteoHourlyForecast() {
 
     const { time, temperature_2m, precipitation_probability, precipitation, weather_code } = data.hourly;
 
-    if (time && time.length > 0) {
-      const firstDate = new Date(time[0]);
-      const month = firstDate.getMonth() + 1;
-      const day = firstDate.getDate();
-      const weekdays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
-      const weekday = weekdays[firstDate.getDay()];
-      
-      const headerEl = document.getElementById('hourlyForecastDateHeader');
-      if (headerEl) headerEl.textContent = `${month}月${day}日 ${weekday}`;
-    }
+    if (!time || time.length === 0) return;
+
+    // 1. Get current hour start timestamp to filter out past forecasts
+    const now = new Date();
+    const currentHourStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours());
+
+    // 2. Find the index corresponding to the current hour
+    let startIndex = time.findIndex(t => new Date(t) >= currentHourStart);
+    if (startIndex === -1) startIndex = 0;
+
+    // 3. Update header date title using the first displayed forecast time
+    const firstForecastDate = new Date(time[startIndex]);
+    const month = firstForecastDate.getMonth() + 1;
+    const day = firstForecastDate.getDate();
+    const weekdays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+    const weekday = weekdays[firstForecastDate.getDay()];
+    
+    const headerEl = document.getElementById('hourlyForecastDateHeader');
+    if (headerEl) headerEl.textContent = `${month}月${day}日 ${weekday}`;
 
     const container = document.getElementById('hourlyForecastScrollContainer');
     if (!container) return;
     container.innerHTML = '';
 
-    time.forEach((t, idx) => {
+    // 4. Fill exactly up to 24 hours from current hour
+    const endIndex = Math.min(startIndex + 24, time.length);
+    const isLightTheme = document.body.classList.contains('light-theme');
+
+    for (let idx = startIndex; idx < endIndex; idx++) {
+      const t = time[idx];
       const dateObj = new Date(t);
       const hourNum = dateObj.getHours();
       const hourStr = hourNum + '時';
@@ -1874,6 +1888,7 @@ async function fetchOpenMeteoHourlyForecast() {
 
       const iconSrc = getOpenMeteoIcon(code, hourNum);
       const popInfo = getPopInfo(pop);
+      const popColor = isLightTheme ? popInfo.light : popInfo.dark;
 
       const precipHtml = (precip !== undefined && precip >= 0.1) 
         ? `<div class="hourly-col-precip">${precip.toFixed(1)}mm</div>` 
@@ -1887,11 +1902,11 @@ async function fetchOpenMeteoHourlyForecast() {
         <div class="hourly-col-icon">
           <img src="${iconSrc}" style="width: 24px; height: 24px; object-fit: contain;" alt="weather icon">
         </div>
-        <div class="hourly-col-pop" style="color: ${popInfo.color}; font-weight: 700;">${popInfo.label}</div>
+        <div class="hourly-col-pop" style="color: ${popColor}; font-weight: 700;">${popInfo.label}</div>
         ${precipHtml}
       `;
       container.appendChild(item);
-    });
+    }
   } catch (err) {
     console.error("Open-Meteo 逐時預報讀取失敗:", err);
   }
