@@ -1880,8 +1880,8 @@ async function fetchOpenMeteoHourlyForecast() {
       const t = time[idx];
       const dateObj = new Date(t);
       const hourNum = dateObj.getHours();
-      const hourStr = hourNum + '時';
-      const temp = Math.round(temperature_2m[idx]) + '°';
+      const hourStr = hourNum + 'H';
+      const temp = Math.round(temperature_2m[idx]) + '°C';
       const pop = precipitation_probability ? precipitation_probability[idx] : 0;
       const precip = precipitation ? precipitation[idx] : 0;
       const code = weather_code ? weather_code[idx] : 0;
