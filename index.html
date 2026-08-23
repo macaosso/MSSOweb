@@ -1115,15 +1115,15 @@ body.light-theme .card-bottom {
 </div>
 
 <div class="page-wrapper">
-  <!-- 新增：臨近降雨提示框（預設隱藏） -->
-  <div id="rainAlertBox" class="box" style="display: none;">
-    <div class="header-orange" style="background: rgba(56, 189, 248, 0.25); color: var(--accent-blue); border-bottom-color: rgba(56, 189, 248, 0.35);">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+  <!-- 臨近降雨提示框（淺藍風格） -->
+  <div id="rainAlertBox" class="box" style="display: none; border: 1px solid rgba(56, 189, 248, 0.35); background: #f0f9ff; border-radius: 8px; overflow: hidden;">
+    <div class="header-blue" style="background: rgba(56, 189, 248, 0.18); color: #0284c7; border-bottom: 1px solid rgba(56, 189, 248, 0.3); padding: 10px 14px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/><path d="M8 16v2"/><path d="M8 22v-2"/><path d="M12 18v2"/><path d="M12 14v2"/><path d="M16 16v2"/><path d="M16 22v-2"/>
       </svg>
       臨近降雨提示
     </div>
-    <div id="rainAlertContent" class="content-yellow"></div>
+    <div id="rainAlertContent" class="content-blue" style="padding: 12px 14px; color: #0c4a6e; background: #f0f9ff; line-height: 1.6;"></div>
   </div>
   
   <div class="warning-card" id="tcCard">
@@ -1897,12 +1897,7 @@ async function fetchOpenMeteoHourlyForecast() {
         const mins = String(now.getMinutes()).padStart(2, '0');
         const timeFormatted = `${year}-${month}-${day} ${hrs}:${mins} MST`;
 
-        rainAlertContent.innerHTML = `
-          未來2小時 ，（${startHourStr} - ${endHourStr}） ，<br>
-          ${popDesc}，<br>
-          請市民留意天氣變化及最新天氣資訊。<br>
-          （${timeFormatted}）
-        `;
+        rainAlertContent.innerHTML = `未來2小時 ，（${startHourStr} - ${endHourStr}），${popDesc}，請市民留意天氣變化及最新天氣資訊。（${timeFormatted}）`;
         rainAlertBox.style.display = 'block';
       } else if (rainAlertBox) {
         rainAlertBox.style.display = 'none';
