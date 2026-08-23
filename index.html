@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
 <link rel="icon" type="image/png" href="icons/MSSO.png">
+<link rel="preconnect" href="https://api.open-meteo.com" crossorigin>
+<link rel="dns-prefetch" href="https://api.open-meteo.com">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <title>澳門民間氣象台 - 首頁</title>
@@ -1906,7 +1908,7 @@ async function fetchOpenMeteoHourlyForecast() {
     let startIndex = time.findIndex(t => new Date(t) >= currentHourStart);
     if (startIndex === -1) startIndex = 0;
 
-    // ================= [新增：臨近降雨提示邏輯] =================
+    // ================= [臨近降雨提示邏輯] =================
     const rainAlertBox = document.getElementById('rainAlertBox');
     const rainAlertContent = document.getElementById('rainAlertContent');
 
@@ -2049,9 +2051,6 @@ async function loadHourlyWeather() {
 
         loadTip.style.display = 'none';
         weatherMain.style.display = 'block';
-
-        // 載入 Open-Meteo 逐時天氣列表
-        fetchOpenMeteoHourlyForecast();
 
     } catch (err) {
         console.error("整點天氣數據解析異常：", err);
@@ -2296,13 +2295,14 @@ async function load4DaysForecastXML() {
 }
 
 window.addEventListener('DOMContentLoaded', () => {
+    fetchOpenMeteoHourlyForecast();
     loadHourlyWeather();
     loadUVData();
     load4DaysForecastXML();
 });
 
-setInterval(loadHourlyWeather, 100000);
-setInterval(loadUVData, 100000);
+setInterval(loadHourlyWeather, 50000);
+setInterval(loadUVData, 50000);
 setInterval(loadForecastXML, 100000);
 setInterval(load4DaysForecastXML, 100000);
 setInterval(fetchOpenMeteoHourlyForecast, 1800000);
