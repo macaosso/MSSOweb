@@ -1975,7 +1975,7 @@ async function fetchOpenMeteoHourlyForecast() {
 
         const hourSpanText = (startHourStr === endHourStr) ? startHourStr : `${startHourStr} - ${endHourStr}`;
 
-        rainAlertContent.innerHTML = `${timePrefix}，（${hourSpanText}），${popDesc}，請市民留意天氣變化及最新天氣資訊。（${timeFormatted}）`;
+        rainAlertContent.innerHTML = `${timePrefix}(${hourSpanText})，${popDesc}，請市民留意天氣變化及最新天氣資訊。（${timeFormatted}）`;
         rainAlertBox.style.display = 'block';
       } else if (rainAlertBox) {
         rainAlertBox.style.display = 'none';
