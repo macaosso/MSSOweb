@@ -1956,11 +1956,11 @@ async function fetchOpenMeteoHourlyForecast() {
       if (timePrefix && maxPop >= 45 && rainAlertBox && rainAlertContent) {
         let popDesc = '';
         if (maxPop >= 90) {
-          popDesc = '降雨機率為高：將會出現降雨情況';
+          popDesc = '降雨機率為高：表示將會出現降雨情況';
         } else if (maxPop >= 75) {
-          popDesc = '降雨機率為中高：較高機會有降雨情況';
+          popDesc = '降雨機率為中高：表示有較高機會出現降雨情況';
         } else {
-          popDesc = '降雨機率為中等：可能有降雨情況';
+          popDesc = '降雨機率為中等：表示有可能出現降雨情況';
         }
 
         const startHourStr = new Date(time[startIndex]).getHours() + 'H';
