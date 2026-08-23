@@ -1831,10 +1831,10 @@ function getOpenMeteoIcon(code, hour) {
 
 // Helper: Precipitate Probability Text & Color Mapping
 function getPopInfo(pop) {
-  if (pop >= 70) return { label: '高', light: '#dc2626', dark: '#f87171' }; // Red
-  if (pop >= 55) return { label: '中高', light: '#ea580c', dark: '#fb923c' }; // Orange
+  if (pop >= 90) return { label: '高', light: '#dc2626', dark: '#f87171' }; // Red
+  if (pop >= 75) return { label: '中高', light: '#ea580c', dark: '#fb923c' }; // Orange
   if (pop >= 45) return { label: '中', light: '#ca8a04', dark: '#facc15' }; // Yellow/Amber
-  if (pop >= 30) return { label: '中低', light: '#16a34a', dark: '#4ade80' }; // Green
+  if (pop >= 25) return { label: '中低', light: '#16a34a', dark: '#4ade80' }; // Green
   return { label: '低', light: '#2563eb', dark: '#60a5fa' }; // Blue
 }
 
