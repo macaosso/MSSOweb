@@ -531,6 +531,45 @@ body.light-theme .box-divider {
   background: rgba(245, 158, 11, 0.35);
 }
 
+/* ========== 5.5. 臨近降雨提示框 ========== */
+#rainAlertBox {
+  margin: 20px 0;
+  border-radius: 16px;
+  background: #0f172a;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.08);
+  overflow: hidden;
+}
+body.light-theme #rainAlertBox {
+  background: #f0f9ff;
+  border-color: rgba(56, 189, 248, 0.35);
+}
+.header-blue {
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--accent-blue);
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+body.light-theme .header-blue {
+  background: rgba(56, 189, 248, 0.18);
+  color: #0284c7;
+  border-bottom-color: rgba(56, 189, 248, 0.3);
+}
+.content-blue {
+  padding: 20px;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: #e0f2fe;
+}
+body.light-theme .content-blue {
+  color: #0c4a6e;
+}
+
 /* ========== 6. 澳門整點實時天氣 ========== */
 .three-tab-weather-wrap {
   margin: 20px 0;
@@ -1116,14 +1155,14 @@ body.light-theme .card-bottom {
 
 <div class="page-wrapper">
   <!-- 臨近降雨提示框（自動適配淺色/深色模式） -->
-  <div id="rainAlertBox" class="box" style="display: none; color-scheme: light dark; border: 1px solid light-dark(rgba(56, 189, 248, 0.35), rgba(56, 189, 248, 0.25)); background: light-dark(#f0f9ff, #0f172a); border-radius: 8px; overflow: hidden;">
-    <div class="header-blue" style="background: light-dark(rgba(56, 189, 248, 0.18), rgba(56, 189, 248, 0.12)); color: light-dark(#0284c7, #38bdf8); border-bottom: 1px solid light-dark(rgba(56, 189, 248, 0.3), rgba(56, 189, 248, 0.25)); padding: 10px 14px; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+  <div id="rainAlertBox" style="display: none;">
+    <div class="header-blue">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M20 16.58A5 5 0 0 0 18 7h-1.26A8 8 0 1 0 4 15.25"/><path d="M8 16v2"/><path d="M8 22v-2"/><path d="M12 18v2"/><path d="M12 14v2"/><path d="M16 16v2"/><path d="M16 22v-2"/>
       </svg>
       臨近降雨提示
     </div>
-    <div id="rainAlertContent" class="content-blue" style="padding: 12px 14px; color: light-dark(#0c4a6e, #e0f2fe); background: light-dark(#f0f9ff, #0f172a); line-height: 1.6;"></div>
+    <div id="rainAlertContent" class="content-blue"></div>
   </div>
   
   <div class="warning-card" id="tcCard">
