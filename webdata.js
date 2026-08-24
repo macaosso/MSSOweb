@@ -42,15 +42,15 @@ const ICON_PRESETS = {
 const tcWarnings = [
   {
     icon: "t1",
-    text: ""
+    text: "戒備警報於本地時間08月25日02時20分發出。表示有一個熱帶氣旋進入澳門800公里範圍，未來24-48小時內將逐漸影響澳門。"
   },
   {
     icon: "",
-    text: ""
+    text: "凌晨2時，熱帶風暴「紫檀」集結在本澳西南偏西約660公里，即在北緯19.7度，東經107.8度附近，其中心附近最高持續風速約為每小時75公里，向東北偏東移動，時速5公里，初時在北部灣徘徊。"
   },
   {
     icon: "",
-    text: ""
+    text: "按照現時預測，隨著高壓脊有所加強，在引導氣流下，「紫檀」今日會逐漸採取偏東或東北方向路徑移動，並逐漸移近本澳，大致趨向雷州半島一帶，週三稍後至週四初時會在本澳以西400公里附近掠過，週四逐漸移入廣西內陸及減弱。"
   },
   {
     icon: "",
@@ -84,7 +84,7 @@ const warnWarnings = [
 // 3. 特別天氣提示 (swtText) [原 1 條 + 新增 2 條]
 // ==========================================================================
 const swtText = [
-  "",
+  "雖然「紫檀」環流較為細小，但受到「紫檀」引進偏南氣流影響，本澳未來數日天氣漸轉不穩定，有驟雨及雷暴，部分地區雨勢較為頻密。市民應完成適當的預防措施，留意未來數日天氣資訊。",
   "",
   ""
 ];
@@ -115,11 +115,11 @@ const TC_WARNING_DATA = {
   tableRows: [
     { signal: "注意警報", period: "", probability: "" },
     { signal: "戒備警報", period: "08月25日02時20分", probability: "即將發出" },
-    { signal: "強風警報", period: "", probability: "" },
+    { signal: "強風警報", period: "08月26日", probability: "低至較低" },
     { signal: "烈風警報", period: "", probability: "" },
     { signal: "暴風警報", period: "", probability: "" },
     { signal: "颶風警報", period: "", probability: "" },
-    { signal: "風暴潮觀察警報", period: "", probability: "" },
+    { signal: "風暴潮觀察警報", period: "08月26日凌晨至早上", probability: "較低" },
     { signal: "風暴潮戒備警報", period: "", probability: "" },
     { signal: "風暴潮危險警報", period: "", probability: "" },    
   ]
