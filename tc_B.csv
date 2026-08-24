@@ -1,5 +1,5 @@
-category,leadtime,time/name,lat,lon,wind,pressure,w41ne,w41se,w41sw,w41nw,w88ne,w88se,w88sw,w88nw
-tcinfo,2026-08-24 20:00,紫檀 (2619),21.3,107.8,65,992,100,120,120,100,,,,
+category,lead_time,time/name,lat,lon,wind,pressure,w41_ne,w41_se,w41_sw,w41_nw,w88_ne,w88_se,w88_sw,w88_nw
+tc_info,2026-08-24 20:00,紫檀 (2619),21.3,107.8,65,992,100,120,120,100,,,,
 past,,2026-08-19 14:00,19.5,111.8,40,,,,,,,,,
 past,,2026-08-19 20:00,19.7,111.4,45,,,,,,,,,
 past,,2026-08-20 02:00,19.3,111.1,45,,,,,,,,,
