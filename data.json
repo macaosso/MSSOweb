@@ -1,5 +1,5 @@
 {
-  "datetime": "2026-08-25 04:35",
+  "datetime": "2026-08-25 04:45",
   "pohopolu": {
     "Chinese": "荷蘭園（路邊）",
     "Portuguese": "Conselheiro Ferreira de Almeida (Berma da Estrada)",
@@ -7,10 +7,10 @@
     "DDTT": "2026082504",
     "CODE": "PO",
     "HE_PM10": "22.000",
-    "HE_SO2": "1.615",
     "HE_CO": "0.437",
-    "HE_O3": "47.227",
     "HE_PM2_5": "4.000",
+    "HE_SO2": "1.615",
+    "HE_O3": "47.227",
     "HE_NO2": "8.923"
   },
   "khhopolu": {
@@ -20,10 +20,10 @@
     "DDTT": "2026082504",
     "CODE": "KH",
     "HE_PM10": "16.000",
-    "HE_SO2": null,
     "HE_CO": null,
-    "HE_O3": null,
     "HE_PM2_5": "7.000",
+    "HE_SO2": null,
+    "HE_O3": null,
     "HE_NO2": null
   },
   "enhopolu": {
@@ -33,10 +33,10 @@
     "DDTT": "2026082504",
     "CODE": "EN",
     "HE_PM10": "14.000",
-    "HE_SO2": null,
     "HE_CO": null,
-    "HE_O3": null,
     "HE_PM2_5": "0.000",
+    "HE_SO2": null,
+    "HE_O3": null,
     "HE_NO2": null
   },
   "tchopolu": {
@@ -46,10 +46,10 @@
     "DDTT": "2026082504",
     "CODE": "TC",
     "HE_PM10": "13.000",
-    "HE_SO2": "0.035",
     "HE_CO": "0.386",
-    "HE_O3": "60.821",
     "HE_PM2_5": "6.000",
+    "HE_SO2": "0.035",
+    "HE_O3": "60.821",
     "HE_NO2": "4.367"
   },
   "tghopolu": {
@@ -59,10 +59,10 @@
     "DDTT": "2026082504",
     "CODE": "TG",
     "HE_PM10": "17.000",
-    "HE_SO2": "2.259",
     "HE_CO": "0.541",
-    "HE_O3": "62.070",
     "HE_PM2_5": "4.000",
+    "HE_SO2": "2.259",
+    "HE_O3": "62.070",
     "HE_NO2": "2.902"
   },
   "cdhopolu": {
@@ -72,10 +72,10 @@
     "DDTT": "2026082504",
     "CODE": "CD",
     "HE_PM10": "16.000",
-    "HE_SO2": "3.177",
     "HE_CO": "0.703",
-    "HE_O3": "63.555",
     "HE_PM2_5": "5.000",
+    "HE_SO2": "3.177",
+    "HE_O3": "63.555",
     "HE_NO2": "2.705"
   }
 }
