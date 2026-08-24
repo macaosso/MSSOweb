@@ -41,7 +41,7 @@ const ICON_PRESETS = {
 // ==========================================================================
 const tcWarnings = [
   {
-    icon: "",
+    icon: "t1",
     text: ""
   },
   {
@@ -110,12 +110,12 @@ const tideText = [
 // 6. 熱帶氣旋可能發佈之警報預測 (TC_WARNING_DATA)
 // ==========================================================================
 const TC_WARNING_DATA = {
-  mainTitle: "受熱帶氣旋「紫檀」及「簡拉維」可能發佈之警報",
-  updateTimeText: "2026-08-24  02:00 MST 更新",
+  mainTitle: "受熱帶氣旋「紫檀」可能發佈之警報",
+  updateTimeText: "2026-08-25  02:20 MST 更新",
   tableRows: [
     { signal: "注意警報", period: "", probability: "" },
-    { signal: "戒備警報", period: "08月24日 02時20分", probability: "" },
-    { signal: "強風警報", period: "08月20日13時20分", probability: "" },
+    { signal: "戒備警報", period: "08月25日02時20分", probability: "即將發出" },
+    { signal: "強風警報", period: "", probability: "" },
     { signal: "烈風警報", period: "", probability: "" },
     { signal: "暴風警報", period: "", probability: "" },
     { signal: "颶風警報", period: "", probability: "" },
