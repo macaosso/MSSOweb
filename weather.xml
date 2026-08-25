@@ -2,7 +2,7 @@
 <ActualWeatherBrief>
 <System>
 <SysAuthor>DINF</SysAuthor>
-<SysPubdate>2026-08-25 16:56</SysPubdate>
+<SysPubdate>2026-08-25 17:27</SysPubdate>
 <SysLanguage>0</SysLanguage>
 </System>
 <Custom>
@@ -30,10 +30,10 @@
 <WindDescription>東南偏南</WindDescription>
 </WindDirection>
 <Icon>
-<IconName>ww-c03.gif</IconName>
-<IconURL>https://www.smg.gov.mo/icons/weatherIcon/ww-c03.gif</IconURL>
+<IconName>ww-c16.gif</IconName>
+<IconURL>https://www.smg.gov.mo/icons/weatherIcon/ww-c16.gif</IconURL>
 </Icon>
-<WeatherStatus>03</WeatherStatus>
+<WeatherStatus>16</WeatherStatus>
 <FeelsLikeLevel>7</FeelsLikeLevel>
 <FeelsLikeDescription>炎熱</FeelsLikeDescription>
 </Custom>
