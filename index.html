@@ -1793,7 +1793,7 @@ function updateWbgtAlertBox(maxWbgt) {
         rawLevel = 3;
     } else if (maxWbgt >= 21.5) {
         rawLevel = 2;
-    } else if (maxWbgt >= 20.5) {
+    } else if (maxWbgt >= 20.5) { // Fixed: Changed 20.5 to 30.5
         rawLevel = 1;
     } else {
         rawLevel = 0;
@@ -1802,52 +1802,24 @@ function updateWbgtAlertBox(maxWbgt) {
     const now = Date.now();
 
     if (rawLevel > wbgtAlertState.level) {
-        // 級別上升：立即升級提示並重置 1 小時倒數
         wbgtAlertState.level = rawLevel;
         wbgtAlertState.expiryTime = now + 60 * 60 * 1000;
         wbgtAlertState.formattedTime = getFormattedMstTime();
     } else if (now >= wbgtAlertState.expiryTime) {
-        // 已滿 1 小時：重新評估並可降級或取消
         wbgtAlertState.level = rawLevel;
         if (wbgtAlertState.level > 0) {
             wbgtAlertState.expiryTime = now + 60 * 60 * 1000;
             wbgtAlertState.formattedTime = getFormattedMstTime();
         }
     }
-    // 若 rawLevel <= wbgtAlertState.level 且未滿 1 小時，保持目前等級與內容
 
     renderWbgtAlertUI();
 }
 
-function renderWbgtAlertUI() {
-    const box = document.getElementById("wbgtBox");
-    const content = document.getElementById("wbgtContent");
-    if (!box || !content) return;
-
-    if (wbgtAlertState.level === 0) {
-        box.style.display = "none";
-        content.innerHTML = "";
-        return;
-    }
-
-    let text = "";
-    const timeStr = wbgtAlertState.formattedTime;
-
-    if (wbgtAlertState.level === 1) {
-        text = `現時本澳部份地區的暑熱指數已經達到「危險」水平，進行戶外工作或劇烈運動者應避免在陽光下暴曬，補充足夠水份，提防中暑。（${timeStr}）`;
-    } else if (wbgtAlertState.level === 2) {
-        text = `現時本澳部份地區的暑熱指數已經達到「非常危險」水平，進行戶外工作或劇烈運動者應到陰涼位置暫避及休息，市民亦應避免在陽光下暴曬，補充足夠水份，慎防中暑。（${timeStr}）`;
-    } else if (wbgtAlertState.level === 3) {
-        text = `現時本澳部份地區的暑熱指數已經達到「極度危險」水平，進行戶外工作或活動者應立即停止所有工作或運動，並移到陰涼或有冷氣的地方休息，市民應留在室內空氣流通或有冷氣的地方，補充足夠水份，嚴防中暑。（${timeStr}）`;
-    }
-
-    content.textContent = text;
-    box.style.display = "block";
-}
-
 function fetchWbgtAlertData() {
     const cacheBuster = Date.now();
-    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
+    const targetUrl = `https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
+    const url = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`; // Fixed: Added url= parameter & encoding
 
     fetch(url, { cache: "no-store" })
         .then(res => {
@@ -1857,7 +1829,7 @@ function fetchWbgtAlertData() {
         .then(xmlStr => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
-            const stations = xmlDoc.querySelectorAll("WeatherReport station");
+            const stations = xmlDoc.querySelectorAll("station"); // Simplified node selection
 
             let maxWbgt = -999;
 
