@@ -280,7 +280,6 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
-        /* 新增：地圖底圖專用容器，確保座標始終以圖片高度為準 */
         .map-image-container {
             position: relative;
             width: 100%;
@@ -676,7 +675,6 @@
         </div>
 
         <div class="wbgt-map-wrapper">
-            <!-- 將圖片與 Pins 獨立包裝在同一個容器中以修正手機端位移問題 -->
             <div class="map-image-container">
                 <img src="map/map.png" alt="澳門氣象地圖" class="map-base-img">
                 <div id="stationPinsGroup"></div>
@@ -729,7 +727,7 @@
         </div>
     </div>
 
-    <!-- 📈 3日暑熱指數 (WBGT) 逐時預測圖表 -->
+    <!-- 3日暑熱指數 (WBGT) 逐時預測圖表 -->
     <div class="forecast-chart-container">
         <div class="table-header-bar">
             <div class="table-title">📈 澳門未來 3 日暑熱指數 (WBGT) 逐時預報趨勢</div>
@@ -750,13 +748,13 @@
                     <tr><th>WBGT 範圍</th><th>危險等級</th><th>熱危害風險</th></tr>
                 </thead>
                 <tbody>
-                    <tr><td>≤ 20.4</td><td><span class="badge bg-normal">正常</span></td><td>低風險，注意補充水分</td></tr>
-                    <tr><td>20.5 - 24.4</td><td><span class="badge bg-caution">注意</span></td><td>持續運動/工作需適度休息</td></tr>
-                    <tr><td>24.5 - 27.4</td><td><span class="badge bg-alert">警戒</span></td><td>熱痙攣、熱疲勞風險增加</td></tr>
-                    <tr><td>27.5 - 30.4</td><td><span class="badge bg-high-alert">高度警戒</span></td><td>強烈建議增加休息頻率</td></tr>
-                    <tr><td>30.5 - 31.4</td><td><span class="badge bg-danger">危險</span></td><td>容易中暑，應減少劇烈戶外活動</td></tr>
-                    <tr><td>31.5 - 32.4</td><td><span class="badge bg-high-danger">非常危險</span></td><td>相當容易中暑，應避免劇烈戶外活動</td></tr>
-                    <tr><td>≥ 32.5</td><td><span class="badge bg-extreme">極度危險</span></td><td>高危！應立即停止高強度戶外工作</td></tr>
+                    <tr><td>&lt; 21</td><td><span class="badge bg-normal">正常</span></td><td>低風險，注意補充水分</td></tr>
+                    <tr><td>21 - 25</td><td><span class="badge bg-caution">注意</span></td><td>持續運動/工作需適度休息</td></tr>
+                    <tr><td>25 - 28</td><td><span class="badge bg-alert">警戒</span></td><td>熱痙攣、熱疲勞風險增加</td></tr>
+                    <tr><td>28 - 31</td><td><span class="badge bg-high-alert">高度警戒</span></td><td>強烈建議增加休息頻率</td></tr>
+                    <tr><td>31 - 33</td><td><span class="badge bg-danger">危險</span></td><td>容易中暑，應減少劇烈戶外活動</td></tr>
+                    <tr><td>33 - 34</td><td><span class="badge bg-high-danger">非常危險</span></td><td>相當容易中暑，應避免劇烈戶外活動</td></tr>
+                    <tr><td>≥ 34</td><td><span class="badge bg-extreme">極度危險</span></td><td>高危！應立即停止高強度戶外工作</td></tr>
                 </tbody>
             </table>
         </div>
@@ -791,12 +789,11 @@
 <script>
 let wbgtChartInstance = null;
 
-// 根據夜間/日間模式動態設定圖表色彩 (夜間模式文字設為純白色 #ffffff)
 function getChartThemeColors() {
     const isLight = document.body.classList.contains('light-theme');
     return {
-        textColor: isLight ? '#0f172a' : '#ffffff',      // 夜間模式: 純白色文字
-        mutedText: isLight ? '#64748b' : '#d1d5db',      // 夜間模式: 淺灰色次要文字
+        textColor: isLight ? '#0f172a' : '#ffffff',
+        mutedText: isLight ? '#64748b' : '#d1d5db',
         gridColor: isLight ? 'rgba(0, 0, 0, 0.08)' : 'rgba(255, 255, 255, 0.12)'
     };
 }
@@ -805,14 +802,9 @@ function updateChartTheme() {
     if (!wbgtChartInstance) return;
     const colors = getChartThemeColors();
     
-    // 更新圖例文字顏色
     wbgtChartInstance.options.plugins.legend.labels.color = colors.textColor;
-    
-    // 更新 X 軸文字與網格顏色
     wbgtChartInstance.options.scales.x.ticks.color = colors.mutedText;
     wbgtChartInstance.options.scales.x.grid.color = colors.gridColor;
-    
-    // 更新 Y 軸文字與網格顏色
     wbgtChartInstance.options.scales.y.title.color = colors.mutedText;
     wbgtChartInstance.options.scales.y.ticks.color = colors.mutedText;
     wbgtChartInstance.options.scales.y.grid.color = colors.gridColor;
@@ -826,7 +818,7 @@ function applyTheme(theme) {
   } else {
     document.body.classList.remove('light-theme');
   }
-  updateChartTheme(); // 切換主題時即時重繪圖表文字顏色
+  updateChartTheme();
 }
 
 function toggleTheme() {
@@ -981,34 +973,38 @@ const excludedBridgeCodes = ["PV", "PN", "PS", "PG", "MN", "MS", "LH"];
 function getWbgtColorHex(wbgtStr) {
     let w = parseFloat(wbgtStr);
     if (isNaN(w)) return "#555555";
-    if (w >= 32.5) return "#7f1d1d";
-    if (w >= 31.5) return "#b91c1c";
-    if (w >= 30.5) return "#ef4444";
-    if (w >= 27.5) return "#e06c00";
-    if (w >= 24.5) return "#c9b200";
-    if (w >= 20.5) return "#38b000";
+    if (w >= 34) return "#7f1d1d";
+    if (w >= 33) return "#b91c1c";
+    if (w >= 31) return "#ef4444";
+    if (w >= 28) return "#e06c00";
+    if (w >= 25) return "#c9b200";
+    if (w >= 21) return "#38b000";
     return "#0077b6";
 }
 
 function getWbgtBadge(wbgtStr) {
     let w = parseFloat(wbgtStr);
     if (isNaN(w)) return `<span class="badge" style="background:#555;">無數據</span>`;
-    if (w >= 32.5) return `<span class="badge bg-extreme">極度危險</span>`;
-    if (w >= 31.5) return `<span class="badge bg-high-danger">非常危險</span>`;
-    if (w >= 30.5) return `<span class="badge bg-danger">危險</span>`;
-    if (w >= 27.5) return `<span class="badge bg-high-alert">高度警戒</span>`;
-    if (w >= 24.5) return `<span class="badge bg-alert">警戒</span>`;
-    if (w >= 20.5) return `<span class="badge bg-caution">注意</span>`;
+    if (w >= 34) return `<span class="badge bg-extreme">極度危險</span>`;
+    if (w >= 33) return `<span class="badge bg-high-danger">非常危險</span>`;
+    if (w >= 31) return `<span class="badge bg-danger">危險</span>`;
+    if (w >= 28) return `<span class="badge bg-high-alert">高度警戒</span>`;
+    if (w >= 25) return `<span class="badge bg-alert">警戒</span>`;
+    if (w >= 21) return `<span class="badge bg-caution">注意</span>`;
     return `<span class="badge bg-normal">正常</span>`;
 }
 
 let rawStationData = [];
 let currentSort = "desc";
 
+// 改進的 XML 節點數值提取函式
 function extractValue(selector, parent) {
     const el = parent.querySelector(selector);
     if (!el) return '';
-    const val = el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || '';
+    const val = el.querySelector("dValue")?.textContent 
+             || el.querySelector("Value")?.textContent 
+             || el.textContent 
+             || '';
     return val.trim();
 }
 
@@ -1018,12 +1014,12 @@ function updateSummaryCounts() {
     rawStationData.forEach(item => {
         let w = parseFloat(item.wbgt);
         if (isNaN(w)) return;
-        if (w >= 33.5) extreme++;
-        else if (w >= 32.5) veryDanger++;
-        else if (w >= 30.5) danger++;
-        else if (w >= 27.5) highAlert++;
-        else if (w >= 24.5) alert++;
-        else if (w >= 20.5) caution++;
+        if (w >= 34) extreme++;
+        else if (w >= 33) veryDanger++;
+        else if (w >= 31) danger++;
+        else if (w >= 28) highAlert++;
+        else if (w >= 25) alert++;
+        else if (w >= 21) caution++;
         else normal++;
     });
 
@@ -1064,14 +1060,24 @@ function renderMapPins() {
     if (mapPubEl) mapPubEl.textContent = pubTimeText;
 }
 
+// 修正後的數據獲取函式 (包含雙重 Proxy 備援機制)
 function fetchWeatherData() {
-    const cacheBuster = Date.now();
-    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
+    const targetUrl = `https://xml.smg.gov.mo/c_actualweather.xml?t=${Date.now()}`;
+    const primaryProxy = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`;
+    const fallbackProxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
 
-    return fetch(url, { cache: "no-store" })
-        .then(res => {
-            if (!res.ok) throw new Error("SMG Fetch failed");
-            return res.text();
+    const fetchXml = (proxyUrl) => {
+        return fetch(proxyUrl, { cache: "no-store" })
+            .then(res => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.text();
+            });
+    };
+
+    return fetchXml(primaryProxy)
+        .catch(err => {
+            console.warn("Primary proxy failed, trying fallback...", err);
+            return fetchXml(fallbackProxy);
         })
         .then(xmlStr => {
             const parser = new DOMParser();
@@ -1120,7 +1126,6 @@ function fetchWeatherData() {
         });
 }
 
-/* ========== 3日 WBGT 預報圖表繪製 (Open-Meteo API) ========== */
 async function fetchAndRenderForecastChart() {
     const forecastApi = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m&timezone=Asia%2FSingapore&forecast_days=3";
 
@@ -1161,15 +1166,6 @@ function renderChart(labels, dataValues) {
 
     const colors = getChartThemeColors();
 
-    // 1. ADDED: Filter out invalid data and compute dynamic min/max
-    const validData = dataValues.filter(val => val !== null && !isNaN(val));
-    const dataMin = validData.length ? Math.min(...validData) : 18;
-    const dataMax = validData.length ? Math.max(...validData) : 36;
-
-    // 2. ADDED: Add 1°C - 2°C padding so data line points aren't clipped on edges
-    const dynamicMin = Math.floor(dataMin - 1.5);
-    const dynamicMax = Math.ceil(dataMax + 1.5);
-
     wbgtChartInstance = new Chart(ctx, {
         type: 'line',
         data: {
@@ -1208,28 +1204,28 @@ function renderChart(labels, dataValues) {
                 annotation: {
                     annotations: {
                         caution: {
-                            type: 'line', yMin: 20.5, yMax: 20.5, borderColor: '#38b000', borderWidth: 1.5, borderDash: [4, 4],
-                            label: { display: true, content: '注意', position: 'start', backgroundColor: '#38b000', color: '#111', font: { size: 10, weight: 'bold' } }
+                            type: 'line', yMin: 21, yMax: 21, borderColor: '#38b000', borderWidth: 1.5, borderDash: [4, 4],
+                            label: { display: true, content: '21°C 注意', position: 'start', backgroundColor: '#38b000', color: '#111', font: { size: 10, weight: 'bold' } }
                         },
                         alert: {
-                            type: 'line', yMin: 24.5, yMax: 24.5, borderColor: '#c9b200', borderWidth: 1.5, borderDash: [4, 4],
-                            label: { display: true, content: '警戒', position: 'start', backgroundColor: '#c9b200', color: '#111', font: { size: 10, weight: 'bold' } }
+                            type: 'line', yMin: 25, yMax: 25, borderColor: '#c9b200', borderWidth: 1.5, borderDash: [4, 4],
+                            label: { display: true, content: '25°C 警戒', position: 'start', backgroundColor: '#c9b200', color: '#111', font: { size: 10, weight: 'bold' } }
                         },
                         highAlert: {
-                            type: 'line', yMin: 27.5, yMax: 27.5, borderColor: '#e06c00', borderWidth: 1.5, borderDash: [4, 4],
-                            label: { display: true, content: '高度警戒', position: 'start', backgroundColor: '#e06c00', color: '#fff', font: { size: 10, weight: 'bold' } }
+                            type: 'line', yMin: 28, yMax: 28, borderColor: '#e06c00', borderWidth: 1.5, borderDash: [4, 4],
+                            label: { display: true, content: '28°C 高度警戒', position: 'start', backgroundColor: '#e06c00', color: '#fff', font: { size: 10, weight: 'bold' } }
                         },
                         danger: {
-                            type: 'line', yMin: 30.5, yMax: 30.5, borderColor: '#ef4444', borderWidth: 1.5, borderDash: [4, 4],
-                            label: { display: true, content: '危險', position: 'start', backgroundColor: '#ef4444', color: '#fff', font: { size: 10, weight: 'bold' } }
+                            type: 'line', yMin: 31, yMax: 31, borderColor: '#ef4444', borderWidth: 1.5, borderDash: [4, 4],
+                            label: { display: true, content: '31°C 危險', position: 'start', backgroundColor: '#ef4444', color: '#fff', font: { size: 10, weight: 'bold' } }
                         },
                         veryDanger: {
-                            type: 'line', yMin: 32.5, yMax: 32.5, borderColor: '#b91c1c', borderWidth: 1.5, borderDash: [4, 4],
-                            label: { display: true, content: '非常危險', position: 'start', backgroundColor: '#b91c1c', color: '#fff', font: { size: 10, weight: 'bold' } }
+                            type: 'line', yMin: 33, yMax: 33, borderColor: '#b91c1c', borderWidth: 1.5, borderDash: [4, 4],
+                            label: { display: true, content: '33°C 非常危險', position: 'start', backgroundColor: '#b91c1c', color: '#fff', font: { size: 10, weight: 'bold' } }
                         },
                         extreme: {
-                            type: 'line', yMin: 33.5, yMax: 33.5, borderColor: '#7f1d1d', borderWidth: 1.5, borderDash: [4, 4],
-                            label: { display: true, content: '極度危險', position: 'start', backgroundColor: '#7f1d1d', color: '#fff', font: { size: 10, weight: 'bold' } }
+                            type: 'line', yMin: 34, yMax: 34, borderColor: '#7f1d1d', borderWidth: 1.5, borderDash: [4, 4],
+                            label: { display: true, content: '34°C 極度危險', position: 'start', backgroundColor: '#7f1d1d', color: '#fff', font: { size: 10, weight: 'bold' } }
                         }
                     }
                 }
@@ -1243,10 +1239,8 @@ function renderChart(labels, dataValues) {
                     title: { display: true, text: 'WBGT (°C)', color: colors.mutedText },
                     ticks: { color: colors.mutedText },
                     grid: { color: colors.gridColor },
-                    
-                    // 3. REPLACED suggestedMin/suggestedMax with dynamic bounds
-                    min: dynamicMin,
-                    max: dynamicMax
+                    suggestedMin: 18,
+                    suggestedMax: 36
                 }
             }
         }
