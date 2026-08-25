@@ -46,11 +46,11 @@ const tcWarnings = [
   },
   {
     icon: "",
-    text: "凌晨2時，熱帶風暴「紫檀」集結在本澳西南偏西約660公里，即在北緯19.7度，東經107.8度附近，其中心附近最高持續風速約為每小時75公里，向東北偏東移動，時速5公里，初時在北部灣徘徊。"
+    text: ""
   },
   {
     icon: "",
-    text: "按照現時預測，隨著高壓脊有所加強，在引導氣流下，「紫檀」今日會逐漸採取偏東或東北方向路徑移動，並逐漸移近本澳，大致趨向雷州半島一帶，週三稍後至週四初時會在本澳以西400公里附近掠過，週四逐漸移入廣西內陸及減弱。"
+    text: ""
   },
   {
     icon: "",
@@ -114,12 +114,12 @@ const TC_WARNING_DATA = {
   updateTimeText: "2026-08-25  02:20 MST 更新",
   tableRows: [
     { signal: "注意警報", period: "", probability: "" },
-    { signal: "戒備警報", period: "08月25日02時20分", probability: "即將發出" },
-    { signal: "強風警報", period: "08月26日", probability: "低至較低" },
+    { signal: "戒備警報", period: "08月25日02時20分", probability: "現正生效" },
+    { signal: "強風警報", period: "08月26日", probability: "低" },
     { signal: "烈風警報", period: "", probability: "" },
     { signal: "暴風警報", period: "", probability: "" },
     { signal: "颶風警報", period: "", probability: "" },
-    { signal: "風暴潮觀察警報", period: "08月26日凌晨至早上", probability: "較低" },
+    { signal: "風暴潮觀察警報", period: "08月26日凌晨至早上", probability: "低" },
     { signal: "風暴潮戒備警報", period: "", probability: "" },
     { signal: "風暴潮危險警報", period: "", probability: "" },    
   ]
