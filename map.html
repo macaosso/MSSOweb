@@ -1589,10 +1589,14 @@ const extractNodeValue = (selector, parent) => {
 };
 
 function fetchWeatherData() {
-    const cacheBuster = Date.now();
-    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
-    return fetch(url, { cache: "no-store" })
-        .then(res => res.text())
+    const targetUrl = `https://xml.smg.gov.mo/c_actualweather.xml?t=${Date.now()}`;
+    const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`;
+
+    return fetch(proxyUrl, { cache: "no-store" })
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+            return res.text();
+        })
         .then(xmlStr => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
@@ -1646,10 +1650,14 @@ function fetchWeatherData() {
 }
 
 function fetchFloodData() {
-    const cacheBuster = Date.now();
-    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_ftgms.xml?t=${cacheBuster}`;
-    return fetch(url, { cache: "no-store" })
-        .then(res => res.text())
+    const targetUrl = `https://xml.smg.gov.mo/c_ftgms.xml?t=${Date.now()}`;
+    const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`;
+
+    return fetch(proxyUrl, { cache: "no-store" })
+        .then(res => {
+            if (!res.ok) throw new Error(`HTTP Error: ${res.status}`);
+            return res.text();
+        })
         .then(xmlStr => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
@@ -1664,7 +1672,7 @@ function fetchFloodData() {
             });
         });
 }
-
+    
 function loadAllData() {
     Promise.all([fetchWeatherData(), fetchFloodData()])
         .then(([pubTime]) => {
