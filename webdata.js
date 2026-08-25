@@ -63,8 +63,8 @@ const tcWarnings = [
 // ==========================================================================
 const warnWarnings = [
   {
-    icon: "h1",
-    text: "酷熱警報於本地時間08月22日08時20分發出。"
+    icon: "",
+    text: ""
   },
   {
     icon: "",
@@ -84,7 +84,7 @@ const warnWarnings = [
 // 3. 特別天氣提示 (swtText) [原 1 條 + 新增 2 條]
 // ==========================================================================
 const swtText = [
-  "雖然「紫檀」環流較為細小，但受到「紫檀」引進偏南氣流影響，本澳未來數日天氣漸轉不穩定，有驟雨及雷暴，部分地區雨勢較為頻密。市民應完成適當的預防措施，留意未來數日天氣資訊。",
+  "雖然「紫檀」環流較為細小，但受到「紫檀」引進偏南氣流影響，本澳未來兩三日天氣漸轉不穩定，有驟雨及雷暴，部分地區雨勢較為頻密。市民應完成適當的預防措施，留意未來數日天氣資訊。",
   "",
   ""
 ];
@@ -115,11 +115,11 @@ const TC_WARNING_DATA = {
   tableRows: [
     { signal: "注意警報", period: "", probability: "" },
     { signal: "戒備警報", period: "08月25日02時20分", probability: "現正生效" },
-    { signal: "強風警報", period: "08月26日", probability: "低" },
+    { signal: "強風警報", period: "", probability: "" },
     { signal: "烈風警報", period: "", probability: "" },
     { signal: "暴風警報", period: "", probability: "" },
     { signal: "颶風警報", period: "", probability: "" },
-    { signal: "風暴潮觀察警報", period: "08月26日凌晨至早上", probability: "低" },
+    { signal: "風暴潮觀察警報", period: "", probability: "" },
     { signal: "風暴潮戒備警報", period: "", probability: "" },
     { signal: "風暴潮危險警報", period: "", probability: "" },    
   ]
