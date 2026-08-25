@@ -1,16 +1,16 @@
 {
-  "datetime": "2026-08-26 02:35",
+  "datetime": "2026-08-26 02:45",
   "pohopolu": {
     "Chinese": "荷蘭園（路邊）",
     "Portuguese": "Conselheiro Ferreira de Almeida (Berma da Estrada)",
     "English": "Conselheiro Ferreira de Almeida (Roadside)",
     "DDTT": "2026082602",
     "CODE": "PO",
-    "HE_CO": "0.373",
     "HE_PM2_5": "8.000",
-    "HE_SO2": "1.197",
-    "HE_O3": "32.005",
+    "HE_CO": "0.373",
     "HE_NO2": "12.584",
+    "HE_O3": "32.005",
+    "HE_SO2": "1.197",
     "HE_PM10": "21.000"
   },
   "khhopolu": {
@@ -19,11 +19,11 @@
     "English": "Ka-Hó (Roadside)",
     "DDTT": "2026082602",
     "CODE": "KH",
-    "HE_CO": "0.429",
     "HE_PM2_5": "4.000",
-    "HE_SO2": "1.591",
-    "HE_O3": "42.478",
+    "HE_CO": "0.429",
     "HE_NO2": "4.111",
+    "HE_O3": "42.478",
+    "HE_SO2": "1.591",
     "HE_PM10": "21.000"
   },
   "enhopolu": {
@@ -32,11 +32,11 @@
     "English": "Bairro de Tamagnini Barbosa (High Density Residental Area)",
     "DDTT": "2026082602",
     "CODE": "EN",
-    "HE_CO": "0.482",
     "HE_PM2_5": "7.000",
-    "HE_SO2": "0.879",
-    "HE_O3": "21.879",
+    "HE_CO": "0.482",
     "HE_NO2": "21.192",
+    "HE_O3": "21.879",
+    "HE_SO2": "0.879",
     "HE_PM10": "23.000"
   },
   "tchopolu": {
@@ -45,11 +45,11 @@
     "English": "Baixa da Taipa (High Density Residental Area)",
     "DDTT": "2026082602",
     "CODE": "TC",
-    "HE_CO": "0.396",
     "HE_PM2_5": "9.000",
-    "HE_SO2": "0.060",
-    "HE_O3": "43.198",
+    "HE_CO": "0.396",
     "HE_NO2": "10.222",
+    "HE_O3": "43.198",
+    "HE_SO2": "0.060",
     "HE_PM10": "32.000"
   },
   "tghopolu": {
@@ -58,11 +58,11 @@
     "English": "Taipa Grande (Ambient)",
     "DDTT": "2026082602",
     "CODE": "TG",
-    "HE_CO": null,
     "HE_PM2_5": "7.000",
-    "HE_SO2": null,
-    "HE_O3": null,
+    "HE_CO": null,
     "HE_NO2": null,
+    "HE_O3": null,
+    "HE_SO2": null,
     "HE_PM10": "18.000"
   },
   "cdhopolu": {
@@ -71,11 +71,11 @@
     "English": "Seac Pai Van (Ambient)",
     "DDTT": "2026082602",
     "CODE": "CD",
-    "HE_CO": "0.635",
     "HE_PM2_5": "6.000",
-    "HE_SO2": "1.743",
-    "HE_O3": "46.355",
+    "HE_CO": "0.635",
     "HE_NO2": "4.081",
+    "HE_O3": "46.355",
+    "HE_SO2": "1.743",
     "HE_PM10": "18.000"
   }
 }
