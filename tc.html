@@ -50,7 +50,7 @@ body {
   overflow: hidden;
 }
 
-/* ========== 2. 頁頭 Header & 頂欄導航 ========== */
+/* ========== 頁頭 Header & 頂欄導航 ========== */
 .header-nav-container {
   position: sticky;
   top: 0;
@@ -104,7 +104,6 @@ body.light-theme .header-nav-container {
   gap: 10px;
 }
 
-/* 主題切換按鈕 */
 .theme-toggle-btn {
   background: var(--card-bg-light);
   border: 1px solid var(--card-border);
@@ -170,7 +169,6 @@ body.light-theme .nav a:hover {
   background: rgba(0, 0, 0, 0.05);
 }
 
-/* 下拉選單樣式 */
 .dropdown {
   position: relative;
   display: inline-block;
@@ -221,7 +219,6 @@ body.light-theme .dropdown.active .dropdown-btn {
   box-shadow: 0 10px 25px rgba(0,0,0,0.5);
   z-index: 3100;
   margin-top: 4px;
-
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.25s ease, visibility 0s linear 0.4s;
@@ -286,7 +283,7 @@ body.light-theme .dropdown-content {
   outline: none;
 }
 .ctrl-btn:hover, .ctrl-select:hover { background: rgba(255, 255, 255, 0.16); }
-.ctrl-btn.active { background: #0284c7; border-color: var(--accent-blue); }
+.ctrl-btn.active { background: #0284c7; border-color: var(--accent-blue); color: #fff; }
 
 .resizer {
   width: 6px;
@@ -306,16 +303,33 @@ body.light-theme .dropdown-content {
   backdrop-filter: blur(8px);
   border: 1px solid var(--card-border);
   border-radius: 8px;
-  padding: 10px; width: 260px;
+  padding: 10px; width: 280px;
+  transition: top 0.25s ease;
 }
 .overlay-storm-item {
   display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 6px; font-size: 0.82rem;
+  margin-bottom: 6px; font-size: 0.82rem; gap: 8px;
 }
+.overlay-storm-info {
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.overlay-storm-title {
+  font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.overlay-storm-sub {
+  font-size: 0.72rem; color: var(--text-muted);
+}
+
 .btn-mini {
-  background: var(--accent-blue); color: #000; border: none;
-  padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;
-  font-weight: bold; cursor: pointer;
+  background: rgba(255, 255, 255, 0.1); color: var(--text-muted);
+  border: 1px solid var(--card-border);
+  padding: 3px 8px; border-radius: 6px; font-size: 0.75rem;
+  font-weight: bold; cursor: pointer; transition: all 0.2s;
+  white-space: nowrap; flex-shrink: 0;
+}
+.btn-mini.active {
+  background: var(--accent-blue); color: #000; border-color: var(--accent-blue);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
 }
 
 .map-legend {
@@ -340,15 +354,16 @@ body.light-theme .dropdown-content {
   border-left: 1px solid var(--card-border);
   display: flex; flex-direction: column;
   z-index: 1000; overflow-y: auto;
-  transition: margin-right 0.25s ease, width 0.05s ease;
+  transition: transform 0.25s ease, width 0.05s ease;
   position: relative;
   flex-shrink: 0;
 }
 .sidebar.collapsed {
-  margin-right: -650px;
   width: 0 !important;
   min-width: 0 !important;
-  overflow: hidden;
+  border-left: none !important;
+  overflow: hidden !important;
+  padding: 0 !important;
 }
 
 .sidebar-header {
@@ -356,7 +371,7 @@ body.light-theme .dropdown-content {
   border-bottom: 1px solid var(--card-border);
   display: flex; align-items: center; justify-content: space-between;
   font-size: 0.9rem; font-weight: bold; background: rgba(0,0,0,0.15);
-  white-space: nowrap;
+  white-space: nowrap; flex-shrink: 0;
 }
 
 .collapse-btn {
@@ -374,58 +389,79 @@ body.light-theme .dropdown-content {
   position: absolute;
   top: 12px;
   right: 12px;
-  z-index: 1002;
+  z-index: 2500;
   background: var(--bg-panel);
-  border: 1px solid var(--card-border);
-  color: var(--text-main);
-  padding: 6px 12px;
-  border-radius: 6px;
+  border: 1px solid var(--accent-blue);
+  color: var(--accent-blue);
+  padding: 8px 14px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 0.82rem;
+  font-size: 0.85rem;
+  font-weight: bold;
   display: none;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+}
+.floating-toggle-btn:hover {
+  background: var(--accent-blue);
+  color: #000;
 }
 
-.sidebar-content { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
+.sidebar-content {
+  padding: 12px; display: flex; flex-direction: column; gap: 12px;
+  width: 100%; box-sizing: border-box; min-width: 0;
+}
 
-/* 風暴卡片 */
+/* 風暴卡片自適應寬度 */
 .tc-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 12px;
   padding: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
 }
 .tc-header-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 .tc-header-left {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 .tc-storm-name {
   font-size: 1.1rem;
   font-weight: 700;
   color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .tc-time-stamp {
   font-size: 0.8rem;
   color: var(--text-muted);
+  white-space: nowrap;
 }
 
 .badge-tag {
   padding: 3px 8px; border-radius: 6px;
   font-size: 0.75rem; font-weight: 700; color: #fff; display: inline-block;
+  white-space: nowrap; flex-shrink: 0;
 }
 
+/* 彈性卡片網格 */
 .tc-info-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
   gap: 8px;
   margin-bottom: 14px;
+  width: 100%;
 }
 .info-box {
   background: rgba(255, 255, 255, 0.04);
@@ -434,9 +470,13 @@ body.light-theme .dropdown-content {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
-.info-box-label { font-size: 0.72rem; color: var(--text-muted); }
-.info-box-val { font-size: 0.92rem; font-weight: 700; color: var(--text-main); }
+.info-box-label { font-size: 0.72rem; color: var(--text-muted); white-space: nowrap; }
+.info-box-val {
+  font-size: 0.92rem; font-weight: 700; color: var(--text-main);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 
 .tab-group {
   display: flex;
@@ -452,10 +492,12 @@ body.light-theme .dropdown-content {
 }
 .tab-btn.active { background: var(--accent-blue); color: #000; }
 
-.track-list { font-size: 0.78rem; display: flex; flex-direction: column; gap: 6px; }
+.track-list { font-size: 0.78rem; display: flex; flex-direction: column; gap: 6px; width: 100%; }
+
+/* 彈性路徑列表行 */
 .track-row {
   display: grid;
-  grid-template-columns: 55px 75px 100px 1fr 60px;
+  grid-template-columns: minmax(40px, 0.8fr) minmax(65px, 1fr) minmax(70px, 1.1fr) minmax(75px, 1.2fr) minmax(45px, 0.8fr);
   align-items: center;
   padding: 6px 8px;
   background: rgba(255,255,255,0.02);
@@ -463,6 +505,12 @@ body.light-theme .dropdown-content {
   cursor: pointer;
   gap: 4px;
   transition: background 0.2s;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.track-row > span {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .track-row:hover { background: rgba(255,255,255,0.08); }
 
@@ -471,7 +519,7 @@ body.light-theme .dropdown-content {
   color: rgba(255, 255, 255, 0.6); font-weight: bold; font-size: 10px;
 }
 
-/* 地圖風暴名稱標籤 (與強度配色對應) */
+/* 地圖風暴名稱標籤 */
 .storm-map-label {
   border: none !important;
   font-weight: bold !important;
@@ -670,12 +718,13 @@ body.light-theme .dropdown-content {
 <script>
 const MACAU_COORDS = [22.1595, 113.5685];
 let map;
+let darkTile, lightTile, currentTile;
 let mapLayers = [];
 let showCone = true;
 let currentTCData = [];
 let activeTabState = {};
+let stormTrackVisibility = {}; // 追蹤個別風暴路徑顯隱狀態 (預設 true)
 
-// 強度級別對應顏色與 Logo 圖標檔名 (已更改為 TC logo)
 const INTENSITY_CONFIG = {
   'LOW':    { name: '低壓區',       color: 'var(--c-low)',    logo: 'TC logo/LPA.png' },
   'TD':     { name: '熱帶低氣壓',   color: 'var(--c-td)',     logo: 'TC logo/TD.png' },
@@ -699,10 +748,18 @@ const STANDARD_ERROR_RADIUS = {
 function initMap() {
   map = L.map('map', { zoomControl: false }).setView(MACAU_COORDS, 6);
   
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  darkTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     maxZoom: 18,
     attribution: '&copy; OpenStreetMap &copy; CARTO'
-  }).addTo(map);
+  });
+
+  lightTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    maxZoom: 18,
+    attribution: '&copy; OpenStreetMap &copy; CARTO'
+  });
+
+  currentTile = darkTile;
+  currentTile.addTo(map);
 
   L.control.zoom({ position: 'topleft' }).addTo(map);
 
@@ -718,9 +775,15 @@ function initMap() {
   initSidebarControls();
 }
 
-/* 頂欄選單與主題切換邏輯 */
+/* 1. 地圖隨日夜模式切換 */
 function toggleTheme() {
   document.body.classList.toggle('light-theme');
+  const isLight = document.body.classList.contains('light-theme');
+  if (map) {
+    map.removeLayer(currentTile);
+    currentTile = isLight ? lightTile : darkTile;
+    currentTile.addTo(map);
+  }
 }
 
 function toggleMenu() {
@@ -744,7 +807,7 @@ function updateHeaderClock() {
   }
 }
 
-/* 側邊欄拖拽與展開/收起 */
+/* 3. 修復側邊欄關閉後可正常重新開啟 */
 function initSidebarControls() {
   const resizer = document.getElementById('dragResizer');
   const sidebar = document.getElementById('sidebarPanel');
@@ -777,7 +840,6 @@ function initSidebarControls() {
     }
   });
 
-  // 移動端下拉選單點擊支持
   document.querySelectorAll('.dropdown-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
       if (window.innerWidth <= 768) {
@@ -792,15 +854,18 @@ function toggleSidebar() {
   const sidebar = document.getElementById('sidebarPanel');
   const resizer = document.getElementById('dragResizer');
   const floatingBtn = document.getElementById('floatingToggleBtn');
+  const mapQuickSelect = document.getElementById('mapQuickSelect');
   
   const isCollapsed = sidebar.classList.toggle('collapsed');
   
   if (isCollapsed) {
     resizer.style.display = 'none';
     floatingBtn.style.display = 'block';
+    if (mapQuickSelect) mapQuickSelect.style.top = '56px';
   } else {
     resizer.style.display = 'block';
     floatingBtn.style.display = 'none';
+    if (mapQuickSelect) mapQuickSelect.style.top = '12px';
   }
 
   setTimeout(() => { if (map) map.invalidateSize(); }, 280);
@@ -834,6 +899,16 @@ function toggleErrorCone() {
   showCone = !showCone;
   document.getElementById('btnCone').classList.toggle('active', showCone);
   if (currentTCData.length > 0) renderTCs(currentTCData);
+}
+
+/* 2. 切換個別風暴路徑顯示 */
+function toggleStormTrack(stormName) {
+  if (stormTrackVisibility[stormName] === undefined) {
+    stormTrackVisibility[stormName] = false;
+  } else {
+    stormTrackVisibility[stormName] = !stormTrackVisibility[stormName];
+  }
+  renderTCs(currentTCData);
 }
 
 function resetView() {
@@ -1210,12 +1285,23 @@ function renderTCs(tcList) {
     const distMacau = calcDistance(activePoint.lat, activePoint.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
     const dirMacau = getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], activePoint.lat, activePoint.lon);
 
-    // 快捷選單
+    // 預設風暴路徑為可見狀態
+    if (stormTrackVisibility[tc.name] === undefined) {
+      stormTrackVisibility[tc.name] = true;
+    }
+    const isTrackVisible = stormTrackVisibility[tc.name];
+
+    // 2. 活躍熱帶氣旋：顯示距澳距離 & 顯示路徑按鈕（亮起表示顯示路徑）
     const qsItem = document.createElement('div');
     qsItem.className = 'overlay-storm-item';
     qsItem.innerHTML = `
-      <span><strong style="color:${catInfo.color}">● ${catInfo.name}</strong> ${tc.name}</span>
-      <button class="btn-mini" onclick="focusStorm(${activePoint.lat}, ${activePoint.lon})">聚焦</button>
+      <div class="overlay-storm-info">
+        <div class="overlay-storm-title"><strong style="color:${catInfo.color}">● ${catInfo.name}</strong> ${tc.name}</div>
+        <div class="overlay-storm-sub">距澳門約 ${distMacau} km (${dirMacau})</div>
+      </div>
+      <button class="btn-mini ${isTrackVisible ? 'active' : ''}" onclick="toggleStormTrack('${tc.name}')">
+        顯示路徑
+      </button>
     `;
     quickSelectEl.appendChild(qsItem);
 
@@ -1223,7 +1309,7 @@ function renderTCs(tcList) {
       activeTabState[tc.name] = 'forecast';
     }
 
-    // 側邊欄卡片
+    // 4. 側邊欄卡片渲染
     const card = document.createElement('div');
     card.className = 'tc-card';
     card.id = `card-${tc.name}`;
@@ -1231,7 +1317,10 @@ function renderTCs(tcList) {
     renderCardContent(card, tc, activePoint, catInfo, distMacau, dirMacau);
     sidebarEl.appendChild(card);
 
-    // 1. 歷史路徑線與定位點
+    // 若關閉路徑顯示，則跳過該風暴的地圖繪製
+    if (!isTrackVisible) return;
+
+    // 地圖繪製邏輯
     const allPastPoints = [...tc.pastPoints];
     if (tc.currentPoint) allPastPoints.push(tc.currentPoint);
 
@@ -1253,20 +1342,15 @@ function renderTCs(tcList) {
       mapLayers.push(marker);
     });
 
-    // 2. 預測路徑線與潛在錐體
     const conePoints = [];
     if (tc.currentPoint) conePoints.push(tc.currentPoint);
     tc.forecastPoints.forEach(fp => conePoints.push(fp));
 
     if (conePoints.length > 1) {
       drawSegmentedTrack(conePoints, true);
-
-      if (showCone) {
-        drawSmoothSegmentedCone(conePoints);
-      }
+      if (showCone) drawSmoothSegmentedCone(conePoints);
     }
 
-    // 3. 渲染定位點 (當前點使用 TC logo/ 圖標及加上強度顏色的名稱標籤)
     conePoints.forEach(pt => {
       const pCat = INTENSITY_CONFIG[pt.cat] || INTENSITY_CONFIG['TD'];
       let marker;
@@ -1277,7 +1361,6 @@ function renderTCs(tcList) {
           zIndexOffset: 1000
         }).addTo(map);
 
-        // 新增地圖風暴名稱標籤 (如圖示樣式，配色跟隨強度)
         marker.bindTooltip(tc.name, {
           permanent: true,
           direction: 'top',
@@ -1301,7 +1384,6 @@ function renderTCs(tcList) {
   });
 }
 
-/* 渲染風暴卡片 (已移除紅點指示器) */
 function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau) {
   const currentTab = activeTabState[tc.name];
 
@@ -1381,7 +1463,7 @@ function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau
         <span class="info-box-val" style="color:#f59e0b;">${dirMacau} ${distMacau}km</span>
       </div>
       <div class="info-box">
-        <span class="info-box-label">中心附近最高持續風速</span>
+        <span class="info-box-label">中心最高持續風速</span>
         <span class="info-box-val">${activePoint.wind}</span>
       </div>
       <div class="info-box">
