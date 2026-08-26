@@ -6,16 +6,18 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-<title>熱帶氣旋路徑追蹤器 - 澳門特別版</title>
+<title>熱帶氣旋路徑追蹤器 - 澳門民間氣象台 MSSO</title>
 <style>
 :root {
   --bg-dark: #0b0f19;
   --bg-panel: #121826;
   --card-bg: #1a2235;
+  --card-bg-light: rgba(255, 255, 255, 0.06);
   --card-border: rgba(255, 255, 255, 0.08);
   --text-main: #f1f5f9;
   --text-muted: #94a3b8;
   --accent-blue: #38bdf8;
+  --accent-teal: #2dd4bf;
   
   --c-low: #94a3b8;
   --c-td: #38bdf8;
@@ -25,6 +27,16 @@
   --c-st: #ef4444;
   --c-supert: #c084fc;
   --c-ex: #64748b;
+}
+
+body.light-theme {
+  --bg-dark: #f8fafc;
+  --bg-panel: #ffffff;
+  --card-bg: #f1f5f9;
+  --card-bg-light: rgba(0, 0, 0, 0.05);
+  --card-border: rgba(0, 0, 0, 0.1);
+  --text-main: #0f172a;
+  --text-muted: #64748b;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -38,46 +50,207 @@ body {
   overflow: hidden;
 }
 
-.top-header {
-  background: #0f1523;
+/* ========== 2. 頁頭 Header & 頂欄導航 ========== */
+.header-nav-container {
+  position: sticky;
+  top: 0;
+  z-index: 3000;
+  background: rgba(11, 15, 25, 0.85);
+  backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--card-border);
-  padding: 8px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  z-index: 2000;
+  padding: 0.75rem 1.5rem;
+  transition: background 0.3s ease;
+  flex-shrink: 0;
+}
+body.light-theme .header-nav-container {
+  background: rgba(248, 250, 252, 0.88);
+}
+
+.header {
+  display: flex;
+  align-items: center;
   gap: 12px;
 }
-.brand-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 1.05rem;
+.logo {
+  height: 38px;
+  width: auto;
+  filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.3));
+}
+.title {
+  font-size: 1.15rem;
   font-weight: 700;
   color: var(--accent-blue);
-  white-space: nowrap;
-}
-.brand-title span { font-size: 0.75rem; color: var(--text-muted); font-weight: normal; }
-
-.header-controls {
+  letter-spacing: 0.5px;
   display: flex;
-  align-items: center;
-  gap: 8px;
+  align-items: baseline;
+  gap: 10px;
   flex-wrap: wrap;
 }
-.ctrl-btn, .ctrl-select {
-  background: rgba(255, 255, 255, 0.06);
+.header-clock {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--accent-teal);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.9;
+}
+
+.menu-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 主題切換按鈕 */
+.theme-toggle-btn {
+  background: var(--card-bg-light);
   border: 1px solid var(--card-border);
   color: var(--text-main);
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.82rem;
+  padding: 8px 12px;
+  border-radius: 20px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.25s ease;
   outline: none;
 }
-.ctrl-btn:hover, .ctrl-select:hover { background: rgba(255, 255, 255, 0.12); }
-.ctrl-btn.active { background: #0284c7; border-color: var(--accent-blue); }
+.theme-toggle-btn:hover {
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  transform: translateY(-1px);
+}
+.sun-icon { display: block; }
+.moon-icon { display: none; }
+body.light-theme .sun-icon { display: none; }
+body.light-theme .moon-icon { display: block; }
 
+.menu-toggle {
+  display: none;
+  font-size: 22px;
+  padding: 6px 12px;
+  cursor: pointer;
+  background: var(--card-bg-light);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.menu-toggle:hover { border-color: var(--accent-blue); }
+.menu-toggle.active {
+  border-color: var(--accent-blue);
+  background: rgba(56, 189, 248, 0.12);
+}
+
+.nav {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.nav a {
+  color: var(--text-muted);
+  padding: 8px 14px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-decoration: none;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  display: block;
+}
+.nav a:hover {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+body.light-theme .nav a:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* 下拉選單樣式 */
+.dropdown {
+  position: relative;
+  display: inline-block;
+}
+.dropdown-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 8px 14px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  font-family: inherit;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dropdown-btn .arrow {
+  font-size: 0.7rem;
+  transition: transform 0.2s ease;
+}
+.dropdown:hover .dropdown-btn,
+.dropdown.active .dropdown-btn {
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+}
+body.light-theme .dropdown:hover .dropdown-btn,
+body.light-theme .dropdown.active .dropdown-btn {
+  background: rgba(0, 0, 0, 0.05);
+}
+.dropdown:hover .arrow,
+.dropdown.active .arrow {
+  transform: rotate(180deg);
+}
+
+.dropdown-content {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 190px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 6px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  z-index: 3100;
+  margin-top: 4px;
+
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0s linear 0.4s;
+}
+.dropdown-content::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 0;
+  width: 100%;
+  height: 8px;
+}
+body.light-theme .dropdown-content {
+  background: rgba(255, 255, 255, 0.98);
+}
+.dropdown:hover .dropdown-content,
+.dropdown.active .dropdown-content {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.25s ease, visibility 0s linear 0s;
+}
+.dropdown-content a {
+  padding: 8px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+  font-size: 0.88rem;
+}
+
+/* 主要容器與地圖區域 */
 .main-container {
   display: flex;
   flex: 1;
@@ -88,7 +261,33 @@ body {
 #map-wrapper { flex: 1; position: relative; height: 100%; min-width: 0; }
 #map { width: 100%; height: 100%; background: #090d16; }
 
-/* 拖拽寬度分隔條 */
+.sub-header-bar {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 1000;
+  display: flex;
+  gap: 8px;
+  background: rgba(15, 21, 35, 0.85);
+  backdrop-filter: blur(8px);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+}
+
+.ctrl-btn, .ctrl-select {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  outline: none;
+}
+.ctrl-btn:hover, .ctrl-select:hover { background: rgba(255, 255, 255, 0.16); }
+.ctrl-btn.active { background: #0284c7; border-color: var(--accent-blue); }
+
 .resizer {
   width: 6px;
   background: rgba(255, 255, 255, 0.08);
@@ -97,9 +296,7 @@ body {
   z-index: 1001;
   flex-shrink: 0;
 }
-.resizer:hover, .resizer.dragging {
-  background: var(--accent-blue);
-}
+.resizer:hover, .resizer.dragging { background: var(--accent-blue); }
 
 .map-overlay-topright {
   position: absolute;
@@ -109,7 +306,7 @@ body {
   backdrop-filter: blur(8px);
   border: 1px solid var(--card-border);
   border-radius: 8px;
-  padding: 10px; width: 280px;
+  padding: 10px; width: 260px;
 }
 .overlay-storm-item {
   display: flex; align-items: center; justify-content: space-between;
@@ -134,7 +331,7 @@ body {
 .legend-item { display: flex; align-items: center; gap: 8px; }
 .legend-color { width: 12px; height: 12px; border-radius: 50%; }
 
-/* 可調寬度與收起的側邊欄 */
+/* 右側側邊欄 */
 .sidebar {
   width: 420px;
   min-width: 280px;
@@ -191,10 +388,10 @@ body {
 
 .sidebar-content { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
 
-/* 風暴卡片樣式 */
+/* 風暴卡片 */
 .tc-card {
-  background: #151d2a;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 12px;
   padding: 14px;
 }
@@ -208,12 +405,6 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-.red-dot-indicator {
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  background-color: #ef4444;
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
 }
 .tc-storm-name {
   font-size: 1.1rem;
@@ -244,39 +435,22 @@ body {
   flex-direction: column;
   gap: 4px;
 }
-.info-box-label {
-  font-size: 0.72rem;
-  color: var(--text-muted);
-}
-.info-box-val {
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: var(--text-main);
-}
+.info-box-label { font-size: 0.72rem; color: var(--text-muted); }
+.info-box-val { font-size: 0.92rem; font-weight: 700; color: var(--text-main); }
 
 .tab-group {
   display: flex;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.2);
   border-radius: 6px;
   padding: 2px;
   margin-bottom: 10px;
 }
 .tab-btn {
-  flex: 1;
-  background: transparent;
-  border: none;
-  color: var(--text-muted);
-  padding: 6px 0;
-  font-size: 0.8rem;
-  font-weight: bold;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
+  flex: 1; background: transparent; border: none;
+  color: var(--text-muted); padding: 6px 0; font-size: 0.8rem;
+  font-weight: bold; border-radius: 4px; cursor: pointer; transition: all 0.2s;
 }
-.tab-btn.active {
-  background: var(--accent-blue);
-  color: #000;
-}
+.tab-btn.active { background: var(--accent-blue); color: #000; }
 
 .track-list { font-size: 0.78rem; display: flex; flex-direction: column; gap: 6px; }
 .track-row {
@@ -293,13 +467,30 @@ body {
 .track-row:hover { background: rgba(255,255,255,0.08); }
 
 .distance-label {
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  color: rgba(255, 255, 255, 0.6);
-  font-weight: bold;
-  font-size: 10px;
+  background: transparent; border: none; box-shadow: none;
+  color: rgba(255, 255, 255, 0.6); font-weight: bold; font-size: 10px;
 }
+
+/* 地圖風暴名稱標籤 (與強度配色對應) */
+.storm-map-label {
+  border: none !important;
+  font-weight: bold !important;
+  font-size: 0.92rem !important;
+  border-radius: 10px !important;
+  padding: 5px 14px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  letter-spacing: 0.5px;
+}
+.storm-map-label::before { display: none !important; }
+
+.storm-label-LOW { background-color: var(--c-low) !important; color: #ffffff !important; }
+.storm-label-TD { background-color: var(--c-td) !important; color: #ffffff !important; }
+.storm-label-TS { background-color: var(--c-ts) !important; color: #000000 !important; }
+.storm-label-STS { background-color: var(--c-sts) !important; color: #000000 !important; }
+.storm-label-T { background-color: var(--c-t) !important; color: #ffffff !important; }
+.storm-label-ST { background-color: var(--c-st) !important; color: #ffffff !important; }
+.storm-label-SuperT { background-color: var(--c-supert) !important; color: #ffffff !important; }
+.storm-label-EX { background-color: var(--c-ex) !important; color: #ffffff !important; }
 
 .leaflet-popup-content-wrapper {
   background: rgba(18, 24, 38, 0.95) !important;
@@ -312,29 +503,134 @@ body {
 .leaflet-popup-tip { background: rgba(18, 24, 38, 0.95) !important; }
 .popup-data-box { font-size: 0.8rem; line-height: 1.5; padding: 4px; }
 .popup-data-box strong { color: var(--accent-blue); }
+
+/* 響應式適配 */
+@media (max-width: 768px) {
+  .header-nav-container { padding: 0.75rem 1rem; }
+  .menu-toggle { display: block; }
+  .nav {
+    display: none; flex-direction: column; width: 230px; position: absolute;
+    top: calc(100% + 8px); right: 0; background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(16px); border: 1px solid var(--card-border);
+    border-radius: 12px; padding: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    align-items: stretch;
+  }
+  body.light-theme .nav { background: rgba(255, 255, 255, 0.98); }
+  .nav a { width: 100%; padding: 10px 14px; border-radius: 8px; }
+  .nav.active { display: flex; }
+
+  .dropdown { width: 100%; }
+  .dropdown-btn { width: 100%; justify-content: space-between; padding: 10px 14px; border-radius: 8px; }
+  .dropdown-content {
+    position: static; display: none; opacity: 1; visibility: visible;
+    box-shadow: none; border: none; background: rgba(255, 255, 255, 0.03);
+    margin-top: 4px; padding-left: 10px; border-left: 2px solid var(--accent-blue);
+    border-radius: 0 8px 8px 0; transition: none;
+  }
+  body.light-theme .dropdown-content { background: rgba(0, 0, 0, 0.03); }
+  .dropdown.active .dropdown-content { display: block; }
+}
+
+@media (min-width: 769px) {
+  .nav { display: flex !important; }
+  .menu-toggle { display: none !important; }
+}
+
+@media (max-width: 375px) {
+  .nav { width: calc(100vw - 30px); }
+}
 </style>
 </head>
 
 <body>
 
-<div class="top-header">
-  <div class="brand-title">
-    ⚡ 熱帶氣旋路徑追蹤器
-    <span>MACAU (22.1595, 113.5685)</span>
+<!-- 頂欄導航 -->
+<div class="header-nav-container">
+  <div class="header">
+    <img src="icons/MSSO.png" class="logo" alt="MSSO Logo">
+    <div class="title">
+      澳門民間氣象台 MSSO
+      <span id="headerClock" class="header-clock"></span>
+    </div>
   </div>
-  <div class="header-controls">
-    <select class="ctrl-select" id="yearSelect"><option>2026</option></select>
-    <button class="ctrl-btn active" id="btnCone" onclick="toggleErrorCone()">潛在路徑範圍錐體</button>
-    <button class="ctrl-btn" onclick="resetView()">重置視角(澳門)</button>
-    <button class="ctrl-btn" onclick="loadTCData()">立即刷新</button>
+
+  <div class="menu-container">
+    <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+      <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    </button>
+
+    <div class="menu-toggle" onclick="toggleMenu()">☰</div>
+    <div class="nav" id="navMenu">
+      <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
+
+      <div class="dropdown">
+        <button class="dropdown-btn">澳門天氣 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="map.html">綜合氣象實況</a>
+          <a href="https://macaosso.github.io/MSSOweb/moWBGT.html">(NEW)暑熱監測</a>
+          <a href="https://macaosso.github.io/MSSOweb/AQImap.html">空氣質量實況</a>
+          <a href="https://macaosso.github.io/MSSOweb/moweather.html">電腦模式天氣實況及預報</a>
+          <a href="https://macaosso.github.io/MSSOweb/morain.html">降雨預報</a>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-btn">熱帶氣旋 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
+          <a href="https://macaosso.github.io/MSSOweb/TCtracker.html">熱帶氣旋襲澳追蹤</a>
+          <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋計算工具</a>
+          <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑GIS地圖</a>
+        </div>
+      </div>
+      
+      <div class="dropdown">
+        <button class="dropdown-btn">天文 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/astro.html">天文</a>
+        </div>
+      </div>
+      
+      <div class="dropdown">
+        <button class="dropdown-btn">氣候 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+            <a href="https://macaosso.github.io/MSSOweb/climate.html">澳門氣候</a>
+            <a href="https://macaosso.github.io/MSSOweb/24.html">(NEW)二十四節氣專頁</a>
+        </div>
+      </div>
+
+      <div class="dropdown">
+        <button class="dropdown-btn">地球物理 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="earthquake.html">(NEW)地震</a>
+          <a href="https://macaosso.github.io/MSSOweb/tsunami.html">(NEW)海嘯</a>
+          <a href="https://macaosso.github.io/MSSOweb/time.html">(NEW)授時</a>
+        </div>
+      </div>
+      
+      <div class="dropdown">
+        <button class="dropdown-btn">其他 <span class="arrow">▼</span></button>
+        <div class="dropdown-content">
+          <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
+          <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
 <div class="main-container">
   <div id="map-wrapper">
+    <div class="sub-header-bar">
+      <select class="ctrl-select" id="yearSelect"><option>2026</option></select>
+      <button class="ctrl-btn active" id="btnCone" onclick="toggleErrorCone()">潛在路徑範圍錐體</button>
+      <button class="ctrl-btn" onclick="resetView()">重置視角(澳門)</button>
+      <button class="ctrl-btn" onclick="loadTCData()">立即刷新</button>
+    </div>
+
     <div id="map"></div>
 
-    <!-- 側邊欄收起時的浮動展開按鈕 -->
     <button class="floating-toggle-btn" id="floatingToggleBtn" onclick="toggleSidebar()">
       📋 風暴詳細數據 ❮
     </button>
@@ -357,10 +653,8 @@ body {
     </div>
   </div>
 
-  <!-- 可拖拽調節寬度邊界條 -->
   <div class="resizer" id="dragResizer"></div>
 
-  <!-- 右側數據欄 -->
   <div class="sidebar" id="sidebarPanel">
     <div class="sidebar-header">
       <div style="display:flex; align-items:center; gap:8px;">
@@ -381,7 +675,7 @@ let showCone = true;
 let currentTCData = [];
 let activeTabState = {};
 
-// 強度級別對應顏色與 Logo 圖標檔名
+// 強度級別對應顏色與 Logo 圖標檔名 (已更改為 TC logo)
 const INTENSITY_CONFIG = {
   'LOW':    { name: '低壓區',       color: 'var(--c-low)',    logo: 'TC logo/LPA.png' },
   'TD':     { name: '熱帶低氣壓',   color: 'var(--c-td)',     logo: 'TC logo/TD.png' },
@@ -424,7 +718,33 @@ function initMap() {
   initSidebarControls();
 }
 
-/* 側邊欄寬度調整與展開/收起邏輯 */
+/* 頂欄選單與主題切換邏輯 */
+function toggleTheme() {
+  document.body.classList.toggle('light-theme');
+}
+
+function toggleMenu() {
+  const nav = document.getElementById('navMenu');
+  const toggle = document.querySelector('.menu-toggle');
+  if (nav) nav.classList.toggle('active');
+  if (toggle) toggle.classList.toggle('active');
+}
+
+function updateHeaderClock() {
+  const clockEl = document.getElementById('headerClock');
+  if (clockEl) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    clockEl.textContent = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+  }
+}
+
+/* 側邊欄拖拽與展開/收起 */
 function initSidebarControls() {
   const resizer = document.getElementById('dragResizer');
   const sidebar = document.getElementById('sidebarPanel');
@@ -456,6 +776,16 @@ function initSidebarControls() {
       if (map) map.invalidateSize();
     }
   });
+
+  // 移動端下拉選單點擊支持
+  document.querySelectorAll('.dropdown-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      if (window.innerWidth <= 768) {
+        const dropdown = btn.closest('.dropdown');
+        if (dropdown) dropdown.classList.toggle('active');
+      }
+    });
+  });
 }
 
 function toggleSidebar() {
@@ -473,9 +803,7 @@ function toggleSidebar() {
     floatingBtn.style.display = 'none';
   }
 
-  setTimeout(() => {
-    if (map) map.invalidateSize();
-  }, 280);
+  setTimeout(() => { if (map) map.invalidateSize(); }, 280);
 }
 
 function drawMacauDistanceRings() {
@@ -588,7 +916,6 @@ function getCategoryKey(catStr, windStr) {
   return 'TD';
 }
 
-/* 獲取當前位置圖標 (TC_logo/格式) */
 function getTCLogoIcon(catKey, size = 32) {
   const config = INTENSITY_CONFIG[catKey] || INTENSITY_CONFIG['TD'];
   return L.icon({
@@ -604,7 +931,6 @@ function clearMapLayers() {
   mapLayers = [];
 }
 
-/* 分段繪製色彩軌跡線 (Track line color follows intensity color) */
 function drawSegmentedTrack(points, isForecast = false) {
   for (let i = 0; i < points.length - 1; i++) {
     const p1 = points[i];
@@ -905,7 +1231,7 @@ function renderTCs(tcList) {
     renderCardContent(card, tc, activePoint, catInfo, distMacau, dirMacau);
     sidebarEl.appendChild(card);
 
-    // 1. 歷史路徑線與定位點 (依據強度顏色繪製分段彩色軌跡線)
+    // 1. 歷史路徑線與定位點
     const allPastPoints = [...tc.pastPoints];
     if (tc.currentPoint) allPastPoints.push(tc.currentPoint);
 
@@ -940,19 +1266,26 @@ function renderTCs(tcList) {
       }
     }
 
-    // 3. 渲染定位點 (當前位置使用 TC_logo/ 圖標，其餘預測點使用圓點)
+    // 3. 渲染定位點 (當前點使用 TC logo/ 圖標及加上強度顏色的名稱標籤)
     conePoints.forEach(pt => {
       const pCat = INTENSITY_CONFIG[pt.cat] || INTENSITY_CONFIG['TD'];
       let marker;
 
       if (pt.type === 'Current') {
-        // 當前點：改用 TC_logo/ 圖標 (例如 TC_logo/TY.png, TC_logo/TD.png)
         marker = L.marker([pt.lat, pt.lon], {
           icon: getTCLogoIcon(pt.cat, 34),
           zIndexOffset: 1000
         }).addTo(map);
+
+        // 新增地圖風暴名稱標籤 (如圖示樣式，配色跟隨強度)
+        marker.bindTooltip(tc.name, {
+          permanent: true,
+          direction: 'top',
+          offset: [0, -18],
+          className: `storm-map-label storm-label-${pt.cat}`
+        });
+
       } else {
-        // 預測點：白邊圓點
         marker = L.circleMarker([pt.lat, pt.lon], {
           radius: 5,
           fillColor: pCat.color,
@@ -968,6 +1301,7 @@ function renderTCs(tcList) {
   });
 }
 
+/* 渲染風暴卡片 (已移除紅點指示器) */
 function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau) {
   const currentTab = activeTabState[tc.name];
 
@@ -1031,7 +1365,6 @@ function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau
   cardEl.innerHTML = `
     <div class="tc-header-row">
       <div class="tc-header-left">
-        <div class="red-dot-indicator"></div>
         <span class="badge-tag" style="background:${catInfo.color}">${catInfo.name}</span>
         <span class="tc-storm-name">${tc.name}</span>
       </div>
@@ -1118,6 +1451,8 @@ window.addEventListener('DOMContentLoaded', () => {
   initMap();
   loadTCData();
   setInterval(loadTCData, 300000);
+  setInterval(updateHeaderClock, 1000);
+  updateHeaderClock();
 });
 </script>
 </body>
