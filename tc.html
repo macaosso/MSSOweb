@@ -8,7 +8,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <title>澳門民間氣象台 - 熱帶氣旋資訊及GIS地圖</title>
 <style>
-/* ========== 1. 深太空 (Deep Space) 主題基礎 ========== */
+/* ========== 深太空 (Deep Space) 主題基礎 ========== */
 :root {
   --bg-dark: #0b0f19;
   --card-bg: rgba(22, 30, 46, 0.75);
@@ -24,11 +24,6 @@
   --accent-orange: #f59e0b;
   --accent-red: #ef4444;
   --accent-purple: #c084fc;
-
-  --bg-red: rgba(239, 68, 68, 0.12);
-  --border-red: rgba(239, 68, 68, 0.35);
-  --bg-orange: rgba(245, 158, 11, 0.12);
-  --border-orange: rgba(245, 158, 11, 0.35);
 }
 
 body.light-theme {
@@ -93,7 +88,6 @@ body.light-theme .sun-icon { display: none; } body.light-theme .moon-icon { disp
 .nav a { color: var(--text-muted); padding: 8px 14px; font-size: 0.92rem; font-weight: 500; text-decoration: none; border-radius: 20px; }
 .nav a:hover, .nav a.active { color: var(--text-main); background: rgba(255, 255, 255, 0.08); }
 
-/* Dropdown */
 .dropdown { position: relative; display: inline-block; }
 .dropdown-btn { background: transparent; border: none; color: var(--text-muted); padding: 8px 14px; font-size: 0.92rem; font-weight: 500; cursor: pointer; border-radius: 20px; }
 .dropdown-content {
@@ -191,7 +185,6 @@ body.light-theme .dropdown-content { background: rgba(255, 255, 255, 0.98); }
 }
 .mode-btn:hover { border-color: var(--accent-teal); color: var(--accent-teal); }
 
-/* Custom Map Marker Popup Style */
 .leaflet-popup-content-wrapper {
   background: rgba(15, 23, 42, 0.95) !important;
   color: #f1f5f9 !important;
@@ -256,12 +249,12 @@ body.light-theme .dropdown-content { background: rgba(255, 255, 255, 0.98); }
       <table class="tc-table">
         <thead>
           <tr>
-            <th>熱帶氣旋名稱</th>
+            <th>編號與名稱</th>
             <th>強度等級</th>
-            <th>位置 (緯度/經度)</th>
+            <th>最新位置 (緯/經度)</th>
             <th>中心最高風速</th>
             <th>中心氣壓</th>
-            <th>移動方向及速度</th>
+            <th>移動方向與速度</th>
           </tr>
         </thead>
         <tbody id="tcTableBody">
@@ -278,10 +271,8 @@ body.light-theme .dropdown-content { background: rgba(255, 255, 255, 0.98); }
 </div>
 
 <script>
-// 1. 全局變量與主題控制
 let map;
-let mapMarkers = [];
-let mapPolyline = null;
+let mapLayers = [];
 let useDemoData = false;
 
 function applyTheme(theme) {
@@ -311,38 +302,40 @@ function updateHeaderClock() {
 setInterval(updateHeaderClock, 1000);
 updateHeaderClock();
 
-// 2. Leaflet GIS 地圖初始化
 function initMap() {
   map = L.map('map-container').setView([18.0, 115.0], 5);
-  
   L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
     attribution: '&copy; OpenStreetMap &copy; CARTO',
     maxZoom: 18
   }).addTo(map);
 }
 
-// 3. 強度顏色與 Badge 標籤輔助函式
 function getIntensityBadge(intensity) {
   if (!intensity) return `<span class="badge badge-td">熱帶低氣壓</span>`;
-  if (intensity.includes('超強颱風')) return `<span class="badge badge-super">超強颱風</span>`;
-  if (intensity.includes('強颱風')) return `<span class="badge badge-sty">強颱風</span>`;
-  if (intensity.includes('颱風')) return `<span class="badge badge-ty">颱風</span>`;
-  if (intensity.includes('強烈熱帶風暴')) return `<span class="badge badge-sts">強烈熱帶風暴</span>`;
-  if (intensity.includes('熱帶風暴')) return `<span class="badge badge-ts">熱帶風暴</span>`;
+  if (intensity.includes('Super Typhoon') || intensity.includes('超強颱風')) return `<span class="badge badge-super">超強颱風</span>`;
+  if (intensity.includes('Severe Typhoon') || intensity.includes('強颱風')) return `<span class="badge badge-sty">強颱風</span>`;
+  if (intensity.includes('Typhoon') || intensity.includes('颱風')) return `<span class="badge badge-ty">颱風</span>`;
+  if (intensity.includes('Severe Tropical Storm') || intensity.includes('強烈熱帶風暴')) return `<span class="badge badge-sts">強烈熱帶風暴</span>`;
+  if (intensity.includes('Tropical Storm') || intensity.includes('熱帶風暴')) return `<span class="badge badge-ts">熱帶風暴</span>`;
   return `<span class="badge badge-td">${intensity}</span>`;
 }
 
 function getIntensityColor(intensity) {
   if (!intensity) return '#38bdf8';
-  if (intensity.includes('超強颱風')) return '#c084fc';
-  if (intensity.includes('強颱風')) return '#ef4444';
-  if (intensity.includes('颱風')) return '#f59e0b';
-  if (intensity.includes('強烈熱帶風暴')) return '#facc15';
-  if (intensity.includes('熱帶風暴')) return '#34d399';
+  if (intensity.includes('Super Typhoon') || intensity.includes('超強颱風')) return '#c084fc';
+  if (intensity.includes('Severe Typhoon') || intensity.includes('強颱風')) return '#ef4444';
+  if (intensity.includes('Typhoon') || intensity.includes('颱風')) return '#f59e0b';
+  if (intensity.includes('Severe Tropical Storm') || intensity.includes('強烈熱帶風暴')) return '#facc15';
+  if (intensity.includes('Tropical Storm') || intensity.includes('熱帶風暴')) return '#34d399';
   return '#38bdf8';
 }
 
-// 4. 解析 HKO XML 數據與繪製 GIS
+function clearMap() {
+  mapLayers.forEach(layer => map.removeLayer(layer));
+  mapLayers = [];
+}
+
+// 兩階段 Fetch：讀取 tc_list.xml -> 獲取 TropicalCycloneURL -> 解析路徑 XML
 async function fetchTCData() {
   const statusEl = document.getElementById('dataStatus');
   const tableBody = document.getElementById('tcTableBody');
@@ -353,104 +346,149 @@ async function fetchTCData() {
     return;
   }
 
-  statusEl.textContent = "數據載入中...";
-  const targetUrl = "https://www.weather.gov.hk/wxinfo/currwx/tc_list.xml";
-  const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`;
+  statusEl.textContent = "讀取熱帶氣旋列表中...";
+  const indexUrl = "https://www.weather.gov.hk/wxinfo/currwx/tc_list.xml";
+  const proxyIndexUrl = `https://corsproxy.io/?url=${encodeURIComponent(indexUrl)}`;
 
   try {
-    const res = await fetch(proxyUrl, { cache: 'no-store' });
+    const res = await fetch(proxyIndexUrl, { cache: 'no-store' });
     if (!res.ok) throw new Error("網絡請求失敗");
-    
+
     const xmlText = await res.text();
     const parser = new DOMParser();
     const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-    
-    const tcList = Array.from(xmlDoc.querySelectorAll("tropical_cyclone, cyclone, TC"));
+
+    const cyclones = Array.from(xmlDoc.querySelectorAll("TropicalCyclone"));
 
     clearMap();
 
-    if (tcList.length === 0) {
+    if (cyclones.length === 0) {
       statusEl.textContent = "當前無活躍熱帶氣旋";
       tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; padding: 20px;">當前西北太平洋及南海海域無活躍熱帶氣旋系統。</td></tr>`;
       lastUpdateEl.textContent = `發佈時間：${new Date().toLocaleTimeString()}`;
       return;
     }
 
-    statusEl.textContent = `已成功讀取 ${tcList.length} 個熱帶氣旋`;
     tableBody.innerHTML = "";
-    const trackPoints = [];
+    let processedCount = 0;
 
-    tcList.forEach(tc => {
-      const nameTc = tc.querySelector("name_tc, name_c, name")?.textContent || "未命名";
-      const intensity = tc.querySelector("intensity_tc, intensity, category")?.textContent || "熱帶氣旋";
-      const lat = parseFloat(tc.querySelector("lat, latitude")?.textContent || 0);
-      const lon = parseFloat(tc.querySelector("lng, lon, longitude")?.textContent || 0);
-      const wind = tc.querySelector("max_wind_kmh, max_wind, wind_speed")?.textContent || "--";
-      const pressure = tc.querySelector("pressure, central_pressure")?.textContent || "--";
-      const movement = tc.querySelector("movement, move_dir")?.textContent || "--";
+    for (const tc of cyclones) {
+      const tcId = tc.querySelector("TropicalCycloneID")?.textContent || "";
+      const cName = tc.querySelector("TropicalCycloneChineseName")?.textContent || "";
+      const eName = tc.querySelector("TropicalCycloneEnglishName")?.textContent || "";
+      let trackUrl = tc.querySelector("TropicalCycloneURL")?.textContent || "";
 
-      // 更新表格
-      const row = document.createElement('tr');
-      row.innerHTML = `
-        <td><strong>${nameTc}</strong></td>
-        <td>${getIntensityBadge(intensity)}</td>
-        <td>${lat}°N, ${lon}°E</td>
-        <td>${wind} km/h</td>
-        <td>${pressure} hPa</td>
-        <td>${movement}</td>
-      `;
-      tableBody.appendChild(row);
-
-      // 更新 GIS 地圖 Marker
-      if (lat && lon) {
-        const color = getIntensityColor(intensity);
-        const marker = L.circleMarker([lat, lon], {
-          radius: 9,
-          fillColor: color,
-          color: '#ffffff',
-          weight: 2,
-          opacity: 1,
-          fillOpacity: 0.85
-        }).addTo(map);
-
-        marker.bindPopup(`
-          <div style="font-size:14px; line-height:1.5;">
-            <b style="color:${color}; font-size:16px;">${nameTc} (${intensity})</b><br>
-            <b>位置：</b>${lat}°N, ${lon}°E<br>
-            <b>中心風速：</b>${wind} km/h<br>
-            <b>中心氣壓：</b>${pressure} hPa<br>
-            <b>動向：</b>${movement}
-          </div>
-        `);
-
-        mapMarkers.push(marker);
-        trackPoints.push([lat, lon]);
+      if (trackUrl.startsWith("http://")) {
+        trackUrl = trackUrl.replace("http://", "https://");
       }
-    });
 
-    if (trackPoints.length > 0) {
-      map.panTo(trackPoints[0]);
+      const fullName = `${cName} ${eName}`.trim() || `TC-${tcId}`;
+
+      // 階段二：讀取個別颱風 Track XML
+      try {
+        const trackProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(trackUrl)}`;
+        const trackRes = await fetch(trackProxyUrl, { cache: 'no-store' });
+        
+        if (!trackRes.ok) continue;
+
+        const trackXmlText = await trackRes.text();
+        const trackXml = parser.parseFromString(trackXmlText, "text/xml");
+
+        // 解析路徑節點
+        const points = Array.from(trackXml.querySelectorAll("point, Point, track_point, TrackPoint"));
+        const trackCoords = [];
+
+        let lastLat = null, lastLon = null, intensity = "熱帶氣旋", wind = "--", pressure = "--", movement = "--";
+
+        points.forEach(p => {
+          const lat = parseFloat(p.querySelector("Latitude, lat, Lat")?.textContent);
+          const lon = parseFloat(p.querySelector("Longitude, lon, Long, Lng")?.textContent);
+          
+          if (!isNaN(lat) && !isNaN(lon)) {
+            trackCoords.push([lat, lon]);
+            lastLat = lat;
+            lastLon = lon;
+            
+            const pWind = p.querySelector("MaxWind, WindSpeed, wind, Wind")?.textContent;
+            if (pWind) wind = pWind;
+            
+            const pPres = p.querySelector("Pressure, CentralPressure, pressure")?.textContent;
+            if (pPres) pressure = pPres;
+
+            const pInt = p.querySelector("Intensity, Category, intensity")?.textContent;
+            if (pInt) intensity = pInt;
+
+            const pMove = p.querySelector("Movement, Move, movement")?.textContent;
+            if (pMove) movement = pMove;
+          }
+        });
+
+        // 更新表格
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><strong>#${tcId} ${fullName}</strong></td>
+          <td>${getIntensityBadge(intensity)}</td>
+          <td>${lastLat ? `${lastLat}°N, ${lastLon}°E` : '--'}</td>
+          <td>${wind} km/h</td>
+          <td>${pressure} hPa</td>
+          <td>${movement}</td>
+        `;
+        tableBody.appendChild(row);
+
+        // 繪製 GIS 折線與標記
+        if (trackCoords.length > 0) {
+          const color = getIntensityColor(intensity);
+
+          // 繪製軌跡線
+          const polyline = L.polyline(trackCoords, {
+            color: color,
+            weight: 3,
+            dashArray: '6, 8',
+            opacity: 0.8
+          }).addTo(map);
+          mapLayers.push(polyline);
+
+          // 繪製最新位置圓點
+          const marker = L.circleMarker([lastLat, lastLon], {
+            radius: 9,
+            fillColor: color,
+            color: '#ffffff',
+            weight: 2,
+            fillOpacity: 0.9
+          }).addTo(map);
+
+          marker.bindPopup(`
+            <div style="font-size:14px; line-height:1.5;">
+              <b style="color:${color}; font-size:16px;">#${tcId} ${fullName}</b><br>
+              <b>強度：</b>${intensity}<br>
+              <b>位置：</b>${lastLat}°N, ${lastLon}°E<br>
+              <b>中心風速：</b>${wind} km/h<br>
+              <b>中心氣壓：</b>${pressure} hPa<br>
+              <b>動向：</b>${movement}
+            </div>
+          `);
+
+          mapLayers.push(marker);
+          map.panTo([lastLat, lastLon]);
+        }
+
+        processedCount++;
+
+      } catch (errTrack) {
+        console.error(`解析 ${fullName} Track XML 失敗:`, errTrack);
+      }
     }
 
+    statusEl.textContent = `已成功獲取 ${processedCount} 個熱帶氣旋資訊`;
     lastUpdateEl.textContent = `更新時間：${new Date().toLocaleTimeString()}`;
 
   } catch (err) {
-    console.error("TC XML Parse Error:", err);
-    statusEl.textContent = "數據讀取失敗（可切換至模擬模式查看）";
+    console.error("TC Index XML Parse Error:", err);
+    statusEl.textContent = "數據讀取失敗（可切換至模擬模式）";
     tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--accent-red); padding: 20px;">無法讀取即時數據，請稍後重試。</td></tr>`;
   }
 }
 
-function clearMap() {
-  mapMarkers.forEach(m => map.removeLayer(m));
-  mapMarkers = [];
-  if (mapPolyline) {
-    map.removeLayer(mapPolyline);
-    mapPolyline = null;
-  }
-}
-
-// 5. 模擬模式 (供無颱風季節時測試 GIS 地圖)
 function toggleDemoData() {
   useDemoData = !useDemoData;
   fetchTCData();
@@ -467,10 +505,10 @@ function renderDemoData() {
   clearMap();
 
   const demoPath = [
-    { name: "颱風 桃芝 (Demo)", intensity: "熱帶風暴", lat: 15.2, lon: 124.0, wind: "75", pressure: "995", move: "向西北西移動約 22 公里/小時" },
-    { name: "颱風 桃芝 (Demo)", intensity: "強烈熱帶風暴", lat: 17.0, lon: 120.5, wind: "105", pressure: "982", move: "向西北移動約 20 公里/小時" },
-    { name: "颱風 桃芝 (Demo)", intensity: "颱風", lat: 19.5, lon: 116.8, wind: "130", pressure: "970", move: "向西北西移動約 15 公里/小時" },
-    { name: "颱風 桃芝 (Demo)", intensity: "強颱風", lat: 21.2, lon: 114.2, wind: "155", pressure: "955", move: "減速向西北移動" }
+    { id: "2630", name: "沙德爾 (SAUDEL)", intensity: "熱帶風暴", lat: 15.2, lon: 124.0, wind: "75", pressure: "995", move: "向西北西移動約 22 km/h" },
+    { id: "2630", name: "沙德爾 (SAUDEL)", intensity: "強烈熱帶風暴", lat: 17.0, lon: 120.5, wind: "105", pressure: "982", move: "向西北移動約 20 km/h" },
+    { id: "2630", name: "沙德爾 (SAUDEL)", intensity: "颱風", lat: 19.5, lon: 116.8, wind: "130", pressure: "970", move: "向西北西移動約 15 km/h" },
+    { id: "2630", name: "沙德爾 (SAUDEL)", intensity: "強颱風", lat: 21.2, lon: 114.2, wind: "155", pressure: "955", move: "減速向西北移動" }
   ];
 
   tableBody.innerHTML = "";
@@ -481,7 +519,7 @@ function renderDemoData() {
     if (isCurrent) {
       const row = document.createElement('tr');
       row.innerHTML = `
-        <td><strong>${pt.name}</strong></td>
+        <td><strong>#${pt.id} ${pt.name}</strong></td>
         <td>${getIntensityBadge(pt.intensity)}</td>
         <td>${pt.lat}°N, ${pt.lon}°E</td>
         <td>${pt.wind} km/h</td>
@@ -503,23 +541,23 @@ function renderDemoData() {
     }).addTo(map);
 
     marker.bindPopup(`
-      <b>${pt.name}</b> (${pt.intensity})<br>
+      <b>#${pt.id} ${pt.name}</b> (${pt.intensity})<br>
       中心風速: ${pt.wind} km/h<br>
       氣壓: ${pt.pressure} hPa
     `);
 
-    mapMarkers.push(marker);
+    mapLayers.push(marker);
   });
 
-  mapPolyline = L.polyline(points, { color: '#38bdf8', weight: 3, dashArray: '6, 8' }).addTo(map);
-  map.fitBounds(mapPolyline.getBounds().pad(0.2));
+  const polyline = L.polyline(points, { color: '#38bdf8', weight: 3, dashArray: '6, 8' }).addTo(map);
+  mapLayers.push(polyline);
+  map.fitBounds(polyline.getBounds().pad(0.2));
 }
 
-// 頁面初始化
 window.addEventListener('DOMContentLoaded', () => {
   initMap();
   fetchTCData();
-  setInterval(fetchTCData, 300000); // 每 5 分鐘自動刷新
+  setInterval(fetchTCData, 300000);
 });
 </script>
 </body>
