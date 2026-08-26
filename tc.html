@@ -311,19 +311,15 @@ const INTENSITY_CONFIG = {
 function initMap() {
   map = L.map('map', { zoomControl: false }).setView([20.0, 118.0], 6);
   
-  // 深色地圖圖層
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     maxZoom: 18,
     attribution: '&copy; OpenStreetMap &copy; CARTO'
   }).addTo(map);
 
   L.control.zoom({ position: 'topleft' }).addTo(map);
-  
-  // 預設開啟 500km 距離圈
   toggleDistanceRing();
 }
 
-// 500 公里距離圈開關
 function toggleDistanceRing() {
   const btn = document.getElementById('btnRing');
   if (distanceRingLayer) {
@@ -347,7 +343,6 @@ function resetView() {
   map.setView([20.0, 118.0], 6);
 }
 
-// Haversine 大圓距離計算 (km)
 function calcDistance(lat1, lon1, lat2, lon2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -358,13 +353,25 @@ function calcDistance(lat1, lon1, lat2, lon2) {
   return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
 }
 
+// 解析帶有字母方向的座標字串（如 "19.50N", "144.90E"）
+function parseCoord(valStr) {
+  if (!valStr) return NaN;
+  const cleanStr = valStr.trim();
+  let num = parseFloat(cleanStr);
+  if (isNaN(num)) return NaN;
+  if (cleanStr.endsWith('S') || cleanStr.endsWith('W')) {
+    num = -Math.abs(num);
+  }
+  return num;
+}
+
 function getCategoryKey(catStr) {
   if (!catStr) return 'TD';
   const upper = catStr.toUpperCase();
   if (upper.includes('SUPER')) return 'SuperT';
   if (upper.includes('SEVERE TYPHOON') || upper.includes('ST')) return 'ST';
-  if (upper.includes('TYPHOON') || upper.includes('T')) return 'T';
   if (upper.includes('SEVERE TROPICAL') || upper.includes('STS')) return 'STS';
+  if (upper.includes('TYPHOON') || upper.includes('T')) return 'T';
   if (upper.includes('TROPICAL STORM') || upper.includes('TS')) return 'TS';
   if (upper.includes('LOW')) return 'LOW';
   return 'TD';
@@ -413,27 +420,44 @@ async function loadTCData() {
         const trackXmlText = await trackRes.text();
         const trackXml = parser.parseFromString(trackXmlText, "text/xml");
 
-        // 解析 Track XML 節點
-        const points = Array.from(trackXml.querySelectorAll("PointData, point, TrackPoint, point_data"));
-        const pastPoints = [];
-        const forecastPoints = [];
+        const xmlNameNode = trackXml.querySelector("TropicalCycloneName");
+        const stormName = cName || eName || (xmlNameNode ? xmlNameNode.textContent.trim() : "熱帶氣旋");
 
-        points.forEach(pt => {
-          const lat = parseFloat(pt.querySelector("Latitude, lat, Lat")?.textContent);
-          const lon = parseFloat(pt.querySelector("Longitude, lon, Long, Lng")?.textContent);
-          const wind = pt.querySelector("MaxWind, WindSpeed, wind")?.textContent || "--";
-          const cat = pt.querySelector("IntensityCategory, Category, category, intensity")?.textContent || "TD";
-          const isFcst = pt.querySelector("IsForecast, isForecast")?.textContent === "true";
+        // 1. 解析歷史定位 (PastInformation)
+        const pastNodes = Array.from(trackXml.querySelectorAll("PastInformation, PointData, TrackPoint"));
+        const pastPoints = [];
+        pastNodes.forEach(pt => {
+          const lat = parseCoord(pt.querySelector("Latitude, lat, Lat")?.textContent);
+          const lon = parseCoord(pt.querySelector("Longitude, lon, Long, Lng")?.textContent);
+          const wind = pt.querySelector("MaximumWind, MaxWind, WindSpeed")?.textContent || "--";
+          const cat = pt.querySelector("Intensity, IntensityCategory, Category")?.textContent || "TD";
+          const time = pt.querySelector("Time")?.textContent || "";
 
           if (!isNaN(lat) && !isNaN(lon)) {
-            const pObj = { lat, lon, wind, cat: getCategoryKey(cat) };
-            if (isFcst) forecastPoints.push(pObj);
-            else pastPoints.push(pObj);
+            pastPoints.push({ lat, lon, wind, cat: getCategoryKey(cat), time });
+          }
+        });
+
+        // 2. 解析預測定位 (ForecastInformation)
+        const forecastNodes = Array.from(trackXml.querySelectorAll("ForecastInformation"));
+        const forecastPoints = [];
+        const lastPastCat = pastPoints.length > 0 ? pastPoints[pastPoints.length - 1].cat : "TD";
+
+        forecastNodes.forEach(pt => {
+          const lat = parseCoord(pt.querySelector("Latitude, lat, Lat")?.textContent);
+          const lon = parseCoord(pt.querySelector("Longitude, lon, Long, Lng")?.textContent);
+          const wind = pt.querySelector("MaximumWind, MaxWind, WindSpeed")?.textContent || "--";
+          const rawCat = pt.querySelector("Intensity, IntensityCategory, Category")?.textContent;
+          const cat = rawCat ? getCategoryKey(rawCat) : lastPastCat;
+          const time = pt.querySelector("Time")?.textContent || "";
+
+          if (!isNaN(lat) && !isNaN(lon)) {
+            forecastPoints.push({ lat, lon, wind, cat, time });
           }
         });
 
         parsedTCList.push({
-          name: cName || eName,
+          name: stormName,
           englishName: eName,
           pastPoints,
           forecastPoints
@@ -482,7 +506,10 @@ function renderTCs(tcList) {
     `;
     quickSelectEl.appendChild(qsItem);
 
-    // 2. 側邊欄卡片
+    // 2. 側邊欄卡片 (展示預測終點/主要預測節點)
+    const displayFcstPoints = tc.forecastPoints.filter(fp => fp.wind !== '--' || fp.time !== '');
+    const sidebarFcstList = displayFcstPoints.length > 0 ? displayFcstPoints : tc.forecastPoints.slice(-4);
+
     const card = document.createElement('div');
     card.className = 'tc-card';
     card.innerHTML = `
@@ -493,19 +520,20 @@ function renderTCs(tcList) {
         </div>
       </div>
       <div class="tc-grid">
-        <div class="tc-grid-item"><label>最新位置</label><val>${currentPt.lat}°N ${currentPt.lon}°E</val></div>
+        <div class="tc-grid-item"><label>最新位置</label><val>${currentPt.lat.toFixed(2)}°N ${currentPt.lon.toFixed(2)}°E</val></div>
         <div class="tc-grid-item"><label>與香港距離</label><val>${dist} km</val></div>
-        <div class="tc-grid-item"><label>中心風速</label><val>${currentPt.wind} km/h</val></div>
+        <div class="tc-grid-item"><label>中心風速</label><val>${currentPt.wind}</val></div>
         <div class="tc-grid-item"><label>預計最近距離</label><val>${dist} km</val></div>
       </div>
       <div class="forecast-list">
-        ${tc.forecastPoints.slice(0, 4).map((fp, i) => {
+        ${sidebarFcstList.map((fp) => {
           const fCat = INTENSITY_CONFIG[fp.cat] || INTENSITY_CONFIG['TD'];
+          const timeLabel = fp.time ? new Date(fp.time).toLocaleDateString('zh-HK', {month:'numeric', day:'numeric', hour:'2-digit'}) : '預測點';
           return `
             <div class="forecast-row">
-              <span>+${(i+1)*24}h</span>
+              <span>${timeLabel}</span>
               <span class="badge-tag" style="background:${fCat.color}">${fCat.name}</span>
-              <span>${fp.wind} km/h</span>
+              <span>${fp.wind}</span>
             </div>
           `;
         }).join('')}
@@ -513,7 +541,7 @@ function renderTCs(tcList) {
     `;
     sidebarEl.appendChild(card);
 
-    // 3. 地圖繪制 - 歷史路徑 (實線 + 圓點)
+    // 3. 地圖繪製 - 歷史路徑 (實線 + 圓點)
     if (tc.pastPoints.length > 0) {
       const pastCoords = tc.pastPoints.map(p => [p.lat, p.lon]);
       const pastLine = L.polyline(pastCoords, { color: '#ffffff', weight: 2, opacity: 0.8 }).addTo(map);
@@ -532,11 +560,23 @@ function renderTCs(tcList) {
       });
     }
 
-    // 預測路徑 (黃色虛線)
+    // 預測路徑 (黃色虛線 + 亮點)
     if (tc.forecastPoints.length > 0) {
       const fcCoords = [ [currentPt.lat, currentPt.lon], ...tc.forecastPoints.map(p => [p.lat, p.lon]) ];
       const fcLine = L.polyline(fcCoords, { color: '#facc15', weight: 2, dashArray: '5, 8' }).addTo(map);
       mapLayers.push(fcLine);
+
+      tc.forecastPoints.forEach(p => {
+        const fCat = INTENSITY_CONFIG[p.cat] || INTENSITY_CONFIG['TD'];
+        const fcCircle = L.circleMarker([p.lat, p.lon], {
+          radius: 3,
+          fillColor: fCat.color,
+          color: '#facc15',
+          weight: 1,
+          fillOpacity: 0.8
+        }).addTo(map);
+        mapLayers.push(fcCircle);
+      });
     }
 
     // 最新中心位置亮點
