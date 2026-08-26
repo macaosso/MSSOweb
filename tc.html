@@ -201,7 +201,7 @@ body {
     <div id="map"></div>
 
     <div class="map-overlay-topright" id="mapQuickSelect">
-      <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px;">活躍熱帶氣旋</div>
+      <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px;">網絡熱帶氣旋</div>
       <div id="quickSelectList">載入中...</div>
     </div>
 
@@ -243,7 +243,7 @@ const INTENSITY_CONFIG = {
   'SuperT': { name: '超強颱風',     color: 'var(--c-supert)' }
 };
 
-// 嚴格定義 0, 24, 48, 72, 96, 120 小時之誤差半徑 (km)
+// 標準時間節點誤差半徑 (km)
 const STANDARD_ERROR_RADIUS = {
   0: 15,
   24: 100,
@@ -328,6 +328,7 @@ function getCategoryKey(catStr, windStr) {
   }
   if (!catStr) return 'TD';
   const upper = catStr.toUpperCase();
+  if (upper.includes('LOW')) return 'LOW';
   if (upper.includes('SUPER')) return 'SuperT';
   if (upper.includes('SEVERE TYPHOON') || upper.includes('ST')) return 'ST';
   if (upper.includes('SEVERE TROPICAL') || upper.includes('STS')) return 'STS';
@@ -381,7 +382,6 @@ function clearMapLayers() {
   mapLayers = [];
 }
 
-// 繪製氣旋預測誤差錐 (與圖片視覺效果一致的半透明連貫包絡體)
 function drawErrorConeEnvelope(points) {
   if (points.length < 2) return;
 
@@ -395,7 +395,6 @@ function drawErrorConeEnvelope(points) {
     const dist = calcDistance(p1.lat, p1.lon, p2.lat, p2.lon);
     const brng = calculateBearing(p1.lat, p1.lon, p2.lat, p2.lon);
     
-    // 計算切線偏移角度
     const rDiff = p2.radiusKm - p1.radiusKm;
     let alpha = 0;
     if (dist > Math.abs(rDiff)) {
@@ -414,7 +413,6 @@ function drawErrorConeEnvelope(points) {
     }
   }
 
-  // 構造終端 (120h) 圓弧，實現光滑封口
   const lastPt = points[points.length - 1];
   const secondLast = points[points.length - 2];
   const endBrng = calculateBearing(secondLast.lat, secondLast.lon, lastPt.lat, lastPt.lon);
@@ -426,7 +424,6 @@ function drawErrorConeEnvelope(points) {
 
   const polygonCoords = [...leftPts, ...endArc, ...rightPts.reverse()];
 
-  // 1. 錐體主體半透明遮罩 (類似給出圖片效果)
   const coneMesh = L.polygon(polygonCoords, {
     color: 'rgba(255, 255, 255, 0.3)',
     weight: 1,
@@ -436,7 +433,6 @@ function drawErrorConeEnvelope(points) {
   }).addTo(map);
   mapLayers.push(coneMesh);
 
-  // 2. 在 0, 24, 48, 72, 96, 120 小時繪製極淡的半透明圓形區域
   points.forEach(pt => {
     const circle = L.circle([pt.lat, pt.lon], {
       radius: pt.radiusKm * 1000,
@@ -537,27 +533,35 @@ async function loadTCData() {
           }
         }
 
-        // 3. 預測點 (ForecastInformation - 24, 48, 72, 96, 120 Hours)
+        // 3. 預測點 (ForecastInformation - 僅當包含 Intensity 時才繪製點與計算誤差錐)
         const forecastNodes = Array.from(trackXml.querySelectorAll("ForecastInformation"));
         const forecastPoints = [];
-        const forecastHoursList = [24, 48, 72, 96, 120];
 
-        forecastNodes.forEach((pt, idx) => {
+        forecastNodes.forEach(pt => {
+          const intensityNode = pt.querySelector("Intensity");
+          const intensityText = intensityNode ? intensityNode.textContent.trim() : "";
+
+          // 核心更新：只有當包含 Intensity 時才繪製並計算
+          if (!intensityText) return;
+
           const lat = parseCoord(pt.querySelector("Latitude, lat")?.textContent);
           const lon = parseCoord(pt.querySelector("Longitude, lon")?.textContent);
           const wind = pt.querySelector("MaximumWind, MaxWind")?.textContent || "--";
-          const cat = pt.querySelector("Intensity, Category")?.textContent || "";
           const time = pt.querySelector("Time")?.textContent || "";
 
-          const h = forecastHoursList[idx] || (idx + 1) * 24;
-          const r = STANDARD_ERROR_RADIUS[h] || (100 + idx * 80);
+          // 從 XML 的 <Index> 讀取小時數 (例如 24, 48, 72, 96, 120)
+          const indexVal = parseInt(pt.querySelector("Index")?.textContent || "0", 10);
+          const h = !isNaN(indexVal) && indexVal > 0 ? indexVal : 0;
+
+          // 自動匹配或線性插值誤差半徑
+          const r = STANDARD_ERROR_RADIUS[h] !== undefined ? STANDARD_ERROR_RADIUS[h] : Math.round(15 + (450 / 120) * h);
 
           if (!isNaN(lat) && !isNaN(lon)) {
             forecastPoints.push({
               type: 'Forecast',
               typeLabel: `+${h}小時 預測位置`,
               lat, lon, wind,
-              cat: getCategoryKey(cat, wind),
+              cat: getCategoryKey(intensityText, wind),
               time,
               hours: h,
               radiusKm: r
@@ -591,7 +595,6 @@ async function loadTCData() {
   }
 }
 
-// 生成卡片與在地圖上繪製所有圖層
 function renderTCs(tcList) {
   clearMapLayers();
   
@@ -607,7 +610,6 @@ function renderTCs(tcList) {
     const catInfo = INTENSITY_CONFIG[activePoint.cat] || INTENSITY_CONFIG['TD'];
     const distHK = calcDistance(activePoint.lat, activePoint.lon, HK_COORDS[0], HK_COORDS[1]);
 
-    // 快捷列表
     const qsItem = document.createElement('div');
     qsItem.className = 'overlay-storm-item';
     qsItem.innerHTML = `
@@ -616,7 +618,6 @@ function renderTCs(tcList) {
     `;
     quickSelectEl.appendChild(qsItem);
 
-    // 側邊欄總覽卡片
     const card = document.createElement('div');
     card.className = 'tc-card';
     card.innerHTML = `
@@ -646,9 +647,7 @@ function renderTCs(tcList) {
     `;
     sidebarEl.appendChild(card);
 
-    // ------------------- 地圖繪製 ------------------- //
-
-    // 1. 歷史路徑 (僅繪製線條與圓點，無誤差圈)
+    // 1. 歷史路徑 (無誤差圈，僅顯示路徑與點擊數據)
     if (tc.pastPoints.length > 0) {
       const pastCoords = tc.pastPoints.map(p => [p.lat, p.lon]);
       if (tc.currentPoint) pastCoords.push([tc.currentPoint.lat, tc.currentPoint.lon]);
@@ -671,24 +670,22 @@ function renderTCs(tcList) {
       });
     }
 
-    // 2. 當前點 (0h) 與 預測路徑 (24h, 48h, 72h, 96h, 120h)
+    // 2. 當前點 (0h) 與預測點集合
     const conePoints = [];
     if (tc.currentPoint) conePoints.push(tc.currentPoint);
     tc.forecastPoints.forEach(fp => conePoints.push(fp));
 
     if (conePoints.length > 1) {
-      // 繪製預測虛線
       const fcCoords = conePoints.map(p => [p.lat, p.lon]);
       const fcLine = L.polyline(fcCoords, { color: '#ffffff', weight: 2, dashArray: '5, 6', opacity: 0.9 }).addTo(map);
       mapLayers.push(fcLine);
 
-      // 繪製 0, 24, 48, 72, 96, 120 小時之誤差錐體
       if (showCone) {
         drawErrorConeEnvelope(conePoints);
       }
     }
 
-    // 3. 繪製當前點與預測點之風暴圖案與點擊事件
+    // 3. 繪製圖標與數據彈窗
     conePoints.forEach(pt => {
       const pCat = INTENSITY_CONFIG[pt.cat] || INTENSITY_CONFIG['TD'];
       const iconSize = pt.type === 'Current' ? 24 : 18;
@@ -704,7 +701,6 @@ function renderTCs(tcList) {
   });
 }
 
-// 點擊節點彈出數據窗口 (Popup)
 function bindPointDataPopup(marker, stormName, pt) {
   const pCat = INTENSITY_CONFIG[pt.cat] || INTENSITY_CONFIG['TD'];
   const dist = calcDistance(pt.lat, pt.lon, HK_COORDS[0], HK_COORDS[1]);
@@ -725,11 +721,6 @@ function bindPointDataPopup(marker, stormName, pt) {
   `;
 
   marker.bindPopup(popupHTML, { offset: [0, -5] });
-  
-  // 點擊地圖標記時同時觸發視角微調
-  marker.on('click', () => {
-    marker.openPopup();
-  });
 }
 
 function focusStorm(lat, lon) {
