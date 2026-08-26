@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Typhoon Track Map Generator</title>
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <!-- Turf.js for spatial calculations -->
+  <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+
+  <style>
+    :root {
+      --bg-dark: #12181f;
+      --panel-bg: #1e2631;
+      --panel-border: #2e3b4e;
+      --text-main: #f0f4f8;
+      --text-muted: #94a3b8;
+      --accent-blue: #38bdf8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Sidebar controls */
+    #sidebar {
+      width: 440px;
+      background: var(--panel-bg);
+      border-right: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding: 16px;
+      overflow-y: auto;
+      z-index: 1000;
+    }
+
+    h2 { font-size: 1.1rem; color: var(--accent-blue); }
+
+    textarea {
+      width: 100%;
+      height: 240px;
+      background: #0f141c;
+      border: 1px solid var(--panel-border);
+      color: #38bdf8;
+      font-family: "Courier New", monospace;
+      font-size: 11px;
+      padding: 10px;
+      border-radius: 6px;
+      resize: vertical;
+      white-space: pre;
+    }
+
+    .btn-group { display: flex; gap: 8px; }
+
+    button {
+      flex: 1;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    button:hover { background: #1d4ed8; }
+    button.secondary {
+      background: #334155;
+    }
+    button.secondary:hover { background: #475569; }
+
+    /* Output Info Panel */
+    #info-panel {
+      background: #0f141c;
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 12px;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+    .info-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .info-label { color: var(--text-muted); }
+    .info-val { font-weight: 600; color: #f3f4f6; }
+
+    /* Main Map Container */
+    #map-container {
+      flex: 1;
+      position: relative;
+    }
+    #map { width: 100%; height: 100%; background: #1a222d; }
+
+    /* Custom Leaflet Category Icon Badges */
+    .tc-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: #000;
+      font-weight: bold;
+      font-size: 10px;
+      border: 1.5px solid #fff;
+      box-shadow: 0 0 6px rgba(0,0,0,0.6);
+    }
+    .bg-lpa  { background: #a1a1aa; color: #000; }
+    .bg-td   { background: #38bdf8; color: #000; }
+    .bg-ts   { background: #4ade80; color: #000; }
+    .bg-sts  { background: #facc15; color: #000; }
+    .bg-ty   { background: #fb923c; color: #000; }
+    .bg-sty  { background: #f87171; color: #fff; }
+    .bg-suty { background: #c084fc; color: #fff; }
+    .bg-ex   { background: #6b7280; color: #fff; }
+
+    /* Macao Marker Custom Style */
+    .macau-marker {
+      background: #ef4444;
+      border: 2px solid white;
+      border-radius: 50%;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="sidebar">
+    <h2>Typhoon Track Generator</h2>
+    <p style="font-size: 0.8rem; color: var(--text-muted);">
+      Paste CSV storm data below to generate dynamic path, uncertainty envelope, CPA, and wind radii.
+    </p>
+
+    <textarea id="csvInput" placeholder="Paste CSV data here..."></textarea>
+
+    <div class="btn-group">
+      <button onclick="processAndPlot()">Generate Map</button>
+      <button class="secondary" onclick="loadSampleData()">Load Sample Data</button>
+    </div>
+
+    <div id="info-panel">
+      <div class="info-row">
+        <span class="info-label">Storm Name:</span>
+        <span class="info-val" id="out-name">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Current Position:</span>
+        <span class="info-val" id="out-pos">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Distance to Macao:</span>
+        <span class="info-val" id="out-dist">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">12H Motion:</span>
+        <span class="info-val" id="out-motion">-</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Closest Approach (CPA):</span>
+        <span class="info-val" id="out-cpa">-</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="map-container">
+    <div id="map"></div>
+  </div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <script>
+    const MACAU_LAT = 22.1595;
+    const MACAU_LON = 113.5685;
+
+    // Initialize Map
+    const map = L.map('map', { zoomControl: true }).setView([20, 135], 5);
+
+    // Dark Map Base Tiles (CartoDB Dark Matter)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap &copy; CARTO',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
+
+    let mapLayers = L.layerGroup().addTo(map);
+
+    // Intensity Classifier Rules
+    function getTCInfo(wind, name) {
+      if (name === '-' || String(wind) === '-') return { code: 'Ex', color: '#6b7280', class: 'bg-ex' };
+      const w = parseFloat(wind) || 0;
+      if (w <= 40) return { code: 'LPA', color: '#a1a1aa', class: 'bg-lpa' };
+      if (w <= 62) return { code: 'TD', color: '#38bdf8', class: 'bg-td' };
+      if (w <= 87) return { code: 'TS', color: '#4ade80', class: 'bg-ts' };
+      if (w <= 117) return { code: 'STS', color: '#facc15', class: 'bg-sts' };
+      if (w <= 149) return { code: 'TY', color: '#fb923c', class: 'bg-ty' };
+      if (w <= 184) return { code: 'STY', color: '#f87171', class: 'bg-sty' };
+      return { code: 'SuTY', color: '#c084fc', class: 'bg-suty' };
+    }
+
+    // Geodesic bearing and compass direction
+    function getBearing(lat1, lon1, lat2, lon2) {
+      const p1 = turf.point([lon1, lat1]);
+      const p2 = turf.point([lon2, lat2]);
+      const b = (turf.bearing(p1, p2) + 360) % 360;
+      const dirs = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+      return { deg: b, compass: dirs[Math.floor(((b + 11.25) % 360) / 22.5)] };
+    }
+
+    // Parse CSV Text
+    function parseCSV(text) {
+      const lines = text.trim().split('\n');
+      const data = { tc_info: null, past: [], fcst: [] };
+
+      lines.forEach((line) => {
+        const row = line.split(',').map(s => s.trim());
+        if (row.length < 5 || row[0] === 'category') return;
+
+        const cat = row[0];
+        const item = {
+          category: row[0],
+          lead_time: row[1] ? parseFloat(row[1]) : 0,
+          time_name: row[2],
+          lat: parseFloat(row[3]),
+          lon: parseFloat(row[4]),
+          wind: row[5] ? parseFloat(row[5]) : null,
+          pressure: row[6] ? parseFloat(row[6]) : null,
+          w41: [row[7], row[8], row[9], row[10]].map(v => parseFloat(v) || 0),
+          w88: [row[11], row[12], row[13], row[14]].map(v => parseFloat(v) || 0)
+        };
+
+        if (cat === 'tc_info') data.tc_info = item;
+        else if (cat === 'past') data.past.push(item);
+        else if (cat === 'fcst') data.fcst.push(item);
+      });
+
+      return data;
+    }
+
+    function processAndPlot() {
+      const rawText = document.getElementById('csvInput').value;
+      if (!rawText) return;
+
+      const data = parseCSV(rawText);
+      mapLayers.clearLayers();
+
+      // Render Macao reference point & rings
+      const macauPt = [MACAU_LAT, MACAU_LON];
+      L.circleMarker(macauPt, { radius: 6, color: '#ffffff', fillColor: '#ef4444', fillOpacity: 1 }).addTo(mapLayers);
+
+      [100, 200, 400, 800].forEach(rKm => {
+        L.circle(macauPt, {
+          radius: rKm * 1000,
+          color: '#ffffff',
+          weight: 1,
+          dashArray: '3, 6',
+          opacity: 0.3,
+          fill: false
+        }).addTo(mapLayers);
+      });
+
+      // Combine Points
+      const pastPts = data.past.map(d => [d.lat, d.lon]);
+      const fcstPts = data.fcst.map(d => [d.lat, d.lon]);
+
+      // 1. Plot Past Track Line
+      if (pastPts.length > 0) {
+        L.polyline(pastPts, { color: '#6366f1', weight: 3, opacity: 0.8 }).addTo(mapLayers);
+        data.past.forEach(pt => {
+          const info = getTCInfo(pt.wind, pt.time_name);
+          const icon = L.divIcon({
+            className: 'custom-div-icon',
+            html: `<div class="tc-icon ${info.class}" style="width:20px;height:20px;">${info.code}</div>`,
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+          });
+          L.marker([pt.lat, pt.lon], { icon }).addTo(mapLayers)
+           .bindPopup(`<b>${pt.time_name}</b><br>Wind: ${pt.wind} kts`);
+        });
+      }
+
+      // 2. Plot Forecast Envelope (Cone of Uncertainty)
+      if (fcstPts.length > 1) {
+        const radiiKm = [30, 60, 100, 170, 255, 345, 465]; // Preset cone growth
+        const bufferedPolys = data.fcst.map((pt, idx) => {
+          const radius = radiiKm[Math.min(idx, radiiKm.length - 1)];
+          return turf.buffer(turf.point([pt.lon, pt.lat]), radius, { units: 'kilometers' });
+        });
+
+        try {
+          const combinedEnvelope = turf.unkinkPolygon(turf.convex(turf.featureCollection(bufferedPolys.map(b => turf.explode(b).features).flat())));
+          L.geoJSON(combinedEnvelope, {
+            style: { color: '#ffffff', weight: 1, fillColor: '#ffffff', fillOpacity: 0.12, dashArray: '4,4' }
+          }).addTo(mapLayers);
+        } catch (e) {
+          console.warn("Envelope calculation fallback", e);
+        }
+
+        // Plot Forecast Track Line
+        L.polyline(fcstPts, { color: '#ffffff', weight: 2, dashArray: '5, 5' }).addTo(mapLayers);
+
+        data.fcst.forEach((pt, idx) => {
+          const info = getTCInfo(pt.wind, pt.time_name);
+          const icon = L.divIcon({
+            className: 'custom-div-icon',
+            html: `<div class="tc-icon ${info.class}" style="width:22px;height:22px;">${info.code}</div>`,
+            iconSize: [22, 22],
+            iconAnchor: [11, 11]
+          });
+          L.marker([pt.lat, pt.lon], { icon }).addTo(mapLayers)
+           .bindPopup(`<b>${pt.time_name} (${pt.lead_time}h)</b><br>Wind: ${pt.wind} kts<br>Pres: ${pt.pressure} hPa`);
+        });
+      }
+
+      // Update Output Stats Panel
+      const currentPt = data.fcst[0] || data.past[data.past.length - 1];
+      if (currentPt) {
+        const stormName = (data.tc_info && data.tc_info.time_name) ? data.tc_info.time_name : 'Typhoon';
+        document.getElementById('out-name').innerText = stormName;
+        document.getElementById('out-pos').innerText = `${currentPt.lat}°N, ${currentPt.lon}°E`;
+
+        const distKm = turf.distance(turf.point([MACAU_LON, MACAU_LAT]), turf.point([currentPt.lon, currentPt.lat]), { units: 'kilometers' });
+        const bearing = getBearing(MACAU_LAT, MACAU_LON, currentPt.lat, currentPt.lon);
+        document.getElementById('out-dist').innerText = `${bearing.compass} ${Math.round(distKm)} km`;
+
+        // Calculate CPA for forecast track
+        if (data.fcst.length > 0) {
+          let minDist = Infinity;
+          let cpaPt = null;
+          data.fcst.forEach(pt => {
+            const d = turf.distance(turf.point([MACAU_LON, MACAU_LAT]), turf.point([pt.lon, pt.lat]), { units: 'kilometers' });
+            if (d < minDist) { minDist = d; cpaPt = pt; }
+          });
+          const cpaBearing = getBearing(MACAU_LAT, MACAU_LON, cpaPt.lat, cpaPt.lon);
+          document.getElementById('out-cpa').innerText = `${cpaBearing.compass} ${Math.round(minDist)} km`;
+        }
+
+        // Motion Speed
+        if (data.fcst.length >= 2) {
+          const p1 = data.fcst[0];
+          const p2 = data.fcst[1];
+          const d = turf.distance(turf.point([p1.lon, p1.lat]), turf.point([p2.lon, p2.lat]), { units: 'kilometers' });
+          const dt = (p2.lead_time - p1.lead_time) || 12;
+          const spd = d / dt;
+          const motionBearing = getBearing(p1.lat, p1.lon, p2.lat, p2.lon);
+          document.getElementById('out-motion').innerText = `${motionBearing.compass} ${spd.toFixed(1)} km/h`;
+        }
+      }
+
+      // Auto fit bounds
+      const allCoords = [...pastPts, ...fcstPts];
+      if (allCoords.length > 0) {
+        map.fitBounds(L.latLngBounds(allCoords), { padding: [50, 50] });
+      }
+    }
+
+    function loadSampleData() {
+      const sample = `category,lead_time,time/name,lat,lon,wind,pressure,w41_ne,w41_se,w41_sw,w41_nw,w88_ne,w88_se,w88_sw,w88_nw
+tc_info,2026-08-22 08:00,SAUDEL (2618),17.9,146.5,155,,,,,,,,,
+past,,2026-08-18 20:00,8.3,154.6,45,,,,,,,,,
+past,,2026-08-19 08:00,9.5,153.2,55,,,,,,,,,
+past,,2026-08-19 20:00,11.2,151.8,70,,,,,,,,,
+past,,2026-08-20 08:00,13.0,150.1,90,,,,,,,,,
+past,,2026-08-20 20:00,14.7,148.5,115,,,,,,,,,
+past,,2026-08-21 08:00,16.1,147.2,140,,,,,,,,,
+fcst,0,2026-08-22 08:00,17.9,146.5,155,935,350,300,200,250,120,100,80,90
+fcst,12,2026-08-22 20:00,18.8,144.2,160,925,380,320,220,280,140,110,90,100
+fcst,24,2026-08-23 08:00,20.1,141.5,150,935,400,350,250,300,150,120,100,110
+fcst,48,2026-08-24 08:00,23.5,136.2,130,950,420,380,280,320,160,130,110,120
+fcst,72,2026-08-25 08:00,27.8,132.0,100,970,450,400,300,350,0,0,0,0
+fcst,96,2026-08-26 08:00,32.5,130.5,70,985,300,250,200,220,0,0,0,0`;
+
+      document.getElementById('csvInput').value = sample;
+      processAndPlot();
+    }
+
+    // Auto load on start
+    window.onload = loadSampleData;
+  </script>
+</body>
+</html>
