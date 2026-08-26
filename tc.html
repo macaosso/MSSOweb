@@ -5,9 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<!-- 引入 Turf.js 用於平滑差值與多邊形差集/聯集運算 (Shapely logic) -->
 <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-<title>熱帶氣旋路徑追蹤器 - 澳門 MSSO / MET WARN</title>
+<title>熱帶氣旋路徑追蹤器 - 澳門特別版</title>
 <style>
 :root {
   --bg-dark: #0b0f19;
@@ -122,7 +121,7 @@ body {
 .legend-color { width: 12px; height: 12px; border-radius: 50%; }
 
 .sidebar {
-  width: 380px;
+  width: 420px;
   background: var(--bg-panel);
   border-left: 1px solid var(--card-border);
   display: flex; flex-direction: column;
@@ -136,41 +135,85 @@ body {
 }
 .sidebar-content { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
 
+/* 參考圖片風格卡片 */
 .tc-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 8px; padding: 12px;
+  background: #151d2a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 14px;
 }
-.tc-title { font-size: 1.05rem; font-weight: bold; display: flex; align-items: center; gap: 6px; }
+.tc-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.tc-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.red-dot-indicator {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background-color: #ef4444;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.8);
+}
+.tc-storm-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
+.tc-time-stamp {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
 
 .badge-tag {
-  padding: 2px 6px; border-radius: 4px;
-  font-size: 0.72rem; font-weight: bold; color: #fff; display: inline-block;
+  padding: 3px 8px; border-radius: 6px;
+  font-size: 0.75rem; font-weight: 700; color: #fff; display: inline-block;
 }
 
-.tc-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
-  background: rgba(0,0,0,0.2); padding: 8px; border-radius: 6px;
-  font-size: 0.8rem; margin: 8px 0;
+/* 4 宮格數值卡片 (對齊圖片) */
+.tc-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
 }
-.tc-grid-item label { color: var(--text-muted); display: block; font-size: 0.72rem; }
-.tc-grid-item val { font-weight: 600; }
+.info-box {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.info-box-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.info-box-val {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
 
-/* 頁籤切換按鈕組 (Requirement 4) */
+/* 頁籤切換按鈕 */
 .tab-group {
   display: flex;
   background: rgba(0, 0, 0, 0.3);
   border-radius: 6px;
   padding: 2px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 .tab-btn {
   flex: 1;
   background: transparent;
   border: none;
   color: var(--text-muted);
-  padding: 5px 0;
-  font-size: 0.78rem;
+  padding: 6px 0;
+  font-size: 0.8rem;
   font-weight: bold;
   border-radius: 4px;
   cursor: pointer;
@@ -181,11 +224,18 @@ body {
   color: #000;
 }
 
-.track-list { font-size: 0.78rem; display: flex; flex-direction: column; gap: 4px; }
+/* 路徑列表欄位排版 */
+.track-list { font-size: 0.78rem; display: flex; flex-direction: column; gap: 6px; }
 .track-row {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 4px 6px; background: rgba(255,255,255,0.02); border-radius: 4px;
-  cursor: pointer; transition: background 0.2s;
+  display: grid;
+  grid-template-columns: 55px 75px 100px 1fr 60px;
+  align-items: center;
+  padding: 6px 8px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 6px;
+  cursor: pointer;
+  gap: 4px;
+  transition: background 0.2s;
 }
 .track-row:hover { background: rgba(255,255,255,0.08); }
 
@@ -262,13 +312,12 @@ body {
 </div>
 
 <script>
-// Requirement 1: 變更所有基準中心為澳門 (22.1595, 113.5685)
 const MACAU_COORDS = [22.1595, 113.5685];
 let map;
 let mapLayers = [];
 let showCone = true;
-let currentTCData = []; // 儲存風暴數據供頁籤切換渲染
-let activeTabState = {}; // 記錄各風暴的頁籤狀態 ('forecast' | 'past')
+let currentTCData = [];
+let activeTabState = {};
 
 const INTENSITY_CONFIG = {
   'LOW':    { name: '低壓區',       color: 'var(--c-low)' },
@@ -280,7 +329,6 @@ const INTENSITY_CONFIG = {
   'SuperT': { name: '超強颱風',     color: 'var(--c-supert)' }
 };
 
-// 0, 24, 48, 72, 96, 120 小時標準誤差半徑 (km)
 const STANDARD_ERROR_RADIUS = {
   0: 15,
   24: 100,
@@ -300,7 +348,6 @@ function initMap() {
 
   L.control.zoom({ position: 'topleft' }).addTo(map);
 
-  // 繪製澳門標記點
   L.circleMarker(MACAU_COORDS, {
     radius: 6,
     fillColor: '#ef4444',
@@ -309,15 +356,12 @@ function initMap() {
     fillOpacity: 1
   }).bindTooltip("澳門 Macau", { permanent: true, direction: "top", className: "distance-label" }).addTo(map);
 
-  // Requirement 3: 始終常駐顯示以澳門為中心的 100, 200, 400, 800 km 距離圈
   drawMacauDistanceRings();
 }
 
-// Requirement 3: 澳門距離圈
 function drawMacauDistanceRings() {
-  const distances = [100, 200, 400, 800]; // km
+  const distances = [100, 200, 400, 800];
   distances.forEach(d => {
-    // 繪製距離圈
     L.circle(MACAU_COORDS, {
       radius: d * 1000,
       color: '#38bdf8',
@@ -327,7 +371,6 @@ function drawMacauDistanceRings() {
       opacity: 0.4
     }).addTo(map);
 
-    // 標註圈半徑文字 (放置於正北方標記)
     const labelLat = MACAU_COORDS[0] + (d / 111);
     L.marker([labelLat, MACAU_COORDS[1]], {
       icon: L.divIcon({
@@ -358,6 +401,40 @@ function calcDistance(lat1, lon1, lat2, lon2) {
             Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
             Math.sin(dLon/2) * Math.sin(dLon/2);
   return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+}
+
+function calculateBearing(lat1, lon1, lat2, lon2) {
+  const rad = Math.PI / 180;
+  const φ1 = lat1 * rad, φ2 = lat2 * rad;
+  const Δλ = (lon2 - lon1) * rad;
+  const y = Math.sin(Δλ) * Math.cos(φ2);
+  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
+  return (Math.atan2(y, x) / rad + 360) % 360;
+}
+
+// 方位角轉 16 個羅盤方位文字 (例如: 東北偏東)
+function getDirection16(lat1, lon1, lat2, lon2) {
+  const bearing = calculateBearing(lat1, lon1, lat2, lon2);
+  const dirs = [
+    "正北", "東北偏北", "東北", "東北偏東",
+    "正東", "東南偏東", "東南", "東南偏南",
+    "正南", "西南偏南", "西南", "西南偏西",
+    "正西", "西北偏西", "西北", "西北偏北"
+  ];
+  const index = Math.round(bearing / 22.5) % 16;
+  return dirs[index];
+}
+
+// Requirement 3: 格式化時間為 08-22 20:00 樣式
+function formatDateTime(timeStr) {
+  if (!timeStr) return '--';
+  const d = new Date(timeStr);
+  if (isNaN(d.getTime())) return timeStr;
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${mm}-${dd} ${hh}:${min}`;
 }
 
 function parseCoord(valStr) {
@@ -412,16 +489,9 @@ function clearMapLayers() {
   mapLayers = [];
 }
 
-/**
- * Requirement 2: 處理平滑路徑與 0-72h 及 >72h 雙段誤差錐（使用 Turf.js）
- * 1. create_smooth_track / PchipInterpolator 插值生成細分節點
- * 2. 分別建立 segment1 (<=72h) 及 segment2 (>72h) 的圓形 buffer 集合
- * 3. 求解 envelope_first 與 envelope_second 差集及 72 小時圓形扣除 (Shapely logic)
- */
 function drawSmoothSegmentedCone(conePoints) {
   if (!conePoints || conePoints.length < 2) return;
 
-  // 1. 平滑插值 (每 2 小時生成一個內插點)
   const hours = conePoints.map(p => p.hours);
   const lons = conePoints.map(p => p.lon);
   const lats = conePoints.map(p => p.lat);
@@ -431,7 +501,6 @@ function drawSmoothSegmentedCone(conePoints) {
   const smoothTrack = [];
 
   for (let h = 0; h <= maxHour; h += 2) {
-    // 尋找插值區間
     let idx = 0;
     for (let i = 0; i < hours.length - 1; i++) {
       if (h >= hours[i] && h <= hours[i+1]) {
@@ -443,7 +512,6 @@ function drawSmoothSegmentedCone(conePoints) {
     const h1 = hours[idx], h2 = hours[idx+1];
     const t = (h2 === h1) ? 0 : (h - h1) / (h2 - h1);
 
-    // 線性/平滑插值經緯度與誤差半徑
     const interpLat = lats[idx] + t * (lats[idx+1] - lats[idx]);
     const interpLon = lons[idx] + t * (lons[idx+1] - lons[idx]);
     const interpRadius = radii[idx] + t * (radii[idx+1] - radii[idx]);
@@ -451,13 +519,11 @@ function drawSmoothSegmentedCone(conePoints) {
     smoothTrack.push({ hours: h, lat: interpLat, lon: interpLon, radiusKm: interpRadius });
   }
 
-  // 2. 構建 circles_segment1 (<=72h) 與 circles_segment2 (>72h)
   const circlesSeg1 = [];
   const circlesSeg2 = [];
   let circle72Geom = null;
 
   smoothTrack.forEach(pt => {
-    // Turf 使用 [lon, lat] 座標順序
     const circlePoly = turf.circle([pt.lon, pt.lat], pt.radiusKm, { units: 'kilometers', steps: 32 });
 
     if (pt.hours <= 72) {
@@ -466,36 +532,27 @@ function drawSmoothSegmentedCone(conePoints) {
       circlesSeg2.push(circlePoly);
     }
 
-    // 捕獲接近 72h 的焦點圓
     if (Math.abs(pt.hours - 72) <= 1) {
       circle72Geom = circlePoly;
     }
   });
 
-  // 3. 求解 envelope_first = unary_union(circles_segment1)
   let envelopeFirst = null;
   if (circlesSeg1.length > 0) {
     envelopeFirst = circlesSeg1[0];
     for (let i = 1; i < circlesSeg1.length; i++) {
-      try {
-        envelopeFirst = turf.union(envelopeFirst, circlesSeg1[i]);
-      } catch (e) {}
+      try { envelopeFirst = turf.union(envelopeFirst, circlesSeg1[i]); } catch (e) {}
     }
   }
 
-  // 4. 求解 envelope_second = unary_union(circles_segment2)
   let envelopeSecond = null;
   if (circlesSeg2.length > 0) {
     envelopeSecond = circlesSeg2[0];
     for (let i = 1; i < circlesSeg2.length; i++) {
-      try {
-        envelopeSecond = turf.union(envelopeSecond, circlesSeg2[i]);
-      } catch (e) {}
+      try { envelopeSecond = turf.union(envelopeSecond, circlesSeg2[i]); } catch (e) {}
     }
   }
 
-  // 5. 處理重疊 (Handle Envelope Overlaps)
-  // envelope_second = difference(circle_72h_geom)
   if (envelopeSecond && circle72Geom) {
     try {
       const diff72 = turf.difference(envelopeSecond, circle72Geom);
@@ -503,7 +560,6 @@ function drawSmoothSegmentedCone(conePoints) {
     } catch(e) {}
   }
 
-  // envelope_second_no_overlap = difference(envelope_first)
   let envelopeSecondNoOverlap = envelopeSecond;
   if (envelopeFirst && envelopeSecond) {
     try {
@@ -512,8 +568,6 @@ function drawSmoothSegmentedCone(conePoints) {
     } catch(e) {}
   }
 
-  // 6. 渲染 GeoJSON 多邊形至地圖
-  // 第一區段 (0-72h) 錐體
   if (envelopeFirst) {
     const seg1Layer = L.geoJSON(envelopeFirst, {
       style: {
@@ -526,7 +580,6 @@ function drawSmoothSegmentedCone(conePoints) {
     mapLayers.push(seg1Layer);
   }
 
-  // 第二區段 (>72h) 錐體
   if (envelopeSecondNoOverlap) {
     const seg2Layer = L.geoJSON(envelopeSecondNoOverlap, {
       style: {
@@ -580,7 +633,6 @@ async function loadTCData() {
         const xmlNameNode = trackXml.querySelector("TropicalCycloneName");
         const stormName = cName || eName || (xmlNameNode ? xmlNameNode.textContent.trim() : "熱帶氣旋");
 
-        // 歷史點
         const pastNodes = Array.from(trackXml.querySelectorAll("PastInformation"));
         const pastPoints = [];
         pastNodes.forEach(pt => {
@@ -603,7 +655,6 @@ async function loadTCData() {
           }
         });
 
-        // 當前分析點 (0h)
         const analysisNode = trackXml.querySelector("AnalysisInformation");
         let currentPoint = null;
         if (analysisNode) {
@@ -626,7 +677,6 @@ async function loadTCData() {
           }
         }
 
-        // 預測點
         const forecastNodes = Array.from(trackXml.querySelectorAll("ForecastInformation"));
         const forecastPoints = [];
 
@@ -634,7 +684,7 @@ async function loadTCData() {
           const intensityNode = pt.querySelector("Intensity");
           const intensityText = intensityNode ? intensityNode.textContent.trim() : "";
 
-          if (!intensityText) return; // 僅當包含 Intensity 時才繪製
+          if (!intensityText) return;
 
           const lat = parseCoord(pt.querySelector("Latitude, lat")?.textContent);
           const lon = parseCoord(pt.querySelector("Longitude, lon")?.textContent);
@@ -698,8 +748,8 @@ function renderTCs(tcList) {
     if (!activePoint) return;
 
     const catInfo = INTENSITY_CONFIG[activePoint.cat] || INTENSITY_CONFIG['TD'];
-    // Requirement 1: 計算相對於澳門的距離
     const distMacau = calcDistance(activePoint.lat, activePoint.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
+    const dirMacau = getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], activePoint.lat, activePoint.lon);
 
     // 快捷選單
     const qsItem = document.createElement('div');
@@ -710,22 +760,19 @@ function renderTCs(tcList) {
     `;
     quickSelectEl.appendChild(qsItem);
 
-    // 初始化頁籤狀態
     if (!activeTabState[tc.name]) {
       activeTabState[tc.name] = 'forecast';
     }
 
-    // 側邊欄卡片 (包含 Requirement 4: 預測/歷史路徑切換按鈕)
+    // 側邊欄卡片 (依照圖片樣式構建)
     const card = document.createElement('div');
     card.className = 'tc-card';
     card.id = `card-${tc.name}`;
     
-    renderCardContent(card, tc, activePoint, catInfo, distMacau);
+    renderCardContent(card, tc, activePoint, catInfo, distMacau, dirMacau);
     sidebarEl.appendChild(card);
 
-    // ------------------- 地圖繪製 ------------------- //
-
-    // 1. 歷史路徑 (無誤差圈，點擊顯示數據)
+    // 地圖畫線
     if (tc.pastPoints.length > 0) {
       const pastCoords = tc.pastPoints.map(p => [p.lat, p.lon]);
       if (tc.currentPoint) pastCoords.push([tc.currentPoint.lat, tc.currentPoint.lon]);
@@ -748,7 +795,6 @@ function renderTCs(tcList) {
       });
     }
 
-    // 2. 當前點 (0h) 與預測路徑點集合
     const conePoints = [];
     if (tc.currentPoint) conePoints.push(tc.currentPoint);
     tc.forecastPoints.forEach(fp => conePoints.push(fp));
@@ -758,13 +804,11 @@ function renderTCs(tcList) {
       const fcLine = L.polyline(fcCoords, { color: '#ffffff', weight: 2, dashArray: '5, 6', opacity: 0.9 }).addTo(map);
       mapLayers.push(fcLine);
 
-      // Requirement 2: 執行 Turf.js 平滑分段誤差錐
       if (showCone) {
         drawSmoothSegmentedCone(conePoints);
       }
     }
 
-    // 3. 繪製圖示標記與彈窗
     conePoints.forEach(pt => {
       const pCat = INTENSITY_CONFIG[pt.cat] || INTENSITY_CONFIG['TD'];
       const iconSize = pt.type === 'Current' ? 24 : 18;
@@ -780,57 +824,111 @@ function renderTCs(tcList) {
   });
 }
 
-// Requirement 4: 渲染側邊欄卡片內容與頁籤切換
-function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau) {
+// Requirement 1 & Requirement 2 & Requirement 3: 渲染對齊圖片風格卡片內容
+function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau) {
   const currentTab = activeTabState[tc.name];
 
+  // 計算預計最接近距離點
+  let closestPt = null;
+  let minD = Infinity;
+  const allForecast = [];
+  if (tc.currentPoint) allForecast.push(tc.currentPoint);
+  if (tc.forecastPoints) allForecast.push(...tc.forecastPoints);
+
+  allForecast.forEach(pt => {
+    const d = calcDistance(pt.lat, pt.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
+    if (d < minD) {
+      minD = d;
+      closestPt = pt;
+    }
+  });
+
+  let closestStr = '--';
+  if (closestPt) {
+    const cDir = getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], closestPt.lat, closestPt.lon);
+    closestStr = `${cDir} ${minD}km`;
+  }
+
+  // 渲染列表 (格式符合 Requirement 2 & 3)
   let listHTML = '';
   if (currentTab === 'forecast') {
+    // 預測路徑：顯示 時數、強度標籤、經緯度座標、澳門相對方向距離、風速 (替代誤差錐尺寸)
     listHTML = tc.forecastPoints.map(fp => {
       const fCat = INTENSITY_CONFIG[fp.cat] || INTENSITY_CONFIG['TD'];
+      const fDist = calcDistance(fp.lat, fp.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
+      const fDir = getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], fp.lat, fp.lon);
       return `
         <div class="track-row" onclick="focusStorm(${fp.lat}, ${fp.lon})">
-          <span>+${fp.hours}h 預測</span>
-          <span class="badge-tag" style="background:${fCat.color}">${fCat.name}</span>
-          <span>${fp.wind}</span>
-          <span style="color:var(--text-muted); font-size:0.72rem;">±${fp.radiusKm}km</span>
+          <span style="font-weight:bold;">+${fp.hours}h</span>
+          <span><span class="badge-tag" style="background:${fCat.color}">${fCat.name}</span></span>
+          <span style="color:var(--text-muted); font-size:0.73rem;">${fp.lat.toFixed(1)}°N ${fp.lon.toFixed(1)}°E</span>
+          <span style="color:var(--accent-blue); font-size:0.73rem; font-weight:600;">${fDir} ${fDist}km</span>
+          <span style="text-align:right; font-weight:600;">${fp.wind}</span>
         </div>
       `;
     }).join('');
   } else {
+    // 歷史路徑：格式轉換為 MM-DD HH:mm (如 08-22 20:00)
     listHTML = tc.pastPoints.map(pp => {
       const pCat = INTENSITY_CONFIG[pp.cat] || INTENSITY_CONFIG['TD'];
-      const timeStr = pp.time ? new Date(pp.time).toLocaleString('zh-HK', {day:'numeric', hour:'2-digit', minute:'2-digit'}) : '歷史';
+      const formattedTime = formatDateTime(pp.time);
+      const pDist = calcDistance(pp.lat, pp.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
+      const pDir = getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], pp.lat, pp.lon);
+
       return `
         <div class="track-row" onclick="focusStorm(${pp.lat}, ${pp.lon})">
-          <span>${timeStr}</span>
-          <span class="badge-tag" style="background:${pCat.color}">${pCat.name}</span>
-          <span>${pp.wind}</span>
+          <span style="font-size:0.72rem; color:var(--text-muted); font-weight:bold;">${formattedTime}</span>
+          <span><span class="badge-tag" style="background:${pCat.color}">${pCat.name}</span></span>
+          <span style="color:var(--text-muted); font-size:0.73rem;">${pp.lat.toFixed(1)}°N ${pp.lon.toFixed(1)}°E</span>
+          <span style="color:var(--accent-blue); font-size:0.73rem; font-weight:600;">${pDir} ${pDist}km</span>
+          <span style="text-align:right; font-weight:600;">${pp.wind}</span>
         </div>
       `;
     }).join('');
   }
 
+  const reportTimeFormatted = formatDateTime(activePoint.time);
+
   cardEl.innerHTML = `
-    <div class="tc-title">
-      <span class="badge-tag" style="background:${catInfo.color}">${catInfo.name}</span>
-      ${tc.name} ${tc.englishName ? `(${tc.englishName})` : ''}
-    </div>
-    <div class="tc-grid">
-      <div class="tc-grid-item"><label>當前位置 (0h)</label><val>${activePoint.lat.toFixed(2)}°N ${activePoint.lon.toFixed(2)}°E</val></div>
-      <div class="tc-grid-item"><label>距澳門距離</label><val>${distMacau} km</val></div>
-      <div class="tc-grid-item"><label>中心最高風速</label><val>${activePoint.wind}</val></div>
-      <div class="tc-grid-item"><label>0h 誤差半徑</label><val>15 km</val></div>
-    </div>
-    
-    <!-- 切換按鈕組 -->
-    <div class="tab-group">
-      <button class="tab-btn ${currentTab === 'forecast' ? 'active' : ''}" onclick="toggleTab('${tc.name}', 'forecast')">預測路徑 (${tc.forecastPoints.length})</button>
-      <button class="tab-btn ${currentTab === 'past' ? 'active' : ''}" onclick="toggleTab('${tc.name}', 'past')">歷史路徑 (${tc.pastPoints.length})</button>
+    <!-- 頂部標題區 -->
+    <div class="tc-header-row">
+      <div class="tc-header-left">
+        <div class="red-dot-indicator"></div>
+        <span class="badge-tag" style="background:${catInfo.color}">${catInfo.name}</span>
+        <span class="tc-storm-name">${tc.name}</span>
+      </div>
+      <div class="tc-time-stamp">${reportTimeFormatted}</div>
     </div>
 
+    <!-- 4 宮格資訊區 (與圖片一致) -->
+    <div class="tc-info-grid">
+      <div class="info-box">
+        <span class="info-box-label">最新位置</span>
+        <span class="info-box-val">${activePoint.lat.toFixed(1)}°N ${activePoint.lon.toFixed(1)}°E</span>
+      </div>
+      <div class="info-box">
+        <span class="info-box-label">與澳門距離</span>
+        <span class="info-box-val" style="color:#f59e0b;">${dirMacau} ${distMacau}km</span>
+      </div>
+      <div class="info-box">
+        <span class="info-box-label">中心附近最高持續風速</span>
+        <span class="info-box-val">${activePoint.wind}</span>
+      </div>
+      <div class="info-box">
+        <span class="info-box-label">預計最接近距離</span>
+        <span class="info-box-val" style="color:#ef4444;">${closestStr}</span>
+      </div>
+    </div>
+
+    <!-- 頁籤切換按鈕組 -->
+    <div class="tab-group">
+      <button class="tab-btn ${currentTab === 'forecast' ? 'active' : ''}" onclick="toggleTab('${tc.name}', 'forecast')">預測路徑</button>
+      <button class="tab-btn ${currentTab === 'past' ? 'active' : ''}" onclick="toggleTab('${tc.name}', 'past')">歷史路徑</button>
+    </div>
+
+    <!-- 數據列表 -->
     <div class="track-list">
-      ${listHTML || '<div style="text-align:center; padding:6px; color:var(--text-muted);">無資料</div>'}
+      ${listHTML || '<div style="text-align:center; padding:10px; color:var(--text-muted);">無資料</div>'}
     </div>
   `;
 }
@@ -845,15 +943,16 @@ function toggleTab(stormName, tabType) {
     const activePoint = tc.currentPoint || tc.pastPoints[tc.pastPoints.length - 1] || tc.forecastPoints[0];
     const catInfo = INTENSITY_CONFIG[activePoint.cat] || INTENSITY_CONFIG['TD'];
     const distMacau = calcDistance(activePoint.lat, activePoint.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
-    renderCardContent(cardEl, tc, activePoint, catInfo, distMacau);
+    const dirMacau = getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], activePoint.lat, activePoint.lon);
+    renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau);
   }
 }
 
-// 點擊節點彈出數據窗口 (Requirement 1: 顯示距離澳門公里數)
 function bindPointDataPopup(marker, stormName, pt) {
   const pCat = INTENSITY_CONFIG[pt.cat] || INTENSITY_CONFIG['TD'];
   const dist = calcDistance(pt.lat, pt.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
-  const formattedTime = pt.time ? new Date(pt.time).toLocaleString('zh-HK', {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'}) : '--';
+  const dir = getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], pt.lat, pt.lon);
+  const formattedTime = formatDateTime(pt.time);
 
   const popupHTML = `
     <div class="popup-data-box">
@@ -864,8 +963,7 @@ function bindPointDataPopup(marker, stormName, pt) {
       <div><strong>中心座標：</strong>${pt.lat.toFixed(2)}°N, ${pt.lon.toFixed(2)}°E</div>
       <div><strong>中心最高風速：</strong>${pt.wind}</div>
       <div><strong>報告時間：</strong>${formattedTime}</div>
-      <div><strong>距離澳門：</strong>約 ${dist} km</div>
-      ${pt.radiusKm ? `<div><strong>潛在路徑誤差半徑：</strong>±${pt.radiusKm} km</div>` : ''}
+      <div><strong>相對澳門方位距離：</strong>${dir} ${dist} km</div>
     </div>
   `;
 
