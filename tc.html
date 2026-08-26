@@ -24,6 +24,7 @@
   --c-t: #f59e0b;
   --c-st: #ef4444;
   --c-supert: #c084fc;
+  --c-ex: #64748b;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -84,8 +85,21 @@ body {
   overflow: hidden;
 }
 
-#map-wrapper { flex: 1; position: relative; height: 100%; }
+#map-wrapper { flex: 1; position: relative; height: 100%; min-width: 0; }
 #map { width: 100%; height: 100%; background: #090d16; }
+
+/* 拖拽寬度分隔條 */
+.resizer {
+  width: 6px;
+  background: rgba(255, 255, 255, 0.08);
+  cursor: col-resize;
+  transition: background 0.2s;
+  z-index: 1001;
+  flex-shrink: 0;
+}
+.resizer:hover, .resizer.dragging {
+  background: var(--accent-blue);
+}
 
 .map-overlay-topright {
   position: absolute;
@@ -120,22 +134,64 @@ body {
 .legend-item { display: flex; align-items: center; gap: 8px; }
 .legend-color { width: 12px; height: 12px; border-radius: 50%; }
 
+/* 可調寬度與收起的側邊欄 */
 .sidebar {
   width: 420px;
+  min-width: 280px;
+  max-width: 650px;
   background: var(--bg-panel);
   border-left: 1px solid var(--card-border);
   display: flex; flex-direction: column;
   z-index: 1000; overflow-y: auto;
+  transition: margin-right 0.25s ease, width 0.05s ease;
+  position: relative;
+  flex-shrink: 0;
 }
+.sidebar.collapsed {
+  margin-right: -650px;
+  width: 0 !important;
+  min-width: 0 !important;
+  overflow: hidden;
+}
+
 .sidebar-header {
   padding: 12px 16px;
   border-bottom: 1px solid var(--card-border);
   display: flex; align-items: center; justify-content: space-between;
   font-size: 0.9rem; font-weight: bold; background: rgba(0,0,0,0.15);
+  white-space: nowrap;
 }
+
+.collapse-btn {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+.collapse-btn:hover { background: rgba(255, 255, 255, 0.18); }
+
+.floating-toggle-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1002;
+  background: var(--bg-panel);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  display: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
 .sidebar-content { padding: 12px; display: flex; flex-direction: column; gap: 12px; }
 
-/* 參考圖片風格卡片 */
+/* 風暴卡片樣式 */
 .tc-card {
   background: #151d2a;
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -174,7 +230,6 @@ body {
   font-size: 0.75rem; font-weight: 700; color: #fff; display: inline-block;
 }
 
-/* 4 宮格數值卡片 (對齊圖片) */
 .tc-info-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -199,7 +254,6 @@ body {
   color: var(--text-main);
 }
 
-/* 頁籤切換按鈕 */
 .tab-group {
   display: flex;
   background: rgba(0, 0, 0, 0.3);
@@ -224,7 +278,6 @@ body {
   color: #000;
 }
 
-/* 路徑列表欄位排版 */
 .track-list { font-size: 0.78rem; display: flex; flex-direction: column; gap: 6px; }
 .track-row {
   display: grid;
@@ -247,9 +300,6 @@ body {
   font-weight: bold;
   font-size: 10px;
 }
-
-.tc-icon-wrapper { display: flex; align-items: center; justify-content: center; cursor: pointer; }
-.tc-svg-icon { filter: drop-shadow(0px 0px 5px rgba(0,0,0,0.9)); transform-origin: center; }
 
 .leaflet-popup-content-wrapper {
   background: rgba(18, 24, 38, 0.95) !important;
@@ -284,6 +334,11 @@ body {
   <div id="map-wrapper">
     <div id="map"></div>
 
+    <!-- 側邊欄收起時的浮動展開按鈕 -->
+    <button class="floating-toggle-btn" id="floatingToggleBtn" onclick="toggleSidebar()">
+      📋 風暴詳細數據 ❮
+    </button>
+
     <div class="map-overlay-topright" id="mapQuickSelect">
       <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px;">活躍熱帶氣旋</div>
       <div id="quickSelectList">載入中...</div>
@@ -302,9 +357,16 @@ body {
     </div>
   </div>
 
-  <div class="sidebar">
+  <!-- 可拖拽調節寬度邊界條 -->
+  <div class="resizer" id="dragResizer"></div>
+
+  <!-- 右側數據欄 -->
+  <div class="sidebar" id="sidebarPanel">
     <div class="sidebar-header">
-      <span>風暴詳細數據</span>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="collapse-btn" onclick="toggleSidebar()" title="收起數據欄">❯</button>
+        <span>風暴詳細數據</span>
+      </div>
       <span id="updateClock" style="font-size: 0.75rem; color: var(--text-muted);">更新中...</span>
     </div>
     <div class="sidebar-content" id="sidebarCards"></div>
@@ -319,14 +381,16 @@ let showCone = true;
 let currentTCData = [];
 let activeTabState = {};
 
+// 強度級別對應顏色與 Logo 圖標檔名
 const INTENSITY_CONFIG = {
-  'LOW':    { name: '低壓區',       color: 'var(--c-low)' },
-  'TD':     { name: '熱帶低氣壓',   color: 'var(--c-td)' },
-  'TS':     { name: '熱帶風暴',     color: 'var(--c-ts)' },
-  'STS':    { name: '強烈熱帶風暴', color: 'var(--c-sts)' },
-  'T':      { name: '颱風',         color: 'var(--c-t)' },
-  'ST':     { name: '強颱風',       color: 'var(--c-st)' },
-  'SuperT': { name: '超強颱風',     color: 'var(--c-supert)' }
+  'LOW':    { name: '低壓區',       color: 'var(--c-low)',    logo: 'TC_logo/LPA.png' },
+  'TD':     { name: '熱帶低氣壓',   color: 'var(--c-td)',     logo: 'TC_logo/TD.png' },
+  'TS':     { name: '熱帶風暴',     color: 'var(--c-ts)',     logo: 'TC_logo/TS.png' },
+  'STS':    { name: '強烈熱帶風暴', color: 'var(--c-sts)',    logo: 'TC_logo/STS.png' },
+  'T':      { name: '颱風',         color: 'var(--c-t)',      logo: 'TC_logo/TY.png' },
+  'ST':     { name: '強颱風',       color: 'var(--c-st)',     logo: 'TC_logo/STY.png' },
+  'SuperT': { name: '超強颱風',     color: 'var(--c-supert)', logo: 'TC_logo/SuTY.png' },
+  'EX':     { name: '溫帶氣旋',     color: 'var(--c-ex)',     logo: 'TC_logo/Ex.png' }
 };
 
 const STANDARD_ERROR_RADIUS = {
@@ -357,6 +421,61 @@ function initMap() {
   }).bindTooltip("澳門 Macau", { permanent: true, direction: "top", className: "distance-label" }).addTo(map);
 
   drawMacauDistanceRings();
+  initSidebarControls();
+}
+
+/* 側邊欄寬度調整與展開/收起邏輯 */
+function initSidebarControls() {
+  const resizer = document.getElementById('dragResizer');
+  const sidebar = document.getElementById('sidebarPanel');
+  let isResizing = false;
+
+  resizer.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    resizer.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    const containerWidth = document.querySelector('.main-container').clientWidth;
+    let newWidth = containerWidth - e.clientX;
+    if (newWidth < 280) newWidth = 280;
+    if (newWidth > 650) newWidth = 650;
+    sidebar.style.width = `${newWidth}px`;
+    if (map) map.invalidateSize();
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isResizing) {
+      isResizing = false;
+      resizer.classList.remove('dragging');
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      if (map) map.invalidateSize();
+    }
+  });
+}
+
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebarPanel');
+  const resizer = document.getElementById('dragResizer');
+  const floatingBtn = document.getElementById('floatingToggleBtn');
+  
+  const isCollapsed = sidebar.classList.toggle('collapsed');
+  
+  if (isCollapsed) {
+    resizer.style.display = 'none';
+    floatingBtn.style.display = 'block';
+  } else {
+    resizer.style.display = 'block';
+    floatingBtn.style.display = 'none';
+  }
+
+  setTimeout(() => {
+    if (map) map.invalidateSize();
+  }, 280);
 }
 
 function drawMacauDistanceRings() {
@@ -412,20 +531,18 @@ function calculateBearing(lat1, lon1, lat2, lon2) {
   return (Math.atan2(y, x) / rad + 360) % 360;
 }
 
-// 方位角轉 16 個羅盤方位文字 (例如: 東北偏東)
 function getDirection16(lat1, lon1, lat2, lon2) {
   const bearing = calculateBearing(lat1, lon1, lat2, lon2);
   const dirs = [
-    "北", "東北偏北", "東北", "東北偏東",
-    "東", "東南偏東", "東南", "東南偏南",
-    "南", "西南偏南", "西南", "西南偏西",
-    "西", "西北偏西", "西北", "西北偏北"
+    "正北", "東北偏北", "東北", "東北偏東",
+    "正東", "東南偏東", "東南", "東南偏南",
+    "正南", "西南偏南", "西南", "西南偏西",
+    "正西", "西北偏西", "西北", "西北偏北"
   ];
   const index = Math.round(bearing / 22.5) % 16;
   return dirs[index];
 }
 
-// Requirement 3: 格式化時間為 08-22 20:00 樣式
 function formatDateTime(timeStr) {
   if (!timeStr) return '--';
   const d = new Date(timeStr);
@@ -461,32 +578,48 @@ function getCategoryKey(catStr, windStr) {
   }
   if (!catStr) return 'TD';
   const upper = catStr.toUpperCase();
+  if (upper.includes('EXTRATROPICAL') || upper.includes('EX')) return 'EX';
   if (upper.includes('LOW')) return 'LOW';
   if (upper.includes('SUPER')) return 'SuperT';
   if (upper.includes('SEVERE TYPHOON') || upper.includes('ST')) return 'ST';
   if (upper.includes('SEVERE TROPICAL') || upper.includes('STS')) return 'STS';
-  if (upper.includes('TYPHOON') || upper.includes('T')) return 'T';
+  if (upper.includes('TYPHOON') || upper.includes('TY') || upper.includes('T')) return 'T';
   if (upper.includes('TROPICAL STORM') || upper.includes('TS')) return 'TS';
   return 'TD';
 }
 
-function createCycloneIcon(colorStr, size = 20) {
-  const svg = `
-    <svg class="tc-svg-icon" viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="12" cy="12" r="3" fill="#ffffff"/>
-      <path d="M12 3C7.03 3 3 7.03 3 12c0 2.21.8 4.23 2.13 5.8L3 21l3.2-2.13C7.77 20.2 9.79 21 12 21c4.97 0 9-4.03 9-9 0-2.21-.8-4.23-2.13-5.8L21 3l-3.2 2.13C16.23 3.8 14.21 3 12 3z" stroke="#ffffff" stroke-width="1.2" fill="${colorStr}"/>
-    </svg>`;
-  return L.divIcon({
-    className: 'tc-icon-wrapper',
-    html: svg,
+/* 獲取當前位置圖標 (TC_logo/格式) */
+function getTCLogoIcon(catKey, size = 32) {
+  const config = INTENSITY_CONFIG[catKey] || INTENSITY_CONFIG['TD'];
+  return L.icon({
+    iconUrl: config.logo,
     iconSize: [size, size],
-    iconAnchor: [size/2, size/2]
+    iconAnchor: [size / 2, size / 2],
+    popupAnchor: [0, -size / 2]
   });
 }
 
 function clearMapLayers() {
   mapLayers.forEach(l => map.removeLayer(l));
   mapLayers = [];
+}
+
+/* 分段繪製色彩軌跡線 (Track line color follows intensity color) */
+function drawSegmentedTrack(points, isForecast = false) {
+  for (let i = 0; i < points.length - 1; i++) {
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const catInfo = INTENSITY_CONFIG[p1.cat] || INTENSITY_CONFIG['TD'];
+
+    const segment = L.polyline([[p1.lat, p1.lon], [p2.lat, p2.lon]], {
+      color: catInfo.color,
+      weight: isForecast ? 3 : 4,
+      opacity: 0.9,
+      dashArray: isForecast ? '6, 6' : null
+    }).addTo(map);
+    
+    mapLayers.push(segment);
+  }
 }
 
 function drawSmoothSegmentedCone(conePoints) {
@@ -764,7 +897,7 @@ function renderTCs(tcList) {
       activeTabState[tc.name] = 'forecast';
     }
 
-    // 側邊欄卡片 (依照圖片樣式構建)
+    // 側邊欄卡片
     const card = document.createElement('div');
     card.className = 'tc-card';
     card.id = `card-${tc.name}`;
@@ -772,51 +905,62 @@ function renderTCs(tcList) {
     renderCardContent(card, tc, activePoint, catInfo, distMacau, dirMacau);
     sidebarEl.appendChild(card);
 
-    // 地圖畫線
-    if (tc.pastPoints.length > 0) {
-      const pastCoords = tc.pastPoints.map(p => [p.lat, p.lon]);
-      if (tc.currentPoint) pastCoords.push([tc.currentPoint.lat, tc.currentPoint.lon]);
+    // 1. 歷史路徑線與定位點 (依據強度顏色繪製分段彩色軌跡線)
+    const allPastPoints = [...tc.pastPoints];
+    if (tc.currentPoint) allPastPoints.push(tc.currentPoint);
 
-      const pastLine = L.polyline(pastCoords, { color: '#94a3b8', weight: 2, opacity: 0.75 }).addTo(map);
-      mapLayers.push(pastLine);
-
-      tc.pastPoints.forEach(pt => {
-        const pCat = INTENSITY_CONFIG[pt.cat] || INTENSITY_CONFIG['TD'];
-        const marker = L.circleMarker([pt.lat, pt.lon], {
-          radius: 4,
-          fillColor: pCat.color,
-          color: '#ffffff',
-          weight: 1,
-          fillOpacity: 1
-        }).addTo(map);
-
-        bindPointDataPopup(marker, tc.name, pt);
-        mapLayers.push(marker);
-      });
+    if (allPastPoints.length > 1) {
+      drawSegmentedTrack(allPastPoints, false);
     }
 
+    tc.pastPoints.forEach(pt => {
+      const pCat = INTENSITY_CONFIG[pt.cat] || INTENSITY_CONFIG['TD'];
+      const marker = L.circleMarker([pt.lat, pt.lon], {
+        radius: 6,
+        fillColor: pCat.color,
+        color: '#ffffff',
+        weight: 2,
+        fillOpacity: 1
+      }).addTo(map);
+
+      bindPointDataPopup(marker, tc.name, pt);
+      mapLayers.push(marker);
+    });
+
+    // 2. 預測路徑線與潛在錐體
     const conePoints = [];
     if (tc.currentPoint) conePoints.push(tc.currentPoint);
     tc.forecastPoints.forEach(fp => conePoints.push(fp));
 
     if (conePoints.length > 1) {
-      const fcCoords = conePoints.map(p => [p.lat, p.lon]);
-      const fcLine = L.polyline(fcCoords, { color: '#ffffff', weight: 2, dashArray: '5, 6', opacity: 0.9 }).addTo(map);
-      mapLayers.push(fcLine);
+      drawSegmentedTrack(conePoints, true);
 
       if (showCone) {
         drawSmoothSegmentedCone(conePoints);
       }
     }
 
+    // 3. 渲染定位點 (當前位置使用 TC_logo/ 圖標，其餘預測點使用圓點)
     conePoints.forEach(pt => {
       const pCat = INTENSITY_CONFIG[pt.cat] || INTENSITY_CONFIG['TD'];
-      const iconSize = pt.type === 'Current' ? 24 : 18;
-      
-      const marker = L.marker([pt.lat, pt.lon], {
-        icon: createCycloneIcon(pCat.color, iconSize),
-        zIndexOffset: pt.type === 'Current' ? 1000 : 500
-      }).addTo(map);
+      let marker;
+
+      if (pt.type === 'Current') {
+        // 當前點：改用 TC_logo/ 圖標 (例如 TC_logo/TY.png, TC_logo/TD.png)
+        marker = L.marker([pt.lat, pt.lon], {
+          icon: getTCLogoIcon(pt.cat, 34),
+          zIndexOffset: 1000
+        }).addTo(map);
+      } else {
+        // 預測點：白邊圓點
+        marker = L.circleMarker([pt.lat, pt.lon], {
+          radius: 5,
+          fillColor: pCat.color,
+          color: '#ffffff',
+          weight: 2,
+          fillOpacity: 1
+        }).addTo(map);
+      }
 
       bindPointDataPopup(marker, tc.name, pt);
       mapLayers.push(marker);
@@ -824,11 +968,9 @@ function renderTCs(tcList) {
   });
 }
 
-// Requirement 1 & Requirement 2 & Requirement 3: 渲染對齊圖片風格卡片內容
 function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau) {
   const currentTab = activeTabState[tc.name];
 
-  // 計算預計最接近距離點
   let closestPt = null;
   let minD = Infinity;
   const allForecast = [];
@@ -849,10 +991,8 @@ function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau
     closestStr = `${cDir} ${minD}km`;
   }
 
-  // 渲染列表 (格式符合 Requirement 2 & 3)
   let listHTML = '';
   if (currentTab === 'forecast') {
-    // 預測路徑：顯示 時數、強度標籤、經緯度座標、澳門相對方向距離、風速 (替代誤差錐尺寸)
     listHTML = tc.forecastPoints.map(fp => {
       const fCat = INTENSITY_CONFIG[fp.cat] || INTENSITY_CONFIG['TD'];
       const fDist = calcDistance(fp.lat, fp.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
@@ -868,7 +1008,6 @@ function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau
       `;
     }).join('');
   } else {
-    // 歷史路徑：格式轉換為 MM-DD HH:mm (如 08-22 20:00)
     listHTML = tc.pastPoints.map(pp => {
       const pCat = INTENSITY_CONFIG[pp.cat] || INTENSITY_CONFIG['TD'];
       const formattedTime = formatDateTime(pp.time);
@@ -890,7 +1029,6 @@ function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau
   const reportTimeFormatted = formatDateTime(activePoint.time);
 
   cardEl.innerHTML = `
-    <!-- 頂部標題區 -->
     <div class="tc-header-row">
       <div class="tc-header-left">
         <div class="red-dot-indicator"></div>
@@ -900,7 +1038,6 @@ function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau
       <div class="tc-time-stamp">${reportTimeFormatted}</div>
     </div>
 
-    <!-- 4 宮格資訊區 (與圖片一致) -->
     <div class="tc-info-grid">
       <div class="info-box">
         <span class="info-box-label">最新位置</span>
@@ -920,13 +1057,11 @@ function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau
       </div>
     </div>
 
-    <!-- 頁籤切換按鈕組 -->
     <div class="tab-group">
       <button class="tab-btn ${currentTab === 'forecast' ? 'active' : ''}" onclick="toggleTab('${tc.name}', 'forecast')">預測路徑</button>
       <button class="tab-btn ${currentTab === 'past' ? 'active' : ''}" onclick="toggleTab('${tc.name}', 'past')">歷史路徑</button>
     </div>
 
-    <!-- 數據列表 -->
     <div class="track-list">
       ${listHTML || '<div style="text-align:center; padding:10px; color:var(--text-muted);">無資料</div>'}
     </div>
