@@ -416,10 +416,10 @@ function calculateBearing(lat1, lon1, lat2, lon2) {
 function getDirection16(lat1, lon1, lat2, lon2) {
   const bearing = calculateBearing(lat1, lon1, lat2, lon2);
   const dirs = [
-    "正北", "東北偏北", "東北", "東北偏東",
-    "正東", "東南偏東", "東南", "東南偏南",
-    "正南", "西南偏南", "西南", "西南偏西",
-    "正西", "西北偏西", "西北", "西北偏北"
+    "北", "東北偏北", "東北", "東北偏東",
+    "東", "東南偏東", "東南", "東南偏南",
+    "南", "西南偏南", "西南", "西南偏西",
+    "西", "西北偏西", "西北", "西北偏北"
   ];
   const index = Math.round(bearing / 22.5) % 16;
   return dirs[index];
