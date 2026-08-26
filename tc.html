@@ -723,7 +723,7 @@ let mapLayers = [];
 let showCone = true;
 let currentTCData = [];
 let activeTabState = {};
-let stormTrackVisibility = {}; // 追蹤個別風暴路徑顯隱狀態 (預設 true)
+let stormTrackVisibility = {}; 
 
 const INTENSITY_CONFIG = {
   'LOW':    { name: '低壓區',       color: 'var(--c-low)',    logo: 'TC logo/LPA.png' },
@@ -775,7 +775,6 @@ function initMap() {
   initSidebarControls();
 }
 
-/* 1. 地圖隨日夜模式切換 */
 function toggleTheme() {
   document.body.classList.toggle('light-theme');
   const isLight = document.body.classList.contains('light-theme');
@@ -807,7 +806,6 @@ function updateHeaderClock() {
   }
 }
 
-/* 3. 修復側邊欄關閉後可正常重新開啟 */
 function initSidebarControls() {
   const resizer = document.getElementById('dragResizer');
   const sidebar = document.getElementById('sidebarPanel');
@@ -901,7 +899,6 @@ function toggleErrorCone() {
   if (currentTCData.length > 0) renderTCs(currentTCData);
 }
 
-/* 2. 切換個別風暴路徑顯示 */
 function toggleStormTrack(stormName) {
   if (stormTrackVisibility[stormName] === undefined) {
     stormTrackVisibility[stormName] = false;
@@ -1285,13 +1282,11 @@ function renderTCs(tcList) {
     const distMacau = calcDistance(activePoint.lat, activePoint.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
     const dirMacau = getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], activePoint.lat, activePoint.lon);
 
-    // 預設風暴路徑為可見狀態
     if (stormTrackVisibility[tc.name] === undefined) {
       stormTrackVisibility[tc.name] = true;
     }
     const isTrackVisible = stormTrackVisibility[tc.name];
 
-    // 2. 活躍熱帶氣旋：顯示距澳距離 & 顯示路徑按鈕（亮起表示顯示路徑）
     const qsItem = document.createElement('div');
     qsItem.className = 'overlay-storm-item';
     qsItem.innerHTML = `
@@ -1309,7 +1304,6 @@ function renderTCs(tcList) {
       activeTabState[tc.name] = 'forecast';
     }
 
-    // 4. 側邊欄卡片渲染
     const card = document.createElement('div');
     card.className = 'tc-card';
     card.id = `card-${tc.name}`;
@@ -1317,10 +1311,9 @@ function renderTCs(tcList) {
     renderCardContent(card, tc, activePoint, catInfo, distMacau, dirMacau);
     sidebarEl.appendChild(card);
 
-    // 若關閉路徑顯示，則跳過該風暴的地圖繪製
     if (!isTrackVisible) return;
 
-    // 地圖繪製邏輯
+    // 歷史路徑與定位點繪製
     const allPastPoints = [...tc.pastPoints];
     if (tc.currentPoint) allPastPoints.push(tc.currentPoint);
 
@@ -1342,20 +1335,110 @@ function renderTCs(tcList) {
       mapLayers.push(marker);
     });
 
-    const conePoints = [];
-    if (tc.currentPoint) conePoints.push(tc.currentPoint);
-    tc.forecastPoints.forEach(fp => conePoints.push(fp));
+    // 建立基礎錨點列表（0h 與 官方預測點）
+    const anchors = [];
+    if (tc.currentPoint) anchors.push(tc.currentPoint);
+    if (tc.forecastPoints) anchors.push(...tc.forecastPoints);
+    anchors.sort((a, b) => a.hours - b.hours);
 
+    // 插值計算函數：計算任意目標小時 targetH 的經緯度、風速與時間
+    function getPointAtHour(targetH) {
+      if (anchors.length === 0) return null;
+      const maxH = anchors[anchors.length - 1].hours;
+      if (targetH > maxH) return null;
+
+      const exact = anchors.find(a => a.hours === targetH);
+      if (exact) return exact;
+
+      for (let i = 0; i < anchors.length - 1; i++) {
+        const a1 = anchors[i];
+        const a2 = anchors[i + 1];
+        if (targetH > a1.hours && targetH < a2.hours) {
+          const ratio = (targetH - a1.hours) / (a2.hours - a1.hours);
+          const lat = a1.lat + ratio * (a2.lat - a1.lat);
+          const lon = a1.lon + ratio * (a2.lon - a1.lon);
+          
+          const w1 = parseInt(a1.wind) || 0;
+          const w2 = parseInt(a2.wind) || 0;
+          const interpWindNum = Math.round(w1 + ratio * (w2 - w1));
+          const windStr = interpWindNum > 0 ? `${interpWindNum} km/h` : a1.wind;
+
+          const cat = getCategoryKey('', windStr);
+
+          let timeStr = a1.time;
+          if (a1.time && a2.time) {
+            const t1 = new Date(a1.time).getTime();
+            const t2 = new Date(a2.time).getTime();
+            if (!isNaN(t1) && !isNaN(t2)) {
+              timeStr = new Date(t1 + ratio * (t2 - t1)).toISOString();
+            }
+          }
+
+          const r1 = (a1.radiusKm !== null && a1.radiusKm !== undefined) ? a1.radiusKm : (STANDARD_ERROR_RADIUS[a1.hours] || 15);
+          const r2 = (a2.radiusKm !== null && a2.radiusKm !== undefined) ? a2.radiusKm : (STANDARD_ERROR_RADIUS[a2.hours] || 465);
+          const radiusKm = Math.round(r1 + ratio * (r2 - r1));
+
+          return {
+            type: 'Forecast',
+            typeLabel: `+${targetH}小時 預測位置`,
+            lat, lon,
+            wind: windStr,
+            cat,
+            time: timeStr,
+            hours: targetH,
+            radiusKm
+          };
+        }
+      }
+      return null;
+    }
+
+    // 1. 風暴 Logo 小時點：24H, 48H, 72H, 96H, 120H
+    const logoHoursSet = new Set([24, 48, 72, 96, 120]);
+
+    // 2. 預設白點：12H, 36H, 60H, 84H, 108H
+    let whiteHoursList = [12, 36, 60, 84, 108];
+
+    // 根據與澳門距離追加白點
+    if (distMacau <= 800) {
+      whiteHoursList.push(6, 18);
+    }
+    if (distMacau <= 400) {
+      whiteHoursList.push(3, 9);
+    }
+    if (distMacau <= 200) {
+      whiteHoursList.push(1, 2, 4, 5, 7, 8, 10, 11);
+    }
+
+    const whiteHoursSet = new Set(whiteHoursList);
+
+    // 彙整所有需計算的預測點小時數
+    const allHoursSet = new Set([0]);
+    anchors.forEach(a => allHoursSet.add(a.hours));
+    logoHoursSet.forEach(h => allHoursSet.add(h));
+    whiteHoursSet.forEach(h => allHoursSet.add(h));
+
+    const sortedHours = Array.from(allHoursSet).sort((a, b) => a - b);
+    const conePoints = [];
+
+    sortedHours.forEach(h => {
+      const pt = getPointAtHour(h);
+      if (pt) conePoints.push(pt);
+    });
+
+    // 繪製連線與潛在路徑範圍錐體
     if (conePoints.length > 1) {
       drawSegmentedTrack(conePoints, true);
       if (showCone) drawSmoothSegmentedCone(conePoints);
     }
 
+    // 地圖標記渲染（Logo / 白點 / 圓點）
     conePoints.forEach(pt => {
       const pCat = INTENSITY_CONFIG[pt.cat] || INTENSITY_CONFIG['TD'];
       let marker;
 
-      if (pt.type === 'Current') {
+      if (pt.hours === 0 || pt.type === 'Current') {
+        // 當前分析位置 (0h)：較大 Logo + 風暴名稱標籤
         marker = L.marker([pt.lat, pt.lon], {
           icon: getTCLogoIcon(pt.cat, 34),
           zIndexOffset: 1000
@@ -1368,7 +1451,25 @@ function renderTCs(tcList) {
           className: `storm-map-label storm-label-${pt.cat}`
         });
 
+      } else if (logoHoursSet.has(pt.hours)) {
+        // 24H, 48H, 72H, 96H, 120H：顯示風暴 Logo
+        marker = L.marker([pt.lat, pt.lon], {
+          icon: getTCLogoIcon(pt.cat, 26),
+          zIndexOffset: 800
+        }).addTo(map);
+
+      } else if (whiteHoursSet.has(pt.hours)) {
+        // 白點標記
+        marker = L.circleMarker([pt.lat, pt.lon], {
+          radius: 4,
+          fillColor: '#ffffff',
+          color: '#1e293b',
+          weight: 1.5,
+          fillOpacity: 1
+        }).addTo(map);
+
       } else {
+        // 其他官方預測點：彩色圓點
         marker = L.circleMarker([pt.lat, pt.lon], {
           radius: 5,
           fillColor: pCat.color,
