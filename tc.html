@@ -411,7 +411,6 @@ body.light-theme .dropdown-content {
   width: 100%; box-sizing: border-box; min-width: 0;
 }
 
-/* 風暴卡片自適應寬度 */
 .tc-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -455,7 +454,6 @@ body.light-theme .dropdown-content {
   white-space: nowrap; flex-shrink: 0;
 }
 
-/* 彈性卡片網格 */
 .tc-info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -494,7 +492,6 @@ body.light-theme .dropdown-content {
 
 .track-list { font-size: 0.78rem; display: flex; flex-direction: column; gap: 6px; width: 100%; }
 
-/* 彈性路徑列表行 */
 .track-row {
   display: grid;
   grid-template-columns: minmax(40px, 0.8fr) minmax(65px, 1fr) minmax(70px, 1.1fr) minmax(75px, 1.2fr) minmax(45px, 0.8fr);
@@ -519,7 +516,6 @@ body.light-theme .dropdown-content {
   color: rgba(255, 255, 255, 0.6); font-weight: bold; font-size: 10px;
 }
 
-/* 地圖風暴名稱標籤 */
 .storm-map-label {
   border: none !important;
   font-weight: bold !important;
@@ -552,7 +548,6 @@ body.light-theme .dropdown-content {
 .popup-data-box { font-size: 0.8rem; line-height: 1.5; padding: 4px; }
 .popup-data-box strong { color: var(--accent-blue); }
 
-/* 響應式適配 */
 @media (max-width: 768px) {
   .header-nav-container { padding: 0.75rem 1rem; }
   .menu-toggle { display: block; }
@@ -671,7 +666,10 @@ body.light-theme .dropdown-content {
 <div class="main-container">
   <div id="map-wrapper">
     <div class="sub-header-bar">
-      <select class="ctrl-select" id="yearSelect"><option>2026</option></select>
+      <select class="ctrl-select" id="yearSelect" onchange="loadTCData()">
+        <option value="LIVE">當前熱帶氣旋 (2026)</option>
+        <option value="2024">歷史風暴 (2024)</option>
+      </select>
       <button class="ctrl-btn active" id="btnCone" onclick="toggleErrorCone()">潛在路徑範圍錐體</button>
       <button class="ctrl-btn" onclick="resetView()">重置視角(澳門)</button>
       <button class="ctrl-btn" onclick="loadTCData()">立即刷新</button>
@@ -684,7 +682,7 @@ body.light-theme .dropdown-content {
     </button>
 
     <div class="map-overlay-topright" id="mapQuickSelect">
-      <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px;">活躍熱帶氣旋</div>
+      <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px;" id="quickSelectTitle">活躍熱帶氣旋</div>
       <div id="quickSelectList">載入中...</div>
     </div>
 
@@ -954,6 +952,7 @@ function formatDateTime(timeStr) {
   return `${mm}-${dd} ${hh}:${min}`;
 }
 
+// 逐字解析 XML 座標值（如 28.60N / 124.70E）而不使用任何平均值或平滑計算
 function parseCoord(valStr) {
   if (!valStr) return NaN;
   const cleanStr = valStr.trim();
@@ -1126,9 +1125,17 @@ function drawSmoothSegmentedCone(conePoints) {
 }
 
 async function loadTCData() {
+  const selectedMode = document.getElementById('yearSelect').value;
   const updateClock = document.getElementById('updateClock');
   updateClock.textContent = "更新時間：" + new Date().toLocaleTimeString('zh-HK', {hour: '2-digit', minute:'2-digit'});
 
+  if (selectedMode === "2024") {
+    document.getElementById('quickSelectTitle').textContent = "2024 歷史風暴列表";
+    await loadHistoricalBST2024();
+    return;
+  }
+
+  document.getElementById('quickSelectTitle').textContent = "活躍熱帶氣旋";
   const indexUrl = "https://www.weather.gov.hk/wxinfo/currwx/tc_list.xml";
   const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(indexUrl)}`;
 
@@ -1167,6 +1174,7 @@ async function loadTCData() {
         const pastNodes = Array.from(trackXml.querySelectorAll("PastInformation"));
         const pastPoints = [];
         pastNodes.forEach(pt => {
+          // 直接讀取原始 Latitude 與 Longitude 數據，不作任何平均計算
           const lat = parseCoord(pt.querySelector("Latitude, lat")?.textContent);
           const lon = parseCoord(pt.querySelector("Longitude, lon")?.textContent);
           const wind = pt.querySelector("MaximumWind, MaxWind")?.textContent || "--";
@@ -1215,8 +1223,7 @@ async function loadTCData() {
           const intensityNode = pt.querySelector("Intensity");
           const intensityText = intensityNode ? intensityNode.textContent.trim() : "";
 
-          if (!intensityText) return;
-
+          // 直接提取數據給定值 (例：<Index>12</Index> -> Lat 28.60N, Lon 124.70E)，不作平均化處理
           const lat = parseCoord(pt.querySelector("Latitude, lat")?.textContent);
           const lon = parseCoord(pt.querySelector("Longitude, lon")?.textContent);
           const wind = pt.querySelector("MaximumWind, MaxWind")?.textContent || "--";
@@ -1266,6 +1273,77 @@ async function loadTCData() {
   }
 }
 
+// 載入與解析 HKO 2024 歷史風暴 Best Track (BST) CSV 數據
+async function loadHistoricalBST2024() {
+  const csvUrl = "https://data.weather.gov.hk/weatherAPI/hko_data/tc/HKO2024BST.csv";
+  const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(csvUrl)}`;
+
+  try {
+    const res = await fetch(proxyUrl, { cache: 'no-store' });
+    if (!res.ok) throw new Error("HKO2024BST.csv 獲取失敗");
+    const csvText = await res.text();
+
+    const lines = csvText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const stormsMap = {};
+
+    lines.forEach((line, index) => {
+      if (index === 0 && (line.includes('Date') || line.includes('Name') || line.includes('lat'))) return; // 跳過標頭欄位
+      const cols = line.split(',').map(c => c.trim().replace(/^"(.*)"$/, '$1'));
+      if (cols.length < 5) return;
+
+      // 提取通用 CSV 欄位數據
+      const rawDate = cols[0] || '';
+      const name = cols[1] || '歷史風暴';
+      const latNum = parseFloat(cols[2]);
+      const lonNum = parseFloat(cols[3]);
+      const windNum = cols[4] || '--';
+      const catStr = cols[5] || '';
+
+      if (isNaN(latNum) || isNaN(lonNum)) return;
+
+      if (!stormsMap[name]) {
+        stormsMap[name] = [];
+      }
+
+      stormsMap[name].push({
+        type: 'Past',
+        typeLabel: '歷史路徑',
+        lat: latNum,
+        lon: lonNum,
+        wind: windNum.includes('km/h') ? windNum : `${windNum} km/h`,
+        cat: getCategoryKey(catStr, windNum),
+        time: rawDate,
+        hours: null,
+        radiusKm: null
+      });
+    });
+
+    const parsedTCList = Object.keys(stormsMap).map(sName => {
+      const pts = stormsMap[sName];
+      const lastPt = pts[pts.length - 1];
+      return {
+        name: sName,
+        englishName: sName,
+        pastPoints: pts,
+        currentPoint: { ...lastPt, type: 'Current', typeLabel: '最終分析位置 (0h)', hours: 0, radiusKm: 15 },
+        forecastPoints: []
+      };
+    });
+
+    currentTCData = parsedTCList;
+    if (parsedTCList.length > 0) {
+      renderTCs(parsedTCList);
+    } else {
+      renderEmptyState();
+    }
+
+  } catch (err) {
+    console.error("載入歷史風暴失敗:", err);
+    document.getElementById('quickSelectList').innerHTML = "<div style='font-size:0.78rem; color:#ef4444;'>歷史風暴數據獲取失敗</div>";
+    document.getElementById('sidebarCards').innerHTML = "<div style='text-align:center; padding:20px; color:#ef4444; font-size:0.88rem;'>無法讀取 2024 歷史風暴 CSV 數據</div>";
+  }
+}
+
 function renderTCs(tcList) {
   clearMapLayers();
   
@@ -1301,7 +1379,7 @@ function renderTCs(tcList) {
     quickSelectEl.appendChild(qsItem);
 
     if (!activeTabState[tc.name]) {
-      activeTabState[tc.name] = 'forecast';
+      activeTabState[tc.name] = tc.forecastPoints.length > 0 ? 'forecast' : 'past';
     }
 
     const card = document.createElement('div');
@@ -1315,7 +1393,7 @@ function renderTCs(tcList) {
 
     // 歷史路徑與定位點繪製
     const allPastPoints = [...tc.pastPoints];
-    if (tc.currentPoint) allPastPoints.push(tc.currentPoint);
+    if (tc.currentPoint && tc.forecastPoints.length > 0) allPastPoints.push(tc.currentPoint);
 
     if (allPastPoints.length > 1) {
       drawSegmentedTrack(allPastPoints, false);
@@ -1341,7 +1419,6 @@ function renderTCs(tcList) {
     if (tc.forecastPoints) anchors.push(...tc.forecastPoints);
     anchors.sort((a, b) => a.hours - b.hours);
 
-    // 插值計算函數：計算任意目標小時 targetH 的經緯度、風速與時間
     function getPointAtHour(targetH) {
       if (anchors.length === 0) return null;
       const maxH = anchors[anchors.length - 1].hours;
@@ -1393,26 +1470,14 @@ function renderTCs(tcList) {
       return null;
     }
 
-    // 1. 風暴 Logo 小時點：24H, 48H, 72H, 96H, 120H
     const logoHoursSet = new Set([24, 48, 72, 96, 120]);
-
-    // 2. 預設白點：12H, 36H, 60H, 84H, 108H
     let whiteHoursList = [12, 36, 60, 84, 108];
 
-    // 根據與澳門距離追加白點
-    if (distMacau <= 800) {
-      whiteHoursList.push(6, 18);
-    }
-    if (distMacau <= 400) {
-      whiteHoursList.push(3, 9);
-    }
-    if (distMacau <= 200) {
-      whiteHoursList.push(1, 2, 4, 5, 7, 8, 10, 11);
-    }
+    if (distMacau <= 800) whiteHoursList.push(6, 18);
+    if (distMacau <= 400) whiteHoursList.push(3, 9);
+    if (distMacau <= 200) whiteHoursList.push(1, 2, 4, 5, 7, 8, 10, 11);
 
     const whiteHoursSet = new Set(whiteHoursList);
-
-    // 彙整所有需計算的預測點小時數
     const allHoursSet = new Set([0]);
     anchors.forEach(a => allHoursSet.add(a.hours));
     logoHoursSet.forEach(h => allHoursSet.add(h));
@@ -1426,19 +1491,16 @@ function renderTCs(tcList) {
       if (pt) conePoints.push(pt);
     });
 
-    // 繪製連線與潛在路徑範圍錐體
     if (conePoints.length > 1) {
       drawSegmentedTrack(conePoints, true);
       if (showCone) drawSmoothSegmentedCone(conePoints);
     }
 
-    // 地圖標記渲染（Logo / 白點 / 圓點）
     conePoints.forEach(pt => {
       const pCat = INTENSITY_CONFIG[pt.cat] || INTENSITY_CONFIG['TD'];
       let marker;
 
       if (pt.hours === 0 || pt.type === 'Current') {
-        // 當前分析位置 (0h)：較大 Logo + 風暴名稱標籤
         marker = L.marker([pt.lat, pt.lon], {
           icon: getTCLogoIcon(pt.cat, 34),
           zIndexOffset: 1000
@@ -1452,14 +1514,12 @@ function renderTCs(tcList) {
         });
 
       } else if (logoHoursSet.has(pt.hours)) {
-        // 24H, 48H, 72H, 96H, 120H：顯示風暴 Logo
         marker = L.marker([pt.lat, pt.lon], {
           icon: getTCLogoIcon(pt.cat, 26),
           zIndexOffset: 800
         }).addTo(map);
 
       } else if (whiteHoursSet.has(pt.hours)) {
-        // 白點標記
         marker = L.circleMarker([pt.lat, pt.lon], {
           radius: 4,
           fillColor: '#ffffff',
@@ -1469,7 +1529,6 @@ function renderTCs(tcList) {
         }).addTo(map);
 
       } else {
-        // 其他官方預測點：彩色圓點
         marker = L.circleMarker([pt.lat, pt.lon], {
           radius: 5,
           fillColor: pCat.color,
@@ -1518,7 +1577,7 @@ function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau
         <div class="track-row" onclick="focusStorm(${fp.lat}, ${fp.lon})">
           <span style="font-weight:bold;">+${fp.hours}h</span>
           <span><span class="badge-tag" style="background:${fCat.color}">${fCat.name}</span></span>
-          <span style="color:var(--text-muted); font-size:0.73rem;">${fp.lat.toFixed(1)}°N ${fp.lon.toFixed(1)}°E</span>
+          <span style="color:var(--text-muted); font-size:0.73rem;">${fp.lat.toFixed(2)}°N ${fp.lon.toFixed(2)}°E</span>
           <span style="color:var(--accent-blue); font-size:0.73rem; font-weight:600;">${fDir} ${fDist}km</span>
           <span style="text-align:right; font-weight:600;">${fp.wind}</span>
         </div>
@@ -1535,7 +1594,7 @@ function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau
         <div class="track-row" onclick="focusStorm(${pp.lat}, ${pp.lon})">
           <span style="font-size:0.72rem; color:var(--text-muted); font-weight:bold;">${formattedTime}</span>
           <span><span class="badge-tag" style="background:${pCat.color}">${pCat.name}</span></span>
-          <span style="color:var(--text-muted); font-size:0.73rem;">${pp.lat.toFixed(1)}°N ${pp.lon.toFixed(1)}°E</span>
+          <span style="color:var(--text-muted); font-size:0.73rem;">${pp.lat.toFixed(2)}°N ${pp.lon.toFixed(2)}°E</span>
           <span style="color:var(--accent-blue); font-size:0.73rem; font-weight:600;">${pDir} ${pDist}km</span>
           <span style="text-align:right; font-weight:600;">${pp.wind}</span>
         </div>
@@ -1557,7 +1616,7 @@ function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau
     <div class="tc-info-grid">
       <div class="info-box">
         <span class="info-box-label">最新位置</span>
-        <span class="info-box-val">${activePoint.lat.toFixed(1)}°N ${activePoint.lon.toFixed(1)}°E</span>
+        <span class="info-box-val">${activePoint.lat.toFixed(2)}°N ${activePoint.lon.toFixed(2)}°E</span>
       </div>
       <div class="info-box">
         <span class="info-box-label">與澳門距離</span>
