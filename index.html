@@ -1695,6 +1695,7 @@ window.addEventListener('DOMContentLoaded', function(){
 </script>
 
 <!-- ==================== 暑熱天氣提示 (WBGT) 計算與狀態監測邏輯 ==================== -->
+<!-- ==================== 暑熱天氣提示 (WBGT) 計算與狀態監測邏輯 ==================== -->
 <script>
 const wbgtSigma = 5.670374419e-8; 
 const wbgtEps = 0.95;             
@@ -1764,17 +1765,21 @@ const wbgtStationCodes = {
 
 const wbgtExcludedBridgeCodes = ["PV", "PN", "PS", "PG", "MN", "MS", "LH"];
 
-function extractWbgtValue(selector, parent) {
-    const el = parent.querySelector(selector);
-    if (!el) return '';
-    const val = el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || '';
-    return val.trim();
+function extractNodeValue(parent, selectors) {
+    for (let sel of selectors) {
+        const el = parent.querySelector(sel);
+        if (el) {
+            const val = el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || el.textContent || '';
+            if (val.trim() !== '') return val.trim();
+        }
+    }
+    return '';
 }
 
 let wbgtAlertState = {
-    level: 0,           // 0: 無提示, 1: 危險(30.5-31.4), 2: 非常危險(31.5-32.4), 3: 極度危險(>=32.5)
-    expiryTime: 0,      // 保持顯示的過期時間戳 (毫秒)
-    formattedTime: ""   // 提示產生的時間戳字串 (YYYY-MM-DD HH:mm MST)
+    level: 0,           
+    expiryTime: 0,      
+    formattedTime: ""   
 };
 
 function getFormattedMstTime() {
@@ -1787,26 +1792,26 @@ function getFormattedMstTime() {
     return `${yyyy}-${mm}-${dd} ${hh}:${min} MST`;
 }
 
-function updateWbgtAlertBox(maxWbgt) {
-    let rawLevel = 0;
-    if (maxWbgt >= 22.5) {
-        rawLevel = 3;
-    } else if (maxWbgt >= 21.5) {
-        rawLevel = 2;
-    } else if (maxWbgt >= 20.5) { // Fixed: Changed 20.5 to 30.5
-        rawLevel = 1;
-    } else {
-        rawLevel = 0;
-    }
+function evaluateWbgtLevel(wbgt, Ta) {
+    if (isNaN(wbgt) || isNaN(Ta)) return 0;
+    // Level 3 condition
+    if (wbgt >= 32.5 || (wbgt >= 31.5 && Ta >= 37.5)) return 3;
+    // Level 2 condition
+    if (wbgt >= 31.5 || (wbgt >= 30.5 && Ta >= 35.5)) return 2;
+    // Level 1 condition
+    if (wbgt >= 30.5 || (wbgt >= 29.5 && Ta >= 33.5)) return 1;
+    return 0;
+}
 
+function updateWbgtAlertBox(maxLevel) {
     const now = Date.now();
 
-    if (rawLevel > wbgtAlertState.level) {
-        wbgtAlertState.level = rawLevel;
+    if (maxLevel > wbgtAlertState.level) {
+        wbgtAlertState.level = maxLevel;
         wbgtAlertState.expiryTime = now + 60 * 60 * 1000;
         wbgtAlertState.formattedTime = getFormattedMstTime();
     } else if (now >= wbgtAlertState.expiryTime) {
-        wbgtAlertState.level = rawLevel;
+        wbgtAlertState.level = maxLevel;
         if (wbgtAlertState.level > 0) {
             wbgtAlertState.expiryTime = now + 60 * 60 * 1000;
             wbgtAlertState.formattedTime = getFormattedMstTime();
@@ -1816,10 +1821,35 @@ function updateWbgtAlertBox(maxWbgt) {
     renderWbgtAlertUI();
 }
 
+function renderWbgtAlertUI() {
+    const box = document.getElementById("wbgtBox");
+    const content = document.getElementById("wbgtContent");
+    if (!box || !content) return;
+
+    if (wbgtAlertState.level === 0) {
+        box.style.display = "none";
+        content.innerHTML = "";
+        return;
+    }
+
+    let text = "";
+    const timeStr = wbgtAlertState.formattedTime;
+
+    if (wbgtAlertState.level === 1) {
+        text = `現時本澳部份地區的暑熱指數已經達到「危險」水平，進行戶外工作或劇烈運動者應避免在陽光下暴曬，補充足夠水份，提防中暑。（${timeStr}）`;
+    } else if (wbgtAlertState.level === 2) {
+        text = `現時本澳部份地區的暑熱指數已經達到「非常危險」水平，進行戶外工作或劇烈運動者應到陰涼位置暫避及休息，市民亦應避免在陽光下暴曬，補充足夠水份，慎防中暑。（${timeStr}）`;
+    } else if (wbgtAlertState.level === 3) {
+        text = `現時本澳部份地區的暑熱指數已經達到「極度危險」水平，進行戶外工作或活動者應立即停止所有工作或運動，並移到陰涼或有冷氣的地方休息，市民應留在室內空氣流通或有冷氣的地方，補充足夠水份，嚴防中暑。（${timeStr}）`;
+    }
+
+    content.textContent = text;
+    box.style.display = "block";
+}
+
 function fetchWbgtAlertData() {
     const cacheBuster = Date.now();
-    const targetUrl = `https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
-    const url = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`; // Fixed: Added url= parameter & encoding
+    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
 
     fetch(url, { cache: "no-store" })
         .then(res => {
@@ -1829,15 +1859,15 @@ function fetchWbgtAlertData() {
         .then(xmlStr => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
-            const stations = xmlDoc.querySelectorAll("station"); // Simplified node selection
+            const stations = xmlDoc.querySelectorAll("WeatherReport station, station");
 
-            let maxWbgt = -999;
+            let maxLevel = 0;
 
             stations.forEach(station => {
-                const name = station.querySelector("stationname")?.textContent || "";
-                const temp = extractWbgtValue("Temperature", station);
-                const humidity = extractWbgtValue("Humidity", station);
-                const windSpeed = extractWbgtValue("WindSpeed", station);
+                const name = extractNodeValue(station, ["stationname", "StationName", "name", "Name"]);
+                const temp = extractNodeValue(station, ["Temperature", "temperature"]);
+                const humidity = extractNodeValue(station, ["Humidity", "humidity"]);
+                const windSpeed = extractNodeValue(station, ["WindSpeed", "windSpeed", "wind_speed"]);
 
                 const Ta = parseFloat(temp);
                 const RH = parseFloat(humidity);
@@ -1851,12 +1881,14 @@ function fetchWbgtAlertData() {
 
                 const calcRes = calculateFullWBGT(Ta, RH, Wind);
                 const w = parseFloat(calcRes.wbgt);
-                if (!isNaN(w) && w > maxWbgt) {
-                    maxWbgt = w;
+                
+                const level = evaluateWbgtLevel(w, Ta);
+                if (level > maxLevel) {
+                    maxLevel = level;
                 }
             });
 
-            updateWbgtAlertBox(maxWbgt);
+            updateWbgtAlertBox(maxLevel);
         })
         .catch(err => {
             console.error("暑熱氣象數據載入失敗: ", err);
@@ -1865,7 +1897,7 @@ function fetchWbgtAlertData() {
 
 window.addEventListener('DOMContentLoaded', () => {
     fetchWbgtAlertData();
-    setInterval(fetchWbgtAlertData, 60000); // 每分鐘檢查一次 WBGT
+    setInterval(fetchWbgtAlertData, 60000); 
 });
 </script>
 
