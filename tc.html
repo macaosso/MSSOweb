@@ -1003,6 +1003,49 @@ function clearMapLayers() {
   mapLayers = [];
 }
 
+// Calculate the forecast time when tropical cyclone enters 800 km of Macau
+// Uses raw forecast coordinates without averaging (time = current time + index hours)
+function get800kmEntryForecastTime(tc) {
+  const forecastList = tc.forecastPoints ? [...tc.forecastPoints] : [];
+  forecastList.sort((a, b) => a.hours - b.hours);
+
+  // Check current/analysis point first
+  if (tc.currentPoint) {
+    const currentDist = calcDistance(tc.currentPoint.lat, tc.currentPoint.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
+    if (currentDist <= 800) {
+      return {
+        hours: 0,
+        dist: currentDist,
+        timeFormatted: formatDateTime(tc.currentPoint.time || new Date().toISOString())
+      };
+    }
+  }
+
+  // Check each forecast index coordinate directly without taking averages
+  for (const fp of forecastList) {
+    const dist = calcDistance(fp.lat, fp.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
+    if (dist <= 800) {
+      // Calculate time = current time + index hours (1 index = 1 hour)
+      let baseMs = Date.now();
+      if (tc.currentPoint && tc.currentPoint.time) {
+        const parsedBase = new Date(tc.currentPoint.time).getTime();
+        if (!isNaN(parsedBase)) baseMs = parsedBase;
+      }
+      
+      const forecastTimeMs = baseMs + (fp.hours * 3600 * 1000);
+      const forecastDate = new Date(forecastTimeMs);
+
+      return {
+        hours: fp.hours,
+        dist: dist,
+        timeFormatted: formatDateTime(forecastDate.toISOString())
+      };
+    }
+  }
+
+  return null;
+}
+
 function drawSegmentedTrack(points, isForecast = false) {
   for (let i = 0; i < points.length - 1; i++) {
     const p1 = points[i];
@@ -1508,6 +1551,15 @@ function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau
     closestStr = `${cDir} ${minD}km`;
   }
 
+  // Calculate entry time into 800km of Macau using raw index coordinates
+  const entry800Data = get800kmEntryForecastTime(tc);
+  let entry800Str = '未進入 800km';
+  if (entry800Data) {
+    entry800Str = entry800Data.hours === 0 
+      ? '已進入 800km' 
+      : `${entry800Data.timeFormatted} (+${entry800Data.hours}h)`;
+  }
+
   let listHTML = '';
   if (currentTab === 'forecast') {
     listHTML = tc.forecastPoints.map(fp => {
@@ -1570,6 +1622,10 @@ function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau
       <div class="info-box">
         <span class="info-box-label">預計最接近距離</span>
         <span class="info-box-val" style="color:#ef4444;">${closestStr}</span>
+      </div>
+      <div class="info-box">
+        <span class="info-box-label">預計進入800km時間</span>
+        <span class="info-box-val" style="color:#2dd4bf;">${entry800Str}</span>
       </div>
     </div>
 
