@@ -1695,7 +1695,6 @@ window.addEventListener('DOMContentLoaded', function(){
 </script>
 
 <!-- ==================== 暑熱天氣提示 (WBGT) 計算與狀態監測邏輯 ==================== -->
-<!-- ==================== 暑熱天氣提示 (WBGT) 計算與狀態監測邏輯 ==================== -->
 <script>
 const wbgtSigma = 5.670374419e-8; 
 const wbgtEps = 0.95;             
@@ -1794,11 +1793,8 @@ function getFormattedMstTime() {
 
 function evaluateWbgtLevel(wbgt, Ta) {
     if (isNaN(wbgt) || isNaN(Ta)) return 0;
-    // Level 3 condition
     if (wbgt >= 22.5 || (wbgt >= 31.5 && Ta >= 37.5)) return 3;
-    // Level 2 condition
     if (wbgt >= 21.5 || (wbgt >= 30.5 && Ta >= 35.5)) return 2;
-    // Level 1 condition
     if (wbgt >= 20.5 || (wbgt >= 29.5 && Ta >= 33.5)) return 1;
     return 0;
 }
@@ -1849,7 +1845,8 @@ function renderWbgtAlertUI() {
 
 function fetchWbgtAlertData() {
     const cacheBuster = Date.now();
-    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
+    const actualWeatherXmlUrl = `https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
+    const url = `https://corsproxy.io/?url=${encodeURIComponent(actualWeatherXmlUrl)}`;
 
     fetch(url, { cache: "no-store" })
         .then(res => {
@@ -2084,7 +2081,6 @@ let currentUV = "--";
 const originXmlUrl = "https://xml.smg.gov.mo/c_actual_brief.xml";
 const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(originXmlUrl)}`;
 
-// Helper: Open-Meteo Weather Code to Image Icon
 function getOpenMeteoIcon(code, hour) {
   const isNight = (hour < 6 || hour >= 18);
   if (code === 0) return isNight ? "icons/NightS.png" : "icons/s.png";
@@ -2101,16 +2097,14 @@ function getOpenMeteoIcon(code, hour) {
   return isNight ? "icons/NightS.png" : "icons/s.png";
 }
 
-// Helper: Precipitate Probability Text & Color Mapping
 function getPopInfo(pop) {
-  if (pop >= 90) return { label: '高', light: '#dc2626', dark: '#f87171' }; // Red
-  if (pop >= 75) return { label: '中高', light: '#ea580c', dark: '#fb923c' }; // Orange
-  if (pop >= 45) return { label: '中', light: '#ca8a04', dark: '#facc15' }; // Yellow/Amber
-  if (pop >= 25) return { label: '中低', light: '#16a34a', dark: '#4ade80' }; // Green
-  return { label: '低', light: '#2563eb', dark: '#60a5fa' }; // Blue
+  if (pop >= 90) return { label: '高', light: '#dc2626', dark: '#f87171' };
+  if (pop >= 75) return { label: '中高', light: '#ea580c', dark: '#fb923c' };
+  if (pop >= 45) return { label: '中', light: '#ca8a04', dark: '#facc15' };
+  if (pop >= 25) return { label: '中低', light: '#16a34a', dark: '#4ade80' };
+  return { label: '低', light: '#2563eb', dark: '#60a5fa' };
 }
 
-// 載入 Open-Meteo 逐時天氣預報
 async function fetchOpenMeteoHourlyForecast() {
   const OPEN_METEO_URL = 'https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=precipitation_probability,precipitation,temperature_2m,weather_code&models=ecmwf_ifs025&timezone=Asia%2FSingapore&forecast_days=3';
   try {
@@ -2122,23 +2116,19 @@ async function fetchOpenMeteoHourlyForecast() {
 
     if (!time || time.length === 0) return;
 
-    // 1. 取得當前整點索引
     const now = new Date();
     const currentHourStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours());
 
     let startIndex = time.findIndex(t => new Date(t) >= currentHourStart);
     if (startIndex === -1) startIndex = 0;
 
-    // ================= [臨近降雨提示邏輯] =================
     const rainAlertBox = document.getElementById('rainAlertBox');
     const rainAlertContent = document.getElementById('rainAlertContent');
 
     if (precipitation_probability && startIndex + 1 < precipitation_probability.length) {
-      // 提取未來 2 小時的降雨機率
       const next2Pops = precipitation_probability.slice(startIndex, startIndex + 2);
       const maxPop = Math.max(...next2Pops);
 
-      // 當降雨機率為中等或以上 (>= 45%) 時觸發
       if (maxPop >= 45 && rainAlertBox && rainAlertContent) {
         let popDesc = '';
         if (maxPop >= 90) {
@@ -2165,9 +2155,7 @@ async function fetchOpenMeteoHourlyForecast() {
         rainAlertBox.style.display = 'none';
       }
     }
-    // =========================================================
 
-    // 更新標題日期
     const firstForecastDate = new Date(time[startIndex]);
     const month = firstForecastDate.getMonth() + 1;
     const day = firstForecastDate.getDate();
@@ -2181,7 +2169,6 @@ async function fetchOpenMeteoHourlyForecast() {
     if (!container) return;
     container.innerHTML = '';
 
-    // 渲染逐時列表
     const endIndex = Math.min(startIndex + 24, time.length);
     const isLightTheme = document.body.classList.contains('light-theme');
 
@@ -2243,7 +2230,6 @@ async function loadHourlyWeather() {
         let iconUrl = xmlDoc.querySelector("IconURL")?.textContent || "";
         const feelDescRaw = xmlDoc.querySelector("FeelsLikeDescription")?.textContent || "--";
 
-        // Map SMG weather icons to local icon paths
         if (iconUrl.includes("ww-c01.gif")) iconUrl = "icons/s.png";
         else if (iconUrl.includes("ww-ca1.gif")) iconUrl = "icons/NightS.png";
         else if (iconUrl.includes("ww-ca2.gif")) iconUrl = "icons/NightSC.png";
@@ -2273,7 +2259,6 @@ async function loadHourlyWeather() {
         loadTip.style.display = 'none';
         weatherMain.style.display = 'block';
 
-        // 載入 Open-Meteo 逐時天氣列表
         fetchOpenMeteoHourlyForecast();
 
     } catch (err) {
