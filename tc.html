@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
@@ -39,18 +39,19 @@ body.light-theme {
   --text-muted: #64748b;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background-color: var(--bg-dark);
   color: var(--text-main);
   height: 100vh;
+  height: -webkit-fill-available;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
-/* ========== 頁頭 Header & 頂欄導航 ========== */
+/* Header & Navigation */
 .header-nav-container {
   position: sticky;
   top: 0;
@@ -109,10 +110,13 @@ body.light-theme .header-nav-container {
   border: 1px solid var(--card-border);
   color: var(--text-main);
   padding: 8px 12px;
-  border-radius: 20px;
+  min-height: 44px;
+  min-width: 44px;
+  border-radius: 22px;
   cursor: pointer;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   font-size: 13px;
   font-weight: 600;
@@ -122,7 +126,6 @@ body.light-theme .header-nav-container {
 .theme-toggle-btn:hover {
   border-color: var(--accent-blue);
   color: var(--accent-blue);
-  transform: translateY(-1px);
 }
 .sun-icon { display: block; }
 .moon-icon { display: none; }
@@ -132,7 +135,11 @@ body.light-theme .moon-icon { display: block; }
 .menu-toggle {
   display: none;
   font-size: 22px;
-  padding: 6px 12px;
+  padding: 8px 12px;
+  min-height: 44px;
+  min-width: 44px;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   background: var(--card-bg-light);
   border: 1px solid var(--card-border);
@@ -141,10 +148,6 @@ body.light-theme .moon-icon { display: block; }
   transition: all 0.2s;
 }
 .menu-toggle:hover { border-color: var(--accent-blue); }
-.menu-toggle.active {
-  border-color: var(--accent-blue);
-  background: rgba(56, 189, 248, 0.12);
-}
 
 .nav {
   display: flex;
@@ -192,17 +195,11 @@ body.light-theme .nav a:hover {
   font-size: 0.7rem;
   transition: transform 0.2s ease;
 }
-.dropdown:hover .dropdown-btn,
-.dropdown.active .dropdown-btn {
+.dropdown:hover .dropdown-btn {
   color: var(--text-main);
   background: rgba(255, 255, 255, 0.05);
 }
-body.light-theme .dropdown:hover .dropdown-btn,
-body.light-theme .dropdown.active .dropdown-btn {
-  background: rgba(0, 0, 0, 0.05);
-}
-.dropdown:hover .arrow,
-.dropdown.active .arrow {
+.dropdown:hover .arrow {
   transform: rotate(180deg);
 }
 
@@ -223,19 +220,10 @@ body.light-theme .dropdown.active .dropdown-btn {
   visibility: hidden;
   transition: opacity 0.25s ease, visibility 0s linear 0.4s;
 }
-.dropdown-content::before {
-  content: "";
-  position: absolute;
-  top: -8px;
-  left: 0;
-  width: 100%;
-  height: 8px;
-}
 body.light-theme .dropdown-content {
   background: rgba(255, 255, 255, 0.98);
 }
-.dropdown:hover .dropdown-content,
-.dropdown.active .dropdown-content {
+.dropdown:hover .dropdown-content {
   opacity: 1;
   visibility: visible;
   transition: opacity 0.25s ease, visibility 0s linear 0s;
@@ -247,7 +235,7 @@ body.light-theme .dropdown-content {
   font-size: 0.88rem;
 }
 
-/* 主要容器與地圖區域 */
+/* Layout */
 .main-container {
   display: flex;
   flex: 1;
@@ -270,13 +258,16 @@ body.light-theme .dropdown-content {
   padding: 6px 10px;
   border-radius: 8px;
   border: 1px solid var(--card-border);
+  flex-wrap: wrap;
+  max-width: calc(100% - 20px);
 }
 
 .ctrl-btn, .ctrl-select {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid var(--card-border);
   color: var(--text-main);
-  padding: 4px 10px;
+  padding: 6px 10px;
+  min-height: 36px;
   border-radius: 6px;
   font-size: 0.82rem;
   cursor: pointer;
@@ -323,9 +314,9 @@ body.light-theme .dropdown-content {
 .btn-mini {
   background: rgba(255, 255, 255, 0.1); color: var(--text-muted);
   border: 1px solid var(--card-border);
-  padding: 3px 8px; border-radius: 6px; font-size: 0.75rem;
+  padding: 6px 10px; border-radius: 6px; font-size: 0.78rem;
   font-weight: bold; cursor: pointer; transition: all 0.2s;
-  white-space: nowrap; flex-shrink: 0;
+  white-space: nowrap; flex-shrink: 0; min-height: 36px;
 }
 .btn-mini.active {
   background: var(--accent-blue); color: #000; border-color: var(--accent-blue);
@@ -345,7 +336,7 @@ body.light-theme .dropdown-content {
 .legend-item { display: flex; align-items: center; gap: 8px; }
 .legend-color { width: 12px; height: 12px; border-radius: 50%; }
 
-/* 右側側邊欄 */
+/* Sidebar */
 .sidebar {
   width: 420px;
   min-width: 280px;
@@ -354,6 +345,7 @@ body.light-theme .dropdown-content {
   border-left: 1px solid var(--card-border);
   display: flex; flex-direction: column;
   z-index: 1000; overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   transition: transform 0.25s ease, width 0.05s ease;
   position: relative;
   flex-shrink: 0;
@@ -378,12 +370,12 @@ body.light-theme .dropdown-content {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid var(--card-border);
   color: var(--text-main);
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 6px 12px;
+  min-height: 36px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
 }
-.collapse-btn:hover { background: rgba(255, 255, 255, 0.18); }
 
 .floating-toggle-btn {
   position: absolute;
@@ -393,7 +385,8 @@ body.light-theme .dropdown-content {
   background: var(--bg-panel);
   border: 1px solid var(--accent-blue);
   color: var(--accent-blue);
-  padding: 8px 14px;
+  padding: 10px 16px;
+  min-height: 44px;
   border-radius: 8px;
   cursor: pointer;
   font-size: 0.85rem;
@@ -401,17 +394,13 @@ body.light-theme .dropdown-content {
   display: none;
   box-shadow: 0 4px 15px rgba(0,0,0,0.5);
 }
-.floating-toggle-btn:hover {
-  background: var(--accent-blue);
-  color: #000;
-}
 
 .sidebar-content {
   padding: 12px; display: flex; flex-direction: column; gap: 12px;
   width: 100%; box-sizing: border-box; min-width: 0;
 }
 
-/* 風暴卡片自適應寬度 */
+/* TC Details & Info Cards */
 .tc-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -455,7 +444,6 @@ body.light-theme .dropdown-content {
   white-space: nowrap; flex-shrink: 0;
 }
 
-/* 彈性卡片網格 */
 .tc-info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -487,19 +475,19 @@ body.light-theme .dropdown-content {
 }
 .tab-btn {
   flex: 1; background: transparent; border: none;
-  color: var(--text-muted); padding: 6px 0; font-size: 0.8rem;
+  color: var(--text-muted); padding: 10px 0; font-size: 0.85rem;
   font-weight: bold; border-radius: 4px; cursor: pointer; transition: all 0.2s;
 }
 .tab-btn.active { background: var(--accent-blue); color: #000; }
 
 .track-list { font-size: 0.78rem; display: flex; flex-direction: column; gap: 6px; width: 100%; }
 
-/* 彈性路徑列表行 */
 .track-row {
   display: grid;
   grid-template-columns: minmax(40px, 0.8fr) minmax(65px, 1fr) minmax(70px, 1.1fr) minmax(75px, 1.2fr) minmax(45px, 0.8fr);
   align-items: center;
-  padding: 6px 8px;
+  padding: 8px 8px;
+  min-height: 40px;
   background: rgba(255,255,255,0.02);
   border-radius: 6px;
   cursor: pointer;
@@ -512,14 +500,12 @@ body.light-theme .dropdown-content {
 .track-row > span {
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.track-row:hover { background: rgba(255,255,255,0.08); }
 
 .distance-label {
   background: transparent; border: none; box-shadow: none;
   color: rgba(255, 255, 255, 0.6); font-weight: bold; font-size: 10px;
 }
 
-/* 地圖風暴名稱標籤 */
 .storm-map-label {
   border: none !important;
   font-weight: bold !important;
@@ -552,23 +538,33 @@ body.light-theme .dropdown-content {
 .popup-data-box { font-size: 0.8rem; line-height: 1.5; padding: 4px; }
 .popup-data-box strong { color: var(--accent-blue); }
 
-/* 響應式適配 */
+/* Mobile Optimizations */
 @media (max-width: 768px) {
-  .header-nav-container { padding: 0.75rem 1rem; }
-  .menu-toggle { display: block; }
+  .header-nav-container { padding: 0.5rem 0.85rem; }
+  .title { font-size: 0.95rem; }
+  .header-clock { font-size: 0.75rem; }
+  .logo { height: 32px; }
+
+  .menu-toggle { display: flex; }
   .nav {
-    display: none; flex-direction: column; width: 230px; position: absolute;
-    top: calc(100% + 8px); right: 0; background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(16px); border: 1px solid var(--card-border);
-    border-radius: 12px; padding: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0; right: -100%;
+    width: 80vw; max-width: 300px; height: 100vh;
+    background: var(--bg-panel);
+    border-left: 1px solid var(--card-border);
+    padding: 60px 16px 20px 16px;
+    box-shadow: -10px 0 25px rgba(0,0,0,0.5);
     align-items: stretch;
+    transition: right 0.3s ease;
+    z-index: 3050;
+    overflow-y: auto;
   }
-  body.light-theme .nav { background: rgba(255, 255, 255, 0.98); }
-  .nav a { width: 100%; padding: 10px 14px; border-radius: 8px; }
-  .nav.active { display: flex; }
+  .nav.active { right: 0; }
 
   .dropdown { width: 100%; }
-  .dropdown-btn { width: 100%; justify-content: space-between; padding: 10px 14px; border-radius: 8px; }
+  .dropdown-btn { width: 100%; justify-content: space-between; padding: 12px 14px; border-radius: 8px; font-size: 0.95rem; }
   .dropdown-content {
     position: static; display: none; opacity: 1; visibility: visible;
     box-shadow: none; border: none; background: rgba(255, 255, 255, 0.03);
@@ -577,22 +573,49 @@ body.light-theme .dropdown-content {
   }
   body.light-theme .dropdown-content { background: rgba(0, 0, 0, 0.03); }
   .dropdown.active .dropdown-content { display: block; }
+
+  .resizer { display: none !important; }
+  .sidebar {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 60vh;
+    border-left: none;
+    border-top: 1px solid var(--card-border);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.4);
+  }
+  .sidebar.collapsed {
+    height: 0 !important;
+    width: 100% !important;
+  }
+
+  .map-overlay-topright {
+    width: calc(100% - 24px);
+    max-width: 320px;
+    top: 60px;
+  }
+
+  .map-legend {
+    bottom: 12px; left: 12px;
+    font-size: 0.72rem;
+    padding: 8px 10px;
+  }
+  .tc-info-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (min-width: 769px) {
   .nav { display: flex !important; }
   .menu-toggle { display: none !important; }
 }
-
-@media (max-width: 375px) {
-  .nav { width: calc(100vw - 30px); }
-}
 </style>
 </head>
 
 <body>
 
-<!-- 頂欄導航 -->
 <div class="header-nav-container">
   <div class="header">
     <img src="icons/MSSO.png" class="logo" alt="MSSO Logo">
@@ -674,13 +697,13 @@ body.light-theme .dropdown-content {
       <select class="ctrl-select" id="yearSelect"><option>2026</option></select>
       <button class="ctrl-btn active" id="btnCone" onclick="toggleErrorCone()">潛在路徑範圍錐體</button>
       <button class="ctrl-btn" onclick="resetView()">重置視角(澳門)</button>
-      <button class="ctrl-btn" onclick="loadTCData()">立即刷新</button>
+      <button class="ctrl-btn" onclick="loadTCData()">刷新</button>
     </div>
 
     <div id="map"></div>
 
     <button class="floating-toggle-btn" id="floatingToggleBtn" onclick="toggleSidebar()">
-      📋 風暴詳細數據 ❮
+      📋 風暴詳細數據
     </button>
 
     <div class="map-overlay-topright" id="mapQuickSelect">
@@ -691,12 +714,12 @@ body.light-theme .dropdown-content {
     <div class="map-legend">
       <div class="legend-title">熱帶氣旋強度分類</div>
       <div class="legend-grid">
-        <div class="legend-item"><div class="legend-color" style="background:var(--c-td)"></div>熱帶低氣壓 TD (41-62 km/h)</div>
-        <div class="legend-item"><div class="legend-color" style="background:var(--c-ts)"></div>熱帶風暴 TS (63-87 km/h)</div>
-        <div class="legend-item"><div class="legend-color" style="background:var(--c-sts)"></div>強烈熱帶風暴 STS (88-117 km/h)</div>
-        <div class="legend-item"><div class="legend-color" style="background:var(--c-t)"></div>颱風 T (118-149 km/h)</div>
-        <div class="legend-item"><div class="legend-color" style="background:var(--c-st)"></div>強颱風 ST (150-184 km/h)</div>
-        <div class="legend-item"><div class="legend-color" style="background:var(--c-supert)"></div>超強颱風 SuperT (&ge;185 km/h)</div>
+        <div class="legend-item"><div class="legend-color" style="background:var(--c-td)"></div>TD (41-62 km/h)</div>
+        <div class="legend-item"><div class="legend-color" style="background:var(--c-ts)"></div>TS (63-87 km/h)</div>
+        <div class="legend-item"><div class="legend-color" style="background:var(--c-sts)"></div>STS (88-117 km/h)</div>
+        <div class="legend-item"><div class="legend-color" style="background:var(--c-t)"></div>T (118-149 km/h)</div>
+        <div class="legend-item"><div class="legend-color" style="background:var(--c-st)"></div>ST (150-184 km/h)</div>
+        <div class="legend-item"><div class="legend-color" style="background:var(--c-supert)"></div>SuperT (&ge;185 km/h)</div>
       </div>
     </div>
   </div>
@@ -706,7 +729,7 @@ body.light-theme .dropdown-content {
   <div class="sidebar" id="sidebarPanel">
     <div class="sidebar-header">
       <div style="display:flex; align-items:center; gap:8px;">
-        <button class="collapse-btn" onclick="toggleSidebar()" title="收起數據欄">❯</button>
+        <button class="collapse-btn" onclick="toggleSidebar()" title="收起數據欄">✕</button>
         <span>風暴詳細數據</span>
       </div>
       <span id="updateClock" style="font-size: 0.75rem; color: var(--text-muted);">更新中...</span>
@@ -736,27 +759,13 @@ const INTENSITY_CONFIG = {
   'EX':     { name: '溫帶氣旋',     color: 'var(--c-ex)',     logo: 'TC logo/Ex.png' }
 };
 
-const STANDARD_ERROR_RADIUS = {
-  0: 15,
-  24: 100,
-  48: 170,
-  72: 255,
-  96: 345,
-  120: 465
-};
+const STANDARD_ERROR_RADIUS = { 0: 15, 24: 100, 48: 170, 72: 255, 96: 345, 120: 465 };
 
 function initMap() {
   map = L.map('map', { zoomControl: false }).setView(MACAU_COORDS, 6);
   
-  darkTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 18,
-    attribution: '&copy; OpenStreetMap &copy; CARTO'
-  });
-
-  lightTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    maxZoom: 18,
-    attribution: '&copy; OpenStreetMap &copy; CARTO'
-  });
+  darkTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 18, attribution: '&copy; OpenStreetMap' });
+  lightTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 18, attribution: '&copy; OpenStreetMap' });
 
   currentTile = darkTile;
   currentTile.addTo(map);
@@ -764,11 +773,7 @@ function initMap() {
   L.control.zoom({ position: 'topleft' }).addTo(map);
 
   L.circleMarker(MACAU_COORDS, {
-    radius: 6,
-    fillColor: '#ef4444',
-    color: '#ffffff',
-    weight: 2,
-    fillOpacity: 1
+    radius: 6, fillColor: '#ef4444', color: '#ffffff', weight: 2, fillOpacity: 1
   }).bindTooltip("澳門 Macau", { permanent: true, direction: "top", className: "distance-label" }).addTo(map);
 
   drawMacauDistanceRings();
@@ -787,9 +792,7 @@ function toggleTheme() {
 
 function toggleMenu() {
   const nav = document.getElementById('navMenu');
-  const toggle = document.querySelector('.menu-toggle');
   if (nav) nav.classList.toggle('active');
-  if (toggle) toggle.classList.toggle('active');
 }
 
 function updateHeaderClock() {
@@ -811,84 +814,67 @@ function initSidebarControls() {
   const sidebar = document.getElementById('sidebarPanel');
   let isResizing = false;
 
-  resizer.addEventListener('mousedown', (e) => {
-    isResizing = true;
-    resizer.classList.add('dragging');
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-  });
+  if (resizer) {
+    resizer.addEventListener('mousedown', () => {
+      isResizing = true;
+      resizer.classList.add('dragging');
+      document.body.style.cursor = 'col-resize';
+      document.body.style.userSelect = 'none';
+    });
 
-  document.addEventListener('mousemove', (e) => {
-    if (!isResizing) return;
-    const containerWidth = document.querySelector('.main-container').clientWidth;
-    let newWidth = containerWidth - e.clientX;
-    if (newWidth < 280) newWidth = 280;
-    if (newWidth > 650) newWidth = 650;
-    sidebar.style.width = `${newWidth}px`;
-    if (map) map.invalidateSize();
-  });
-
-  document.addEventListener('mouseup', () => {
-    if (isResizing) {
-      isResizing = false;
-      resizer.classList.remove('dragging');
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
+    document.addEventListener('mousemove', (e) => {
+      if (!isResizing) return;
+      const containerWidth = document.querySelector('.main-container').clientWidth;
+      let newWidth = containerWidth - e.clientX;
+      if (newWidth < 280) newWidth = 280;
+      if (newWidth > 650) newWidth = 650;
+      sidebar.style.width = `${newWidth}px`;
       if (map) map.invalidateSize();
-    }
-  });
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (isResizing) {
+        isResizing = false;
+        resizer.classList.remove('dragging');
+        document.body.style.cursor = '';
+        document.body.style.userSelect = '';
+        if (map) map.invalidateSize();
+      }
+    });
+  }
 
   document.querySelectorAll('.dropdown-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      if (window.innerWidth <= 768) {
-        const dropdown = btn.closest('.dropdown');
-        if (dropdown) dropdown.classList.toggle('active');
-      }
+    btn.addEventListener('click', () => {
+      const dropdown = btn.closest('.dropdown');
+      if (dropdown) dropdown.classList.toggle('active');
     });
   });
 }
 
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebarPanel');
-  const resizer = document.getElementById('dragResizer');
   const floatingBtn = document.getElementById('floatingToggleBtn');
-  const mapQuickSelect = document.getElementById('mapQuickSelect');
   
   const isCollapsed = sidebar.classList.toggle('collapsed');
   
   if (isCollapsed) {
-    resizer.style.display = 'none';
     floatingBtn.style.display = 'block';
-    if (mapQuickSelect) mapQuickSelect.style.top = '56px';
   } else {
-    resizer.style.display = 'block';
     floatingBtn.style.display = 'none';
-    if (mapQuickSelect) mapQuickSelect.style.top = '12px';
   }
 
   setTimeout(() => { if (map) map.invalidateSize(); }, 280);
 }
 
 function drawMacauDistanceRings() {
-  const distances = [100, 200, 400, 800];
-  distances.forEach(d => {
+  [100, 200, 400, 800].forEach(d => {
     L.circle(MACAU_COORDS, {
-      radius: d * 1000,
-      color: '#38bdf8',
-      weight: 1,
-      dashArray: '4, 6',
-      fill: false,
-      opacity: 0.4
+      radius: d * 1000, color: '#38bdf8', weight: 1, dashArray: '4, 6', fill: false, opacity: 0.4
     }).addTo(map);
 
     const labelLat = MACAU_COORDS[0] + (d / 111);
     L.marker([labelLat, MACAU_COORDS[1]], {
-      icon: L.divIcon({
-        className: 'distance-label',
-        html: `${d} km`,
-        iconSize: [50, 15],
-        iconAnchor: [25, 7]
-      })
+      icon: L.divIcon({ className: 'distance-label', html: `${d} km`, iconSize: [50, 15], iconAnchor: [25, 7] })
     }).addTo(map);
   });
 }
@@ -900,11 +886,7 @@ function toggleErrorCone() {
 }
 
 function toggleStormTrack(stormName) {
-  if (stormTrackVisibility[stormName] === undefined) {
-    stormTrackVisibility[stormName] = false;
-  } else {
-    stormTrackVisibility[stormName] = !stormTrackVisibility[stormName];
-  }
+  stormTrackVisibility[stormName] = !stormTrackVisibility[stormName];
   renderTCs(currentTCData);
 }
 
@@ -933,25 +915,15 @@ function calculateBearing(lat1, lon1, lat2, lon2) {
 
 function getDirection16(lat1, lon1, lat2, lon2) {
   const bearing = calculateBearing(lat1, lon1, lat2, lon2);
-  const dirs = [
-    "正北", "東北偏北", "東北", "東北偏東",
-    "正東", "東南偏東", "東南", "東南偏南",
-    "正南", "西南偏南", "西南", "西南偏西",
-    "正西", "西北偏西", "西北", "西北偏北"
-  ];
-  const index = Math.round(bearing / 22.5) % 16;
-  return dirs[index];
+  const dirs = ["正北", "東北偏北", "東北", "東北偏東", "正東", "東南偏東", "東南", "東南偏南", "正南", "西南偏南", "西南", "西南偏西", "正西", "西北偏西", "西北", "西北偏北"];
+  return dirs[Math.round(bearing / 22.5) % 16];
 }
 
 function formatDateTime(timeStr) {
   if (!timeStr) return '--';
   const d = new Date(timeStr);
   if (isNaN(d.getTime())) return timeStr;
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  const hh = String(d.getHours()).padStart(2, '0');
-  const min = String(d.getMinutes()).padStart(2, '0');
-  return `${mm}-${dd} ${hh}:${min}`;
+  return `${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
 }
 
 function parseCoord(valStr) {
@@ -959,9 +931,7 @@ function parseCoord(valStr) {
   const cleanStr = valStr.trim();
   let num = parseFloat(cleanStr);
   if (isNaN(num)) return NaN;
-  if (cleanStr.endsWith('S') || cleanStr.endsWith('W')) {
-    num = -Math.abs(num);
-  }
+  if (cleanStr.endsWith('S') || cleanStr.endsWith('W')) num = -Math.abs(num);
   return num;
 }
 
@@ -1003,7 +973,6 @@ function clearMapLayers() {
   mapLayers = [];
 }
 
-// Calculate the entry time into 800 km of Macau by evaluating EVERY HOUR (1-hour step interpolation)
 function get800kmEntryForecastTime(tc) {
   const anchors = [];
   if (tc.currentPoint) anchors.push(tc.currentPoint);
@@ -1012,36 +981,25 @@ function get800kmEntryForecastTime(tc) {
   if (anchors.length === 0) return null;
   anchors.sort((a, b) => a.hours - b.hours);
 
-  // Check current position first (0h)
   const currentDist = calcDistance(anchors[0].lat, anchors[0].lon, MACAU_COORDS[0], MACAU_COORDS[1]);
   if (currentDist <= 800) {
-    return {
-      hours: 0,
-      dist: currentDist,
-      timeFormatted: formatDateTime(anchors[0].time || new Date().toISOString())
-    };
+    return { hours: 0, dist: currentDist, timeFormatted: formatDateTime(anchors[0].time || new Date().toISOString()) };
   }
 
   const maxHour = anchors[anchors.length - 1].hours;
 
-  // Evaluate hour by hour (1h step)
   for (let h = 1; h <= maxHour; h++) {
-    // Find linear interpolation segment for hour `h`
     let a1 = null, a2 = null;
     for (let i = 0; i < anchors.length - 1; i++) {
       if (h >= anchors[i].hours && h <= anchors[i + 1].hours) {
-        a1 = anchors[i];
-        a2 = anchors[i + 1];
-        break;
+        a1 = anchors[i]; a2 = anchors[i + 1]; break;
       }
     }
-
     if (!a1 || !a2) continue;
 
     const ratio = (h - a1.hours) / (a2.hours - a1.hours);
     const interpLat = a1.lat + ratio * (a2.lat - a1.lat);
     const interpLon = a1.lon + ratio * (a2.lon - a1.lon);
-
     const dist = calcDistance(interpLat, interpLon, MACAU_COORDS[0], MACAU_COORDS[1]);
 
     if (dist <= 800) {
@@ -1050,32 +1008,19 @@ function get800kmEntryForecastTime(tc) {
         const parsedBase = new Date(tc.currentPoint.time).getTime();
         if (!isNaN(parsedBase)) baseMs = parsedBase;
       }
-
-      const forecastTimeMs = baseMs + (h * 3600 * 1000);
-      const forecastDate = new Date(forecastTimeMs);
-
-      return {
-        hours: h,
-        dist: dist,
-        timeFormatted: formatDateTime(forecastDate.toISOString())
-      };
+      return { hours: h, dist: dist, timeFormatted: formatDateTime(new Date(baseMs + (h * 3600 * 1000)).toISOString()) };
     }
   }
-
-  return null; // Does not enter 800 km boundary
+  return null;
 }
 
 function drawSegmentedTrack(points, isForecast = false) {
   for (let i = 0; i < points.length - 1; i++) {
-    const p1 = points[i];
-    const p2 = points[i + 1];
+    const p1 = points[i], p2 = points[i + 1];
     const catInfo = INTENSITY_CONFIG[p1.cat] || INTENSITY_CONFIG['TD'];
 
     const segment = L.polyline([[p1.lat, p1.lon], [p2.lat, p2.lon]], {
-      color: catInfo.color,
-      weight: isForecast ? 3 : 4,
-      opacity: 0.9,
-      dashArray: isForecast ? '6, 6' : null
+      color: catInfo.color, weight: isForecast ? 3 : 4, opacity: 0.9, dashArray: isForecast ? '6, 6' : null
     }).addTo(map);
     
     mapLayers.push(segment);
@@ -1096,38 +1041,29 @@ function drawSmoothSegmentedCone(conePoints) {
   for (let h = 0; h <= maxHour; h += 2) {
     let idx = 0;
     for (let i = 0; i < hours.length - 1; i++) {
-      if (h >= hours[i] && h <= hours[i+1]) {
-        idx = i;
-        break;
-      }
+      if (h >= hours[i] && h <= hours[i+1]) { idx = i; break; }
     }
 
     const h1 = hours[idx], h2 = hours[idx+1];
     const t = (h2 === h1) ? 0 : (h - h1) / (h2 - h1);
 
-    const interpLat = lats[idx] + t * (lats[idx+1] - lats[idx]);
-    const interpLon = lons[idx] + t * (lons[idx+1] - lons[idx]);
-    const interpRadius = radii[idx] + t * (radii[idx+1] - radii[idx]);
-
-    smoothTrack.push({ hours: h, lat: interpLat, lon: interpLon, radiusKm: interpRadius });
+    smoothTrack.push({
+      hours: h,
+      lat: lats[idx] + t * (lats[idx+1] - lats[idx]),
+      lon: lons[idx] + t * (lons[idx+1] - lons[idx]),
+      radiusKm: radii[idx] + t * (radii[idx+1] - radii[idx])
+    });
   }
 
-  const circlesSeg1 = [];
-  const circlesSeg2 = [];
+  const circlesSeg1 = [], circlesSeg2 = [];
   let circle72Geom = null;
 
   smoothTrack.forEach(pt => {
     const circlePoly = turf.circle([pt.lon, pt.lat], pt.radiusKm, { units: 'kilometers', steps: 32 });
+    if (pt.hours <= 72) circlesSeg1.push(circlePoly);
+    else circlesSeg2.push(circlePoly);
 
-    if (pt.hours <= 72) {
-      circlesSeg1.push(circlePoly);
-    } else {
-      circlesSeg2.push(circlePoly);
-    }
-
-    if (Math.abs(pt.hours - 72) <= 1) {
-      circle72Geom = circlePoly;
-    }
+    if (Math.abs(pt.hours - 72) <= 1) circle72Geom = circlePoly;
   });
 
   let envelopeFirst = null;
@@ -1162,28 +1098,11 @@ function drawSmoothSegmentedCone(conePoints) {
   }
 
   if (envelopeFirst) {
-    const seg1Layer = L.geoJSON(envelopeFirst, {
-      style: {
-        color: 'rgba(255, 255, 255, 0.45)',
-        weight: 1.5,
-        fillColor: 'rgba(255, 255, 255, 0.16)',
-        fillOpacity: 1
-      }
-    }).addTo(map);
-    mapLayers.push(seg1Layer);
+    mapLayers.push(L.geoJSON(envelopeFirst, { style: { color: 'rgba(255, 255, 255, 0.45)', weight: 1.5, fillColor: 'rgba(255, 255, 255, 0.16)', fillOpacity: 1 } }).addTo(map));
   }
 
   if (envelopeSecondNoOverlap) {
-    const seg2Layer = L.geoJSON(envelopeSecondNoOverlap, {
-      style: {
-        color: 'rgba(255, 255, 255, 0.3)',
-        weight: 1,
-        dashArray: '4, 4',
-        fillColor: 'rgba(255, 255, 255, 0.08)',
-        fillOpacity: 1
-      }
-    }).addTo(map);
-    mapLayers.push(seg2Layer);
+    mapLayers.push(L.geoJSON(envelopeSecondNoOverlap, { style: { color: 'rgba(255, 255, 255, 0.3)', weight: 1, dashArray: '4, 4', fillColor: 'rgba(255, 255, 255, 0.08)', fillOpacity: 1 } }).addTo(map));
   }
 }
 
@@ -1236,15 +1155,7 @@ async function loadTCData() {
           const time = pt.querySelector("Time")?.textContent || "";
 
           if (!isNaN(lat) && !isNaN(lon)) {
-            pastPoints.push({
-              type: 'Past',
-              typeLabel: '歷史定位',
-              lat, lon, wind,
-              cat: getCategoryKey(cat, wind),
-              time,
-              hours: null,
-              radiusKm: null
-            });
+            pastPoints.push({ type: 'Past', typeLabel: '歷史定位', lat, lon, wind, cat: getCategoryKey(cat, wind), time, hours: null, radiusKm: null });
           }
         });
 
@@ -1258,15 +1169,7 @@ async function loadTCData() {
           const time = analysisNode.querySelector("Time")?.textContent || "";
 
           if (!isNaN(lat) && !isNaN(lon)) {
-            currentPoint = {
-              type: 'Current',
-              typeLabel: '當前分析位置 (0h)',
-              lat, lon, wind,
-              cat: getCategoryKey(cat, wind),
-              time,
-              hours: 0,
-              radiusKm: STANDARD_ERROR_RADIUS[0]
-            };
+            currentPoint = { type: 'Current', typeLabel: '當前分析位置 (0h)', lat, lon, wind, cat: getCategoryKey(cat, wind), time, hours: 0, radiusKm: STANDARD_ERROR_RADIUS[0] };
           }
         }
 
@@ -1276,50 +1179,33 @@ async function loadTCData() {
         forecastNodes.forEach(pt => {
           const intensityNode = pt.querySelector("Intensity");
           const intensityText = intensityNode ? intensityNode.textContent.trim() : "";
-
           if (!intensityText) return;
 
           const lat = parseCoord(pt.querySelector("Latitude, lat")?.textContent);
           const lon = parseCoord(pt.querySelector("Longitude, lon")?.textContent);
           const wind = pt.querySelector("MaximumWind, MaxWind")?.textContent || "--";
           const time = pt.querySelector("Time")?.textContent || "";
-
           const indexVal = parseInt(pt.querySelector("Index")?.textContent || "0", 10);
           const h = !isNaN(indexVal) && indexVal > 0 ? indexVal : 0;
-          const r = STANDARD_ERROR_RADIUS[h] !== undefined ? STANDARD_ERROR_RADIUS[h] : Math.round(15 + (450 / 120) * h);
 
           if (!isNaN(lat) && !isNaN(lon)) {
             forecastPoints.push({
-              type: 'Forecast',
-              typeLabel: `+${h}小時 預測位置`,
-              lat, lon, wind,
-              cat: getCategoryKey(intensityText, wind),
-              time,
-              hours: h,
-              radiusKm: r
+              type: 'Forecast', typeLabel: `+${h}小時 預測位置`, lat, lon, wind,
+              cat: getCategoryKey(intensityText, wind), time, hours: h,
+              radiusKm: STANDARD_ERROR_RADIUS[h] !== undefined ? STANDARD_ERROR_RADIUS[h] : Math.round(15 + (450 / 120) * h)
             });
           }
         });
 
-        parsedTCList.push({
-          name: stormName,
-          englishName: eName,
-          pastPoints,
-          currentPoint,
-          forecastPoints
-        });
-
+        parsedTCList.push({ name: stormName, englishName: eName, pastPoints, currentPoint, forecastPoints });
       } catch (e) {
         console.error("解析異常:", e);
       }
     }
 
     currentTCData = parsedTCList;
-    if (parsedTCList.length > 0) {
-      renderTCs(parsedTCList);
-    } else {
-      renderEmptyState();
-    }
+    if (parsedTCList.length > 0) renderTCs(parsedTCList);
+    else renderEmptyState();
 
   } catch (err) {
     console.error("數據擷取失敗:", err);
@@ -1344,9 +1230,7 @@ function renderTCs(tcList) {
     const distMacau = calcDistance(activePoint.lat, activePoint.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
     const dirMacau = getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], activePoint.lat, activePoint.lon);
 
-    if (stormTrackVisibility[tc.name] === undefined) {
-      stormTrackVisibility[tc.name] = true;
-    }
+    if (stormTrackVisibility[tc.name] === undefined) stormTrackVisibility[tc.name] = true;
     const isTrackVisible = stormTrackVisibility[tc.name];
 
     const qsItem = document.createElement('div');
@@ -1356,15 +1240,11 @@ function renderTCs(tcList) {
         <div class="overlay-storm-title"><strong style="color:${catInfo.color}">● ${catInfo.name}</strong> ${tc.name}</div>
         <div class="overlay-storm-sub">距澳門約 ${distMacau} km (${dirMacau})</div>
       </div>
-      <button class="btn-mini ${isTrackVisible ? 'active' : ''}" onclick="toggleStormTrack('${tc.name}')">
-        顯示路徑
-      </button>
+      <button class="btn-mini ${isTrackVisible ? 'active' : ''}" onclick="toggleStormTrack('${tc.name}')">顯示路徑</button>
     `;
     quickSelectEl.appendChild(qsItem);
 
-    if (!activeTabState[tc.name]) {
-      activeTabState[tc.name] = 'forecast';
-    }
+    if (!activeTabState[tc.name]) activeTabState[tc.name] = 'forecast';
 
     const card = document.createElement('div');
     card.className = 'tc-card';
@@ -1375,106 +1255,66 @@ function renderTCs(tcList) {
 
     if (!isTrackVisible) return;
 
-    // 歷史路徑與定位點繪製
     const allPastPoints = [...tc.pastPoints];
     if (tc.currentPoint) allPastPoints.push(tc.currentPoint);
-
-    if (allPastPoints.length > 1) {
-      drawSegmentedTrack(allPastPoints, false);
-    }
+    if (allPastPoints.length > 1) drawSegmentedTrack(allPastPoints, false);
 
     tc.pastPoints.forEach(pt => {
       const pCat = INTENSITY_CONFIG[pt.cat] || INTENSITY_CONFIG['TD'];
-      const marker = L.circleMarker([pt.lat, pt.lon], {
-        radius: 6,
-        fillColor: pCat.color,
-        color: '#ffffff',
-        weight: 2,
-        fillOpacity: 1
-      }).addTo(map);
-
+      const marker = L.circleMarker([pt.lat, pt.lon], { radius: 6, fillColor: pCat.color, color: '#ffffff', weight: 2, fillOpacity: 1 }).addTo(map);
       bindPointDataPopup(marker, tc.name, pt);
       mapLayers.push(marker);
     });
 
-    // 建立基礎錨點列表（0h 與 官方預測點）
     const anchors = [];
     if (tc.currentPoint) anchors.push(tc.currentPoint);
     if (tc.forecastPoints) anchors.push(...tc.forecastPoints);
     anchors.sort((a, b) => a.hours - b.hours);
 
-    // 插值計算函數：計算任意目標小時 targetH 的經緯度、風速與時間
     function getPointAtHour(targetH) {
       if (anchors.length === 0) return null;
-      const maxH = anchors[anchors.length - 1].hours;
-      if (targetH > maxH) return null;
+      if (targetH > anchors[anchors.length - 1].hours) return null;
 
       const exact = anchors.find(a => a.hours === targetH);
       if (exact) return exact;
 
       for (let i = 0; i < anchors.length - 1; i++) {
-        const a1 = anchors[i];
-        const a2 = anchors[i + 1];
+        const a1 = anchors[i], a2 = anchors[i + 1];
         if (targetH > a1.hours && targetH < a2.hours) {
           const ratio = (targetH - a1.hours) / (a2.hours - a1.hours);
-          const lat = a1.lat + ratio * (a2.lat - a1.lat);
-          const lon = a1.lon + ratio * (a2.lon - a1.lon);
-          
-          const w1 = parseInt(a1.wind) || 0;
-          const w2 = parseInt(a2.wind) || 0;
+          const w1 = parseInt(a1.wind) || 0, w2 = parseInt(a2.wind) || 0;
           const interpWindNum = Math.round(w1 + ratio * (w2 - w1));
           const windStr = interpWindNum > 0 ? `${interpWindNum} km/h` : a1.wind;
 
-          const cat = getCategoryKey('', windStr);
-
           let timeStr = a1.time;
           if (a1.time && a2.time) {
-            const t1 = new Date(a1.time).getTime();
-            const t2 = new Date(a2.time).getTime();
-            if (!isNaN(t1) && !isNaN(t2)) {
-              timeStr = new Date(t1 + ratio * (t2 - t1)).toISOString();
-            }
+            const t1 = new Date(a1.time).getTime(), t2 = new Date(a2.time).getTime();
+            if (!isNaN(t1) && !isNaN(t2)) timeStr = new Date(t1 + ratio * (t2 - t1)).toISOString();
           }
 
           const r1 = (a1.radiusKm !== null && a1.radiusKm !== undefined) ? a1.radiusKm : (STANDARD_ERROR_RADIUS[a1.hours] || 15);
           const r2 = (a2.radiusKm !== null && a2.radiusKm !== undefined) ? a2.radiusKm : (STANDARD_ERROR_RADIUS[a2.hours] || 465);
-          const radiusKm = Math.round(r1 + ratio * (r2 - r1));
 
           return {
-            type: 'Forecast',
-            typeLabel: `+${targetH}小時 預測位置`,
-            lat, lon,
-            wind: windStr,
-            cat,
-            time: timeStr,
-            hours: targetH,
-            radiusKm
+            type: 'Forecast', typeLabel: `+${targetH}小時 預測位置`,
+            lat: a1.lat + ratio * (a2.lat - a1.lat),
+            lon: a1.lon + ratio * (a2.lon - a1.lon),
+            wind: windStr, cat: getCategoryKey('', windStr), time: timeStr,
+            hours: targetH, radiusKm: Math.round(r1 + ratio * (r2 - r1))
           };
         }
       }
       return null;
     }
 
-    // 1. 風暴 Logo 小時點：24H, 48H, 72H, 96H, 120H
     const logoHoursSet = new Set([24, 48, 72, 96, 120]);
-
-    // 2. 預設白點：12H, 36H, 60H, 84H, 108H
     let whiteHoursList = [12, 36, 60, 84, 108];
 
-    // 根據與澳門距離追加白點
-    if (distMacau <= 800) {
-      whiteHoursList.push(6, 18);
-    }
-    if (distMacau <= 400) {
-      whiteHoursList.push(3, 9);
-    }
-    if (distMacau <= 200) {
-      whiteHoursList.push(1, 2, 4, 5, 7, 8, 10, 11);
-    }
+    if (distMacau <= 800) whiteHoursList.push(6, 18);
+    if (distMacau <= 400) whiteHoursList.push(3, 9);
+    if (distMacau <= 200) whiteHoursList.push(1, 2, 4, 5, 7, 8, 10, 11);
 
     const whiteHoursSet = new Set(whiteHoursList);
-
-    // 彙整所有需計算的預測點小時數
     const allHoursSet = new Set([0]);
     anchors.forEach(a => allHoursSet.add(a.hours));
     logoHoursSet.forEach(h => allHoursSet.add(h));
@@ -1488,57 +1328,24 @@ function renderTCs(tcList) {
       if (pt) conePoints.push(pt);
     });
 
-    // 繪製連線與潛在路徑範圍錐體
     if (conePoints.length > 1) {
       drawSegmentedTrack(conePoints, true);
       if (showCone) drawSmoothSegmentedCone(conePoints);
     }
 
-    // 地圖標記渲染（Logo / 白點 / 圓點）
     conePoints.forEach(pt => {
       const pCat = INTENSITY_CONFIG[pt.cat] || INTENSITY_CONFIG['TD'];
       let marker;
 
       if (pt.hours === 0 || pt.type === 'Current') {
-        // 當前分析位置 (0h)：較大 Logo + 風暴名稱標籤
-        marker = L.marker([pt.lat, pt.lon], {
-          icon: getTCLogoIcon(pt.cat, 34),
-          zIndexOffset: 1000
-        }).addTo(map);
-
-        marker.bindTooltip(tc.name, {
-          permanent: true,
-          direction: 'top',
-          offset: [0, -18],
-          className: `storm-map-label storm-label-${pt.cat}`
-        });
-
+        marker = L.marker([pt.lat, pt.lon], { icon: getTCLogoIcon(pt.cat, 34), zIndexOffset: 1000 }).addTo(map);
+        marker.bindTooltip(tc.name, { permanent: true, direction: 'top', offset: [0, -18], className: `storm-map-label storm-label-${pt.cat}` });
       } else if (logoHoursSet.has(pt.hours)) {
-        // 24H, 48H, 72H, 96H, 120H：顯示風暴 Logo
-        marker = L.marker([pt.lat, pt.lon], {
-          icon: getTCLogoIcon(pt.cat, 26),
-          zIndexOffset: 800
-        }).addTo(map);
-
+        marker = L.marker([pt.lat, pt.lon], { icon: getTCLogoIcon(pt.cat, 26), zIndexOffset: 800 }).addTo(map);
       } else if (whiteHoursSet.has(pt.hours)) {
-        // 白點標記
-        marker = L.circleMarker([pt.lat, pt.lon], {
-          radius: 4,
-          fillColor: '#ffffff',
-          color: '#1e293b',
-          weight: 1.5,
-          fillOpacity: 1
-        }).addTo(map);
-
+        marker = L.circleMarker([pt.lat, pt.lon], { radius: 4, fillColor: '#ffffff', color: '#1e293b', weight: 1.5, fillOpacity: 1 }).addTo(map);
       } else {
-        // 其他官方預測點：彩色圓點
-        marker = L.circleMarker([pt.lat, pt.lon], {
-          radius: 5,
-          fillColor: pCat.color,
-          color: '#ffffff',
-          weight: 2,
-          fillOpacity: 1
-        }).addTo(map);
+        marker = L.circleMarker([pt.lat, pt.lon], { radius: 5, fillColor: pCat.color, color: '#ffffff', weight: 2, fillOpacity: 1 }).addTo(map);
       }
 
       bindPointDataPopup(marker, tc.name, pt);
@@ -1558,25 +1365,18 @@ function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau
 
   allForecast.forEach(pt => {
     const d = calcDistance(pt.lat, pt.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
-    if (d < minD) {
-      minD = d;
-      closestPt = pt;
-    }
+    if (d < minD) { minD = d; closestPt = pt; }
   });
 
   let closestStr = '--';
   if (closestPt) {
-    const cDir = getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], closestPt.lat, closestPt.lon);
-    closestStr = `${cDir} ${minD}km`;
+    closestStr = `${getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], closestPt.lat, closestPt.lon)} ${minD}km`;
   }
 
-  // Calculate entry time into 800km of Macau evaluated hour by hour (1h steps)
   const entry800Data = get800kmEntryForecastTime(tc);
   let entry800Str = '未進入 800km';
   if (entry800Data) {
-    entry800Str = entry800Data.hours === 0 
-      ? '已進入 800km' 
-      : `${entry800Data.timeFormatted} (+${entry800Data.hours}h)`;
+    entry800Str = entry800Data.hours === 0 ? '已進入 800km' : `${entry800Data.timeFormatted} (+${entry800Data.hours}h)`;
   }
 
   let listHTML = '';
@@ -1598,13 +1398,12 @@ function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau
   } else {
     listHTML = tc.pastPoints.map(pp => {
       const pCat = INTENSITY_CONFIG[pp.cat] || INTENSITY_CONFIG['TD'];
-      const formattedTime = formatDateTime(pp.time);
       const pDist = calcDistance(pp.lat, pp.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
       const pDir = getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], pp.lat, pp.lon);
 
       return `
         <div class="track-row" onclick="focusStorm(${pp.lat}, ${pp.lon})">
-          <span style="font-size:0.72rem; color:var(--text-muted); font-weight:bold;">${formattedTime}</span>
+          <span style="font-size:0.72rem; color:var(--text-muted); font-weight:bold;">${formatDateTime(pp.time)}</span>
           <span><span class="badge-tag" style="background:${pCat.color}">${pCat.name}</span></span>
           <span style="color:var(--text-muted); font-size:0.73rem;">${pp.lat.toFixed(1)}°N ${pp.lon.toFixed(1)}°E</span>
           <span style="color:var(--accent-blue); font-size:0.73rem; font-weight:600;">${pDir} ${pDist}km</span>
@@ -1614,15 +1413,13 @@ function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau
     }).join('');
   }
 
-  const reportTimeFormatted = formatDateTime(activePoint.time);
-
   cardEl.innerHTML = `
     <div class="tc-header-row">
       <div class="tc-header-left">
         <span class="badge-tag" style="background:${catInfo.color}">${catInfo.name}</span>
         <span class="tc-storm-name">${tc.name}</span>
       </div>
-      <div class="tc-time-stamp">${reportTimeFormatted}</div>
+      <div class="tc-time-stamp">${formatDateTime(activePoint.time)}</div>
     </div>
 
     <div class="tc-info-grid">
@@ -1678,9 +1475,8 @@ function bindPointDataPopup(marker, stormName, pt) {
   const pCat = INTENSITY_CONFIG[pt.cat] || INTENSITY_CONFIG['TD'];
   const dist = calcDistance(pt.lat, pt.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
   const dir = getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], pt.lat, pt.lon);
-  const formattedTime = formatDateTime(pt.time);
 
-  const popupHTML = `
+  marker.bindPopup(`
     <div class="popup-data-box">
       <div style="font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:3px; margin-bottom:4px;">
         ${stormName} - ${pt.typeLabel}
@@ -1688,12 +1484,10 @@ function bindPointDataPopup(marker, stormName, pt) {
       <div><strong>強度等級：</strong><span class="badge-tag" style="background:${pCat.color}">${pCat.name}</span></div>
       <div><strong>中心座標：</strong>${pt.lat.toFixed(2)}°N, ${pt.lon.toFixed(2)}°E</div>
       <div><strong>中心最高風速：</strong>${pt.wind}</div>
-      <div><strong>報告時間：</strong>${formattedTime}</div>
+      <div><strong>報告時間：</strong>${formatDateTime(pt.time)}</div>
       <div><strong>相對澳門方位距離：</strong>${dir} ${dist} km</div>
     </div>
-  `;
-
-  marker.bindPopup(popupHTML, { offset: [0, -5] });
+  `, { offset: [0, -5] });
 }
 
 function focusStorm(lat, lon) {
