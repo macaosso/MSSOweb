@@ -50,7 +50,7 @@ body {
   overflow: hidden;
 }
 
-/* ========== 頁頭 Header & 頂欄導航 ========== */
+/* Header & Navigation */
 .header-nav-container {
   position: sticky;
   top: 0;
@@ -247,7 +247,7 @@ body.light-theme .dropdown-content {
   font-size: 0.88rem;
 }
 
-/* 主要容器與地圖區域 */
+/* Map Container */
 .main-container {
   display: flex;
   flex: 1;
@@ -345,7 +345,7 @@ body.light-theme .dropdown-content {
 .legend-item { display: flex; align-items: center; gap: 8px; }
 .legend-color { width: 12px; height: 12px; border-radius: 50%; }
 
-/* 右側側邊欄 */
+/* Sidebar */
 .sidebar {
   width: 420px;
   min-width: 280px;
@@ -411,7 +411,6 @@ body.light-theme .dropdown-content {
   width: 100%; box-sizing: border-box; min-width: 0;
 }
 
-/* 風暴卡片自適應寬度 */
 .tc-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -455,7 +454,6 @@ body.light-theme .dropdown-content {
   white-space: nowrap; flex-shrink: 0;
 }
 
-/* 彈性卡片網格 */
 .tc-info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -494,7 +492,6 @@ body.light-theme .dropdown-content {
 
 .track-list { font-size: 0.78rem; display: flex; flex-direction: column; gap: 6px; width: 100%; }
 
-/* 彈性路徑列表行 */
 .track-row {
   display: grid;
   grid-template-columns: minmax(40px, 0.8fr) minmax(65px, 1fr) minmax(70px, 1.1fr) minmax(75px, 1.2fr) minmax(45px, 0.8fr);
@@ -519,7 +516,6 @@ body.light-theme .dropdown-content {
   color: rgba(255, 255, 255, 0.6); font-weight: bold; font-size: 10px;
 }
 
-/* 地圖風暴名稱標籤 */
 .storm-map-label {
   border: none !important;
   font-weight: bold !important;
@@ -552,12 +548,12 @@ body.light-theme .dropdown-content {
 .popup-data-box { font-size: 0.8rem; line-height: 1.5; padding: 4px; }
 .popup-data-box strong { color: var(--accent-blue); }
 
-/* 響應式適配 (Mobile Adaptations) */
+/* Mobile Adaptations */
 @media (max-width: 768px) {
   .header-nav-container { padding: 0.75rem 1rem; }
   .menu-toggle { display: block; }
   .title { font-size: 0.95rem; }
-  .header-clock { display: none; } /* Hide clock on mobile for header space */
+  .header-clock { display: none; }
 
   .nav {
     display: none; flex-direction: column; width: 230px; position: absolute;
@@ -581,7 +577,6 @@ body.light-theme .dropdown-content {
   body.light-theme .dropdown-content { background: rgba(0, 0, 0, 0.03); }
   .dropdown.active .dropdown-content { display: block; }
 
-  /* Map Controls Mobile Adjustments */
   .sub-header-bar {
     top: 8px;
     left: 8px;
@@ -611,7 +606,6 @@ body.light-theme .dropdown-content {
     max-width: 220px;
   }
 
-  /* Bottom Drawer Navigation on Mobile */
   .sidebar {
     position: absolute;
     bottom: 0;
@@ -664,7 +658,6 @@ body.light-theme .dropdown-content {
 
 <body>
 
-<!-- 頂欄導航 -->
 <div class="header-nav-container">
   <div class="header">
     <img src="icons/MSSO.png" class="logo" alt="MSSO Logo">
@@ -820,14 +813,17 @@ const STANDARD_ERROR_RADIUS = {
 function initMap() {
   map = L.map('map', { zoomControl: false }).setView(MACAU_COORDS, 6);
   
-  darkTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 18,
-    attribution: '&copy; OpenStreetMap &copy; CARTO'
+  // Updated public CartoDB CDN endpoints to bypass "API KEY REQUIRED" overlay
+  darkTile = L.tileLayer('https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19,
+    subdomains: 'abcd',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
   });
 
-  lightTile = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    maxZoom: 18,
-    attribution: '&copy; OpenStreetMap &copy; CARTO'
+  lightTile = L.tileLayer('https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    maxZoom: 19,
+    subdomains: 'abcd',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
   });
 
   currentTile = darkTile;
