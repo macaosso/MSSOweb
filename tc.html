@@ -1003,47 +1003,66 @@ function clearMapLayers() {
   mapLayers = [];
 }
 
-// Calculate the forecast time when tropical cyclone enters 800 km of Macau
-// Uses raw forecast coordinates without averaging (time = current time + index hours)
+// Calculate the entry time into 800 km of Macau by evaluating EVERY HOUR (1-hour step interpolation)
 function get800kmEntryForecastTime(tc) {
-  const forecastList = tc.forecastPoints ? [...tc.forecastPoints] : [];
-  forecastList.sort((a, b) => a.hours - b.hours);
+  const anchors = [];
+  if (tc.currentPoint) anchors.push(tc.currentPoint);
+  if (tc.forecastPoints) anchors.push(...tc.forecastPoints);
 
-  // Check current/analysis point first
-  if (tc.currentPoint) {
-    const currentDist = calcDistance(tc.currentPoint.lat, tc.currentPoint.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
-    if (currentDist <= 800) {
-      return {
-        hours: 0,
-        dist: currentDist,
-        timeFormatted: formatDateTime(tc.currentPoint.time || new Date().toISOString())
-      };
-    }
+  if (anchors.length === 0) return null;
+  anchors.sort((a, b) => a.hours - b.hours);
+
+  // Check current position first (0h)
+  const currentDist = calcDistance(anchors[0].lat, anchors[0].lon, MACAU_COORDS[0], MACAU_COORDS[1]);
+  if (currentDist <= 800) {
+    return {
+      hours: 0,
+      dist: currentDist,
+      timeFormatted: formatDateTime(anchors[0].time || new Date().toISOString())
+    };
   }
 
-  // Check each forecast index coordinate directly without taking averages
-  for (const fp of forecastList) {
-    const dist = calcDistance(fp.lat, fp.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
+  const maxHour = anchors[anchors.length - 1].hours;
+
+  // Evaluate hour by hour (1h step)
+  for (let h = 1; h <= maxHour; h++) {
+    // Find linear interpolation segment for hour `h`
+    let a1 = null, a2 = null;
+    for (let i = 0; i < anchors.length - 1; i++) {
+      if (h >= anchors[i].hours && h <= anchors[i + 1].hours) {
+        a1 = anchors[i];
+        a2 = anchors[i + 1];
+        break;
+      }
+    }
+
+    if (!a1 || !a2) continue;
+
+    const ratio = (h - a1.hours) / (a2.hours - a1.hours);
+    const interpLat = a1.lat + ratio * (a2.lat - a1.lat);
+    const interpLon = a1.lon + ratio * (a2.lon - a1.lon);
+
+    const dist = calcDistance(interpLat, interpLon, MACAU_COORDS[0], MACAU_COORDS[1]);
+
     if (dist <= 800) {
-      // Calculate time = current time + index hours (1 index = 1 hour)
       let baseMs = Date.now();
       if (tc.currentPoint && tc.currentPoint.time) {
         const parsedBase = new Date(tc.currentPoint.time).getTime();
         if (!isNaN(parsedBase)) baseMs = parsedBase;
       }
-      
-      const forecastTimeMs = baseMs + (fp.hours * 3600 * 1000);
+
+      const forecastTimeMs = baseMs + (h * 3600 * 1000);
       const forecastDate = new Date(forecastTimeMs);
 
       return {
-        hours: fp.hours,
+        hours: h,
         dist: dist,
         timeFormatted: formatDateTime(forecastDate.toISOString())
       };
     }
   }
 
-  return null;
+  return null; // Does not enter 800 km boundary
 }
 
 function drawSegmentedTrack(points, isForecast = false) {
@@ -1551,7 +1570,7 @@ function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau
     closestStr = `${cDir} ${minD}km`;
   }
 
-  // Calculate entry time into 800km of Macau using raw index coordinates
+  // Calculate entry time into 800km of Macau evaluated hour by hour (1h steps)
   const entry800Data = get800kmEntryForecastTime(tc);
   let entry800Str = '未進入 800km';
   if (entry800Data) {
