@@ -997,15 +997,22 @@ function getWbgtBadge(wbgtStr) {
 let rawStationData = [];
 let currentSort = "desc";
 
-// 改進的 XML 節點數值提取函式
+// 強化版 XML 節點數值提取函式 (支援多種 SMG XML 格式結構)
 function extractValue(selector, parent) {
     const el = parent.querySelector(selector);
     if (!el) return '';
-    const val = el.querySelector("dValue")?.textContent 
-             || el.querySelector("Value")?.textContent 
-             || el.textContent 
-             || '';
-    return val.trim();
+    
+    // 嘗試多種常見標籤與屬性結構
+    const dVal = el.querySelector("dValue")?.textContent;
+    if (dVal !== undefined && dVal !== null && dVal !== '') return dVal.trim();
+
+    const val = el.querySelector("Value")?.textContent;
+    if (val !== undefined && val !== null && val !== '') return val.trim();
+
+    const valueAttr = el.getAttribute("value");
+    if (valueAttr) return valueAttr.trim();
+
+    return el.textContent.trim() || '';
 }
 
 function updateSummaryCounts() {
@@ -1060,46 +1067,64 @@ function renderMapPins() {
     if (mapPubEl) mapPubEl.textContent = pubTimeText;
 }
 
-// 修正後的數據獲取函式 (包含雙重 Proxy 備援機制)
+// 增強型數據獲取函式 (提供多重 Proxy 備援機制與 Fetch Direct)
 function fetchWeatherData() {
     const targetUrl = `https://xml.smg.gov.mo/c_actualweather.xml?t=${Date.now()}`;
-    const primaryProxy = `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`;
-    const fallbackProxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`;
+    
+    // 多組 Proxy 備援策略
+    const proxyList = [
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+        `https://corsproxy.io/?url=${encodeURIComponent(targetUrl)}`,
+        targetUrl // 直接請求 (以防相同域名或已有同源策略處置)
+    ];
 
-    const fetchXml = (proxyUrl) => {
-        return fetch(proxyUrl, { cache: "no-store" })
+    const fetchWithFallback = (index) => {
+        if (index >= proxyList.length) {
+            return Promise.reject(new Error("所有數據源與 Proxy 請求均失敗"));
+        }
+        return fetch(proxyList[index], { cache: "no-store" })
             .then(res => {
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 return res.text();
+            })
+            .catch(err => {
+                console.warn(`Proxy [${index}] (${proxyList[index]}) 獲取失敗:`, err);
+                return fetchWithFallback(index + 1);
             });
     };
 
-    return fetchXml(primaryProxy)
-        .catch(err => {
-            console.warn("Primary proxy failed, trying fallback...", err);
-            return fetchXml(fallbackProxy);
-        })
+    fetchWithFallback(0)
         .then(xmlStr => {
             const parser = new DOMParser();
             const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
             
-            const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent || "未知";
+            // 處理 XML 解析錯誤
+            const parserError = xmlDoc.querySelector("parsererror");
+            if (parserError) {
+                throw new Error("XML 格式解析失敗");
+            }
+
+            const pubTime = xmlDoc.querySelector("SysPubdate")?.textContent 
+                         || xmlDoc.querySelector("PubDate")?.textContent 
+                         || "未知";
             document.getElementById("pub-date").textContent = pubTime;
 
-            const stations = xmlDoc.querySelectorAll("WeatherReport station");
+            const stations = xmlDoc.querySelectorAll("station, WeatherReport station");
             rawStationData = [];
 
             stations.forEach(station => {
-                const name = station.querySelector("stationname")?.textContent || "";
+                const name = station.querySelector("stationname, Name")?.textContent?.trim() || "";
                 const temp = extractValue("Temperature", station);
                 const humidity = extractValue("Humidity", station);
                 const windSpeed = extractValue("WindSpeed", station);
 
                 const Ta = parseFloat(temp);
                 const RH = parseFloat(humidity);
-                const Wind = parseFloat(windSpeed);
+                let Wind = parseFloat(windSpeed);
+                if (isNaN(Wind)) Wind = 0; // 若無風速資料，預設為 0 km/h
 
-                const code = stationCodes[name] || "--";
+                const code = stationCodes[name] || station.querySelector("code")?.textContent || "--";
 
                 if (excludedBridgeCodes.includes(code) || isNaN(Ta) || isNaN(RH)) {
                     return; 
@@ -1120,9 +1145,9 @@ function fetchWeatherData() {
             startAutoRefresh();
         })
         .catch(err => {
-            console.error("載入失敗: ", err);
+            console.error("SMG 數據載入失敗: ", err);
             document.getElementById("wbgt-table-body").innerHTML = 
-                `<tr><td colspan="4" style="text-align:center; color:#ef4444; padding:20px;">數據載入失敗，請重新整理頁面或稍後再試。</td></tr>`;
+                `<tr><td colspan="4" style="text-align:center; color:#ef4444; padding:20px;">數據載入失敗 (${err.message})，請點擊「實時刷新」或稍後再試。</td></tr>`;
         });
 }
 
