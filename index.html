@@ -1221,7 +1221,7 @@ body.light-theme .card-bottom {
     <div id="tideContent" class="content-yellow"></div>
   </div>
 
-  <!-- 新增：暑熱天氣提示框 -->
+  <!-- 暑熱天氣提示框 -->
   <div id="wbgtBox" class="box" style="display: none;">
     <div class="header-orange">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1263,7 +1263,7 @@ body.light-theme .card-bottom {
               <div>
                 <div id="temp-value">
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
-                  <span id="temp-num">29 °C</span>
+                  <span id="temp-num">-- °C</span>
                 </div>
                 <div id="feels-desc" style="font-size: 16px; margin-top: 6px; font-weight: 500;"></div>
               </div>
@@ -1300,7 +1300,7 @@ body.light-theme .card-bottom {
               </div>
             </div>
 
-            <!-- 整點逐時天氣預報組件 (新增於整點天氣下方) -->
+            <!-- 整點逐時天氣預報組件 -->
             <div class="hourly-forecast-section">
               <div class="hourly-forecast-date-title" id="hourlyForecastDateHeader">--月--日 --</div>
               <div class="hourly-forecast-scroll" id="hourlyForecastScrollContainer"></div>
@@ -1330,7 +1330,7 @@ body.light-theme .card-bottom {
           <div class="tab-content" id="tab2"></div>
         </div>
         
-        <div id="forecastTime" class="forecast-time-bottom">發佈時間：2026-08-12 21:00</div>
+        <div id="forecastTime" class="forecast-time-bottom">發佈時間：--</div>
       </div>
     </div>
 
@@ -1371,6 +1371,32 @@ body.light-theme .card-bottom {
 
 <script src="webdata.js"></script>
 <script>
+// ========== 通用 CORS XML 擷取機制 (多代理容錯機制) ==========
+async function fetchXmlWithProxy(targetUrl) {
+  const cacheBuster = Date.now();
+  const rawUrl = `${targetUrl}?_t=${cacheBuster}`;
+
+  const proxies = [
+    `https://api.allorigins.win/raw?url=${encodeURIComponent(rawUrl)}`,
+    `https://corsproxy.io/?url=${encodeURIComponent(rawUrl)}`,
+    `https://proxy.cors.sh/${rawUrl}`
+  ];
+
+  for (const pUrl of proxies) {
+    try {
+      const res = await fetch(pUrl, { cache: "no-store" });
+      if (!res.ok) continue;
+      const text = await res.text();
+      if (text && text.includes("<")) {
+        return text;
+      }
+    } catch (err) {
+      console.warn(`代理 ${pUrl} 讀取失敗，嘗試備用代理...`);
+    }
+  }
+  throw new Error(`所有代理服務皆無法讀取 XML URL: ${targetUrl}`);
+}
+
 function applyTheme(theme) {
   if (theme === 'light') {
     document.body.classList.add('light-theme');
@@ -1449,25 +1475,17 @@ function updateHeaderClock() {
 }
 
 const forecastXmlUrl = "https://xml.smg.gov.mo/c_forecast.xml";
-const forecastProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(forecastXmlUrl)}`;
-
 const coastalXmlUrl = "https://xml.smg.gov.mo/c_coastal_forecast.xml";
-const coastalProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(coastalXmlUrl)}`;
 
 async function loadForecastXML() {
   try {
-    const [forecastRes, coastalRes] = await Promise.allSettled([
-      fetch(forecastProxyUrl, { cache: "no-store" }),
-      fetch(coastalProxyUrl, { cache: "no-store" })
-    ]);
-
     let pubDate = "";
     let situation = "";
     let todayValid = "", todayDesc = "";
     let tomorrowValid = "", tomorrowDesc = "";
 
-    if (forecastRes.status === "fulfilled" && forecastRes.value.ok) {
-      const xmlText = await forecastRes.value.text();
+    try {
+      const xmlText = await fetchXmlWithProxy(forecastXmlUrl);
       const parser = new DOMParser();
       const xmlDoc = parser.parseFromString(xmlText, "text/xml");
 
@@ -1480,14 +1498,18 @@ async function loadForecastXML() {
 
       tomorrowValid = wfNodes[1]?.querySelector("ValidFor")?.textContent.trim() || "";
       tomorrowDesc = wfNodes[1]?.querySelector("WeatherDescription")?.textContent.trim() || "暫無資料";
+    } catch(e) {
+      console.warn("Forecast XML 讀取失敗: ", e);
     }
 
     let coastalDesc = "";
-    if (coastalRes.status === "fulfilled" && coastalRes.value.ok) {
-      const coastalXmlText = await coastalRes.value.text();
+    try {
+      const coastalXmlText = await fetchXmlWithProxy(coastalXmlUrl);
       const parser = new DOMParser();
       const coastalXmlDoc = parser.parseFromString(coastalXmlText, "text/xml");
       coastalDesc = coastalXmlDoc.querySelector("TTS")?.textContent.trim() || "";
+    } catch(e) {
+      console.warn("Coastal XML 讀取失敗: ", e);
     }
 
     if (pubDate) {
@@ -1843,53 +1865,44 @@ function renderWbgtAlertUI() {
     box.style.display = "block";
 }
 
-function fetchWbgtAlertData() {
-    const cacheBuster = Date.now();
-    const actualWeatherXmlUrl = `https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
-    const url = `https://corsproxy.io/?url=${encodeURIComponent(actualWeatherXmlUrl)}`;
+async function fetchWbgtAlertData() {
+    try {
+        const xmlStr = await fetchXmlWithProxy("https://xml.smg.gov.mo/c_actualweather.xml");
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
+        const stations = xmlDoc.querySelectorAll("WeatherReport station, station");
 
-    fetch(url, { cache: "no-store" })
-        .then(res => {
-            if (!res.ok) throw new Error("SMG Fetch failed");
-            return res.text();
-        })
-        .then(xmlStr => {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
-            const stations = xmlDoc.querySelectorAll("WeatherReport station, station");
+        let maxLevel = 0;
 
-            let maxLevel = 0;
+        stations.forEach(station => {
+            const name = extractNodeValue(station, ["stationname", "StationName", "name", "Name"]);
+            const temp = extractNodeValue(station, ["Temperature", "temperature"]);
+            const humidity = extractNodeValue(station, ["Humidity", "humidity"]);
+            const windSpeed = extractNodeValue(station, ["WindSpeed", "windSpeed", "wind_speed"]);
 
-            stations.forEach(station => {
-                const name = extractNodeValue(station, ["stationname", "StationName", "name", "Name"]);
-                const temp = extractNodeValue(station, ["Temperature", "temperature"]);
-                const humidity = extractNodeValue(station, ["Humidity", "humidity"]);
-                const windSpeed = extractNodeValue(station, ["WindSpeed", "windSpeed", "wind_speed"]);
+            const Ta = parseFloat(temp);
+            const RH = parseFloat(humidity);
+            const Wind = parseFloat(windSpeed);
 
-                const Ta = parseFloat(temp);
-                const RH = parseFloat(humidity);
-                const Wind = parseFloat(windSpeed);
+            const code = wbgtStationCodes[name] || "--";
 
-                const code = wbgtStationCodes[name] || "--";
+            if (wbgtExcludedBridgeCodes.includes(code) || isNaN(Ta) || isNaN(RH)) {
+                return; 
+            }
 
-                if (wbgtExcludedBridgeCodes.includes(code) || isNaN(Ta) || isNaN(RH)) {
-                    return; 
-                }
-
-                const calcRes = calculateFullWBGT(Ta, RH, Wind);
-                const w = parseFloat(calcRes.wbgt);
-                
-                const level = evaluateWbgtLevel(w, Ta);
-                if (level > maxLevel) {
-                    maxLevel = level;
-                }
-            });
-
-            updateWbgtAlertBox(maxLevel);
-        })
-        .catch(err => {
-            console.error("暑熱氣象數據載入失敗: ", err);
+            const calcRes = calculateFullWBGT(Ta, RH, Wind);
+            const w = parseFloat(calcRes.wbgt);
+            
+            const level = evaluateWbgtLevel(w, Ta);
+            if (level > maxLevel) {
+                maxLevel = level;
+            }
         });
+
+        updateWbgtAlertBox(maxLevel);
+    } catch(err) {
+        console.error("暑熱氣象數據載入失敗: ", err);
+    }
 }
 
 window.addEventListener('DOMContentLoaded', () => {
@@ -2075,11 +2088,9 @@ const windDir = document.getElementById('wind-dir');
 const uvValue = document.getElementById('uv-value');
 
 const uvXmlUrl = "https://xml.smg.gov.mo/c_actualUVI.xml";
-const uvProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(uvXmlUrl)}`;
 let currentUV = "--";
 
 const originXmlUrl = "https://xml.smg.gov.mo/c_actual_brief.xml";
-const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(originXmlUrl)}`;
 
 function getOpenMeteoIcon(code, hour) {
   const isNight = (hour < 6 || hour >= 18);
@@ -2214,10 +2225,7 @@ async function loadHourlyWeather() {
         errorTip.style.display = 'none';
         weatherMain.style.display = 'none';
 
-        const response = await fetch(proxyUrl, { method: 'GET', cache: 'no-cache' });
-        if (!response.ok) throw new Error('接口請求失敗');
-
-        const xmlText = await response.text();
+        const xmlText = await fetchXmlWithProxy(originXmlUrl);
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
 
@@ -2253,6 +2261,7 @@ async function loadHourlyWeather() {
 
         if (iconUrl) {
             weatherIcon.src = iconUrl;
+            weatherIcon.style.display = 'block';
             weatherIcon.onerror = () => weatherIcon.style.display = 'none';
         }
 
@@ -2270,12 +2279,10 @@ async function loadHourlyWeather() {
 
 async function loadUVData() {
     try {
-        const res = await fetch(uvProxyUrl, { cache: "no-store" });
-        if (!res.ok) throw new Error("UV數據載入失敗");
-        const xmlText = await res.text();
+        const xmlText = await fetchXmlWithProxy(uvXmlUrl);
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-        const uvVal = xmlDoc.querySelector("UV-Index > Value")?.textContent || "--";
+        const uvVal = xmlDoc.querySelector("UV-Index > Value, Value")?.textContent || "--";
         currentUV = uvVal;
         uvValue.textContent = currentUV;
         uvValue.style.color = getUVColor(parseFloat(currentUV));
@@ -2295,7 +2302,6 @@ function getUVColor(uv) {
 }
 
 const fourDayXmlUrl = "https://xml.smg.gov.mo/c_7daysforecast.xml";
-const fourDayProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(fourDayXmlUrl)}`;
 
 async function load4DaysForecastXML() {
     const loadingEl = document.getElementById('7day-xml-loading');
@@ -2307,10 +2313,7 @@ async function load4DaysForecastXML() {
         if (loadingEl && containerEl.children.length === 0) loadingEl.style.display = 'block';
         if (errorEl) errorEl.style.display = 'none';
 
-        const res = await fetch(fourDayProxyUrl, { cache: "no-store" });
-        if (!res.ok) throw new Error("7日預報數據請求失敗");
-
-        const xmlText = await res.text();
+        const xmlText = await fetchXmlWithProxy(fourDayXmlUrl);
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
 
@@ -2325,10 +2328,7 @@ async function load4DaysForecastXML() {
           if (updateTimeEl) updateTimeEl.innerText = timeStr;
         }
 
-        let forecastNodes = Array.from(xmlDoc.querySelectorAll("ForecastData, WeatherForecast, DayForecast, CustomData, Item"));
-        if (forecastNodes.length === 0) {
-            forecastNodes = Array.from(xmlDoc.querySelectorAll("FourDaysForecast > *, SevenDaysForecast > *"));
-        }
+        let forecastNodes = Array.from(xmlDoc.querySelectorAll("CustomData, WeatherForecast, DayForecast, Item, ForecastData"));
 
         if (forecastNodes.length === 0) throw new Error("未能讀取預報數據");
 
@@ -2338,49 +2338,10 @@ async function load4DaysForecastXML() {
 
         let html = '';
         forecastNodes.forEach(node => {
-            const allElements = Array.from(node.getElementsByTagName("*"));
-
-            let date = "";
-            for (let el of allElements) {
-                const name = el.nodeName.toLowerCase();
-                if (name.includes("validfor") || name.includes("validdate") || name.includes("forecastdate") || name === "date") {
-                    if (el.children.length === 0 && el.textContent.trim()) {
-                        date = el.textContent.trim();
-                        break;
-                    }
-                }
-            }
-
-            let dayOfWeek = "";
-            for (let el of allElements) {
-                const name = el.nodeName.toLowerCase();
-                if (name.includes("dayofweek") || name.includes("week") || name === "day") {
-                    if (el.children.length === 0 && el.textContent.trim()) {
-                        dayOfWeek = el.textContent.trim();
-                        break;
-                    }
-                }
-            }
-
-            let weather = "";
-            for (let el of allElements) {
-                const name = el.nodeName.toLowerCase();
-                if (name.includes("weatherdescription") || name.includes("weathersummary") || name === "weather") {
-                    if (el.textContent.trim()) {
-                        weather = el.textContent.trim();
-                        break;
-                    }
-                }
-            }
-
-            let rawIconUrl = "";
-            for (let el of allElements) {
-                const name = el.nodeName.toLowerCase();
-                if (name === "iconurl" || name === "c_iconurl") {
-                    const txt = el.textContent.trim();
-                    if (txt) { rawIconUrl = txt; break; }
-                }
-            }
+            let date = node.querySelector("ValidDate, ValidFor, Date")?.textContent.trim() || "";
+            let dayOfWeek = node.querySelector("DayOfWeek, Week, Day")?.textContent.trim() || "";
+            let weather = node.querySelector("WeatherDescription, WeatherSummary, Weather")?.textContent.trim() || "";
+            let rawIconUrl = node.querySelector("IconURL, c_IconURL")?.textContent.trim() || "";
 
             let iconUrl = "";
             if (rawIconUrl) {
@@ -2407,27 +2368,23 @@ async function load4DaysForecastXML() {
             else if (iconUrl.includes("ww-c25.gif")) iconUrl = "icons/t.png";
             else if (iconUrl.includes("ww-c29.gif")) iconUrl = "icons/scr.png";
 
-            let tempNums = [];
-            for (let el of allElements) {
-                const name = el.nodeName.toLowerCase();
-                if (name.includes("temp") || name.includes("temperature")) {
-                    const matches = el.textContent.match(/\d+(\.\d+)?/g);
-                    if (matches) {
-                        matches.forEach(m => {
-                            const val = parseFloat(m);
-                            if (!isNaN(val) && val >= 5 && val <= 50) tempNums.push(val);
-                        });
-                    }
+            let tempMin = parseFloat(node.querySelector("MinTemp, TemperatureMin, MinTemperature")?.textContent || NaN);
+            let tempMax = parseFloat(node.querySelector("MaxTemp, TemperatureMax, MaxTemperature")?.textContent || NaN);
+
+            if (isNaN(tempMin) || isNaN(tempMax)) {
+                let tempText = node.querySelector("Temperature, Temp")?.textContent || "";
+                let matches = tempText.match(/\d+(\.\d+)?/g);
+                if (matches && matches.length >= 2) {
+                    tempMin = parseFloat(matches[0]);
+                    tempMax = parseFloat(matches[1]);
                 }
             }
-            tempNums = [...new Set(tempNums)];
-            let tempMin = tempNums.length > 0 ? Math.min(...tempNums) : null;
-            let tempMax = tempNums.length > 0 ? Math.max(...tempNums) : null;
-            let tempDisplay = (tempMin !== null && tempMax !== null)
+
+            let tempDisplay = (!isNaN(tempMin) && !isNaN(tempMax))
                 ? (tempMin === tempMax ? `${tempMin}°C` : `${tempMin}°C - ${tempMax}°C`)
                 : '--';
 
-            if (tempMin !== null && tempMax !== null) {
+            if (!isNaN(tempMin) && !isNaN(tempMax)) {
                 let chartLabel = date;
                 if (dayOfWeek) {
                     chartLabel += ` (${dayOfWeek.replace("星期", "").replace("周", "")})`;
@@ -2437,27 +2394,23 @@ async function load4DaysForecastXML() {
                 dynamic7dMax.push(tempMax);
             }
 
-            let rhNums = [];
-            for (let el of allElements) {
-                const name = el.nodeName.toLowerCase();
-                if (name.includes("humidity") || name.includes("rh")) {
-                    const matches = el.textContent.match(/\d+(\.\d+)?/g);
-                    if (matches) {
-                        matches.forEach(m => {
-                            const val = parseFloat(m);
-                            if (!isNaN(val) && val >= 10 && val <= 100) rhNums.push(val);
-                        });
-                    }
+            let rhMin = parseFloat(node.querySelector("MinRH, HumidityMin")?.textContent || NaN);
+            let rhMax = parseFloat(node.querySelector("MaxRH, HumidityMax")?.textContent || NaN);
+
+            if (isNaN(rhMin) || isNaN(rhMax)) {
+                let rhText = node.querySelector("Humidity, RH")?.textContent || "";
+                let matches = rhText.match(/\d+(\.\d+)?/g);
+                if (matches && matches.length >= 2) {
+                    rhMin = parseFloat(matches[0]);
+                    rhMax = parseFloat(matches[1]);
                 }
             }
-            rhNums = [...new Set(rhNums)];
-            let rhMin = rhNums.length > 0 ? Math.min(...rhNums) : null;
-            let rhMax = rhNums.length > 0 ? Math.max(...rhNums) : null;
-            let rhDisplay = (rhMin !== null && rhMax !== null)
+
+            let rhDisplay = (!isNaN(rhMin) && !isNaN(rhMax))
                 ? (rhMin === rhMax ? `${rhMin}%` : `${rhMin}% - ${rhMax}%`)
                 : '--';
 
-            if (!date && !weather && tempNums.length === 0) return;
+            if (!date && !weather && isNaN(tempMin)) return;
 
             html += `
                 <div class="forecast-card-mini">
