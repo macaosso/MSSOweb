@@ -664,6 +664,7 @@ body.light-theme .weather-item {
   border-top: 1px solid var(--card-border);
   padding-top: 18px;
 }
+
 .hourly-forecast-date-title {
   font-size: 15px;
   font-weight: 700;
@@ -671,6 +672,7 @@ body.light-theme .weather-item {
   margin-bottom: 14px;
   padding-left: 4px;
 }
+
 .hourly-forecast-scroll {
   display: flex;
   overflow-x: auto;
@@ -678,61 +680,83 @@ body.light-theme .weather-item {
   scrollbar-width: thin;
   scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
 }
+
 body.light-theme .hourly-forecast-scroll {
   scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
 }
+
 .hourly-forecast-scroll::-webkit-scrollbar {
   height: 6px;
 }
+
 .hourly-forecast-scroll::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 3px;
 }
+
 body.light-theme .hourly-forecast-scroll::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.2);
 }
+
+/* Expanded column width to fit larger icons */
 .hourly-item-col {
-  flex: 0 0 62px;
-  min-width: 62px;
+  flex: 0 0 90px;
+  min-width: 90px;
   display: flex;
   flex-direction: column;
   align-items: center;
   border-right: 1px dashed var(--card-border);
   padding: 0 4px;
 }
+
 .hourly-item-col:last-child {
   border-right: none;
 }
+
 .hourly-col-time {
   font-size: 14px;
   color: var(--text-main);
   margin-bottom: 8px;
   font-weight: 500;
 }
+
 .hourly-col-temp {
   font-size: 16px;
   font-weight: 700;
   color: var(--text-main);
   margin-bottom: 10px;
 }
+
+/* Increased height for the icon container */
 .hourly-col-icon {
-  height: 60px;
+  height: 85px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-bottom: 4px;
 }
+
+/* Direct sizing rules for the weather icon element */
+.hourly-col-icon img,
+.hourly-col-icon svg {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
 .hourly-col-pop {
   font-size: 12px;
   font-weight: 700;
   min-height: 16px;
 }
+
 .hourly-col-precip {
   font-size: 11px;
   font-weight: 600;
   color: var(--accent-blue);
   margin-top: 2px;
 }
+
 
 /* ========== 7. 天氣預報 & 圖表並排模塊 ========== */
 .forecast-chart-row {
