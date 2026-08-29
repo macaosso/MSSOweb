@@ -1101,6 +1101,7 @@ body.light-theme .card-bottom {
         <button class="dropdown-btn">澳門天氣 <span class="arrow">▼</span></button>
         <div class="dropdown-content">
           <a href="map.html">綜合氣象實況</a>
+          <a href="https://macaosso.github.io/MSSOweb/moWBGT.html">(NEW)暑熱監測</a>
           <a href="https://macaosso.github.io/MSSOweb/AQImap.html">空氣質量實況</a>
           <a href="https://macaosso.github.io/MSSOweb/moweather.html">電腦模式天氣實況及預報</a>
           <a href="https://macaosso.github.io/MSSOweb/morain.html">降雨預報</a>
@@ -1220,6 +1221,22 @@ body.light-theme .card-bottom {
     <div id="tideContent" class="content-yellow"></div>
   </div>
 
+  <!-- 新增：暑熱天氣提示框 -->
+  <div id="wbgtBox" class="box" style="display: none;">
+    <div class="header-orange">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 9a4 4 0 0 0-2 7.5V20a2 2 0 0 0 4 0v-3.5A4 4 0 0 0 12 9z"/>
+        <path d="M12 3v2"/>
+        <path d="M6.34 5.34l1.42 1.42"/>
+        <path d="M17.66 5.34l-1.42 1.42"/>
+        <path d="M3 12h2"/>
+        <path d="M19 12h2"/>
+      </svg>
+      暑熱天氣提示
+    </div>
+    <div id="wbgtContent" class="content-yellow"></div>
+  </div>
+
   <div class="three-tab-weather-wrap">
     <div class="three-tab-header">
       <div class="three-tab-item active" data-tab="hourly">
@@ -1283,7 +1300,7 @@ body.light-theme .card-bottom {
               </div>
             </div>
 
-            <!-- 整點逐時天氣預報組件 (新增於整點天氣下方) -->
+            <!-- 整點逐時天氣預報組件 -->
             <div class="hourly-forecast-section">
               <div class="hourly-forecast-date-title" id="hourlyForecastDateHeader">--月--日 --</div>
               <div class="hourly-forecast-scroll" id="hourlyForecastScrollContainer"></div>
@@ -1313,7 +1330,7 @@ body.light-theme .card-bottom {
           <div class="tab-content" id="tab2"></div>
         </div>
         
-        <div id="forecastTime" class="forecast-time-bottom">發佈時間：2026-08-12 21:00</div>
+        <div id="forecastTime" class="forecast-time-bottom">發佈時間：--</div>
       </div>
     </div>
 
@@ -1352,8 +1369,41 @@ body.light-theme .card-bottom {
 
 </div>
 
+<!-- 外部數據及Chart.js引用 -->
 <script src="webdata.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
 <script>
+// 全域變數定義
+let chart24hUpdateTime = "";
+let chart7dUpdateTime = "";
+
+let openMeteo24hX = [];
+let openMeteo24hTemp = [];
+
+let dynamic7dLabels = [];
+let dynamic7dMax = [];
+let dynamic7dMin = [];
+
+let tempChart = null;
+let currentUV = "--";
+
+const forecastXmlUrl = "https://xml.smg.gov.mo/c_forecast.xml";
+const forecastProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(forecastXmlUrl)}`;
+
+const coastalXmlUrl = "https://xml.smg.gov.mo/c_coastal_forecast.xml";
+const coastalProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(coastalXmlUrl)}`;
+
+const uvXmlUrl = "https://xml.smg.gov.mo/c_actualUVI.xml";
+const uvProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(uvXmlUrl)}`;
+
+const originXmlUrl = "https://xml.smg.gov.mo/c_actual_brief.xml";
+const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(originXmlUrl)}`;
+
+const fourDayXmlUrl = "https://xml.smg.gov.mo/c_7daysforecast.xml";
+const fourDayProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(fourDayXmlUrl)}`;
+
+// 主題切換相關
 function applyTheme(theme) {
   if (theme === 'light') {
     document.body.classList.add('light-theme');
@@ -1379,43 +1429,12 @@ function toggleTheme() {
   }
 })();
 
-let chart24hUpdateTime = "";
-let chart7dUpdateTime = "";
-
-let openMeteo24hX = [];
-let openMeteo24hTemp = [];
-
-let dynamic7dLabels = [];
-let dynamic7dMax = [];
-let dynamic7dMin = [];
-
 function toggleMenu() {
   const nav = document.getElementById("navMenu");
   const btn = document.querySelector(".menu-toggle");
   nav.classList.toggle("active");
   btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-  const dropdownBtns = document.querySelectorAll('.dropdown-btn');
-  
-  dropdownBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const currentDropdown = btn.parentElement;
-      
-      document.querySelectorAll('.dropdown').forEach(d => {
-        if (d !== currentDropdown) d.classList.remove('active');
-      });
-
-      currentDropdown.classList.toggle('active');
-    });
-  });
-
-  document.addEventListener('click', () => {
-    document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('active'));
-  });
-});
 
 function updateHeaderClock() {
   const clockEl = document.getElementById('headerClock');
@@ -1431,12 +1450,7 @@ function updateHeaderClock() {
   }
 }
 
-const forecastXmlUrl = "https://xml.smg.gov.mo/c_forecast.xml";
-const forecastProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(forecastXmlUrl)}`;
-
-const coastalXmlUrl = "https://xml.smg.gov.mo/c_coastal_forecast.xml";
-const coastalProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(coastalXmlUrl)}`;
-
+// XML 天氣預報載入
 async function loadForecastXML() {
   try {
     const [forecastRes, coastalRes] = await Promise.allSettled([
@@ -1642,46 +1656,204 @@ function renderWarnings(data, containerId, cardId) {
   card.style.display = validCount > 0 ? "block" : "none";
 }
 
-window.addEventListener('DOMContentLoaded', function(){
-    updateHeaderClock();
-    setInterval(updateHeaderClock, 1000);
+// 暑熱指數計算 (WBGT)
+const wbgtSigma = 5.670374419e-8; 
+const wbgtEps = 0.95;             
 
-    if (typeof TC_WARNING_DATA !== 'undefined') {
-      renderTcForecastTable(TC_WARNING_DATA);
+function calcTnwWBGT(Ta, RH) {
+    if (isNaN(Ta) || isNaN(RH)) return NaN;
+    let part1 = Math.atan(0.151977 * Math.sqrt(RH + 8.313659));
+    let part2 = Math.atan(Ta + RH);
+    let part3 = Math.atan(RH - 1.676331);
+    let part4 = 0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH);
+    return Ta * part1 + part2 - part3 + part4 - 4.686035;
+}
+
+function calcHcWBGT(Va) {
+    if (isNaN(Va)) return NaN;
+    let v_ms = Math.max(Va / 3.6, 0.1); 
+    return 6.3 * Math.pow(v_ms, 0.6) / Math.pow(0.15, 0.4);
+}
+
+function solveTgWBGT(TaC, Va) {
+    const TaK = TaC + 273.15;
+    const hc = calcHcWBGT(Va);
+    if (isNaN(hc)) return NaN;
+
+    let TgK = TaK + 3;
+    let TmrtK = TaK + 12;
+
+    for (let iter = 0; iter < 15; iter++) {
+        const Tmrt4 = Math.pow(TmrtK, 4);
+        const newTgK = (wbgtEps * wbgtSigma * Tmrt4 + hc * TaK) / (wbgtEps * wbgtSigma * Math.pow(TgK, 3) + hc);
+        TgK = newTgK;
+    }
+    return TgK - 273.15;
+}
+
+function calculateFullWBGT(Ta, RH, windKmH) {
+    if (isNaN(Ta) || isNaN(RH) || isNaN(windKmH)) {
+        return { tnw: '--', tg: '--', wbgt: '--' };
+    }
+    let Tnw = calcTnwWBGT(Ta, RH);
+    let Tg = solveTgWBGT(Ta, windKmH);
+
+    if (isNaN(Tnw) || isNaN(Tg)) {
+        return { tnw: '--', tg: '--', wbgt: '--' };
     }
 
-    if (typeof alertipsText !== 'undefined') renderTextBox('alertBox', 'alertContent', alertipsText);
-    if (typeof swtText !== 'undefined') renderTextBox('swtBox', 'swtContent', swtText);
-    if (typeof tideText !== 'undefined') {
-      renderTextBox('tideBox', 'tideContent', tideText);
-    } else if (typeof TideText !== 'undefined') {
-      renderTextBox('tideBox', 'tideContent', TideText);
+    let wbgtVal = 0.7 * Tnw + 0.2 * Tg + 0.1 * Ta;
+    return {
+        tnw: Tnw.toFixed(1),
+        tg: Tg.toFixed(1),
+        wbgt: wbgtVal.toFixed(1)
+    };
+}
+
+const wbgtStationCodes = {
+    "紀念孫中山市政公園": "DP", 
+    "黑沙環": "EM", 
+    "大炮台": "FM", 
+    "外港": "PE", 
+    "媽閣": "MM", 
+    "大潭山": "TG", 
+    "東亞運大馬路": "JA", 
+    "九澳": "KV", 
+    "澳門大學": "UM", 
+    "路環市區": "DC"
+};
+
+const wbgtExcludedBridgeCodes = ["PV", "PN", "PS", "PG", "MN", "MS", "LH"];
+
+function extractNodeValue(parent, selectors) {
+    for (let sel of selectors) {
+        const el = parent.querySelector(sel);
+        if (el) {
+            const val = el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || el.textContent || '';
+            if (val.trim() !== '') return val.trim();
+        }
+    }
+    return '';
+}
+
+let wbgtAlertState = {
+    level: 0,           
+    expiryTime: 0,      
+    formattedTime: ""   
+};
+
+function getFormattedMstTime() {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd} ${hh}:${min} MST`;
+}
+
+function evaluateWbgtLevel(wbgt, Ta) {
+    if (isNaN(wbgt) || isNaN(Ta)) return 0;
+    if (wbgt >= 32.5 || (wbgt >= 31.5 && Ta >= 37.5)) return 3;
+    if (wbgt >= 31.5 || (wbgt >= 29.5 && Ta >= 35.5)) return 2;
+    if (wbgt >= 30.5 || (wbgt >= 27.5 && Ta >= 33.5)) return 1;
+    return 0;
+}
+
+function updateWbgtAlertBox(maxLevel) {
+    const now = Date.now();
+
+    if (maxLevel > wbgtAlertState.level) {
+        wbgtAlertState.level = maxLevel;
+        wbgtAlertState.expiryTime = now + 60 * 60 * 1000;
+        wbgtAlertState.formattedTime = getFormattedMstTime();
+    } else if (now >= wbgtAlertState.expiryTime) {
+        wbgtAlertState.level = maxLevel;
+        if (wbgtAlertState.level > 0) {
+            wbgtAlertState.expiryTime = now + 60 * 60 * 1000;
+            wbgtAlertState.formattedTime = getFormattedMstTime();
+        }
     }
 
-    if (typeof tcWarnings !== 'undefined') renderWarnings(tcWarnings, "tcContent", "tcCard");
-    if (typeof warnWarnings !== 'undefined') renderWarnings(warnWarnings, "warnContent", "warnCard");
+    renderWbgtAlertUI();
+}
 
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const tabItems = document.querySelectorAll('.tab-content');
-    tabBtns.forEach(btn => {
-      btn.onclick = function(){
-        tabBtns.forEach(b => b.classList.remove('active'));
-        tabItems.forEach(c => c.classList.remove('active'));
-        this.classList.add('active');
-        let idx = this.dataset.index;
-        document.getElementById('tab' + idx).classList.add('active');
-      }
-    });
+function renderWbgtAlertUI() {
+    const box = document.getElementById("wbgtBox");
+    const content = document.getElementById("wbgtContent");
+    if (!box || !content) return;
 
-    loadForecastXML();
-});
-</script>
+    if (wbgtAlertState.level === 0) {
+        box.style.display = "none";
+        content.innerHTML = "";
+        return;
+    }
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-<script>
-let tempChart;
-const dateDom = document.getElementById("chartDate");
+    let text = "";
+    const timeStr = wbgtAlertState.formattedTime;
 
+    if (wbgtAlertState.level === 1) {
+        text = `現時本澳部份地區的暑熱指數已經達到「危險」水平，進行戶外工作或劇烈運動者應避免在陽光下暴曬，補充足夠水份，提防中暑。（${timeStr}）`;
+    } else if (wbgtAlertState.level === 2) {
+        text = `現時本澳部份地區的暑熱指數已經達到「非常危險」水平，進行戶外工作或劇烈運動者應到陰涼位置暫避及休息，市民亦應避免在陽光下暴曬，補充足夠水份，慎防中暑。（${timeStr}）`;
+    } else if (wbgtAlertState.level === 3) {
+        text = `現時本澳部份地區的暑熱指數已經達到「極度危險」水平，進行戶外工作或活動者應立即停止所有工作或運動，並移到陰涼或有冷氣的地方休息，市民應留在室內空氣流通或有冷氣的地方，補充足夠水份，嚴防中暑。（${timeStr}）`;
+    }
+
+    content.textContent = text;
+    box.style.display = "block";
+}
+
+function fetchWbgtAlertData() {
+    const cacheBuster = Date.now();
+    const actualWeatherXmlUrl = `https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
+    const url = `https://corsproxy.io/?url=${encodeURIComponent(actualWeatherXmlUrl)}`;
+
+    fetch(url, { cache: "no-store" })
+        .then(res => {
+            if (!res.ok) throw new Error("SMG Fetch failed");
+            return res.text();
+        })
+        .then(xmlStr => {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
+            const stations = xmlDoc.querySelectorAll("WeatherReport station, station");
+
+            let maxLevel = 0;
+
+            stations.forEach(station => {
+                const name = extractNodeValue(station, ["stationname", "StationName", "name", "Name"]);
+                const temp = extractNodeValue(station, ["Temperature", "temperature"]);
+                const humidity = extractNodeValue(station, ["Humidity", "humidity"]);
+                const windSpeed = extractNodeValue(station, ["WindSpeed", "windSpeed", "wind_speed"]);
+
+                const Ta = parseFloat(temp);
+                const RH = parseFloat(humidity);
+                const Wind = parseFloat(windSpeed);
+
+                const code = wbgtStationCodes[name] || "--";
+
+                if (wbgtExcludedBridgeCodes.includes(code) || isNaN(Ta) || isNaN(RH)) {
+                    return; 
+                }
+
+                const calcRes = calculateFullWBGT(Ta, RH, Wind);
+                const w = parseFloat(calcRes.wbgt);
+                
+                const level = evaluateWbgtLevel(w, Ta);
+                if (level > maxLevel) {
+                    maxLevel = level;
+                }
+            });
+
+            updateWbgtAlertBox(maxLevel);
+        })
+        .catch(err => {
+            console.error("暑熱氣象數據載入失敗: ", err);
+        });
+}
+
+// Chart.js 氣溫圖表 logic
 async function fetchOpenMeteo24h() {
   try {
     const url = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=temperature_2m&timezone=Asia%2FSingapore&forecast_days=1";
@@ -1757,8 +1929,8 @@ async function initChart(){
 
 function render24hChart(ctx){
   if (typeof Chart === 'undefined') return;
-
-  dateDom.innerText = chart24hUpdateTime || (typeof chartRightDate !== 'undefined' ? chartRightDate : "");
+  const dateDom = document.getElementById("chartDate");
+  if(dateDom) dateDom.innerText = chart24hUpdateTime || (typeof chartRightDate !== 'undefined' ? chartRightDate : "");
 
   const labels = openMeteo24hX.length > 0 ? openMeteo24hX : (typeof label24hX !== 'undefined' ? label24hX : []);
   const temps = openMeteo24hTemp.length > 0 ? openMeteo24hTemp : (typeof temp24h !== 'undefined' ? temp24h : []);
@@ -1800,8 +1972,8 @@ function render24hChart(ctx){
 
 function render7dChart(ctx){
   if (typeof Chart === 'undefined') return;
-
-  dateDom.innerText = chart7dUpdateTime || "";
+  const dateDom = document.getElementById("chartDate");
+  if(dateDom) dateDom.innerText = chart7dUpdateTime || "";
 
   const labels = dynamic7dLabels.length > 0 ? dynamic7dLabels : (typeof label7dX !== 'undefined' ? label7dX : []);
   const maxArr = dynamic7dMax.length > 0 ? dynamic7dMax : (typeof temp7dMax !== 'undefined' ? temp7dMax : []);
@@ -1837,30 +2009,6 @@ function render7dChart(ctx){
   });
 }
 
-window.addEventListener('DOMContentLoaded', initChart);
-</script>
-
-<script>
-const loadTip = document.getElementById('load-tip');
-const errorTip = document.getElementById('error-tip');
-const weatherMain = document.getElementById('weather-main');
-const pubTime = document.getElementById('pub-time');
-const weatherIcon = document.getElementById('weather-icon');
-const tempNum = document.getElementById('temp-num');
-const feelsDesc = document.getElementById('feels-desc');
-const humValue = document.getElementById('hum-value');
-const windSpeed = document.getElementById('wind-speed');
-const windDir = document.getElementById('wind-dir');
-const uvValue = document.getElementById('uv-value');
-
-const uvXmlUrl = "https://xml.smg.gov.mo/c_actualUVI.xml";
-const uvProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(uvXmlUrl)}`;
-let currentUV = "--";
-
-const originXmlUrl = "https://xml.smg.gov.mo/c_actual_brief.xml";
-const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(originXmlUrl)}`;
-
-// Helper: Open-Meteo Weather Code to Image Icon
 function getOpenMeteoIcon(code, hour) {
   const isNight = (hour < 6 || hour >= 18);
   if (code === 0) return isNight ? "icons/NightS.png" : "icons/s.png";
@@ -1877,16 +2025,14 @@ function getOpenMeteoIcon(code, hour) {
   return isNight ? "icons/NightS.png" : "icons/s.png";
 }
 
-// Helper: Precipitate Probability Text & Color Mapping
 function getPopInfo(pop) {
-  if (pop >= 90) return { label: '高', light: '#dc2626', dark: '#f87171' }; // Red
-  if (pop >= 75) return { label: '中高', light: '#ea580c', dark: '#fb923c' }; // Orange
-  if (pop >= 45) return { label: '中', light: '#ca8a04', dark: '#facc15' }; // Yellow/Amber
-  if (pop >= 25) return { label: '中低', light: '#16a34a', dark: '#4ade80' }; // Green
-  return { label: '低', light: '#2563eb', dark: '#60a5fa' }; // Blue
+  if (pop >= 90) return { label: '高', light: '#dc2626', dark: '#f87171' };
+  if (pop >= 75) return { label: '中高', light: '#ea580c', dark: '#fb923c' };
+  if (pop >= 45) return { label: '中', light: '#ca8a04', dark: '#facc15' };
+  if (pop >= 25) return { label: '中低', light: '#16a34a', dark: '#4ade80' };
+  return { label: '低', light: '#2563eb', dark: '#60a5fa' };
 }
 
-// 載入 Open-Meteo 逐時天氣預報
 async function fetchOpenMeteoHourlyForecast() {
   const OPEN_METEO_URL = 'https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=precipitation_probability,precipitation,temperature_2m,weather_code&models=ecmwf_ifs025&timezone=Asia%2FSingapore&forecast_days=3';
   try {
@@ -1898,23 +2044,19 @@ async function fetchOpenMeteoHourlyForecast() {
 
     if (!time || time.length === 0) return;
 
-    // 1. 取得當前整點索引
     const now = new Date();
     const currentHourStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours());
 
     let startIndex = time.findIndex(t => new Date(t) >= currentHourStart);
     if (startIndex === -1) startIndex = 0;
 
-    // ================= [臨近降雨提示邏輯] =================
     const rainAlertBox = document.getElementById('rainAlertBox');
     const rainAlertContent = document.getElementById('rainAlertContent');
 
     if (precipitation_probability && startIndex + 1 < precipitation_probability.length) {
-      // 提取未來 2 小時的降雨機率
       const next2Pops = precipitation_probability.slice(startIndex, startIndex + 2);
       const maxPop = Math.max(...next2Pops);
 
-      // 當降雨機率為中等或以上 (>= 45%) 時觸發
       if (maxPop >= 45 && rainAlertBox && rainAlertContent) {
         let popDesc = '';
         if (maxPop >= 90) {
@@ -1941,9 +2083,7 @@ async function fetchOpenMeteoHourlyForecast() {
         rainAlertBox.style.display = 'none';
       }
     }
-    // =========================================================
 
-    // 更新標題日期
     const firstForecastDate = new Date(time[startIndex]);
     const month = firstForecastDate.getMonth() + 1;
     const day = firstForecastDate.getDate();
@@ -1957,7 +2097,6 @@ async function fetchOpenMeteoHourlyForecast() {
     if (!container) return;
     container.innerHTML = '';
 
-    // 渲染逐時列表
     const endIndex = Math.min(startIndex + 24, time.length);
     const isLightTheme = document.body.classList.contains('light-theme');
 
@@ -1998,10 +2137,21 @@ async function fetchOpenMeteoHourlyForecast() {
 }
 
 async function loadHourlyWeather() {
+    const loadTip = document.getElementById('load-tip');
+    const errorTip = document.getElementById('error-tip');
+    const weatherMain = document.getElementById('weather-main');
+    const pubTime = document.getElementById('pub-time');
+    const weatherIcon = document.getElementById('weather-icon');
+    const tempNum = document.getElementById('temp-num');
+    const feelsDesc = document.getElementById('feels-desc');
+    const humValue = document.getElementById('hum-value');
+    const windSpeed = document.getElementById('wind-speed');
+    const windDir = document.getElementById('wind-dir');
+
     try {
-        loadTip.style.display = 'block';
-        errorTip.style.display = 'none';
-        weatherMain.style.display = 'none';
+        if(loadTip) loadTip.style.display = 'block';
+        if(errorTip) errorTip.style.display = 'none';
+        if(weatherMain) weatherMain.style.display = 'none';
 
         const response = await fetch(proxyUrl, { method: 'GET', cache: 'no-cache' });
         if (!response.ok) throw new Error('接口請求失敗');
@@ -2019,7 +2169,6 @@ async function loadHourlyWeather() {
         let iconUrl = xmlDoc.querySelector("IconURL")?.textContent || "";
         const feelDescRaw = xmlDoc.querySelector("FeelsLikeDescription")?.textContent || "--";
 
-        // Map SMG weather icons to local icon paths
         if (iconUrl.includes("ww-c01.gif")) iconUrl = "icons/s.png";
         else if (iconUrl.includes("ww-ca1.gif")) iconUrl = "icons/NightS.png";
         else if (iconUrl.includes("ww-ca2.gif")) iconUrl = "icons/NightSC.png";
@@ -2034,32 +2183,32 @@ async function loadHourlyWeather() {
         else if (iconUrl.includes("ww-c25.gif")) iconUrl = "icons/t.png";
         else if (iconUrl.includes("ww-c29.gif")) iconUrl = "icons/scr.png";
 
-        pubTime.textContent = sysPubdate;
-        tempNum.textContent = `${temp} °C`;
-        feelsDesc.textContent = `體感溫度：${feelDescRaw}`;
-        humValue.textContent = `${hum} %`;
-        windSpeed.textContent = `${windSpd} km/h (${windSpdDesc})`;
-        windDir.textContent = windDirText;
+        if(pubTime) pubTime.textContent = sysPubdate;
+        if(tempNum) tempNum.textContent = `${temp} °C`;
+        if(feelsDesc) feelsDesc.textContent = `體感溫度：${feelDescRaw}`;
+        if(humValue) humValue.textContent = `${hum} %`;
+        if(windSpeed) windSpeed.textContent = `${windSpd} km/h (${windSpdDesc})`;
+        if(windDir) windDir.textContent = windDirText;
 
-        if (iconUrl) {
+        if (iconUrl && weatherIcon) {
             weatherIcon.src = iconUrl;
             weatherIcon.onerror = () => weatherIcon.style.display = 'none';
         }
 
-        loadTip.style.display = 'none';
-        weatherMain.style.display = 'block';
+        if(loadTip) loadTip.style.display = 'none';
+        if(weatherMain) weatherMain.style.display = 'block';
 
-        // 載入 Open-Meteo 逐時天氣列表
         fetchOpenMeteoHourlyForecast();
 
     } catch (err) {
         console.error("整點天氣數據解析異常：", err);
-        loadTip.style.display = 'none';
-        errorTip.style.display = 'block';
+        if(loadTip) loadTip.style.display = 'none';
+        if(errorTip) errorTip.style.display = 'block';
     }
 }
 
 async function loadUVData() {
+    const uvValue = document.getElementById('uv-value');
     try {
         const res = await fetch(uvProxyUrl, { cache: "no-store" });
         if (!res.ok) throw new Error("UV數據載入失敗");
@@ -2068,11 +2217,13 @@ async function loadUVData() {
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
         const uvVal = xmlDoc.querySelector("UV-Index > Value")?.textContent || "--";
         currentUV = uvVal;
-        uvValue.textContent = currentUV;
-        uvValue.style.color = getUVColor(parseFloat(currentUV));
+        if(uvValue) {
+            uvValue.textContent = currentUV;
+            uvValue.style.color = getUVColor(parseFloat(currentUV));
+        }
     } catch (err) {
         console.error("UV載入錯誤：", err);
-        uvValue.textContent = "--";
+        if(uvValue) uvValue.textContent = "--";
     }
 }
 
@@ -2084,9 +2235,6 @@ function getUVColor(uv) {
     if (uv >= 3) return "#facc15";
     return "#34d399";
 }
-
-const fourDayXmlUrl = "https://xml.smg.gov.mo/c_7daysforecast.xml";
-const fourDayProxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(fourDayXmlUrl)}`;
 
 async function load4DaysForecastXML() {
     const loadingEl = document.getElementById('7day-xml-loading');
@@ -2277,21 +2425,80 @@ async function load4DaysForecastXML() {
             `;
         });
 
-        if (containerEl) {
-            containerEl.innerHTML = html;
-            if (loadingEl) loadingEl.style.display = 'none';
-        }
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (containerEl) containerEl.innerHTML = html;
+
     } catch (err) {
-        console.error("7日預報讀取失敗：", err);
+        console.error("7日預報載入錯誤：", err);
         if (loadingEl) loadingEl.style.display = 'none';
         if (errorEl) errorEl.style.display = 'block';
     }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
+// 頁面載入初始化事件綁定
+window.addEventListener('DOMContentLoaded', function(){
+    updateHeaderClock();
+    setInterval(updateHeaderClock, 1000);
+
+    if (typeof TC_WARNING_DATA !== 'undefined') {
+      renderTcForecastTable(TC_WARNING_DATA);
+    }
+
+    if (typeof alertipsText !== 'undefined') renderTextBox('alertBox', 'alertContent', alertipsText);
+    if (typeof swtText !== 'undefined') renderTextBox('swtBox', 'swtContent', swtText);
+    if (typeof tideText !== 'undefined') {
+      renderTextBox('tideBox', 'tideContent', tideText);
+    } else if (typeof TideText !== 'undefined') {
+      renderTextBox('tideBox', 'tideContent', TideText);
+    }
+
+    if (typeof tcWarnings !== 'undefined') renderWarnings(tcWarnings, "tcContent", "tcCard");
+    if (typeof warnWarnings !== 'undefined') renderWarnings(warnWarnings, "warnContent", "warnCard");
+
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabItems = document.querySelectorAll('.tab-content');
+    tabBtns.forEach(btn => {
+      btn.onclick = function(){
+        tabBtns.forEach(b => b.classList.remove('active'));
+        tabItems.forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        let idx = this.dataset.index;
+        const targetTab = document.getElementById('tab' + idx);
+        if(targetTab) targetTab.classList.add('active');
+      }
+    });
+
+    const dropdownBtns = document.querySelectorAll('.dropdown-btn');
+    dropdownBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const currentDropdown = btn.parentElement;
+        
+        document.querySelectorAll('.dropdown').forEach(d => {
+          if (d !== currentDropdown) d.classList.remove('active');
+        });
+
+        currentDropdown.classList.toggle('active');
+      });
+    });
+
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('active'));
+    });
+
+    // 啟動資料載入與定時刷新
+    loadForecastXML();
     loadHourlyWeather();
     loadUVData();
     load4DaysForecastXML();
+    fetchWbgtAlertData();
+    initChart();
+
+    setInterval(loadForecastXML, 60000);
+    setInterval(loadHourlyWeather, 60000);
+    setInterval(loadUVData, 60000);
+    setInterval(load4DaysForecastXML, 60000);
+    setInterval(fetchWbgtAlertData, 60000);
 });
 </script>
 
