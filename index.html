@@ -1101,7 +1101,6 @@ body.light-theme .card-bottom {
         <button class="dropdown-btn">澳門天氣 <span class="arrow">▼</span></button>
         <div class="dropdown-content">
           <a href="map.html">綜合氣象實況</a>
-          <a href="https://macaosso.github.io/MSSOweb/moWBGT.html">(NEW)暑熱監測</a>
           <a href="https://macaosso.github.io/MSSOweb/AQImap.html">空氣質量實況</a>
           <a href="https://macaosso.github.io/MSSOweb/moweather.html">電腦模式天氣實況及預報</a>
           <a href="https://macaosso.github.io/MSSOweb/morain.html">降雨預報</a>
@@ -1219,22 +1218,6 @@ body.light-theme .card-bottom {
       天文潮特別提示
     </div>
     <div id="tideContent" class="content-yellow"></div>
-  </div>
-
-  <!-- 新增：暑熱天氣提示框 -->
-  <div id="wbgtBox" class="box" style="display: none;">
-    <div class="header-orange">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 9a4 4 0 0 0-2 7.5V20a2 2 0 0 0 4 0v-3.5A4 4 0 0 0 12 9z"/>
-        <path d="M12 3v2"/>
-        <path d="M6.34 5.34l1.42 1.42"/>
-        <path d="M17.66 5.34l-1.42 1.42"/>
-        <path d="M3 12h2"/>
-        <path d="M19 12h2"/>
-      </svg>
-      暑熱天氣提示
-    </div>
-    <div id="wbgtContent" class="content-yellow"></div>
   </div>
 
   <div class="three-tab-weather-wrap">
@@ -1691,213 +1674,6 @@ window.addEventListener('DOMContentLoaded', function(){
     });
 
     loadForecastXML();
-});
-</script>
-
-<!-- ==================== 暑熱天氣提示 (WBGT) 計算與狀態監測邏輯 ==================== -->
-<!-- ==================== 暑熱天氣提示 (WBGT) 計算與狀態監測邏輯 ==================== -->
-<script>
-const wbgtSigma = 5.670374419e-8; 
-const wbgtEps = 0.95;             
-
-function calcTnwWBGT(Ta, RH) {
-    if (isNaN(Ta) || isNaN(RH)) return NaN;
-    let part1 = Math.atan(0.151977 * Math.sqrt(RH + 8.313659));
-    let part2 = Math.atan(Ta + RH);
-    let part3 = Math.atan(RH - 1.676331);
-    let part4 = 0.00391838 * Math.pow(RH, 1.5) * Math.atan(0.023101 * RH);
-    return Ta * part1 + part2 - part3 + part4 - 4.686035;
-}
-
-function calcHcWBGT(Va) {
-    if (isNaN(Va)) return NaN;
-    let v_ms = Math.max(Va / 3.6, 0.1); 
-    return 6.3 * Math.pow(v_ms, 0.6) / Math.pow(0.15, 0.4);
-}
-
-function solveTgWBGT(TaC, Va) {
-    const TaK = TaC + 273.15;
-    const hc = calcHcWBGT(Va);
-    if (isNaN(hc)) return NaN;
-
-    let TgK = TaK + 3;
-    let TmrtK = TaK + 12;
-
-    for (let iter = 0; iter < 15; iter++) {
-        const Tmrt4 = Math.pow(TmrtK, 4);
-        const newTgK = (wbgtEps * wbgtSigma * Tmrt4 + hc * TaK) / (wbgtEps * wbgtSigma * Math.pow(TgK, 3) + hc);
-        TgK = newTgK;
-    }
-    return TgK - 273.15;
-}
-
-function calculateFullWBGT(Ta, RH, windKmH) {
-    if (isNaN(Ta) || isNaN(RH) || isNaN(windKmH)) {
-        return { tnw: '--', tg: '--', wbgt: '--' };
-    }
-    let Tnw = calcTnwWBGT(Ta, RH);
-    let Tg = solveTgWBGT(Ta, windKmH);
-
-    if (isNaN(Tnw) || isNaN(Tg)) {
-        return { tnw: '--', tg: '--', wbgt: '--' };
-    }
-
-    let wbgtVal = 0.7 * Tnw + 0.2 * Tg + 0.1 * Ta;
-    return {
-        tnw: Tnw.toFixed(1),
-        tg: Tg.toFixed(1),
-        wbgt: wbgtVal.toFixed(1)
-    };
-}
-
-const wbgtStationCodes = {
-    "紀念孫中山市政公園": "DP", 
-    "黑沙環": "EM", 
-    "大炮台": "FM", 
-    "外港": "PE", 
-    "媽閣": "MM", 
-    "大潭山": "TG", 
-    "東亞運大馬路": "JA", 
-    "九澳": "KV", 
-    "澳門大學": "UM", 
-    "路環市區": "DC"
-};
-
-const wbgtExcludedBridgeCodes = ["PV", "PN", "PS", "PG", "MN", "MS", "LH"];
-
-function extractNodeValue(parent, selectors) {
-    for (let sel of selectors) {
-        const el = parent.querySelector(sel);
-        if (el) {
-            const val = el.querySelector("dValue")?.textContent || el.querySelector("Value")?.textContent || el.textContent || '';
-            if (val.trim() !== '') return val.trim();
-        }
-    }
-    return '';
-}
-
-let wbgtAlertState = {
-    level: 0,           
-    expiryTime: 0,      
-    formattedTime: ""   
-};
-
-function getFormattedMstTime() {
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const hh = String(now.getHours()).padStart(2, '0');
-    const min = String(now.getMinutes()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd} ${hh}:${min} MST`;
-}
-
-function evaluateWbgtLevel(wbgt, Ta) {
-    if (isNaN(wbgt) || isNaN(Ta)) return 0;
-    // Level 3 condition
-    if (wbgt >= 22.5 || (wbgt >= 31.5 && Ta >= 37.5)) return 3;
-    // Level 2 condition
-    if (wbgt >= 21.5 || (wbgt >= 30.5 && Ta >= 35.5)) return 2;
-    // Level 1 condition
-    if (wbgt >= 20.5 || (wbgt >= 29.5 && Ta >= 33.5)) return 1;
-    return 0;
-}
-
-function updateWbgtAlertBox(maxLevel) {
-    const now = Date.now();
-
-    if (maxLevel > wbgtAlertState.level) {
-        wbgtAlertState.level = maxLevel;
-        wbgtAlertState.expiryTime = now + 60 * 60 * 1000;
-        wbgtAlertState.formattedTime = getFormattedMstTime();
-    } else if (now >= wbgtAlertState.expiryTime) {
-        wbgtAlertState.level = maxLevel;
-        if (wbgtAlertState.level > 0) {
-            wbgtAlertState.expiryTime = now + 60 * 60 * 1000;
-            wbgtAlertState.formattedTime = getFormattedMstTime();
-        }
-    }
-
-    renderWbgtAlertUI();
-}
-
-function renderWbgtAlertUI() {
-    const box = document.getElementById("wbgtBox");
-    const content = document.getElementById("wbgtContent");
-    if (!box || !content) return;
-
-    if (wbgtAlertState.level === 0) {
-        box.style.display = "none";
-        content.innerHTML = "";
-        return;
-    }
-
-    let text = "";
-    const timeStr = wbgtAlertState.formattedTime;
-
-    if (wbgtAlertState.level === 1) {
-        text = `現時本澳部份地區的暑熱指數已經達到「危險」水平，進行戶外工作或劇烈運動者應避免在陽光下暴曬，補充足夠水份，提防中暑。（${timeStr}）`;
-    } else if (wbgtAlertState.level === 2) {
-        text = `現時本澳部份地區的暑熱指數已經達到「非常危險」水平，進行戶外工作或劇烈運動者應到陰涼位置暫避及休息，市民亦應避免在陽光下暴曬，補充足夠水份，慎防中暑。（${timeStr}）`;
-    } else if (wbgtAlertState.level === 3) {
-        text = `現時本澳部份地區的暑熱指數已經達到「極度危險」水平，進行戶外工作或活動者應立即停止所有工作或運動，並移到陰涼或有冷氣的地方休息，市民應留在室內空氣流通或有冷氣的地方，補充足夠水份，嚴防中暑。（${timeStr}）`;
-    }
-
-    content.textContent = text;
-    box.style.display = "block";
-}
-
-function fetchWbgtAlertData() {
-    const cacheBuster = Date.now();
-    const url = `https://corsproxy.io/?https://xml.smg.gov.mo/c_actualweather.xml?t=${cacheBuster}`;
-
-    fetch(url, { cache: "no-store" })
-        .then(res => {
-            if (!res.ok) throw new Error("SMG Fetch failed");
-            return res.text();
-        })
-        .then(xmlStr => {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlStr, "text/xml");
-            const stations = xmlDoc.querySelectorAll("WeatherReport station, station");
-
-            let maxLevel = 0;
-
-            stations.forEach(station => {
-                const name = extractNodeValue(station, ["stationname", "StationName", "name", "Name"]);
-                const temp = extractNodeValue(station, ["Temperature", "temperature"]);
-                const humidity = extractNodeValue(station, ["Humidity", "humidity"]);
-                const windSpeed = extractNodeValue(station, ["WindSpeed", "windSpeed", "wind_speed"]);
-
-                const Ta = parseFloat(temp);
-                const RH = parseFloat(humidity);
-                const Wind = parseFloat(windSpeed);
-
-                const code = wbgtStationCodes[name] || "--";
-
-                if (wbgtExcludedBridgeCodes.includes(code) || isNaN(Ta) || isNaN(RH)) {
-                    return; 
-                }
-
-                const calcRes = calculateFullWBGT(Ta, RH, Wind);
-                const w = parseFloat(calcRes.wbgt);
-                
-                const level = evaluateWbgtLevel(w, Ta);
-                if (level > maxLevel) {
-                    maxLevel = level;
-                }
-            });
-
-            updateWbgtAlertBox(maxLevel);
-        })
-        .catch(err => {
-            console.error("暑熱氣象數據載入失敗: ", err);
-        });
-}
-
-window.addEventListener('DOMContentLoaded', () => {
-    fetchWbgtAlertData();
-    setInterval(fetchWbgtAlertData, 60000); 
 });
 </script>
 
@@ -2501,20 +2277,14 @@ async function load4DaysForecastXML() {
             `;
         });
 
-        if (loadingEl) loadingEl.style.display = 'none';
-        containerEl.innerHTML = html;
-
-        const activeChartBtn = document.querySelector('.chart-btn.active');
-        if (activeChartBtn && activeChartBtn.dataset.type === '7d') {
-            const ctx = document.getElementById('tempChart').getContext('2d');
-            if (tempChart) tempChart.destroy();
-            render7dChart(ctx);
+        if (containerEl) {
+            containerEl.innerHTML = html;
+            if (loadingEl) loadingEl.style.display = 'none';
         }
-
     } catch (err) {
-        console.error("7日預報XML解析異常：", err);
+        console.error("7日預報讀取失敗：", err);
         if (loadingEl) loadingEl.style.display = 'none';
-        if (errorEl && containerEl.children.length === 0) errorEl.style.display = 'block';
+        if (errorEl) errorEl.style.display = 'block';
     }
 }
 
@@ -2523,12 +2293,7 @@ window.addEventListener('DOMContentLoaded', () => {
     loadUVData();
     load4DaysForecastXML();
 });
-
-setInterval(loadHourlyWeather, 100000);
-setInterval(loadUVData, 100000);
-setInterval(loadForecastXML, 100000);
-setInterval(load4DaysForecastXML, 100000);
-setInterval(fetchOpenMeteoHourlyForecast, 1800000);
 </script>
+
 </body>
 </html>
