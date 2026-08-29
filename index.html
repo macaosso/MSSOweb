@@ -1,613 +1,288 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-<title>氣象台 - 首頁</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>即時天氣 - SMG Style</title>
+  <style>
+    :root {
+      --bg-color: #f2f4f7;
+      --card-bg: #ffffff;
+      --text-main: #2c3e50;
+      --text-sub: #7f8c8d;
+      --accent-blue: #eef7fe;
+      --accent-orange: #fdf2e9;
+      --border-radius: 16px;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
 
-<style>
-/* ========== 1. 全域主題基礎 (深色/淺色) ========== */
-:root {
-  --bg-dark: #0b0f19;
-  --card-bg: rgba(22, 30, 46, 0.75);
-  --card-bg-light: rgba(255, 255, 255, 0.03);
-  --card-border: rgba(255, 255, 255, 0.08);
-  --text-main: #f1f5f9;
-  --text-muted: #94a3b8;
-  
-  --accent-blue: #38bdf8;
-  --accent-teal: #2dd4bf;
-  --accent-green: #34d399;
-  --accent-yellow: #facc15;
-  --accent-orange: #f59e0b;
-  --accent-red: #ef4444;
-}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-family);
+    }
 
-body.light-theme {
-  --bg-dark: #f8fafc;
-  --card-bg: rgba(255, 255, 255, 0.85);
-  --card-bg-light: rgba(0, 0, 0, 0.04);
-  --card-border: rgba(0, 0, 0, 0.12);
-  --text-main: #0f172a;
-  --text-muted: #64748b;
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
 
-  --accent-blue: #0284c7;
-  --accent-teal: #0d9488;
-  --accent-green: #059669;
-  --accent-yellow: #d97706;
-  --accent-orange: #d97706;
-  --accent-red: #dc2626;
-}
+    .app-container {
+      width: 100%;
+      max-width: 420px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  background-color: var(--bg-dark);
-  color: var(--text-main);
-  line-height: 1.6;
-  transition: background-color 0.3s ease, color 0.3s ease;
-}
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--border-radius);
+      padding: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
 
-.page-wrapper {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 0 15px 40px 15px;
-}
+    /* Main Weather Section */
+    .header-location {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 4px;
+    }
 
-/* ========== 2. Header & 導航 ========== */
-.header-nav-container {
-  position: sticky;
-  top: 0;
-  z-index: 3000;
-  background: rgba(11, 15, 25, 0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--card-border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1.5rem;
-  margin-bottom: 20px;
-  transition: background 0.3s ease;
-}
-body.light-theme .header-nav-container {
-  background: rgba(248, 250, 252, 0.88);
-}
+    .header-condition {
+      color: var(--text-sub);
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
 
-.header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--accent-blue);
-  letter-spacing: 0.5px;
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.header-clock {
-  font-size: 0.88rem;
-  font-weight: 500;
-  color: var(--accent-teal);
-  font-variant-numeric: tabular-nums;
-  opacity: 0.9;
-}
+    .temp-display {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 16px;
+    }
 
-.menu-container {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+    .temp-current {
+      font-size: 56px;
+      font-weight: 300;
+      line-height: 1;
+    }
 
-.theme-toggle-btn, .location-btn {
-  background: var(--card-bg-light);
-  border: 1px solid var(--card-border);
-  color: var(--text-main);
-  padding: 8px 12px;
-  border-radius: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  transition: all 0.25s ease;
-  outline: none;
-}
-.theme-toggle-btn:hover, .location-btn:hover {
-  border-color: var(--accent-blue);
-  color: var(--accent-blue);
-  transform: translateY(-1px);
-}
-.sun-icon { display: block; }
-.moon-icon { display: none; }
-body.light-theme .sun-icon { display: none; }
-body.light-theme .moon-icon { display: block; }
+    .temp-range {
+      color: var(--text-sub);
+      font-size: 13px;
+    }
 
-/* ========== 3. 提示卡片與板塊 ========== */
-.location-bar {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 12px 20px;
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.location-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 600;
-  color: var(--accent-teal);
-}
+    .grid-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
 
-.box {
-  margin: 20px 0;
-  border-radius: 16px;
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.35);
-  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.08);
-  overflow: hidden;
-}
-.header-orange {
-  background: rgba(245, 158, 11, 0.25);
-  color: var(--accent-yellow);
-  padding: 14px 20px;
-  font-size: 16px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.content-yellow {
-  padding: 20px;
-  font-size: 14.5px;
-  line-height: 1.7;
-}
+    .metric-box {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 12px;
+    }
 
-/* ========== 4. 實時天氣模組 ========== */
-.three-tab-weather-wrap {
-  margin: 20px 0;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-  border: 1px solid var(--card-border);
-  background: var(--card-bg);
-}
-.three-tab-header {
-  display: flex;
-  background: rgba(255, 255, 255, 0.03);
-  border-bottom: 1px solid var(--card-border);
-}
-.three-tab-item {
-  flex: 1;
-  padding: 16px;
-  text-align: center;
-  color: var(--accent-blue);
-  font-size: 16px;
-  font-weight: 700;
-}
-.three-tab-content-box {
-  padding: 24px;
-}
+    .metric-label {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-bottom: 4px;
+    }
 
-.weather-item {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 16px;
-  transition: transform 0.2s;
-}
-body.light-theme .weather-item {
-  background: rgba(0, 0, 0, 0.02);
-}
-.weather-label-title {
-  font-size: 13px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--text-muted);
-}
-.weather-value {
-  font-size: 18px;
-  font-weight: 700;
-  margin-top: 6px;
-  color: var(--text-main);
-}
-#temp-value {
-  color: var(--accent-blue);
-  font-size: 44px;
-  font-weight: 800;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
+    .metric-val {
+      font-size: 16px;
+      font-weight: 600;
+    }
 
-/* ========== 逐時預報滾動條 ========== */
-.hourly-forecast-section {
-  margin-top: 25px;
-  border-top: 1px solid var(--card-border);
-  padding-top: 18px;
-}
-.hourly-forecast-scroll {
-  display: flex;
-  overflow-x: auto;
-  padding-bottom: 10px;
-}
-.hourly-item-col {
-  flex: 0 0 65px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  border-right: 1px dashed var(--card-border);
-  padding: 0 4px;
-}
-.hourly-item-col:last-child { border-right: none; }
-.hourly-col-time { font-size: 13px; color: var(--text-muted); }
-.hourly-col-temp { font-size: 15px; font-weight: 700; margin: 6px 0; }
-.hourly-col-pop { font-size: 11px; font-weight: 600; color: var(--accent-blue); }
+    /* Forecast Summary Box */
+    .summary-card {
+      background: var(--accent-blue);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #34495e;
+    }
 
-/* ========== 5. 圖表區塊 ========== */
-.chart-wrap {
-  border-radius: 16px;
-  border: 1px solid var(--card-border);
-  background: var(--card-bg);
-  padding: 20px;
-  margin-top: 20px;
-  height: 380px;
-}
-.chart-container {
-  position: relative;
-  width: 100%;
-  height: 300px;
-}
-</style>
+    /* Sun & Moon Grid */
+    .sun-moon-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .astro-box {
+      background: var(--accent-orange);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .astro-title {
+      font-size: 12px;
+      color: #d35400;
+      margin-bottom: 4px;
+    }
+
+    .astro-time {
+      font-size: 20px;
+      font-weight: bold;
+      color: #e67e22;
+    }
+
+    /* 7-Day Forecast Table */
+    .forecast-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid #edf2f7;
+      font-size: 14px;
+    }
+
+    .forecast-row:last-child {
+      border-bottom: none;
+    }
+
+    .forecast-date {
+      width: 90px;
+      font-weight: 500;
+    }
+
+    .forecast-temp {
+      color: var(--text-sub);
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="header-nav-container">
-  <div class="header">
-    <div class="title">
-      民間氣象台
-      <span id="headerClock" class="header-clock"></span>
-    </div>
-  </div>
+<div class="app-container">
 
-  <div class="menu-container">
-    <button class="location-btn" onclick="getUserLocation()">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
-      重新定位
-    </button>
-
-    <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
-      <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-      <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-    </button>
-  </div>
-</div>
-
-<div class="page-wrapper">
-
-  <!-- 當前定位顯示區 -->
-  <div class="location-bar">
-    <div class="location-info">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-      <span id="location-name">正在獲取位置...</span>
-    </div>
-    <div style="font-size: 13px; color: var(--text-muted);" id="location-coords">--</div>
-  </div>
-
-  <!-- 暑熱提示框 -->
-  <div id="wbgtBox" class="box" style="display: none;">
-    <div class="header-orange">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9a4 4 0 0 0-2 7.5V20a2 2 0 0 0 4 0v-3.5A4 4 0 0 0 12 9z"/></svg>
-      暑熱天氣提示
-    </div>
-    <div id="wbgtContent" class="content-yellow"></div>
-  </div>
-
-  <!-- 天氣概況主模組 -->
-  <div class="three-tab-weather-wrap">
-    <div class="three-tab-header">
-      <div class="three-tab-item">整點即時天氣預報</div>
-    </div>
-
-    <div class="three-tab-content-box">
-      <div id="load-tip" style="text-align: center; font-size: 15px; padding: 20px 0;">
-        正在載入當前位置氣象數據...
+  <div class="card">
+    <div class="header-location" id="location">望德堂區</div>
+    <div class="header-condition" id="weather-desc">載入中...</div>
+    
+    <div class="temp-display">
+      <div class="temp-current" id="current-temp">--°</div>
+      <div class="temp-range">
+        最低 <span id="min-temp">--</span>° · 最高 <span id="max-temp">--</span>°
       </div>
+    </div>
 
-      <div id="weather-main" style="display: none;">
-        <div style="margin-bottom: 20px; font-size: 13px; color: var(--text-muted);">
-          數據更新時間：<span id="pub-time">--</span>
-        </div>
+    <div class="grid-2x2">
+      <div class="metric-box">
+        <div class="metric-label">濕度</div>
+        <div class="metric-val" id="humidity">--%</div>
+      </div>
+      <div class="metric-box">
+        <div class="metric-label">風速</div>
+        <div class="metric-val" id="wind-speed">-- km/h</div>
+      </div>
+    </div>
 
-        <div style="display: flex; align-items: center; gap: 25px; flex-wrap: wrap; margin-bottom: 25px;">
-          <div>
-            <div id="temp-value">
-              <span id="temp-num">-- °C</span>
-            </div>
-            <div id="weather-text" style="font-size: 16px; margin-top: 6px; font-weight: 500; color: var(--accent-teal);"></div>
-          </div>
-        </div>
+    <div class="summary-card" style="margin-top: 12px;">
+      <strong>今日天氣概況</strong><br>
+      預測今日氣溫介乎 <span id="summary-min">--</span> 至 <span id="summary-max">--</span> 度之間。相對濕度為 <span id="summary-humidity">--</span>%。
+    </div>
+  </div>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
-          <div class="weather-item">
-            <div class="weather-label-title">相對濕度</div>
-            <div class="weather-value" id="hum-value">-- %</div>
-          </div>
-          <div class="weather-item">
-            <div class="weather-label-title">風速</div>
-            <div class="weather-value" id="wind-speed">-- km/h</div>
-          </div>
-          <div class="weather-item">
-            <div class="weather-label-title">風向</div>
-            <div class="weather-value" id="wind-dir">--</div>
-          </div>
-        </div>
-
-        <!-- 逐時預報橫向滾動欄 -->
-        <div class="hourly-forecast-section">
-          <div style="font-size: 15px; font-weight: 700; margin-bottom: 12px;" id="hourlyForecastHeader">未來 24 小時預報</div>
-          <div class="hourly-forecast-scroll" id="hourlyForecastContainer"></div>
-        </div>
+  <div class="card">
+    <div style="font-weight: bold; margin-bottom: 12px; font-size: 15px;">日出日落</div>
+    <div class="sun-moon-grid">
+      <div class="astro-box">
+        <div class="astro-title">日出</div>
+        <div class="astro-time" id="sunrise">--:--</div>
+      </div>
+      <div class="astro-box">
+        <div class="astro-title">日落</div>
+        <div class="astro-time" id="sunset">--:--</div>
       </div>
     </div>
   </div>
 
-  <!-- 24小時氣溫趨勢圖表 -->
-  <div class="chart-wrap">
-    <div style="font-size: 15px; font-weight: 700; margin-bottom: 15px;">24小時氣溫趨勢</div>
-    <div class="chart-container">
-      <canvas id="tempChart"></canvas>
-    </div>
+  <div class="card">
+    <div style="font-weight: bold; margin-bottom: 8px; font-size: 15px;">七日預報</div>
+    <div id="forecast-list"></div>
   </div>
 
 </div>
 
 <script>
-// ========== 1. 主題切換 (Light/Dark Mode) ==========
-function applyTheme(theme) {
-  if (theme === 'light') {
-    document.body.classList.add('light-theme');
-  } else {
-    document.body.classList.remove('light-theme');
-  }
-  updateChartColors();
-}
+  // Macao Coordinates (São Lazaro / 望德堂區)
+  const LAT = 22.1982;
+  const LON = 113.5439;
 
-function toggleTheme() {
-  const isLight = document.body.classList.contains('light-theme');
-  const newTheme = isLight ? 'dark' : 'light';
-  localStorage.setItem('msso_theme', newTheme);
-  applyTheme(newTheme);
-}
-
-(function initTheme() {
-  const savedTheme = localStorage.getItem('msso_theme');
-  if (savedTheme === 'light' || (!savedTheme && window.matchMedia('(prefers-color-scheme: light)').matches)) {
-    document.body.classList.add('light-theme');
-  }
-})();
-
-// ========== 2. 時鐘更新 ==========
-function updateHeaderClock() {
-  const clockEl = document.getElementById('headerClock');
-  if (clockEl) {
-    const now = new Date();
-    const hrs = String(now.getHours()).padStart(2, '0');
-    const mins = String(now.getMinutes()).padStart(2, '0');
-    const secs = String(now.getSeconds()).padStart(2, '0');
-    clockEl.textContent = `${hrs}:${mins}:${secs}`;
-  }
-}
-setInterval(updateHeaderClock, 1000);
-
-// ========== 3. 全域變數 ==========
-let currentLat = 22.1595; // 預設澳門緯度
-let currentLon = 113.5685; // 預設澳門經度
-let tempChart = null;
-
-// ========== 4. 定位處理 (Geolocation & Reverse Geocoding) ==========
-function getUserLocation() {
-  const nameEl = document.getElementById('location-name');
-  const coordsEl = document.getElementById('location-coords');
-  nameEl.textContent = "定位中...";
-
-  if ("geolocation" in navigator) {
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        currentLat = position.coords.latitude;
-        currentLon = position.coords.longitude;
-        coordsEl.textContent = `${currentLat.toFixed(2)}°N, ${currentLon.toFixed(2)}°E`;
-        
-        // 使用 OpenStreetMap 免費 Api 進行反向地理編碼取得地名
-        await fetchLocationName(currentLat, currentLon);
-        // 重新發送氣象請求
-        fetchWeatherData(currentLat, currentLon);
-      },
-      (error) => {
-        console.warn("Geolocation 權限受限或失敗，改用預設位置:", error.message);
-        nameEl.textContent = "澳門 (預設位置)";
-        coordsEl.textContent = `${currentLat.toFixed(2)}°N, ${currentLon.toFixed(2)}°E`;
-        fetchWeatherData(currentLat, currentLon);
-      },
-      { timeout: 10000 }
-    );
-  } else {
-    nameEl.textContent = "澳門 (不支援定位)";
-    fetchWeatherData(currentLat, currentLon);
-  }
-}
-
-async function fetchLocationName(lat, lon) {
-  try {
-    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&accept-language=zh-TW`);
-    if (res.ok) {
-      const data = await res.json();
-      const addr = data.address;
-      const city = addr.city || addr.town || addr.county || addr.state || "當前位置";
-      const district = addr.suburb || addr.district || "";
-      document.getElementById('location-name').textContent = `${city} ${district}`.trim();
-    }
-  } catch (err) {
-    document.getElementById('location-name').textContent = "當前定位位置";
-  }
-}
-
-// ========== 5. Open-Meteo 天氣 Fetch 邏輯 ==========
-function getWmoText(code) {
-  const map = {
-    0: "晴朗", 1: "大致天晴", 2: "多雲", 3: "密雲",
-    45: "有霧", 51: "毛毛雨", 61: "小雨", 63: "中雨",
-    65: "大雨", 80: "陣雨", 95: "雷暴"
+  const WMO_CODES = {
+    0: '晴朗', 1: '大致天晴', 2: '多雲', 3: '密雲',
+    45: '有霧', 48: '霧',
+    51: '微雨', 53: '毛毛雨', 55: '密雨',
+    61: '小雨', 63: '中雨', 65: '大雨',
+    80: '陣雨', 81: '局部地區陣雨', 82: '暴雨',
+    95: '雷暴', 96: '雷暴伴隨小雹', 99: '雷暴伴隨大雹'
   };
-  return map[code] || "多雲";
-}
 
-function degreesToDirection(deg) {
-  const dirs = ["北風", "東北風", "東風", "東南風", "南風", "西南風", "西風", "西北風"];
-  return dirs[Math.round(deg / 45) % 8];
-}
+  async function fetchWeatherData() {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=Asia%2FMacau`;
 
-async function fetchWeatherData(lat, lon) {
-  document.getElementById('load-tip').style.display = 'block';
-  document.getElementById('weather-main').style.display = 'none';
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
+      
+      // Update Current Weather
+      document.getElementById('current-temp').innerText = Math.round(data.current.temperature_2m) + '°';
+      document.getElementById('humidity').innerText = data.current.relative_humidity_2m + '%';
+      document.getElementById('wind-speed').innerText = Math.round(data.current.wind_speed_10m) + ' km/h';
+      document.getElementById('weather-desc').innerText = WMO_CODES[data.current.weather_code] || '多雲';
 
-  try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,wind_direction_10m&hourly=temperature_2m,precipitation_probability&timezone=auto`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Weather Fetch Failed");
-    const data = await res.json();
+      // Update Today's Extremes
+      const todayMin = Math.round(data.daily.temperature_2m_min[0]);
+      const todayMax = Math.round(data.daily.temperature_2m_max[0]);
+      document.getElementById('min-temp').innerText = todayMin;
+      document.getElementById('max-temp').innerText = todayMax;
+      document.getElementById('summary-min').innerText = todayMin;
+      document.getElementById('summary-max').innerText = todayMax;
+      document.getElementById('summary-humidity').innerText = data.current.relative_humidity_2m;
 
-    // 更新當前天氣
-    const current = data.current;
-    document.getElementById('pub-time').textContent = new Date().toLocaleTimeString();
-    document.getElementById('temp-num').textContent = `${current.temperature_2m} °C`;
-    document.getElementById('weather-text').textContent = getWmoText(current.weather_code);
-    document.getElementById('hum-value').textContent = `${current.relative_humidity_2m} %`;
-    document.getElementById('wind-speed').textContent = `${current.wind_speed_10m} km/h`;
-    document.getElementById('wind-dir').textContent = degreesToDirection(current.wind_direction_10m);
+      // Update Astronomy
+      document.getElementById('sunrise').innerText = data.daily.sunrise[0].split('T')[1];
+      document.getElementById('sunset').innerText = data.daily.sunset[0].split('T')[1];
 
-    // 渲染逐時滾動卡片 (取前 24 個小時)
-    const hourlyContainer = document.getElementById('hourlyForecastContainer');
-    hourlyContainer.innerHTML = '';
-    const times = data.hourly.time.slice(0, 24);
-    const temps = data.hourly.temperature_2m.slice(0, 24);
-    const pops = data.hourly.precipitation_probability.slice(0, 24);
+      // Render 7-Day Forecast
+      const forecastContainer = document.getElementById('forecast-list');
+      forecastContainer.innerHTML = '';
 
-    times.forEach((t, i) => {
-      const hour = t.split('T')[1].substring(0, 5);
-      const col = document.createElement('div');
-      col.className = 'hourly-item-col';
-      col.innerHTML = `
-        <div class="hourly-col-time">${hour}</div>
-        <div class="hourly-col-temp">${temps[i]}°</div>
-        <div class="hourly-col-pop">${pops[i] ? pops[i] + '%' : ''}</div>
-      `;
-      hourlyContainer.appendChild(col);
-    });
+      for (let i = 0; i < 7; i++) {
+        const dateStr = data.daily.time[i];
+        const dateObj = new Date(dateStr);
+        const monthDay = `${(dateObj.getMonth() + 1).toString().padStart(2, '0')}-${dateObj.getDate().toString().padStart(2, '0')}`;
+        const dayName = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'][dateObj.getDay()];
+        
+        const min = Math.round(data.daily.temperature_2m_min[i]);
+        const max = Math.round(data.daily.temperature_2m_max[i]);
+        const code = data.daily.weather_code[i];
 
-    // 計算 WBGT 暑熱
-    calcAndShowWBGT(current.temperature_2m, current.relative_humidity_2m);
-
-    // 更新圖表
-    renderChart(times.map(t => t.split('T')[1].substring(0, 5)), temps);
-
-    document.getElementById('load-tip').style.display = 'none';
-    document.getElementById('weather-main').style.display = 'block';
-
-  } catch (err) {
-    console.error(err);
-    document.getElementById('load-tip').textContent = "天氣數據載入失敗，請稍後再試。";
-  }
-}
-
-// ========== 6. 暑熱 WBGT 計算邏輯 ==========
-function calcAndShowWBGT(ta, rh) {
-  const wbgtBox = document.getElementById('wbgtBox');
-  const wbgtContent = document.getElementById('wbgtContent');
-  
-  // 簡化近似公式
-  const tw = ta * Math.atan(0.151977 * Math.sqrt(rh + 8.313659)) + Math.atan(ta + rh) - Math.atan(rh - 1.676331) + 0.00391838 * Math.pow(rh, 1.5) * Math.atan(0.023101 * rh) - 4.686035;
-  const wbgt = 0.7 * tw + 0.3 * ta;
-
-  if (wbgt >= 30) {
-    wbgtBox.style.display = 'block';
-    wbgtContent.textContent = `當前地點暑熱估算指數約為 ${wbgt.toFixed(1)}，達到高溫酷熱警戒水平，請適時補充水分與防曬。`;
-  } else {
-    wbgtBox.style.display = 'none';
-  }
-}
-
-// ========== 7. Chart.js 折線圖 ==========
-function renderChart(labels, temps) {
-  const ctx = document.getElementById('tempChart').getContext('2d');
-  const isLight = document.body.classList.contains('light-theme');
-  const color = isLight ? '#0284c7' : '#38bdf8';
-
-  if (tempChart) tempChart.destroy();
-
-  tempChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: '氣溫 (°C)',
-        data: temps,
-        borderColor: color,
-        backgroundColor: 'rgba(56, 189, 248, 0.15)',
-        fill: true,
-        tension: 0.3,
-        pointRadius: 3
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: { ticks: { color: isLight ? '#475569' : '#94a3b8' } },
-        y: { ticks: { color: isLight ? '#475569' : '#94a3b8' } }
-      },
-      plugins: {
-        legend: { labels: { color: isLight ? '#0f172a' : '#f1f5f9' } }
+        const row = document.createElement('div');
+        row.className = 'forecast-row';
+        row.innerHTML = `
+          <div class="forecast-date">${monthDay} ${dayName}</div>
+          <div>${WMO_CODES[code] || '多雲'}</div>
+          <div class="forecast-temp">${min}° - ${max}°</div>
+        `;
+        forecastContainer.appendChild(row);
       }
+
+    } catch (err) {
+      console.error('Error fetching weather data:', err);
+      document.getElementById('weather-desc').innerText = '無法載入天氣數據';
     }
-  });
-}
-
-function updateChartColors() {
-  if (tempChart) {
-    const isLight = document.body.classList.contains('light-theme');
-    const color = isLight ? '#0284c7' : '#38bdf8';
-    tempChart.data.datasets[0].borderColor = color;
-    tempChart.options.scales.x.ticks.color = isLight ? '#475569' : '#94a3b8';
-    tempChart.options.scales.y.ticks.color = isLight ? '#475569' : '#94a3b8';
-    tempChart.options.plugins.legend.labels.color = isLight ? '#0f172a' : '#f1f5f9';
-    tempChart.update();
   }
-}
 
-// ========== 8. 頁面初始化 ==========
-document.addEventListener('DOMContentLoaded', () => {
-  updateHeaderClock();
-  getUserLocation(); // 自動讀取定位並載入天氣
-});
+  fetchWeatherData();
 </script>
 
 </body>
