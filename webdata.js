@@ -58,8 +58,8 @@ const tcWarnings = [
 // 2. 天氣警告 (warnWarnings) [已新增至 4 條]
 const warnWarnings = [
   {
-    icon: "",
-    text: ""
+    icon: "r1",
+    text: "大雨警報於本地時間08月30日14時45分發出。預料每小時雨量將會達到20毫米。市民應留在室內安全地方，注意天氣狀況。"
   },
   {
     icon: "",
