@@ -1353,6 +1353,7 @@ body.light-theme .card-bottom {
       </div>
     </div>
   </div>
+
   <div id="categoryBox" class="box" style="display: none; margin-top: 30px;">
     <div id="categoryHeader" class="header-orange">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1421,6 +1422,123 @@ body.light-theme .card-bottom {
 
 <script src="webdata.js"></script>
 <script>
+const WAQI_TOKEN = "12bb8b9424111ee0791c1492f0b3f346667737e2";
+const categories = {
+  "路邊": [
+    { name: "荷蘭園", slug: "calcada-do-poco" },
+    { name: "九澳", slug: "ka-ho" }
+  ],
+  "高密度住宅區": [
+    { name: "台山", slug: "subestacao-macau-norte" },
+    { name: "氹仔中心區", slug: "parque-central-da-taipa" }
+  ],
+  "一般性": [
+    { name: "大潭山", slug: "taipa-grande" },
+    { name: "石排灣", slug: "coloane" }
+  ]
+};
+
+function getAQIStyle(aqi) {
+  const isLight = document.body.classList.contains('light-theme');
+  if (aqi <= 50) return { bg: isLight ? '#dcfce7' : 'rgba(16, 185, 129, 0.12)', border: 'rgba(16, 185, 129, 0.35)', text: isLight ? '#047857' : '#34d399', label: '良好' };
+  if (aqi <= 100) return { bg: isLight ? '#fef9c3' : 'rgba(234, 179, 8, 0.12)', border: 'rgba(234, 179, 8, 0.35)', text: isLight ? '#a16207' : '#facc15', label: '普通' };
+  if (aqi <= 200) return { bg: isLight ? '#ffedd5' : 'rgba(249, 115, 22, 0.12)', border: 'rgba(249, 115, 22, 0.35)', text: isLight ? '#c2410c' : '#fb923c', label: '不良' };
+  if (aqi <= 300) return { bg: isLight ? '#fee2e2' : 'rgba(239, 68, 68, 0.12)', border: 'rgba(239, 68, 68, 0.35)', text: isLight ? '#b91c1c' : '#f87171', label: '非常不良' };
+  if (aqi <= 400) return { bg: isLight ? '#f3e8ff' : 'rgba(168, 85, 247, 0.12)', border: 'rgba(168, 85, 247, 0.35)', text: isLight ? '#7e22ce' : '#c084fc', label: '嚴重' };
+  return { bg: isLight ? '#ffe4e6' : 'rgba(159, 18, 57, 0.12)', border: 'rgba(159, 18, 57, 0.35)', text: isLight ? '#be123c' : '#fb7185', label: '極嚴重' };
+}
+
+async function getCategoryExtremes() {
+  const summary = {};
+  let latestTime = null;
+  for (const [catName, stations] of Object.entries(categories)) {
+    let fetchedData = [];
+    for (const station of stations) {
+      try {
+        const res = await fetch(`https://api.waqi.info/feed/macau/${station.slug}/?token=${WAQI_TOKEN}`);
+        const json = await res.json();
+        if (json.status === "ok" && json.data && typeof json.data.aqi === 'number') {
+          const stationTime = (json.data.time && json.data.time.s) ? json.data.time.s : null;
+          if (stationTime && (!latestTime || stationTime > latestTime)) {
+            latestTime = stationTime;
+          }
+          fetchedData.push({
+            name: station.name,
+            aqi: json.data.aqi,
+            pollutant: json.data.dominentpol || '--',
+            time: stationTime
+          });
+        }
+      } catch (err) {
+        console.error(`Failed to fetch ${station.name}:`, err);
+      }
+    }
+    if (fetchedData.length > 0) {
+      fetchedData.sort((a, b) => a.aqi - b.aqi);
+      summary[catName] = {
+        lowest: fetchedData[0],
+        highest: fetchedData[fetchedData.length - 1]
+      };
+    }
+  }
+  summary.fetchedAt = latestTime;
+  return summary;
+}
+
+function renderCategoryCards(summary) {
+  const box = document.getElementById('categoryBox');
+  const grid = document.getElementById('categoryGrid');
+  const timeEl = document.getElementById('aqiUpdateTime');
+  if (!grid) return;
+  if (box) box.style.display = 'block';
+
+  const order = ['路邊', '高密度住宅區', '一般性'];
+  grid.innerHTML = '';
+  
+  if (summary.fetchedAt) {
+    timeEl.textContent = `(更新時間: ${summary.fetchedAt})`;
+  } else {
+    timeEl.textContent = '';
+  }
+
+  for (const catName of order) {
+    const data = summary[catName];
+    if (!data) continue;
+
+    const low = data.lowest;
+    const high = data.highest;
+    const statusStyle = getAQIStyle(high.aqi);
+
+    const card = document.createElement('div');
+    card.style.cssText = `
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px;
+    `;
+    card.innerHTML = `
+      <div style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 10px;">${catName}</div>
+      <div style="font-size: 24px; font-weight: 800; color: var(--text-main); line-height: 1.2;">
+        ${low.aqi} <span style="font-size: 14px; color: var(--text-muted); font-weight: 400;">~</span> ${high.aqi}
+      </div>
+      <div style="display: inline-block; margin-top: 6px; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; color: ${statusStyle.text}; background: ${statusStyle.bg}; border: 1px solid ${statusStyle.border};">
+        ${statusStyle.label}
+      </div>
+      <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">
+        ${low.name} ${low.aqi} · ${high.name} ${high.aqi}
+      </div>
+    `;
+    grid.appendChild(card);
+  }
+}
+
+async function initAQI() {
+  const summary = await getCategoryExtremes();
+  renderCategoryCards(summary);
+}
+
+document.addEventListener('DOMContentLoaded', initAQI);
+
 function applyTheme(theme) {
   if (theme === 'light') {
     document.body.classList.add('light-theme');
@@ -1498,7 +1616,6 @@ function updateHeaderClock() {
   }
 }
 
-// ========== 溫度顏色匹配函數 ==========
 function getTempColor(tempStr) {
   const temp = parseFloat(tempStr);
   if (isNaN(temp)) return "#78797a";
@@ -1514,7 +1631,6 @@ function getTempColor(tempStr) {
   return "#300c46";
 }
 
-// ========== Open-Meteo 氣象代碼與中文翻譯、圖標映射 ==========
 function getOpenMeteoIcon(code, hour = 12) {
   const isNight = (hour < 6 || hour >= 18);
   if (code === 0) return isNight ? "icons/NightS.png" : "icons/s.png";
@@ -1566,7 +1682,6 @@ function degreesToDirection(deg) {
   return dirs[val % 16];
 }
 
-// ========== 載入天氣預報（文字概況模組） ==========
 async function loadOpenMeteoForecastSummary() {
   try {
     const url = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&timezone=Asia%2FMacau";
@@ -2106,19 +2221,9 @@ function getPopInfo(pop) {
   return { label: '低', light: '#2563eb', dark: '#60a5fa' };
 }
 
-function getAQIStyle(aqi) {
-  const isLight = document.body.classList.contains('light-theme');
-  if (aqi <= 50) return { text: isLight ? '#047857' : '#34d399', label: '良好' };
-  if (aqi <= 100) return { text: isLight ? '#a16207' : '#facc15', label: '普通' };
-  if (aqi <= 200) return { text: isLight ? '#c2410c' : '#fb923c', label: '不良' };
-  if (aqi <= 300) return { text: isLight ? '#b91c1c' : '#f87171', label: '非常不良' };
-  if (aqi <= 400) return { text: isLight ? '#7e22ce' : '#c084fc', label: '嚴重' };
-  return { text: isLight ? '#be123c' : '#fb7185', label: '極嚴重' };
-}
-
 async function fetchAQI() {
   try {
-    const res = await fetch("https://api.waqi.info/feed/macau/taipa-grande/?token=12bb8b9424111ee0791c1492f0b3f346667737e2");
+    const res = await fetch(`https://api.waqi.info/feed/macau/taipa-grande/?token=${WAQI_TOKEN}`);
     const json = await res.json();
     const aqiEl = document.getElementById('aqi-value');
     if (json.status === "ok" && json.data && typeof json.data.aqi === 'number') {
@@ -2242,7 +2347,6 @@ async function fetchOpenMeteoHourlyForecast() {
   }
 }
 
-// ========== 載入澳門實時天氣 ==========
 async function loadHourlyWeather() {
     try {
         loadTip.style.display = 'block';
@@ -2296,200 +2400,30 @@ async function loadHourlyWeather() {
 
         const iconsGroup = document.getElementById('weather-icons-group');
         if (iconsGroup) {
-            let iconsHtml = `<img id="weather-icon" src="${iconUrl}" alt="天氣圖標" style="width: 85px; height: 85px; filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5));">`;
-            
-            const currentHourStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours());
-            let startIndex = data.hourly.time.findIndex(t => new Date(t) >= currentHourStart);
-            if (startIndex === -1) startIndex = 0;
-
-            const nextCode = data.hourly.weather_code[startIndex + 1];
-            if (nextCode !== undefined) {
-                const nextHour = (now.getHours() + 1) % 24;
-                const nextIconUrl = getOpenMeteoIcon(nextCode, nextHour);
-
-                if (iconUrl !== nextIconUrl) {
-                    iconsHtml += `
-                      <span style="font-size: 22px; color: var(--text-muted); font-weight: bold; margin: 0 4px;">→</span>
-                      <img id="next-weather-icon" src="${nextIconUrl}" alt="預報天氣圖標" style="width: 70px; height: 70px; filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5)); opacity: 0.9;" title="一小時後天氣將有變化">
-                    `;
-                }
-            }
-            iconsGroup.innerHTML = iconsHtml;
-        } else if (weatherIcon) {
-            weatherIcon.src = iconUrl;
-            weatherIcon.onerror = () => weatherIcon.style.display = 'none';
+          iconsGroup.innerHTML = `<img id="weather-icon" src="${iconUrl}" alt="天氣圖標" style="width: 85px; height: 85px; filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5));">`;
         }
 
         loadTip.style.display = 'none';
         weatherMain.style.display = 'block';
 
-        fetchOpenMeteoHourlyForecast();
         fetchAQI();
-
+        fetchOpenMeteoHourlyForecast();
     } catch (err) {
-        console.error("整點天氣數據解析異常：", err);
+        console.error("實時天氣載入失敗：", err);
         loadTip.style.display = 'none';
         errorTip.style.display = 'block';
     }
 }
 
 function getUVColor(uv) {
-    if (isNaN(uv)) return "#cbd5e1";
-    if (uv >= 11) return "#c084fc";
-    if (uv >= 8) return "#ef4444";
-    if (uv >= 6) return "#f59e0b";
-    if (uv >= 3) return "#facc15";
-    return "#34d399";
+  if (uv <= 2) return '#34d399';
+  if (uv <= 5) return '#facc15';
+  if (uv <= 7) return '#fb923c';
+  if (uv <= 10) return '#f87171';
+  return '#c084fc';
 }
 
-// ========== 七日天氣預報文字格式化生成函數 ==========
-function generateSevenDayText(code, maxWindSpd) {
-  let weatherDesc = "大致多雲, 短暫時間有陽光";
-  if (code === 0) weatherDesc = "天晴, 幹燥";
-  else if (code === 1 || code === 2) weatherDesc = "大致天晴, 部份時間多雲";
-  else if (code === 3) weatherDesc = "多雲, 密雲";
-  else if (code === 4) weatherDesc = "密雲, 有霧";
-  else if (code >= 51 && code <= 57) weatherDesc = "大致多雲, 間中有微雨";
-  else if (code >= 61 && code <= 65) weatherDesc = "大致多雲, 有雨";
-  else if (code >= 80 && code <= 82) weatherDesc = "大致多雲, 有驟雨";
-  else if (code >= 95) weatherDesc = "大致多雲, 有驟雨及幾陣雷暴";
-
-  let windLevel = Math.max(2, Math.min(6, Math.round(maxWindSpd / 5)));
-  let minLevel = Math.max(2, windLevel - 1);
-  let maxLevel = Math.max(3, windLevel + 1);
-  let gustMin = maxLevel;
-  let gustMax = maxLevel + 2;
-
-  return `${weatherDesc}。吹${minLevel}至${maxLevel}級偏南風, 陣風${gustMin}至${gustMax}級 。`;
-}
-
-// ========== 載入七日天氣預報 ==========
-async function load7DaysForecastOpenMeteo() {
-    const loadingEl = document.getElementById('7day-xml-loading');
-    const errorEl = document.getElementById('7day-xml-error');
-    const containerEl = document.getElementById('7day-xml-container');
-    const updateTimeEl = document.getElementById('7dayUpdateTime');
-
-    try {
-        if (loadingEl && containerEl.children.length === 0) loadingEl.style.display = 'block';
-        if (errorEl) errorEl.style.display = 'none';
-
-        const url = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&daily=weather_code,temperature_2m_max,temperature_2m_min,relative_humidity_2m_max,relative_humidity_2m_min,wind_speed_10m_max&timezone=Asia%2FMacau&forecast_days=7";
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("7日預報數據請求失敗");
-
-        const data = await res.json();
-        const daily = data.daily;
-
-        const now = new Date();
-        const pubDateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:00`;
-        chart7dUpdateTime = `${pubDateStr} 更新`;
-        if (updateTimeEl) updateTimeEl.innerText = `發佈時間：${pubDateStr}`;
-
-        dynamic7dLabels = [];
-        dynamic7dMax = [];
-        dynamic7dMin = [];
-
-        let html = '';
-        const weekdays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
-
-        for (let i = 0; i < daily.time.length; i++) {
-            const dateParts = daily.time[i].split("-");
-            const month = parseInt(dateParts[1], 10);
-            const day = parseInt(dateParts[2], 10);
-            const dObj = new Date(daily.time[i]);
-            const weekStr = weekdays[dObj.getDay()];
-
-            const labelStr = `${month}月${day}日 (${weekStr})`;
-            const chartLabel = `${month}/${day}`;
-
-            const maxT = Math.round(daily.temperature_2m_max[i]);
-            const minT = Math.round(daily.temperature_2m_min[i]);
-            const maxH = daily.relative_humidity_2m_max ? Math.round(daily.relative_humidity_2m_max[i]) : 95;
-            const minH = daily.relative_humidity_2m_min ? Math.round(daily.relative_humidity_2m_min[i]) : 60;
-            const code = daily.weather_code[i];
-            const maxWind = daily.wind_speed_10m_max ? daily.wind_speed_10m_max[i] : 15;
-
-            const conditionStr = generateSevenDayText(code, maxWind);
-            const iconUrl = getOpenMeteoIcon(code, 12);
-
-            dynamic7dLabels.push(chartLabel);
-            dynamic7dMax.push(maxT);
-            dynamic7dMin.push(minT);
-
-            html += `
-                <div class="forecast-card-mini">
-                    <div class="card-top">${labelStr}</div>
-                    <div class="card-middle">
-                        <img class="card-icon-large" src="${iconUrl}" alt="weather-icon">
-                        <div class="temp-range-text">${minT}°C ～ ${maxT}°C</div>
-                        <div class="humid-range-text">濕度 ${minH}%-${maxH}%</div>
-                    </div>
-                    <div class="card-bottom">
-                        <div class="card-condition">${conditionStr}</div>
-                    </div>
-                </div>
-            `;
-        }
-
-        if (containerEl) {
-            containerEl.innerHTML = html;
-        }
-        if (loadingEl) {
-            loadingEl.style.display = 'none';
-        }
-    } catch (err) {
-        console.error("7日預報載入失敗：", err);
-        if (loadingEl) loadingEl.style.display = 'none';
-        if (errorEl) errorEl.style.display = 'block';
-    }
-}
-function renderDistrictAQI(summary) {
-  const container = document.getElementById('districtAQIBox');
-  if (!container) return;
-  
-  container.innerHTML = '';
-  const categories = ['路邊', '高密度住宅區', '一般性'];
-  
-  categories.forEach(catName => {
-    const catData = summary[catName];
-    // 確保該分類及底下有站點陣列資料
-    if (!catData || !catData.stations || !Array.isArray(catData.stations)) return;
-    
-    const section = document.createElement('div');
-    section.style.cssText = 'margin-bottom: 16px;';
-    section.innerHTML = `<div style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">${catName}分區詳情</div>`;
-    
-    const grid = document.createElement('div');
-    grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;';
-    
-    catData.stations.forEach(station => {
-      const statusStyle = getAQIStyle(station.aqi);
-      const card = document.createElement('div');
-      card.style.cssText = `
-        background: var(--card-bg);
-        border: 1px solid var(--card-border);
-        border-radius: 8px;
-        padding: 10px;
-      `;
-      card.innerHTML = `
-        <div style="font-size: 13px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${station.name}</div>
-        <div style="font-size: 20px; font-weight: 800; color: var(--text-main); margin: 4px 0;">${station.aqi}</div>
-        <div style="display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; color: ${statusStyle.text}; background: ${statusStyle.bg}; border: 1px solid ${statusStyle.border};">
-          ${statusStyle.label}
-        </div>
-      `;
-      grid.appendChild(card);
-    });
-    
-    section.appendChild(grid);
-    container.appendChild(section);
-  });
-}
-window.addEventListener('DOMContentLoaded', () => {
-    loadHourlyWeather();
-    load7DaysForecastOpenMeteo();
-});
+window.addEventListener('DOMContentLoaded', loadHourlyWeather);
 </script>
 
 </body>
