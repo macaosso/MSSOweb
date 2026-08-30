@@ -879,6 +879,7 @@ body.light-theme .chart-btn:hover:not(.active) {
 }
 
 /* ========== 8. 七日天氣預報橫向卡片組 ========== */
+/* ========== 8. 七日天氣預報橫向卡片組 (已更新格式：無描述、無濕度、增設風力與降雨概率) ========== */
 .seven-day-scroll-row {
   display: flex;
   gap: 10px;
@@ -905,12 +906,12 @@ body.light-theme .seven-day-scroll-row::-webkit-scrollbar-thumb {
 }
 
 .forecast-card-mini {
-  flex: 0 0 175px;
-  min-width: 175px;
+  flex: 0 0 160px;
+  min-width: 160px;
   background: rgba(18, 26, 43, 0.85);
   border: 1px solid var(--card-border);
   border-radius: 12px;
-  padding: 14px 12px;
+  padding: 14px 10px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -933,7 +934,7 @@ body.light-theme .forecast-card-mini {
   font-size: 13px;
   font-weight: 700;
   color: var(--text-main);
-  padding-bottom: 8px;
+  padding-bottom: 6px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 body.light-theme .card-top {
@@ -946,49 +947,23 @@ body.light-theme .card-top {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 6px 0;
+  padding: 4px 0;
 }
 
 .card-middle .card-icon-large {
-  width: 52px;
-  height: 52px;
+  width: 48px;
+  height: 48px;
   object-fit: contain;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
 }
 
 .card-middle .temp-range-text {
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--accent-blue);
   display: flex;
   align-items: center;
   gap: 4px;
-}
-
-.card-middle .humid-range-text {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--accent-teal);
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.card-bottom {
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  padding-top: 8px;
-}
-body.light-theme .card-bottom {
-  border-top-color: rgba(0, 0, 0, 0.08);
-}
-
-.card-condition {
-  font-size: 12px;
-  color: var(--text-main);
-  line-height: 1.5;
-  white-space: normal;
-  word-break: break-word;
-  overflow: visible;
 }
 
 /* ========== 9. 響應式適配 ========== */
@@ -1581,6 +1556,22 @@ function degreesToDirection(deg) {
   const val = Math.floor((deg / 22.5) + 0.5);
   return dirs[val % 16];
 }
+function getWindScaleText(speedKmh) {
+  if (speedKmh === undefined || speedKmh === null) return "—";
+  if (speedKmh < 6) return "1級";
+  if (speedKmh < 12) return "2級";
+  if (speedKmh < 20) return "3級";
+  if (speedKmh < 29) return "4級";
+  if (speedKmh < 39) return "5級";
+  if (speedKmh < 50) return "6級";
+  if (speedKmh < 62) return "7級";
+  if (speedKmh < 75) return "8級";
+  if (speedKmh < 89) return "9級";
+  if (speedKmh < 103) return "10級";
+  if (speedKmh < 118) return "11級";
+  return "12級或以上";
+}
+
 
 // ========== 載入天氣預報（文字概況模組） ==========
 async function loadOpenMeteoForecastSummary() {
