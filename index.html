@@ -1184,6 +1184,9 @@ body.light-theme .card-bottom {
       臨近降雨提示
     </div>
     <div id="rainAlertContent" class="content-blue"></div>
+    <div id="rainAlertChartContainer" style="padding: 0 20px 20px 20px; height: 160px; display: none;">
+      <canvas id="rainIntensityChart"></canvas>
+    </div>
   </div>
   
   <div class="warning-card" id="tcCard">
@@ -1290,7 +1293,7 @@ body.light-theme .card-bottom {
               </div>
             </div>
 
-            <!-- 濕度、風速、風向、紫外線指數 (Picture 1 Layout: 左右排列) -->
+            <!-- 濕度、風速、風向、紫外線指數 -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
               <div class="weather-item" style="padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
                 <div style="color: var(--accent-blue); display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(56, 189, 248, 0.1); border-radius: 10px; flex-shrink: 0;">
@@ -1346,7 +1349,7 @@ body.light-theme .card-bottom {
     </div>
   </div>
 
-  <!-- 日出 / 日落 / 月出 / 月落 (Picture 2 Layout: 放在天氣概況上方) -->
+  <!-- 日出 / 日落 / 月出 / 月落 -->
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin: 25px 0 20px 0;">
     <div class="weather-item" style="padding: 14px; text-align: center;">
       <div class="weather-label-title" style="justify-content: center; color: var(--text-muted); font-size: 12px;">
@@ -1467,6 +1470,7 @@ let openMeteo24hTemp = [];
 let dynamic7dLabels = [];
 let dynamic7dMax = [];
 let dynamic7dMin = [];
+let rainChartInstance = null;
 
 function toggleMenu() {
   const nav = document.getElementById("navMenu");
@@ -2141,6 +2145,7 @@ async function fetchOpenMeteoHourlyForecast() {
 
     const rainAlertBox = document.getElementById('rainAlertBox');
     const rainAlertContent = document.getElementById('rainAlertContent');
+    const rainAlertChartContainer = document.getElementById('rainAlertChartContainer');
 
     if (precipitation_probability && startIndex + 1 < precipitation_probability.length) {
       const next2Pops = precipitation_probability.slice(startIndex, startIndex + 2);
@@ -2168,8 +2173,49 @@ async function fetchOpenMeteoHourlyForecast() {
 
         rainAlertContent.innerHTML = `未來2小時 ，（${startHourStr} - ${endHourStr}），${popDesc}，請市民留意天氣變化及最新天氣資訊。（${timeFormatted}）`;
         rainAlertBox.style.display = 'block';
-      } else if (rainAlertBox) {
-        rainAlertBox.style.display = 'none';
+
+        if (rainAlertChartContainer) {
+          rainAlertChartContainer.style.display = 'block';
+          const rainLabels = time.slice(startIndex, startIndex + 3).map(t => {
+            const d = new Date(t);
+            return `${d.getHours()}時`;
+          });
+          const rainDataVals = precipitation.slice(startIndex, startIndex + 3);
+
+          const ctxRain = document.getElementById('rainIntensityChart').getContext('2d');
+          if (rainChartInstance) {
+            rainChartInstance.destroy();
+          }
+          rainChartInstance = new Chart(ctxRain, {
+            type: 'bar',
+            data: {
+              labels: rainLabels,
+              datasets: [{
+                label: '預測降雨量 (mm)',
+                data: rainDataVals,
+                backgroundColor: 'rgba(56, 189, 248, 0.5)',
+                borderColor: '#38bdf8',
+                borderWidth: 1,
+                borderRadius: 4
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              plugins: {
+                legend: { display: false },
+                title: { display: true, text: '未來降雨強度預測', font: { size: 13 } }
+              },
+              scales: {
+                x: { grid: { display: false } },
+                y: { beginAtZero: true, title: { display: true, text: 'mm' } }
+              }
+            }
+          });
+        }
+      } else {
+        if (rainAlertBox) rainAlertBox.style.display = 'none';
+        if (rainAlertChartContainer) rainAlertChartContainer.style.display = 'none';
       }
     }
 
@@ -2273,7 +2319,6 @@ async function loadHourlyWeather() {
         pubTime.textContent = sysPubdate;
         tempNum.textContent = `${temp} °C`;
         
-        // 應用 getTempColor 到溫度字體顏色與圖標顏色（不改背景色）
         const tempColorHex = getTempColor(temp);
         tempNum.style.color = tempColorHex;
         tempNum.style.backgroundColor = "";
@@ -2304,16 +2349,18 @@ async function loadHourlyWeather() {
             let startIndex = data.hourly.time.findIndex(t => new Date(t) >= currentHourStart);
             if (startIndex === -1) startIndex = 0;
 
-            const currentCode = data.hourly.weather_code[startIndex];
             const nextCode = data.hourly.weather_code[startIndex + 1];
-
-            if (nextCode !== undefined && currentCode !== nextCode) {
+            if (nextCode !== undefined) {
                 const nextHour = (now.getHours() + 1) % 24;
                 const nextIconUrl = getOpenMeteoIcon(nextCode, nextHour);
-                iconsHtml += `
-                  <span style="font-size: 22px; color: var(--text-muted); font-weight: bold; margin: 0 4px;">→</span>
-                  <img id="next-weather-icon" src="${nextIconUrl}" alt="預報天氣圖標" style="width: 70px; height: 70px; filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5)); opacity: 0.9;" title="一小時後天氣將有變化">
-                `;
+
+                // If current icon is different from next hour icon, show next hour icon and arrow
+                if (iconUrl !== nextIconUrl) {
+                    iconsHtml += `
+                      <span style="font-size: 22px; color: var(--text-muted); font-weight: bold; margin: 0 4px;">→</span>
+                      <img id="next-weather-icon" src="${nextIconUrl}" alt="預報天氣圖標" style="width: 70px; height: 70px; filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5)); opacity: 0.9;" title="一小時後天氣將有變化">
+                    `;
+                }
             }
             iconsGroup.innerHTML = iconsHtml;
         } else if (weatherIcon) {
@@ -2342,7 +2389,7 @@ function getUVColor(uv) {
     return "#34d399";
 }
 
-// ========== 七日天氣預報文字格式化生成函數 (滿足指定格式) ==========
+// ========== 七日天氣預報文字格式化生成函數 ==========
 function generateSevenDayText(code, maxWindSpd) {
   let weatherDesc = "大致多雲, 短暫時間有陽光";
   if (code === 0) weatherDesc = "天晴, 幹燥";
@@ -2436,7 +2483,7 @@ async function load7DaysForecastOpenMeteo() {
         containerEl.innerHTML = html;
 
     } catch (err) {
-        console.error("七日預報數據載入失敗：", err);
+        console.error("7日預報讀取錯誤：", err);
         if (loadingEl) loadingEl.style.display = 'none';
         if (errorEl) errorEl.style.display = 'block';
     }
@@ -2445,7 +2492,6 @@ async function load7DaysForecastOpenMeteo() {
 window.addEventListener('DOMContentLoaded', () => {
     loadHourlyWeather();
     load7DaysForecastOpenMeteo();
-    setInterval(loadHourlyWeather, 60000);
 });
 </script>
 
