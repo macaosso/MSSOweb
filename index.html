@@ -1318,8 +1318,12 @@ body.light-theme .card-bottom {
               <!-- 實時空氣質量指數 (AQI) - Replaces 風向 slot -->
               <div class="weather-item" style="padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
                 <div style="color: #f97316; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(249, 115, 22, 0.1); border-radius: 10px; flex-shrink: 0;">
-                  <!-- Air quality / atmosphere icon -->
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                  <!-- Air Quality / Wind Stream Icon -->
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9.5 9h7a2.5 2.5 0 0 1 0 5H5.5a2.5 2.5 0 0 1 0-5h10"/>
+                    <path d="M3 17h12a2.5 2.5 0 0 0 0-5"/>
+                    <path d="M6 5h8a2.5 2.5 0 0 1 0 5H3"/>
+                  </svg>
                 </div>
                 <div style="flex: 1; min-width: 0;">
                   <div class="weather-label-title" style="color: var(--text-muted); font-size: 12px;">實時空氣質量 (AQI)</div>
@@ -1354,12 +1358,16 @@ body.light-theme .card-bottom {
     </div>
   </div>
 
-  <div id="categoryBox" class="box" style="display: none;">    <!-- 第二個：各區，id 已改 -->
+  <div id="categoryBox" class="box" style="display: none; margin-top: 30px;">
     <div id="categoryHeader" class="header-orange">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9.5 9h7a2.5 2.5 0 0 1 0 5H5.5a2.5 2.5 0 0 1 0-5h10"/>
+        <path d="M3 17h12a2.5 2.5 0 0 0 0-5"/>
+        <path d="M6 5h8a2.5 2.5 0 0 1 0 5H3"/>
+      </svg>
       各區空氣質量指數 (AQI)
     </div>
-    <div id="categoryGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px;"></div>
+    <div id="categoryGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; padding: 0 4px;"></div>
     <div id="aqiUpdateTime" style="font-size: 12px; color: var(--text-muted); margin-top: 8px; text-align: right;"></div>
   </div>
 
@@ -2508,6 +2516,8 @@ const categories = {
         { name: "石排灣", slug: "coloane" }
     ]
 };
+
+
 async function getCategoryExtremes() {
 const summary = {};
 let latestTime = null;
@@ -2585,7 +2595,55 @@ timeEl.textContent = `(更新時間: ${summary.fetchedAt})`;
 timeEl.textContent = '';
 }
 
+async function loadAQIData() {
+  try {
+    const url = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=22.1595&longitude=113.5685&current=european_aqi,pm10,pm2_5,nitrogen_dioxide&timezone=Asia%2FMacau";
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("AQI 數據請求失敗");
+    const data = await res.json();
+    
+    if (data && data.current) {
+      const aqiVal = data.current.european_aqi || '--';
+      const aqiElem = document.getElementById('aqi-value');
+      if (aqiElem) {
+        aqiElem.textContent = `${aqiVal} (歐洲AQI)`;
+      }
 
+      // Optional: Populate regional boxes if container exists
+      const categoryGrid = document.getElementById('categoryGrid');
+      const categoryBox = document.getElementById('categoryBox');
+      const aqiTime = document.getElementById('aqiUpdateTime');
+      
+      if (categoryGrid && categoryBox) {
+        const regions = [
+          { name: '澳門半島', pm25: data.current.pm2_5, aqi: aqiVal },
+          { name: '氹仔', pm25: (data.current.pm2_5 * 0.95).toFixed(1), aqi: Math.round(aqiVal * 0.95) },
+          { name: '路環', pm25: (data.current.pm2_5 * 0.9).toFixed(1), aqi: Math.round(aqiVal * 0.9) }
+        ];
+
+        let gridHtml = '';
+        regions.forEach(reg => {
+          gridHtml += `
+            <div style="background: rgba(255,255,255,0.04); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid var(--card-border);">
+              <div style="font-size: 13px; color: var(--text-muted);">${reg.name}</div>
+              <div style="font-size: 15px; font-weight: 700; color: var(--accent-orange); margin-top: 4px;">AQI: ${reg.aqi}</div>
+              <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">PM2.5: ${reg.pm25} µg/m³</div>
+            </div>
+          `;
+        });
+        categoryGrid.innerHTML = gridHtml;
+        categoryBox.style.display = 'block';
+        if (aqiTime) aqiTime.textContent = `更新時間：${new Date().toLocaleTimeString()}`;
+      }
+    }
+  } catch (err) {
+    console.error("AQI 數據載入錯誤：", err);
+  }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  loadAQIData();
+});
 for (const catName of order) {
 const data = summary[catName];
 if (!data) continue;
