@@ -1257,11 +1257,11 @@ function drawSmoothSegmentedCone(conePoints) {
 
 async function load2024HistoricalData() {
   const updateClock = document.getElementById('updateClock');
-  updateClock.textContent = "正在載入 past_tc/HKO2024BST_3.csv ...";
+  updateClock.textContent = "正在載入 past_tc/HKO2024BST.csv ...";
 
   try {
-    const response = await fetch('past_tc/HKO2024BST_3.csv');
-    if (!response.ok) throw new Error("無法讀取 past_tc/HKO2024BST_3.csv");
+    const response = await fetch('past_tc/HKO2024BST.csv');
+    if (!response.ok) throw new Error("無法讀取 past_tc/HKO2024BST.csv");
     const csvText = await response.text();
 
     Papa.parse(csvText, {
