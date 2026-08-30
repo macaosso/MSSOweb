@@ -1279,7 +1279,7 @@ body.light-theme .card-bottom {
 
             <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 25px; background: rgba(56, 189, 248, 0.04); border: 1px solid var(--card-border); padding: 20px; border-radius: 14px;">
               <div id="weather-icons-group" style="display: flex; align-items: center; gap: 14px;">
-                <img id="weather-icon" alt="天氣圖標" style="width: 110px; height: 110px; filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5));">
+                <img id="weather-icon" alt="天氣圖標" style="width: 85px; height: 85px; filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5));">
               </div>
               <div style="flex: 1; min-width: 200px;">
                 <div id="temp-value">
@@ -1290,67 +1290,43 @@ body.light-theme .card-bottom {
               </div>
             </div>
 
-            <!-- 濕度、風速、風向、紫外線指數 (縮小 box width) -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
-              <div class="weather-item" style="padding: 16px;">
-                <div class="weather-label-title">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-                  相對濕度
+            <!-- 濕度、風速、風向、紫外線指數 (Picture 1 Layout: 左右排列) -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+              <div class="weather-item" style="padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
+                <div style="color: var(--accent-blue); display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(56, 189, 248, 0.1); border-radius: 10px; flex-shrink: 0;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
                 </div>
-                <div id="hum-value" style="font-size: 18px; font-weight: 700; margin-top: 6px;"></div>
+                <div style="flex: 1; min-width: 0;">
+                  <div class="weather-label-title" style="color: var(--text-muted); font-size: 12px;">相對濕度</div>
+                  <div id="hum-value" style="font-size: 16px; font-weight: 700; margin-top: 2px;"></div>
+                </div>
               </div>
-              <div class="weather-item" style="padding: 16px;">
-                <div class="weather-label-title">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
-                  風速
+              <div class="weather-item" style="padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
+                <div style="color: var(--accent-blue); display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(56, 189, 248, 0.1); border-radius: 10px; flex-shrink: 0;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
                 </div>
-                <div id="wind-speed" style="font-size: 18px; font-weight: 700; margin-top: 6px;"></div>
+                <div style="flex: 1; min-width: 0;">
+                  <div class="weather-label-title" style="color: var(--text-muted); font-size: 12px;">風速</div>
+                  <div id="wind-speed" style="font-size: 16px; font-weight: 700; margin-top: 2px;"></div>
+                </div>
               </div>
-              <div class="weather-item" style="padding: 16px;">
-                <div class="weather-label-title">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 19 21 12 17 5 21 12 2"/></svg>
-                  風向
+              <div class="weather-item" style="padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
+                <div style="color: var(--accent-blue); display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(56, 189, 248, 0.1); border-radius: 10px; flex-shrink: 0;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 19 21 12 17 5 21 12 2"/></svg>
                 </div>
-                <div id="wind-dir" style="font-size: 18px; font-weight: 700; margin-top: 6px;"></div>
+                <div style="flex: 1; min-width: 0;">
+                  <div class="weather-label-title" style="color: var(--text-muted); font-size: 12px;">風向</div>
+                  <div id="wind-dir" style="font-size: 16px; font-weight: 700; margin-top: 2px;"></div>
+                </div>
               </div>
-              <div class="weather-item" style="padding: 16px;">
-                <div class="weather-label-title">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                  紫外線指數
+              <div class="weather-item" style="padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
+                <div style="color: var(--accent-yellow); display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(250, 204, 21, 0.1); border-radius: 10px; flex-shrink: 0;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
                 </div>
-                <div id="uv-value" style="font-size: 18px; font-weight: 700; margin-top: 6px;"></div>
-              </div>
-            </div>
-
-            <!-- 日出 / 日落 / 月出 / 月落 4個獨立盒子放在整點天氣下方 -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 12px;">
-              <div class="weather-item" style="padding: 16px;">
-                <div class="weather-label-title">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
-                  日出
+                <div style="flex: 1; min-width: 0;">
+                  <div class="weather-label-title" style="color: var(--text-muted); font-size: 12px;">紫外線指數</div>
+                  <div id="uv-value" style="font-size: 16px; font-weight: 700; margin-top: 2px;"></div>
                 </div>
-                <div id="sunrise-value" style="font-size: 16px; font-weight: 700; margin-top: 6px;">--:--</div>
-              </div>
-              <div class="weather-item" style="padding: 16px;">
-                <div class="weather-label-title">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
-                  日落
-                </div>
-                <div id="sunset-value" style="font-size: 16px; font-weight: 700; margin-top: 6px;">--:--</div>
-              </div>
-              <div class="weather-item" style="padding: 16px;">
-                <div class="weather-label-title">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                  月出
-                </div>
-                <div id="moonrise-value" style="font-size: 16px; font-weight: 700; margin-top: 6px;">--:--</div>
-              </div>
-              <div class="weather-item" style="padding: 16px;">
-                <div class="weather-label-title">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                  月落
-                </div>
-                <div id="moonset-value" style="font-size: 16px; font-weight: 700; margin-top: 6px;">--:--</div>
               </div>
             </div>
 
@@ -1367,6 +1343,38 @@ body.light-theme .card-bottom {
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- 日出 / 日落 / 月出 / 月落 (Picture 2 Layout: 放在天氣概況上方) -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin: 25px 0 20px 0;">
+    <div class="weather-item" style="padding: 14px; text-align: center;">
+      <div class="weather-label-title" style="justify-content: center; color: var(--text-muted); font-size: 12px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
+        日出
+      </div>
+      <div id="sunrise-value" style="font-size: 15px; font-weight: 700; margin-top: 6px;">--:--</div>
+    </div>
+    <div class="weather-item" style="padding: 14px; text-align: center;">
+      <div class="weather-label-title" style="justify-content: center; color: var(--text-muted); font-size: 12px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
+        日落
+      </div>
+      <div id="sunset-value" style="font-size: 15px; font-weight: 700; margin-top: 6px;">--:--</div>
+    </div>
+    <div class="weather-item" style="padding: 14px; text-align: center;">
+      <div class="weather-label-title" style="justify-content: center; color: var(--text-muted); font-size: 12px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        月出
+      </div>
+      <div id="moonrise-value" style="font-size: 15px; font-weight: 700; margin-top: 6px;">--:--</div>
+    </div>
+    <div class="weather-item" style="padding: 14px; text-align: center;">
+      <div class="weather-label-title" style="justify-content: center; color: var(--text-muted); font-size: 12px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        月落
+      </div>
+      <div id="moonset-value" style="font-size: 15px; font-weight: 700; margin-top: 6px;">--:--</div>
     </div>
   </div>
 
@@ -2265,13 +2273,18 @@ async function loadHourlyWeather() {
         pubTime.textContent = sysPubdate;
         tempNum.textContent = `${temp} °C`;
         
-        // 應用 getTempColor 到溫度顏色（使用帶有對比度的顏色背景或文字樣式以適應深淺色背景）
+        // 應用 getTempColor 到溫度字體顏色與圖標顏色（不改背景色）
         const tempColorHex = getTempColor(temp);
-        tempNum.style.backgroundColor = tempColorHex;
-        tempNum.style.color = "#ffffff";
-        tempNum.style.padding = "2px 12px";
-        tempNum.style.borderRadius = "8px";
-        tempNum.style.display = "inline-block";
+        tempNum.style.color = tempColorHex;
+        tempNum.style.backgroundColor = "";
+        tempNum.style.padding = "";
+        tempNum.style.borderRadius = "";
+
+        const tempSvgIcon = document.querySelector('#temp-value svg');
+        if (tempSvgIcon) {
+            tempSvgIcon.style.color = tempColorHex;
+            tempSvgIcon.style.stroke = tempColorHex;
+        }
 
         feelsDesc.textContent = `今日氣溫：${todayMin} - ${todayMax} °C`;
         humValue.textContent = `${hum} %`;
@@ -2285,7 +2298,7 @@ async function loadHourlyWeather() {
 
         const iconsGroup = document.getElementById('weather-icons-group');
         if (iconsGroup) {
-            let iconsHtml = `<img id="weather-icon" src="${iconUrl}" alt="天氣圖標" style="width: 110px; height: 110px; filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5));">`;
+            let iconsHtml = `<img id="weather-icon" src="${iconUrl}" alt="天氣圖標" style="width: 85px; height: 85px; filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5));">`;
             
             const currentHourStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours());
             let startIndex = data.hourly.time.findIndex(t => new Date(t) >= currentHourStart);
@@ -2298,8 +2311,8 @@ async function loadHourlyWeather() {
                 const nextHour = (now.getHours() + 1) % 24;
                 const nextIconUrl = getOpenMeteoIcon(nextCode, nextHour);
                 iconsHtml += `
-                  <span style="font-size: 26px; color: var(--text-muted); font-weight: bold; margin: 0 4px;">→</span>
-                  <img id="next-weather-icon" src="${nextIconUrl}" alt="預報天氣圖標" style="width: 90px; height: 90px; filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5)); opacity: 0.9;" title="一小時後天氣將有變化">
+                  <span style="font-size: 22px; color: var(--text-muted); font-weight: bold; margin: 0 4px;">→</span>
+                  <img id="next-weather-icon" src="${nextIconUrl}" alt="預報天氣圖標" style="width: 70px; height: 70px; filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5)); opacity: 0.9;" title="一小時後天氣將有變化">
                 `;
             }
             iconsGroup.innerHTML = iconsHtml;
