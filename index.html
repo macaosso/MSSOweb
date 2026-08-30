@@ -2638,6 +2638,30 @@ function renderAQIBox(aqi, mainPollutant) {
     `;
 }
 
+async function initAQIDashboard() {
+    const summary = await getCategoryExtremes();
+    
+    let maxAqi = 0;
+    let worstPollutant = '--';
+
+    // Find the highest AQI across all categories to show on the main widget
+    for (const cat in summary) {
+        if (summary[cat].highest.aqi > maxAqi) {
+            maxAqi = summary[cat].highest.aqi;
+            worstPollutant = summary[cat].highest.pollutant;
+        }
+    }
+
+    if (maxAqi > 0) {
+        currentAQIState.aqi = maxAqi;
+        currentAQIState.pollutant = worstPollutant;
+        renderAQIBox(maxAqi, worstPollutant);
+    }
+}
+
+// Execute the dashboard loader
+initAQIDashboard();
+
 window.addEventListener('DOMContentLoaded', () => {
     fetchAQIData();
     setInterval(fetchAQIData, 5 * 60000); 
