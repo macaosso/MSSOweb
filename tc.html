@@ -6,6 +6,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <title>熱帶氣旋路徑追蹤器 - 澳門民間氣象台 MSSO</title>
 <style>
 :root {
@@ -738,7 +739,7 @@ body.light-theme .dropdown-content {
     <div class="sub-header-bar">
       <select class="ctrl-select" id="yearSelect" onchange="loadTCData()">
         <option value="2026">2026 (即時)</option>
-        <option value="2024">2024 (歷史存檔)</option>
+        <option value="2024">2024 (歷史存檔 CSV)</option>
       </select>
       <button class="ctrl-btn active" id="btnCone" onclick="toggleErrorCone()">潛在路徑範圍錐體</button>
       <button class="ctrl-btn" onclick="resetView()">重置視角(澳門)</button>
@@ -1027,7 +1028,7 @@ function formatDateTime(timeStr) {
 
 function parseCoord(valStr) {
   if (!valStr) return NaN;
-  const cleanStr = valStr.trim();
+  const cleanStr = String(valStr).trim();
   let num = parseFloat(cleanStr);
   if (isNaN(num)) return NaN;
   if (cleanStr.endsWith('S') || cleanStr.endsWith('W')) {
@@ -1048,7 +1049,7 @@ function getCategoryKey(catStr, windStr) {
     return 'LOW';
   }
   if (!catStr) return 'TD';
-  const upper = catStr.toUpperCase();
+  const upper = String(catStr).toUpperCase();
   if (upper.includes('EXTRATROPICAL') || upper.includes('EX')) return 'EX';
   if (upper.includes('LOW')) return 'LOW';
   if (upper.includes('SUPER')) return 'SuperT';
@@ -1254,55 +1255,92 @@ function drawSmoothSegmentedCone(conePoints) {
   }
 }
 
-function load2024HistoricalData() {
-  const parsedTCList = [
-    {
-      name: "摩羯 (Yagi)",
-      englishName: "Yagi",
-      pastPoints: [
-        { type: 'Past', typeLabel: '歷史定位', lat: 18.2, lon: 119.5, wind: '65 km/h', cat: 'TS', time: '2024-09-02 08:00', hours: null, radiusKm: null },
-        { type: 'Past', typeLabel: '歷史定位', lat: 19.1, lon: 116.8, wind: '95 km/h', cat: 'STS', time: '2024-09-03 08:00', hours: null, radiusKm: null },
-        { type: 'Past', typeLabel: '歷史定位', lat: 19.6, lon: 114.2, wind: '145 km/h', cat: 'T', time: '2024-09-04 08:00', hours: null, radiusKm: null },
-        { type: 'Past', typeLabel: '歷史定位', lat: 20.0, lon: 111.5, wind: '220 km/h', cat: 'SuperT', time: '2024-09-05 08:00', hours: null, radiusKm: null }
-      ],
-      currentPoint: {
-        type: 'Current',
-        typeLabel: '最接近澳門時刻',
-        lat: 20.2,
-        lon: 110.8,
-        wind: '210 km/h',
-        cat: 'SuperT',
-        time: '2024-09-05 14:00',
-        hours: 0,
-        radiusKm: 15
-      },
-      forecastPoints: []
-    },
-    {
-      name: "銀杏 (Yinxing)",
-      englishName: "Yinxing",
-      pastPoints: [
-        { type: 'Past', typeLabel: '歷史定位', lat: 17.5, lon: 124.0, wind: '110 km/h', cat: 'STS', time: '2024-11-06 08:00', hours: null, radiusKm: null },
-        { type: 'Past', typeLabel: '歷史定位', lat: 18.2, lon: 120.5, wind: '175 km/h', cat: 'ST', time: '2024-11-07 08:00', hours: null, radiusKm: null },
-        { type: 'Past', typeLabel: '歷史定位', lat: 18.8, lon: 116.2, wind: '155 km/h', cat: 'ST', time: '2024-11-08 08:00', hours: null, radiusKm: null }
-      ],
-      currentPoint: {
-        type: 'Current',
-        typeLabel: '最接近澳門時刻',
-        lat: 19.1,
-        lon: 113.0,
-        wind: '130 km/h',
-        cat: 'T',
-        time: '2024-11-09 12:00',
-        hours: 0,
-        radiusKm: 15
-      },
-      forecastPoints: []
-    }
-  ];
+async function load2024HistoricalData() {
+  const updateClock = document.getElementById('updateClock');
+  updateClock.textContent = "正在載入 past_tc/HKO2024BST_3.csv ...";
 
-  currentTCData = parsedTCList;
-  renderTCs(parsedTCList);
+  try {
+    const response = await fetch('past_tc/HKO2024BST_3.csv');
+    if (!response.ok) throw new Error("無法讀取 past_tc/HKO2024BST_3.csv");
+    const csvText = await response.text();
+
+    Papa.parse(csvText, {
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: true,
+      complete: function(results) {
+        const rows = results.data;
+        const stormsMap = {};
+
+        rows.forEach(row => {
+          // Adjust column keys based on your CSV structure (e.g. Name, Time, Lat, Lon, Wind, Intensity)
+          const name = row.Name || row.storm_name || row.TC_Name || '歷史氣旋';
+          const englishName = row.EnglishName || row.English_Name || name;
+          const key = `${name} (${englishName})`;
+
+          if (!stormsMap[key]) {
+            stormsMap[key] = {
+              name: key,
+              englishName: englishName,
+              pastPoints: [],
+              currentPoint: null,
+              forecastPoints: []
+            };
+          }
+
+          const lat = parseCoord(row.Lat || row.Latitude);
+          const lon = parseCoord(row.Lon || row.Longitude);
+          const rawWind = row.Wind || row.MaxWind || 0;
+          const wind = typeof rawWind === 'number' ? `${rawWind} km/h` : (rawWind || '--');
+          const cat = row.Intensity || row.Grade || 'TS';
+          const time = row.Time || row.DTG || '';
+
+          if (!isNaN(lat) && !isNaN(lon)) {
+            stormsMap[key].pastPoints.push({
+              type: 'Past',
+              typeLabel: '歷史定位',
+              lat, lon, wind,
+              cat: getCategoryKey(cat, wind),
+              time,
+              hours: null,
+              radiusKm: null
+            });
+          }
+        });
+
+        const parsedTCList = Object.values(stormsMap);
+        parsedTCList.forEach(tc => {
+          if (tc.pastPoints.length > 0) {
+            // Take the last recorded point as currentPoint / peak point
+            tc.currentPoint = tc.pastPoints.pop();
+            tc.currentPoint.type = 'Current';
+            tc.currentPoint.typeLabel = '紀錄峰值/最接近時刻';
+            tc.currentPoint.hours = 0;
+            tc.currentPoint.radiusKm = 15;
+          }
+        });
+
+        currentTCData = parsedTCList;
+        if (parsedTCList.length > 0) {
+          renderTCs(parsedTCList);
+          updateClock.textContent = "CSV 歷史數據載入成功";
+        } else {
+          renderEmptyState();
+          updateClock.textContent = "CSV 內無有效記錄";
+        }
+      },
+      error: function(err) {
+        console.error("PapaParse error:", err);
+        updateClock.textContent = "CSV 解析失敗";
+        renderEmptyState();
+      }
+    });
+
+  } catch (err) {
+    console.error("Fetch CSV error:", err);
+    updateClock.textContent = "無法載入 past_tc/HKO2024BST_3.csv";
+    renderEmptyState();
+  }
 }
 
 async function loadTCData() {
@@ -1310,7 +1348,6 @@ async function loadTCData() {
   const updateClock = document.getElementById('updateClock');
   
   if (selectedYear === '2024') {
-    updateClock.textContent = "2024年歷史存檔數據";
     load2024HistoricalData();
     return;
   }
