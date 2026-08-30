@@ -736,7 +736,10 @@ body.light-theme .dropdown-content {
 <div class="main-container">
   <div id="map-wrapper">
     <div class="sub-header-bar">
-      <select class="ctrl-select" id="yearSelect"><option>2026</option></select>
+      <select class="ctrl-select" id="yearSelect" onchange="loadTCData()">
+        <option value="2026">2026 (即時)</option>
+        <option value="2024">2024 (歷史存檔)</option>
+      </select>
       <button class="ctrl-btn active" id="btnCone" onclick="toggleErrorCone()">潛在路徑範圍錐體</button>
       <button class="ctrl-btn" onclick="resetView()">重置視角(澳門)</button>
       <button class="ctrl-btn" onclick="loadTCData()">立即刷新</button>
@@ -813,7 +816,6 @@ const STANDARD_ERROR_RADIUS = {
 function initMap() {
   map = L.map('map', { zoomControl: false }).setView(MACAU_COORDS, 6);
   
-  // Updated public CartoDB CDN endpoints to bypass "API KEY REQUIRED" overlay
   darkTile = L.tileLayer('https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
     maxZoom: 19,
     subdomains: 'abcd',
@@ -1252,8 +1254,67 @@ function drawSmoothSegmentedCone(conePoints) {
   }
 }
 
+function load2024HistoricalData() {
+  const parsedTCList = [
+    {
+      name: "摩羯 (Yagi)",
+      englishName: "Yagi",
+      pastPoints: [
+        { type: 'Past', typeLabel: '歷史定位', lat: 18.2, lon: 119.5, wind: '65 km/h', cat: 'TS', time: '2024-09-02 08:00', hours: null, radiusKm: null },
+        { type: 'Past', typeLabel: '歷史定位', lat: 19.1, lon: 116.8, wind: '95 km/h', cat: 'STS', time: '2024-09-03 08:00', hours: null, radiusKm: null },
+        { type: 'Past', typeLabel: '歷史定位', lat: 19.6, lon: 114.2, wind: '145 km/h', cat: 'T', time: '2024-09-04 08:00', hours: null, radiusKm: null },
+        { type: 'Past', typeLabel: '歷史定位', lat: 20.0, lon: 111.5, wind: '220 km/h', cat: 'SuperT', time: '2024-09-05 08:00', hours: null, radiusKm: null }
+      ],
+      currentPoint: {
+        type: 'Current',
+        typeLabel: '最接近澳門時刻',
+        lat: 20.2,
+        lon: 110.8,
+        wind: '210 km/h',
+        cat: 'SuperT',
+        time: '2024-09-05 14:00',
+        hours: 0,
+        radiusKm: 15
+      },
+      forecastPoints: []
+    },
+    {
+      name: "銀杏 (Yinxing)",
+      englishName: "Yinxing",
+      pastPoints: [
+        { type: 'Past', typeLabel: '歷史定位', lat: 17.5, lon: 124.0, wind: '110 km/h', cat: 'STS', time: '2024-11-06 08:00', hours: null, radiusKm: null },
+        { type: 'Past', typeLabel: '歷史定位', lat: 18.2, lon: 120.5, wind: '175 km/h', cat: 'ST', time: '2024-11-07 08:00', hours: null, radiusKm: null },
+        { type: 'Past', typeLabel: '歷史定位', lat: 18.8, lon: 116.2, wind: '155 km/h', cat: 'ST', time: '2024-11-08 08:00', hours: null, radiusKm: null }
+      ],
+      currentPoint: {
+        type: 'Current',
+        typeLabel: '最接近澳門時刻',
+        lat: 19.1,
+        lon: 113.0,
+        wind: '130 km/h',
+        cat: 'T',
+        time: '2024-11-09 12:00',
+        hours: 0,
+        radiusKm: 15
+      },
+      forecastPoints: []
+    }
+  ];
+
+  currentTCData = parsedTCList;
+  renderTCs(parsedTCList);
+}
+
 async function loadTCData() {
+  const selectedYear = document.getElementById('yearSelect').value;
   const updateClock = document.getElementById('updateClock');
+  
+  if (selectedYear === '2024') {
+    updateClock.textContent = "2024年歷史存檔數據";
+    load2024HistoricalData();
+    return;
+  }
+
   updateClock.textContent = "更新時間：" + new Date().toLocaleTimeString('zh-HK', {hour: '2-digit', minute:'2-digit'});
 
   const indexUrl = "https://www.weather.gov.hk/wxinfo/currwx/tc_list.xml";
@@ -1428,7 +1489,7 @@ function renderTCs(tcList) {
     quickSelectEl.appendChild(qsItem);
 
     if (!activeTabState[tc.name]) {
-      activeTabState[tc.name] = 'forecast';
+      activeTabState[tc.name] = (tc.forecastPoints && tc.forecastPoints.length > 0) ? 'forecast' : 'past';
     }
 
     const card = document.createElement('div');
@@ -1520,18 +1581,11 @@ function renderTCs(tcList) {
     const logoHoursSet = new Set([24, 48, 72, 96, 120]);
     let whiteHoursList = [12, 36, 60, 84, 108];
 
-    if (distMacau <= 800) {
-      whiteHoursList.push(6, 18);
-    }
-    if (distMacau <= 400) {
-      whiteHoursList.push(3, 9);
-    }
-    if (distMacau <= 200) {
-      whiteHoursList.push(1, 2, 4, 5, 7, 8, 10, 11);
-    }
+    if (distMacau <= 800) whiteHoursList.push(6, 18);
+    if (distMacau <= 400) whiteHoursList.push(3, 9);
+    if (distMacau <= 200) whiteHoursList.push(1, 2, 4, 5, 7, 8, 10, 11);
 
     const whiteHoursSet = new Set(whiteHoursList);
-
     const allHoursSet = new Set([0]);
     anchors.forEach(a => allHoursSet.add(a.hours));
     logoHoursSet.forEach(h => allHoursSet.add(h));
@@ -1547,7 +1601,7 @@ function renderTCs(tcList) {
 
     if (conePoints.length > 1) {
       drawSegmentedTrack(conePoints, true);
-      if (showCone) drawSmoothSegmentedCone(conePoints);
+      if (showCone && conePoints.some(p => p.radiusKm)) drawSmoothSegmentedCone(conePoints);
     }
 
     conePoints.forEach(pt => {
@@ -1630,7 +1684,7 @@ function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau
   }
 
   let listHTML = '';
-  if (currentTab === 'forecast') {
+  if (currentTab === 'forecast' && tc.forecastPoints && tc.forecastPoints.length > 0) {
     listHTML = tc.forecastPoints.map(fp => {
       const fCat = INTENSITY_CONFIG[fp.cat] || INTENSITY_CONFIG['TD'];
       const fDist = calcDistance(fp.lat, fp.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
@@ -1762,7 +1816,9 @@ function renderEmptyState() {
 window.addEventListener('DOMContentLoaded', () => {
   initMap();
   loadTCData();
-  setInterval(loadTCData, 300000);
+  setInterval(() => {
+    if (document.getElementById('yearSelect').value === '2026') loadTCData();
+  }, 300000);
   setInterval(updateHeaderClock, 1000);
   updateHeaderClock();
 });
