@@ -879,7 +879,6 @@ body.light-theme .chart-btn:hover:not(.active) {
 }
 
 /* ========== 8. 七日天氣預報橫向卡片組 ========== */
-/* ========== 8. 七日天氣預報橫向卡片組 (已更新格式：無描述、無濕度、增設風力與降雨概率) ========== */
 .seven-day-scroll-row {
   display: flex;
   gap: 10px;
@@ -911,7 +910,7 @@ body.light-theme .seven-day-scroll-row::-webkit-scrollbar-thumb {
   background: rgba(18, 26, 43, 0.85);
   border: 1px solid var(--card-border);
   border-radius: 12px;
-  padding: 14px 10px;
+  padding: 14px 12px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -934,7 +933,7 @@ body.light-theme .forecast-card-mini {
   font-size: 13px;
   font-weight: 700;
   color: var(--text-main);
-  padding-bottom: 6px;
+  padding-bottom: 8px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 body.light-theme .card-top {
@@ -947,12 +946,12 @@ body.light-theme .card-top {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 4px 0;
+  padding: 6px 0;
 }
 
 .card-middle .card-icon-large {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   object-fit: contain;
   filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
 }
@@ -1556,22 +1555,6 @@ function degreesToDirection(deg) {
   const val = Math.floor((deg / 22.5) + 0.5);
   return dirs[val % 16];
 }
-function getWindScaleText(speedKmh) {
-  if (speedKmh === undefined || speedKmh === null) return "—";
-  if (speedKmh < 6) return "1級";
-  if (speedKmh < 12) return "2級";
-  if (speedKmh < 20) return "3級";
-  if (speedKmh < 29) return "4級";
-  if (speedKmh < 39) return "5級";
-  if (speedKmh < 50) return "6級";
-  if (speedKmh < 62) return "7級";
-  if (speedKmh < 75) return "8級";
-  if (speedKmh < 89) return "9級";
-  if (speedKmh < 103) return "10級";
-  if (speedKmh < 118) return "11級";
-  return "12級或以上";
-}
-
 
 // ========== 載入天氣預報（文字概況模組） ==========
 async function loadOpenMeteoForecastSummary() {
@@ -1780,6 +1763,7 @@ window.addEventListener('DOMContentLoaded', function(){
     });
 
     loadOpenMeteoForecastSummary();
+    load7DaysForecastOpenMeteo();
 });
 </script>
 
@@ -2345,7 +2329,6 @@ async function loadHourlyWeather() {
                 const nextHour = (now.getHours() + 1) % 24;
                 const nextIconUrl = getOpenMeteoIcon(nextCode, nextHour);
 
-                // If current icon is different from next hour icon, show next hour icon and arrow
                 if (iconUrl !== nextIconUrl) {
                     iconsHtml += `
                       <span style="font-size: 22px; color: var(--text-muted); font-weight: bold; margin: 0 4px;">→</span>
@@ -2380,25 +2363,21 @@ function getUVColor(uv) {
     return "#34d399";
 }
 
-// ========== 七日天氣預報文字格式化生成函數 ==========
-function generateSevenDayText(code, maxWindSpd) {
-  let weatherDesc = "大致多雲, 短暫時間有陽光";
-  if (code === 0) weatherDesc = "天晴, 幹燥";
-  else if (code === 1 || code === 2) weatherDesc = "大致天晴, 部份時間多雲";
-  else if (code === 3) weatherDesc = "多雲, 密雲";
-  else if (code === 4) weatherDesc = "密雲, 有霧";
-  else if (code >= 51 && code <= 57) weatherDesc = "大致多雲, 間中有微雨";
-  else if (code >= 61 && code <= 65) weatherDesc = "大致多雲, 有雨";
-  else if (code >= 80 && code <= 82) weatherDesc = "大致多雲, 有驟雨";
-  else if (code >= 95) weatherDesc = "大致多雲, 有驟雨及幾陣雷暴";
-
-  let windLevel = Math.max(2, Math.min(6, Math.round(maxWindSpd / 5)));
-  let minLevel = Math.max(2, windLevel - 1);
-  let maxLevel = Math.max(3, windLevel + 1);
-  let gustMin = maxLevel;
-  let gustMax = maxLevel + 2;
-
-  return `${weatherDesc}。吹${minLevel}至${maxLevel}級偏南風, 陣風${gustMin}至${gustMax}級 。`;
+// ========== 風力等級換算函數 ==========
+function getWindScaleText(speedKmh) {
+  if (speedKmh === undefined || speedKmh === null) return "—";
+  if (speedKmh < 6) return "1級";
+  if (speedKmh < 12) return "2級";
+  if (speedKmh < 20) return "3級";
+  if (speedKmh < 29) return "4級";
+  if (speedKmh < 39) return "5級";
+  if (speedKmh < 50) return "6級";
+  if (speedKmh < 62) return "7級";
+  if (speedKmh < 75) return "8級";
+  if (speedKmh < 89) return "9級";
+  if (speedKmh < 103) return "10級";
+  if (speedKmh < 118) return "11級";
+  return "12級或以上";
 }
 
 // ========== 載入七日天氣預報 ==========
@@ -2412,7 +2391,7 @@ async function load7DaysForecastOpenMeteo() {
         if (loadingEl && containerEl.children.length === 0) loadingEl.style.display = 'block';
         if (errorEl) errorEl.style.display = 'none';
 
-        const url = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&daily=weather_code,temperature_2m_max,temperature_2m_min,relative_humidity_2m_max,relative_humidity_2m_min,wind_speed_10m_max&timezone=Asia%2FMacau&forecast_days=7";
+        const url = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max,precipitation_probability_max&timezone=Asia%2FMacau&forecast_days=7";
         const res = await fetch(url);
         if (!res.ok) throw new Error("7日預報數據請求失敗");
 
@@ -2420,70 +2399,66 @@ async function load7DaysForecastOpenMeteo() {
         const daily = data.daily;
 
         const now = new Date();
-        const pubDateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:00`;
-        chart7dUpdateTime = `${pubDateStr} 更新`;
-        if (updateTimeEl) updateTimeEl.innerText = `發佈時間：${pubDateStr}`;
+        const pubDateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        if (updateTimeEl) updateTimeEl.textContent = `更新時間：${pubDateStr}`;
 
+        containerEl.innerHTML = '';
         dynamic7dLabels = [];
         dynamic7dMax = [];
         dynamic7dMin = [];
 
-        let html = '';
         const weekdays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
 
         for (let i = 0; i < daily.time.length; i++) {
-            const dateParts = daily.time[i].split("-");
-            const month = parseInt(dateParts[1], 10);
-            const day = parseInt(dateParts[2], 10);
-            const dObj = new Date(daily.time[i]);
-            const weekStr = weekdays[dObj.getDay()];
-
-            const labelStr = `${month}月${day}日 (${weekStr})`;
-            const chartLabel = `${month}/${day}`;
+            const dateObj = new Date(daily.time[i]);
+            const m = dateObj.getMonth() + 1;
+            const d = dateObj.getDate();
+            const w = weekdays[dateObj.getDay()];
+            const dateStr = i === 0 ? `今天 ${m}/${d}` : `${m}/${d} (${w})`;
 
             const maxT = Math.round(daily.temperature_2m_max[i]);
             const minT = Math.round(daily.temperature_2m_min[i]);
-            const maxH = daily.relative_humidity_2m_max ? Math.round(daily.relative_humidity_2m_max[i]) : 95;
-            const minH = daily.relative_humidity_2m_min ? Math.round(daily.relative_humidity_2m_min[i]) : 60;
             const code = daily.weather_code[i];
-            const maxWind = daily.wind_speed_10m_max ? daily.wind_speed_10m_max[i] : 15;
+            const icon = getOpenMeteoIcon(code, 12);
+            
+            const windSpeedMax = daily.wind_speed_10m_max ? daily.wind_speed_10m_max[i] : null;
+            const windText = getWindScaleText(windSpeedMax);
+            const pop = daily.precipitation_probability_max ? daily.precipitation_probability_max[i] : 0;
 
-            const conditionStr = generateSevenDayText(code, maxWind);
-            const iconUrl = getOpenMeteoIcon(code, 12);
-
-            dynamic7dLabels.push(chartLabel);
+            dynamic7dLabels.push(`${m}/${d}`);
             dynamic7dMax.push(maxT);
             dynamic7dMin.push(minT);
 
-            html += `
-                <div class="forecast-card-mini">
-                    <div class="card-top">${labelStr}</div>
-                    <div class="card-middle">
-                        <img class="card-icon-large" src="${iconUrl}" alt="weather-icon">
-                        <div class="temp-range-text">${minT} - ${maxT} °C</div>
-                        <div class="humid-range-text">${minH} - ${maxH} %</div>
-                    </div>
-                    <div class="card-bottom">
-                        <div class="card-condition">${conditionStr}</div>
-                    </div>
+            const card = document.createElement('div');
+            card.className = 'forecast-card-mini';
+            card.innerHTML = `
+              <div class="card-top">${dateStr}</div>
+              <div class="card-middle">
+                <img src="${icon}" class="card-icon-large" alt="weather icon">
+                <div class="temp-range-text">${minT}°C - ${maxT}°C</div>
+                <div style="font-size: 13px; font-weight: 600; color: var(--accent-teal); display: flex; align-items: center; gap: 4px;">
+                  <span>風力:</span> <span>${windText}</span>
                 </div>
+                <div style="font-size: 13px; font-weight: 600; color: var(--accent-blue); display: flex; align-items: center; gap: 4px;">
+                  <span>降雨概率:</span> <span>${pop}%</span>
+                </div>
+              </div>
             `;
+            containerEl.appendChild(card);
         }
 
         if (loadingEl) loadingEl.style.display = 'none';
-        containerEl.innerHTML = html;
-
+        chart7dUpdateTime = `更新於 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+        if (tempChart && document.querySelector('.chart-btn.active').dataset.type === '7d') {
+            const ctx = document.getElementById('tempChart').getContext('2d');
+            render7dChart(ctx);
+        }
     } catch (err) {
-        console.error("7日預報讀取錯誤：", err);
+        console.error("7日預報加載失敗：", err);
         if (loadingEl) loadingEl.style.display = 'none';
         if (errorEl) errorEl.style.display = 'block';
     }
 }
-
-window.addEventListener('DOMContentLoaded', () => {
-    loadHourlyWeather();
-    load7DaysForecastOpenMeteo();
-});
 </script>
 
 </body>
