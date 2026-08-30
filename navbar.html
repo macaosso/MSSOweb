@@ -1,287 +1,294 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>7-Day Weather Forecast</title>
-  <style>
-    :root {
-      --bg-color: #f7f8fa;
-      --card-bg: #ffffff;
-      --text-main: #1f2329;
-      --text-sub: #8f959e;
-      --border-color: #f0f1f3;
-      --bar-bg: #e5e8ef;
-      --bar-fill: #f5a623;
-      --header-icon-bg: #fdf3e7;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="icon" type="image/png" href="icons/MSSO.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<title>澳門民間氣象台 - 首頁</title>
+<style>
+/* ========== 1. 深太空 (Deep Space) 全域主題基礎 ========== */
+:root {
+  --bg-dark: #0b0f19;
+  --card-bg: rgba(22, 30, 46, 0.75);
+  --card-bg-light: rgba(255, 255, 255, 0.03);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  
+  --accent-blue: #38bdf8;
+  --accent-teal: #2dd4bf;
+  --accent-green: #34d399;
+  --accent-yellow: #facc15;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+}
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
 
-    body {
-      background-color: var(--bg-color);
-      display: flex;
-      justify-content: center;
-      padding: 20px;
-    }
+body {
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  min-height: 100vh;
+  padding: 20px;
+}
 
-    .weather-card {
-      background: var(--card-bg);
-      width: 100%;
-      max-width: 480px;
-      border-radius: 20px;
-      padding: 24px 20px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.03);
-    }
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
 
-    /* Header Styling */
-    .card-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-    }
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 16px;
+}
 
-    .header-icon {
-      width: 44px;
-      height: 44px;
-      background-color: var(--header-icon-bg);
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent-blue);
+}
 
-    .header-icon svg {
-      width: 24px;
-      height: 24px;
-      fill: #f5a623;
-    }
+.section-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-    .header-text .title {
-      font-size: 17px;
-      font-weight: 700;
-      color: var(--text-main);
-      line-height: 1.2;
-    }
+/* ========== 2. 七日天氣預報卡片樣式 (對應圖片格式) ========== */
+.forecast-container {
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  margin-bottom: 32px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-blue) var(--card-bg);
+}
 
-    .header-text .subtitle {
-      font-size: 13px;
-      color: var(--text-sub);
-      margin-top: 4px;
-    }
+.forecast-container::-webkit-scrollbar {
+  height: 6px;
+}
 
-    /* List Layout */
-    .forecast-list {
-      display: flex;
-      flex-direction: column;
-    }
+.forecast-container::-webkit-scrollbar-track {
+  background: var(--card-bg);
+  border-radius: 4px;
+}
 
-    .forecast-row {
-      display: grid;
-      grid-template-columns: 110px 48px 48px 36px 1fr 36px;
-      align-items: center;
-      padding: 18px 0;
-      border-bottom: 1px solid var(--border-color);
-    }
+.forecast-container::-webkit-scrollbar-thumb {
+  background: var(--accent-blue);
+  border-radius: 4px;
+}
 
-    .forecast-row:last-child {
-      border-bottom: none;
-    }
+.forecast-card-mini {
+  flex: 0 0 140px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  text-align: center;
+  backdrop-filter: blur(10px);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
 
-    /* Row Content */
-    .date-group {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
+.forecast-card-mini:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent-blue);
+}
 
-    .weather-icon, .rain-chance {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+.card-top {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent-blue);
+  margin-bottom: 8px;
+}
 
-    .rain-chance {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text-main);
-    }
+.card-middle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+}
 
-    .drop-icon {
-      width: 12px;
-      height: 14px;
-      fill: var(--text-main);
-    }
+.card-icon-large {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
 
-    .temp-low, .temp-high {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--text-main);
-      text-align: center;
-    }
+.temp-range-text {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-main);
+}
 
-    /* Temperature Range Bar */
-    .bar-container {
-      padding: 0 8px;
-    }
+.humid-range-text {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
 
-    .bar-bg {
-      height: 6px;
-      background-color: var(--bar-bg);
-      border-radius: 3px;
-      position: relative;
-      overflow: hidden;
-    }
+.card-bottom {
+  margin-top: 8px;
+  border-top: 1px solid var(--card-border);
+  padding-top: 8px;
+  width: 100%;
+}
 
-    .bar-fill {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      background-color: var(--bar-fill);
-      border-radius: 3px;
-    }
-  </style>
+.card-condition {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.2;
+}
+
+/* 其他通用元件 */
+.loading, .error-msg {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 20px;
+  font-size: 0.9rem;
+}
+
+.error-msg {
+  color: var(--accent-red);
+  display: none;
+}
+</style>
 </head>
 <body>
 
-  <div class="weather-card">
-    <!-- Header -->
-    <div class="card-header">
-      <div class="header-icon">
-        <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/><circle cx="8" cy="13" r="1"/><circle cx="12" cy="13" r="1"/><circle cx="16" cy="13" r="1"/><circle cx="8" cy="17" r="1"/><circle cx="12" cy="17" r="1"/></svg>
-      </div>
-      <div class="header-text">
-        <div class="title">七日預報</div>
-        <div class="subtitle">更新 14:30</div>
-      </div>
-    </div>
+<div class="container">
+    <header>
+        <h1>澳門民間氣象台</h1>
+        <div id="current-time" style="font-size: 0.85rem; color: var(--text-muted);"></div>
+    </header>
 
-    <!-- Forecast List -->
-    <div class="forecast-list">
-      
-      <!-- 08-30 -->
-      <div class="forecast-row">
-        <div class="date-group">08-30 週日</div>
-        <div class="weather-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24"><path fill="#2c2c2e" d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/><path fill="#8a8a8e" stroke="#fff" stroke-width="0.5" d="M9 14l-1.5 3M13 14l-1.5 3M17 14l-1.5 3"/></svg>
-        </div>
-        <div class="rain-chance">
-          <svg class="drop-icon" viewBox="0 0 12 16"><path d="M6 0C6 0 0 7 0 10c0 3.3 2.7 6 6 6s6-2.7 6-6c0-3-6-10-6-10z"/></svg>高
-        </div>
-        <div class="temp-low">26°</div>
-        <div class="bar-container">
-          <div class="bar-bg"><div class="bar-fill" style="left: 0%; right: 10%;"></div></div>
-        </div>
-        <div class="temp-high">31°</div>
-      </div>
+    <main>
+        <div class="section-title">📅 七日天氣預報</div>
+        <div id="forecast-loading" class="loading">正在載入七日預報...</div>
+        <div id="forecast-error" class="error-msg">無法載入七日天氣預報數據</div>
+        <div id="forecast-7d-container" class="forecast-container"></div>
+    </main>
+</div>
 
-      <!-- 08-31 -->
-      <div class="forecast-row">
-        <div class="date-group">08-31 週一</div>
-        <div class="weather-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24"><path fill="#2c2c2e" d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/><path fill="#8a8a8e" stroke="#fff" stroke-width="0.5" d="M9 14l-1.5 3M13 14l-1.5 3M17 14l-1.5 3"/></svg>
-        </div>
-        <div class="rain-chance">
-          <svg class="drop-icon" viewBox="0 0 12 16"><path d="M6 0C6 0 0 7 0 10c0 3.3 2.7 6 6 6s6-2.7 6-6c0-3-6-10-6-10z"/></svg>高
-        </div>
-        <div class="temp-low">26°</div>
-        <div class="bar-container">
-          <div class="bar-bg"><div class="bar-fill" style="left: 0%; right: 45%;"></div></div>
-        </div>
-        <div class="temp-high">29°</div>
-      </div>
+<script>
+// 時間顯示
+function updateClock() {
+    const now = new Date();
+    const timeStr = now.toLocaleString('zh-TW', { hour12: false });
+    const el = document.getElementById('current-time');
+    if (el) el.textContent = timeStr;
+}
+setInterval(updateClock, 1000);
+updateClock();
 
-      <!-- 09-01 -->
-      <div class="forecast-row">
-        <div class="date-group">09-01 週二</div>
-        <div class="weather-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24"><path fill="#2c2c2e" d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/><path fill="#8a8a8e" stroke="#fff" stroke-width="0.5" d="M9 14l-1.5 3M13 14l-1.5 3M17 14l-1.5 3"/></svg>
-        </div>
-        <div class="rain-chance">
-          <svg class="drop-icon" viewBox="0 0 12 16"><path d="M6 0C6 0 0 7 0 10c0 3.3 2.7 6 6 6s6-2.7 6-6c0-3-6-10-6-10z"/></svg>高
-        </div>
-        <div class="temp-low">26°</div>
-        <div class="bar-container">
-          <div class="bar-bg"><div class="bar-fill" style="left: 0%; right: 45%;"></div></div>
-        </div>
-        <div class="temp-high">29°</div>
-      </div>
+// 天氣圖示對應
+function getOpenMeteoIcon(code, isDay = 1) {
+    // 簡單圖示映射範例
+    if (code === 0) return isDay ? 'icons/sunny.png' : 'icons/clear_night.png';
+    if ([1, 2, 3].includes(code)) return 'icons/cloudy.png';
+    if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(code)) return 'icons/rain.png';
+    return 'icons/cloudy.png';
+}
 
-      <!-- 09-02 -->
-      <div class="forecast-row">
-        <div class="date-group">09-02 週三</div>
-        <div class="weather-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24"><path fill="#2c2c2e" d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/><path fill="#8a8a8e" stroke="#fff" stroke-width="0.5" d="M8 15v3M12 15v3M16 15v3"/></svg>
-        </div>
-        <div class="rain-chance">
-          <svg class="drop-icon" viewBox="0 0 12 16"><path d="M6 0C6 0 0 7 0 10c0 3.3 2.7 6 6 6s6-2.7 6-6c0-3-6-10-6-10z"/></svg>高
-        </div>
-        <div class="temp-low">26°</div>
-        <div class="bar-container">
-          <div class="bar-bg"><div class="bar-fill" style="left: 0%; right: 10%;"></div></div>
-        </div>
-        <div class="temp-high">31°</div>
-      </div>
+function generateSevenDayText(code, maxWind) {
+    if (code === 0) return '晴朗';
+    if ([1, 2].includes(code)) return '多雲';
+    if (code === 3) return '陰天';
+    if ([51, 53, 55, 61, 63].includes(code)) return '有雨';
+    if (maxWind > 30) return '風勢較大';
+    return '天氣平穩';
+}
 
-      <!-- 09-03 -->
-      <div class="forecast-row">
-        <div class="date-group">09-03 週四</div>
-        <div class="weather-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24"><circle cx="17" cy="7" r="3" fill="#8a8a8e"/><path fill="#2c2c2e" d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
-        </div>
-        <div class="rain-chance">
-          <svg class="drop-icon" viewBox="0 0 12 16"><path d="M6 0C6 0 0 7 0 10c0 3.3 2.7 6 6 6s6-2.7 6-6c0-3-6-10-6-10z"/></svg>低
-        </div>
-        <div class="temp-low">26°</div>
-        <div class="bar-container">
-          <div class="bar-bg"><div class="bar-fill" style="left: 0%; right: 0%;"></div></div>
-        </div>
-        <div class="temp-high">32°</div>
-      </div>
+// 載入七日預報數據
+async function loadSevenDayForecast() {
+    const containerEl = document.getElementById('forecast-7d-container');
+    const loadingEl = document.getElementById('forecast-loading');
+    const errorEl = document.getElementById('forecast-error');
 
-      <!-- 09-04 -->
-      <div class="forecast-row">
-        <div class="date-group">09-04 週五</div>
-        <div class="weather-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24"><circle cx="17" cy="7" r="3" fill="#8a8a8e"/><path fill="#2c2c2e" d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
-        </div>
-        <div class="rain-chance">
-          <svg class="drop-icon" viewBox="0 0 12 16"><path d="M6 0C6 0 0 7 0 10c0 3.3 2.7 6 6 6s6-2.7 6-6c0-3-6-10-6-10z"/></svg>低
-        </div>
-        <div class="temp-low">26°</div>
-        <div class="bar-container">
-          <div class="bar-bg"><div class="bar-fill" style="left: 0%; right: 0%;"></div></div>
-        </div>
-        <div class="temp-high">32°</div>
-      </div>
+    try {
+        // 以澳門為例坐標：22.1987, 113.5439
+        const res = await fetch('https://api.open-meteo.com/v1/forecast?latitude=22.1987&longitude=113.5439&daily=weather_code,temperature_2m_max,temperature_2m_min,relative_humidity_2m_max,relative_humidity_2m_min,wind_speed_10m_max&timezone=Asia%2FMacao');
+        const data = await res.json();
+        const daily = data.daily;
 
-      <!-- 09-05 -->
-      <div class="forecast-row">
-        <div class="date-group">09-05 週六</div>
-        <div class="weather-icon">
-          <svg width="28" height="28" viewBox="0 0 24 24"><circle cx="17" cy="7" r="3" fill="#8a8a8e"/><path fill="#2c2c2e" d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
-        </div>
-        <div class="rain-chance">
-          <svg class="drop-icon" viewBox="0 0 12 16"><path d="M6 0C6 0 0 7 0 10c0 3.3 2.7 6 6 6s6-2.7 6-6c0-3-6-10-6-10z"/></svg>低
-        </div>
-        <div class="temp-low">26°</div>
-        <div class="bar-container">
-          <div class="bar-bg"><div class="bar-fill" style="left: 0%; right: 0%;"></div></div>
-        </div>
-        <div class="temp-high">32°</div>
-      </div>
+        let html = '';
+        const dynamic7dLabels = [];
+        const dynamic7dMax = [];
+        const dynamic7dMin = [];
 
-    </div>
-  </div>
+        for (let i = 0; i < 7; i++) {
+            const dateObj = new Date(daily.time[i]);
+            const month = dateObj.getMonth() + 1;
+            const day = dateObj.getDate();
+            const weekdays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+            const weekday = weekdays[dateObj.getDay()];
+
+            let labelStr = `${month}/${day} (${weekday})`;
+            if (i === 0) labelStr = '今天';
+            if (i === 1) labelStr = '明天';
+
+            const maxT = Math.round(daily.temperature_2m_max[i]);
+            const minT = Math.round(daily.temperature_2m_min[i]);
+            const maxH = daily.relative_humidity_2m_max ? Math.round(daily.relative_humidity_2m_max[i]) : 85;
+            const minH = daily.relative_humidity_2m_min ? Math.round(daily.relative_humidity_2m_min[i]) : 60;
+            const code = daily.weather_code[i];
+            const maxWind = daily.wind_speed_10m_max ? daily.wind_speed_10m_max[i] : 15;
+
+            const conditionStr = generateSevenDayText(code, maxWind);
+            const iconUrl = getOpenMeteoIcon(code, 12);
+
+            dynamic7dLabels.push(labelStr);
+            dynamic7dMax.push(maxT);
+            dynamic7dMin.push(minT);
+
+            html += `
+                <div class="forecast-card-mini">
+                    <div class="card-top">${labelStr}</div>
+                    <div class="card-middle">
+                        <img class="card-icon-large" src="${iconUrl}" alt="weather-icon">
+                        <div class="temp-range-text">${minT} - ${maxT} °C</div>
+                        <div class="humid-range-text">${minH} - ${maxH} %</div>
+                    </div>
+                    <div class="card-bottom">
+                        <div class="card-condition">${conditionStr}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        if (loadingEl) loadingEl.style.display = 'none';
+        containerEl.innerHTML = html;
+
+    } catch (err) {
+        console.error("7日預報讀取錯誤：", err);
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (errorEl) errorEl.style.display = 'block';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadSevenDayForecast();
+});
+</script>
 
 </body>
 </html>
