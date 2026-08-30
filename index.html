@@ -2444,7 +2444,48 @@ async function load7DaysForecastOpenMeteo() {
         if (errorEl) errorEl.style.display = 'block';
     }
 }
-
+function renderDistrictAQI(summary) {
+  const container = document.getElementById('districtAQIBox');
+  if (!container) return;
+  
+  container.innerHTML = '';
+  const categories = ['路邊', '高密度住宅區', '一般性'];
+  
+  categories.forEach(catName => {
+    const catData = summary[catName];
+    // 確保該分類及底下有站點陣列資料
+    if (!catData || !catData.stations || !Array.isArray(catData.stations)) return;
+    
+    const section = document.createElement('div');
+    section.style.cssText = 'margin-bottom: 16px;';
+    section.innerHTML = `<div style="font-size: 15px; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">${catName}分區詳情</div>`;
+    
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px;';
+    
+    catData.stations.forEach(station => {
+      const statusStyle = getAQIStyle(station.aqi);
+      const card = document.createElement('div');
+      card.style.cssText = `
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        border-radius: 8px;
+        padding: 10px;
+      `;
+      card.innerHTML = `
+        <div style="font-size: 13px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${station.name}</div>
+        <div style="font-size: 20px; font-weight: 800; color: var(--text-main); margin: 4px 0;">${station.aqi}</div>
+        <div style="display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; color: ${statusStyle.text}; background: ${statusStyle.bg}; border: 1px solid ${statusStyle.border};">
+          ${statusStyle.label}
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+    
+    section.appendChild(grid);
+    container.appendChild(section);
+  });
+}
 window.addEventListener('DOMContentLoaded', () => {
     loadHourlyWeather();
     load7DaysForecastOpenMeteo();
