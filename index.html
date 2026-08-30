@@ -2556,55 +2556,60 @@ function getAQIStyle(aqi) {
 
 const WAQI_TOKEN = "12bb8b9424111ee0791c1492f0b3f346667737e2";
 
-const macauStations = [
-    'coloane',
-    'ka-ho',
-    'parque-central-da-taipa',
-    'taipa-grande',
-    'calcada-do-poco',
-    'subestacao-macau-norte'
-];
+const categories = {
+    "路邊": [
+        { name: "荷蘭園", slug: "calcada-do-poco" },
+        { name: "九澳", slug: "ka-ho" }
+    ],
+    "高密度住宅區": [
+        { name: "台山", slug: "subestacao-macau-norte" },
+        { name: "氹仔中心區", slug: "parque-central-da-taipa" }
+    ],
+    "一般性": [
+        { name: "大潭山", slug: "taipa-grande" },
+        { name: "石排灣", slug: "coloane" }
+    ]
+};
 
-async function fetchAllMacauStations() {
-    const stationDataList = [];
+async function getCategoryExtremes() {
+    const summary = {};
 
-    for (const station of macauStations) {
-        try {
-            const url = `https://api.waqi.info/feed/macau/${station}/?token=${WAQI_TOKEN}`;
-            const res = await fetch(url);
-            const json = await res.json();
+    for (const [catName, stations] of Object.entries(categories)) {
+        let fetchedData = [];
 
-            if (json.status === "ok") {
-                stationDataList.push({
-                    station: station,
-                    aqi: json.data.aqi,
-                    mainPollutant: json.data.dominentpol || '--',
-                    time: json.data.time.s
-                });
+        for (const station of stations) {
+            try {
+                const res = await fetch(`https://api.waqi.info/feed/macau/${station.slug}/?token=${WAQI_TOKEN}`);
+                const json = await res.json();
+                
+                if (json.status === "ok") {
+                    fetchedData.push({
+                        name: station.name,
+                        aqi: json.data.aqi,
+                        pollutant: json.data.dominentpol || '--'
+                    });
+                }
+            } catch (err) {
+                console.error(`Failed to fetch ${station.name}:`, err);
             }
-        } catch (e) {
-            console.error(`Failed to load station: ${station}`, e);
+        }
+
+        if (fetchedData.length > 0) {
+            // Sort ascending to easily extract lowest (index 0) and highest (last index)
+            fetchedData.sort((a, b) => a.aqi - b.aqi);
+            summary[catName] = {
+                lowest: fetchedData[0],
+                highest: fetchedData[fetchedData.length - 1]
+            };
         }
     }
 
-    // Prints a clean comparison table in your browser console
-    console.table(stationDataList);
-
-    // If you want to find the highest AQI among all active stations:
-    if (stationDataList.length > 0) {
-        stationDataList.sort((a, b) => b.aqi - a.aqi);
-        const highest = stationDataList[0];
-        
-        // Update your UI state directly here
-        currentAQIState.aqi = highest.aqi;
-        currentAQIState.pollutant = highest.mainPollutant;
-        
-        renderAQIBox(highest.aqi, highest.mainPollutant);
-    }
+    // Output category extremes directly to the console
+    console.log("Category Extremes (Lowest & Highest):", summary);
+    return summary;
 }
 
-// Run the function
-fetchAllMacauStations();
+getCategoryExtremes();
 
 function renderAQIBox(aqi, mainPollutant) {
     const box = document.getElementById('aqiBox');
