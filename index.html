@@ -2561,7 +2561,6 @@ highest: fetchedData[fetchedData.length - 1]
 console.log("Category Extremes (Lowest & Highest):", summary);
 return summary;
 }
-getCategoryExtremes();
 function renderAQIBox(aqi, mainPollutant) {
 const box = document.getElementById('aqiBox');
 const header = document.getElementById('aqiHeader');
@@ -2602,7 +2601,7 @@ const highStyle = getAQIStyle(data.highest.aqi);
 const card = document.createElement('div');
 card.style.cssText = `
             background: var(--card-bg);
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--card-border);
             border-radius: 12px;
             padding: 12px;
         `;
@@ -2628,6 +2627,8 @@ card.innerHTML = `
 grid.appendChild(card);
 }
 }
+// 全局状态：主 widget 显示全澳最高 AQI（含其首要污染物）
+const currentAQIState = { aqi: 0, pollutant: '--' };
 async function initAQIDashboard() {
 const summary = await getCategoryExtremes();
 
@@ -2649,13 +2650,13 @@ renderAQIBox(maxAqi, worstPollutant);
 // —— 分类卡片：三個分類各自的 最低/最高 ——
 renderCategoryCards(summary);
 }
-// Execute the dashboard loader
-initAQIDashboard();
+// Execute the dashboard loader（脚本位于 body 末尾，DOM 已就绪）
 window.addEventListener('DOMContentLoaded', () => {
-fetchAQIData();
-setInterval(fetchAQIData, 5 * 60000); 
+initAQIDashboard();
+setInterval(initAQIDashboard, 5 * 60000);
 });
 </script>
+
 
 </body>
 </html>
