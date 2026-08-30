@@ -1699,7 +1699,7 @@ async function loadOpenMeteoForecastSummary() {
     const todayMin = data.daily.temperature_2m_min[0];
     const todayCodeText = getWmoWeatherText(data.daily.weather_code[0]);
     
-    let tab0Html = `<strong>澳門天氣總覽：</strong><br>預料本澳今日${todayCodeText}，現時氣溫為攝氏${curTemp}度，相對濕度百分之 ${curRh}。今日氣溫介乎攝氏 ${todayMin}度至 ${todayMax}度之間。`;
+    let tab0Html = `<strong>澳門天氣總覽：</strong><br>預料本澳今日${todayCodeText}，現時氣溫為攝氏${curTemp}度，相對濕度百分之${curRh}。今日氣溫介乎攝氏${todayMin}度至${todayMax}度之間。`;
     document.getElementById("tab0").innerHTML = tab0Html;
 
     const d0 = new Date(data.daily.time[0]);
@@ -1711,7 +1711,7 @@ async function loadOpenMeteoForecastSummary() {
 
     const todayPop = data.daily.precipitation_probability_max[0] || 0;
     let tab1Html = `<div class="valid-time-row">${m0}月${day0}日</div>`;
-    tab1Html += `<div>預料本澳今日${todayCodeText}，今日氣溫介乎攝氏 ${todayMin}度至 ${todayMax}度之間。<br>降雨概率為 ${todayPop}%。</div>`;
+    tab1Html += `<div>預料本澳今日${todayCodeText}，今日氣溫介乎攝氏${todayMin}度至${todayMax}度之間。降雨概率為${todayPop}%。</div>`;
     document.getElementById("tab1").innerHTML = tab1Html;
 
     const tomMax = data.daily.temperature_2m_max[1];
@@ -1719,7 +1719,7 @@ async function loadOpenMeteoForecastSummary() {
     const tomCodeText = getWmoWeatherText(data.daily.weather_code[1]);
     const tomPop = data.daily.precipitation_probability_max[1] || 0;
     let tab2Html = `<div class="valid-time-row">${m1}月${day1}日</div>`;
-    tab2Html += `<div>預料本澳明日${tomCodeText}，最高氣溫約 ${tomMax}°C，最低氣溫約 ${tomMin}°C。<br>降雨概率為 ${tomPop}%。</div>`;
+    tab2Html += `<div>預料本澳明日${tomCodeText}，最高氣溫約${tomMax}°C，最低氣溫約${tomMin}°C。降雨概率為${tomPop}%。</div>`;
     document.getElementById("tab2").innerHTML = tab2Html;
 
   } catch (err) {
