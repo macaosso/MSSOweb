@@ -2119,6 +2119,7 @@ const moonriseValue = document.getElementById('moonrise-value');
 const moonsetValue = document.getElementById('moonset-value');
 
 function getPopInfo(pop) {
+  if (pop >= 95) return { label: '極高', light: '#392661', dark: '#af8aff' };
   if (pop >= 90) return { label: '高', light: '#dc2626', dark: '#f87171' };
   if (pop >= 75) return { label: '中高', light: '#ea580c', dark: '#fb923c' };
   if (pop >= 45) return { label: '中', light: '#ca8a04', dark: '#facc15' };
@@ -2153,12 +2154,14 @@ async function fetchOpenMeteoHourlyForecast() {
 
       if (maxPop >= 45 && rainAlertBox && rainAlertContent) {
         let popDesc = '';
-        if (maxPop >= 90) {
-          popDesc = '降雨機率為高：將會出現降雨情況';
+        if (maxPop >= 95) {
+          popDesc = '降雨機率為極高：表示將會出現降雨情況';
+        } else if (maxPop >= 90) {
+          popDesc = '降雨機率為高：表示將會出現降雨情況';
         } else if (maxPop >= 75) {
-          popDesc = '降雨機率為中高：較高機會有降雨情況';
+          popDesc = '降雨機率為中高：表示有較高機會出現降雨情況';
         } else {
-          popDesc = '降雨機率為中等：可能有降雨情況';
+          popDesc = '降雨機率為中等：表示可能有降雨情況';
         }
 
         const startHourStr = new Date(time[startIndex]).getHours() + 'H';
