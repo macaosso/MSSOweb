@@ -2505,128 +2505,76 @@ window.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <script>
-let currentAQIState = { aqi: 0, pollutant: '--' };
-
-const aqi_I_bounds = [0, 50, 100, 200, 300, 400, 500];
-const aqi_breakpoints = {
-    pm10: [0, 50, 100, 250, 350, 420, 500],
-    pm25: [0, 25, 50, 115, 150, 250, 350],
-    so2:  [0, 20, 50, 150, 475, 800, 1600],
-    no2:  [0, 100, 200, 700, 1200, 2000, 2500],
-    o3:   [0, 80, 160, 240, 400, 600, 800],
-    co:   [0, 5, 10, 17, 34, 46, 57]
-};
-
-function calculateSubIndex(C, type) {
-    const C_bounds = aqi_breakpoints[type];
-    if (C < 0 || isNaN(C)) return 0;
-    for (let i = 0; i < C_bounds.length - 1; i++) {
-        if (C >= C_bounds[i] && C <= C_bounds[i+1]) {
-            const I_hi = aqi_I_bounds[i+1];
-            const I_lo = aqi_I_bounds[i];
-            const C_hi = C_bounds[i+1];
-            const C_lo = C_bounds[i];
-            return Math.round(((I_hi - I_lo) / (C_hi - C_lo)) * (C - C_lo) + I_lo);
-        }
-    }
-    // Extrapolate if > max
-    const last = C_bounds.length - 1;
-    const I_hi = aqi_I_bounds[last];
-    const I_lo = aqi_I_bounds[last - 1];
-    const C_hi = C_bounds[last];
-    const C_lo = C_bounds[last - 1];
-    return Math.round(((I_hi - I_lo) / (C_hi - C_lo)) * (C - C_lo) + I_lo);
-}
-
-function getAverage(arr) {
-    const valid = arr.filter(v => v !== null && v !== undefined && !isNaN(v));
-    if (valid.length === 0) return 0;
-    return valid.reduce((a, b) => a + b, 0) / valid.length;
-}
-
 function getAQIStyle(aqi) {
-    const isLight = document.body.classList.contains('light-theme');
-    if (aqi <= 50) return { bg: isLight ? '#dcfce7' : 'rgba(16, 185, 129, 0.12)', border: 'rgba(16, 185, 129, 0.35)', text: isLight ? '#047857' : '#34d399', label: '良好' };
-    if (aqi <= 100) return { bg: isLight ? '#fef9c3' : 'rgba(234, 179, 8, 0.12)', border: 'rgba(234, 179, 8, 0.35)', text: isLight ? '#a16207' : '#facc15', label: '普通' };
-    if (aqi <= 200) return { bg: isLight ? '#ffedd5' : 'rgba(249, 115, 22, 0.12)', border: 'rgba(249, 115, 22, 0.35)', text: isLight ? '#c2410c' : '#fb923c', label: '不良' };
-    if (aqi <= 300) return { bg: isLight ? '#fee2e2' : 'rgba(239, 68, 68, 0.12)', border: 'rgba(239, 68, 68, 0.35)', text: isLight ? '#b91c1c' : '#f87171', label: '非常不良' };
-    if (aqi <= 400) return { bg: isLight ? '#f3e8ff' : 'rgba(168, 85, 247, 0.12)', border: 'rgba(168, 85, 247, 0.35)', text: isLight ? '#7e22ce' : '#c084fc', label: '嚴重' };
-    return { bg: isLight ? '#ffe4e6' : 'rgba(159, 18, 57, 0.12)', border: 'rgba(159, 18, 57, 0.35)', text: isLight ? '#be123c' : '#fb7185', label: '極嚴重' };
+const isLight = document.body.classList.contains('light-theme');
+if (aqi <= 50) return { bg: isLight ? '#dcfce7' : 'rgba(16, 185, 129, 0.12)', border: 'rgba(16, 185, 129, 0.35)', text: isLight ? '#047857' : '#34d399', label: '良好' };
+if (aqi <= 100) return { bg: isLight ? '#fef9c3' : 'rgba(234, 179, 8, 0.12)', border: 'rgba(234, 179, 8, 0.35)', text: isLight ? '#a16207' : '#facc15', label: '普通' };
+if (aqi <= 200) return { bg: isLight ? '#ffedd5' : 'rgba(249, 115, 22, 0.12)', border: 'rgba(249, 115, 22, 0.35)', text: isLight ? '#c2410c' : '#fb923c', label: '不良' };
+if (aqi <= 300) return { bg: isLight ? '#fee2e2' : 'rgba(239, 68, 68, 0.12)', border: 'rgba(239, 68, 68, 0.35)', text: isLight ? '#b91c1c' : '#f87171', label: '非常不良' };
+if (aqi <= 400) return { bg: isLight ? '#f3e8ff' : 'rgba(168, 85, 247, 0.12)', border: 'rgba(168, 85, 247, 0.35)', text: isLight ? '#7e22ce' : '#c084fc', label: '嚴重' };
+return { bg: isLight ? '#ffe4e6' : 'rgba(159, 18, 57, 0.12)', border: 'rgba(159, 18, 57, 0.35)', text: isLight ? '#be123c' : '#fb7185', label: '極嚴重' };
 }
-
 const WAQI_TOKEN = "12bb8b9424111ee0791c1492f0b3f346667737e2";
-
 const categories = {
-    "路邊": [
+"路邊": [
         { name: "荷蘭園", slug: "calcada-do-poco" },
         { name: "九澳", slug: "ka-ho" }
     ],
-    "高密度住宅區": [
+"高密度住宅區": [
         { name: "台山", slug: "subestacao-macau-norte" },
         { name: "氹仔中心區", slug: "parque-central-da-taipa" }
     ],
-    "一般性": [
+"一般性": [
         { name: "大潭山", slug: "taipa-grande" },
         { name: "石排灣", slug: "coloane" }
     ]
 };
-
 async function getCategoryExtremes() {
-    const summary = {};
-
-    for (const [catName, stations] of Object.entries(categories)) {
-        let fetchedData = [];
-
-        for (const station of stations) {
-            try {
-                const res = await fetch(`https://api.waqi.info/feed/macau/${station.slug}/?token=${WAQI_TOKEN}`);
-                const json = await res.json();
-                
-                if (json.status === "ok") {
-                    fetchedData.push({
-                        name: station.name,
-                        aqi: json.data.aqi,
-                        pollutant: json.data.dominentpol || '--'
+const summary = {};
+for (const [catName, stations] of Object.entries(categories)) {
+let fetchedData = [];
+for (const station of stations) {
+try {
+const res = await fetch(`https://api.waqi.info/feed/macau/${station.slug}/?token=${WAQI_TOKEN}`);
+const json = await res.json();
+if (json.status === "ok") {
+fetchedData.push({
+name: station.name,
+aqi: json.data.aqi,
+pollutant: json.data.dominentpol || '--'
                     });
                 }
             } catch (err) {
-                console.error(`Failed to fetch ${station.name}:`, err);
+console.error(`Failed to fetch ${station.name}:`, err);
             }
         }
-
-        if (fetchedData.length > 0) {
-            // Sort ascending to easily extract lowest (index 0) and highest (last index)
-            fetchedData.sort((a, b) => a.aqi - b.aqi);
-            summary[catName] = {
-                lowest: fetchedData[0],
-                highest: fetchedData[fetchedData.length - 1]
+if (fetchedData.length > 0) {
+// Sort ascending to easily extract lowest (index 0) and highest (last index)
+fetchedData.sort((a, b) => a.aqi - b.aqi);
+summary[catName] = {
+lowest: fetchedData[0],
+highest: fetchedData[fetchedData.length - 1]
             };
         }
     }
-
-    // Output category extremes directly to the console
-    console.log("Category Extremes (Lowest & Highest):", summary);
-    return summary;
+// Output category extremes directly to the console
+console.log("Category Extremes (Lowest & Highest):", summary);
+return summary;
 }
-
 getCategoryExtremes();
-
 function renderAQIBox(aqi, mainPollutant) {
-    const box = document.getElementById('aqiBox');
-    const header = document.getElementById('aqiHeader');
-    const content = document.getElementById('aqiContent');
-    if (!box || !header || !content) return;
-
-    const style = getAQIStyle(aqi);
-
-    box.style.display = 'block';
-    box.style.background = style.bg;
-    box.style.borderColor = style.border;
-    header.style.background = style.bg;
-    header.style.color = style.text;
-    header.style.borderBottom = `1px solid ${style.border}`;
-
-    content.innerHTML = `
+const box = document.getElementById('aqiBox');
+const header = document.getElementById('aqiHeader');
+const content = document.getElementById('aqiContent');
+if (!box || !header || !content) return;
+const style = getAQIStyle(aqi);
+box.style.display = 'block';
+box.style.background = style.bg;
+box.style.borderColor = style.border;
+header.style.background = style.bg;
+header.style.color = style.text;
+header.style.borderBottom = `1px solid ${style.border}`;
+content.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 85px; height: 85px; background: rgba(0,0,0,0.05); border-radius: 16px; border: 1px solid ${style.border};">
             <div style="font-size: 32px; font-weight: 800; color: ${style.text}; line-height: 1;">${aqi}</div>
         </div>
@@ -2637,34 +2585,75 @@ function renderAQIBox(aqi, mainPollutant) {
         </div>
     `;
 }
+function renderCategoryCards(summary) {
+const grid = document.getElementById('categoryGrid');
+if (!grid) return;
 
+const order = ['路邊', '高密度住宅區', '一般性'];
+grid.innerHTML = '';
+
+for (const catName of order) {
+const data = summary[catName];
+if (!data) continue;
+
+const lowStyle  = getAQIStyle(data.lowest.aqi);
+const highStyle = getAQIStyle(data.highest.aqi);
+
+const card = document.createElement('div');
+card.style.cssText = `
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+        `;
+card.innerHTML = `
+            <div style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 8px;">${catName}</div>
+
+            <div style="display: flex; justify-content: space-between; gap: 8px;">
+                <!-- 最低 -->
+                <div style="flex: 1; background: ${lowStyle.bg}; border: 1px solid ${lowStyle.border}; border-radius: 10px; padding: 8px; text-align: center;">
+                    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">最低 · ${data.lowest.name}</div>
+                    <div style="font-size: 24px; font-weight: 800; color: ${lowStyle.text}; line-height: 1.1;">${data.lowest.aqi}</div>
+                    <div style="font-size: 11px; color: ${lowStyle.text}; font-weight: 600; margin-top: 2px;">${lowStyle.label}</div>
+                </div>
+
+                <!-- 最高 -->
+                <div style="flex: 1; background: ${highStyle.bg}; border: 1px solid ${highStyle.border}; border-radius: 10px; padding: 8px; text-align: center;">
+                    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">最高 · ${data.highest.name}</div>
+                    <div style="font-size: 24px; font-weight: 800; color: ${highStyle.text}; line-height: 1.1;">${data.highest.aqi}</div>
+                    <div style="font-size: 11px; color: ${highStyle.text}; font-weight: 600; margin-top: 2px;">${highStyle.label}</div>
+                </div>
+            </div>
+        `;
+grid.appendChild(card);
+}
+}
 async function initAQIDashboard() {
-    const summary = await getCategoryExtremes();
-    
-    let maxAqi = 0;
-    let worstPollutant = '--';
+const summary = await getCategoryExtremes();
 
-    // Find the highest AQI across all categories to show on the main widget
-    for (const cat in summary) {
-        if (summary[cat].highest.aqi > maxAqi) {
-            maxAqi = summary[cat].highest.aqi;
-            worstPollutant = summary[cat].highest.pollutant;
+// —— 主 widget：全澳最高 AQI ——
+let maxAqi = 0;
+let worstPollutant = '--';
+for (const cat in summary) {
+if (summary[cat].highest.aqi > maxAqi) {
+maxAqi = summary[cat].highest.aqi;
+worstPollutant = summary[cat].highest.pollutant;
         }
     }
-
-    if (maxAqi > 0) {
-        currentAQIState.aqi = maxAqi;
-        currentAQIState.pollutant = worstPollutant;
-        renderAQIBox(maxAqi, worstPollutant);
+if (maxAqi > 0) {
+currentAQIState.aqi = maxAqi;
+currentAQIState.pollutant = worstPollutant;
+renderAQIBox(maxAqi, worstPollutant);
     }
-}
 
+// —— 分类卡片：三個分類各自的 最低/最高 ——
+renderCategoryCards(summary);
+}
 // Execute the dashboard loader
 initAQIDashboard();
-
 window.addEventListener('DOMContentLoaded', () => {
-    fetchAQIData();
-    setInterval(fetchAQIData, 5 * 60000); 
+fetchAQIData();
+setInterval(fetchAQIData, 5 * 60000); 
 });
 </script>
 
