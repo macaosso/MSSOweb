@@ -2554,80 +2554,57 @@ function getAQIStyle(aqi) {
     return { bg: isLight ? '#ffe4e6' : 'rgba(159, 18, 57, 0.12)', border: 'rgba(159, 18, 57, 0.35)', text: isLight ? '#be123c' : '#fb7185', label: '極嚴重' };
 }
 
-async function fetchAQIData() {
-    try {
-        const url = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=22.1595&longitude=113.5685&hourly=pm10,pm2_5,sulphur_dioxide,nitrogen_dioxide,ozone,carbon_monoxide&current=carbon_monoxide,pm10,pm2_5,nitrogen_dioxide,ozone,sulphur_dioxide&timezone=Asia%2FMacau&past_days=2&forecast_days=3";
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("AQI Fetch failed");
-        const data = await res.json();
+const WAQI_TOKEN = "12bb8b9424111ee0791c1492f0b3f346667737e2";
 
-        const hourly = data.hourly;
-        let currentIdx = hourly.time.indexOf(data.current.time);
-        
-        if (currentIdx === -1) {
-            const now = new Date();
-            const formatter = new Intl.DateTimeFormat('sv-SE', {
-                timeZone: 'Asia/Macau',
-                year: 'numeric', month: '2-digit', day: '2-digit',
-                hour: '2-digit', minute: '2-digit', second: '2-digit'
-            });
-            const localString = formatter.format(now).replace(' ', 'T');
-            const nowStr = localString.slice(0, 13) + ":00"; 
-            currentIdx = hourly.time.indexOf(nowStr);
-            
-            if (currentIdx === -1) {
-                currentIdx = 48; // Safe fallback index
+const macauStations = [
+    'coloane',
+    'ka-ho',
+    'parque-central-da-taipa',
+    'taipa-grande',
+    'calcada-do-poco',
+    'subestacao-macau-norte'
+];
+
+async function fetchAllMacauStations() {
+    const stationDataList = [];
+
+    for (const station of macauStations) {
+        try {
+            const url = `https://api.waqi.info/feed/macau/${station}/?token=${WAQI_TOKEN}`;
+            const res = await fetch(url);
+            const json = await res.json();
+
+            if (json.status === "ok") {
+                stationDataList.push({
+                    station: station,
+                    aqi: json.data.aqi,
+                    mainPollutant: json.data.dominentpol || '--',
+                    time: json.data.time.s
+                });
             }
+        } catch (e) {
+            console.error(`Failed to load station: ${station}`, e);
         }
+    }
 
-        const start24h = Math.max(0, currentIdx - 23);
-        const start8h = Math.max(0, currentIdx - 7);
+    // Prints a clean comparison table in your browser console
+    console.table(stationDataList);
 
-        const pm10_arr = hourly.pm10.slice(start24h, currentIdx + 1);
-        const pm25_arr = hourly.pm2_5.slice(start24h, currentIdx + 1);
-        const so2_arr = hourly.sulphur_dioxide.slice(start24h, currentIdx + 1);
-
-        const o3_arr = hourly.ozone.slice(start8h, currentIdx + 1);
-        const co_arr = hourly.carbon_monoxide.slice(start8h, currentIdx + 1);
-
-        const C_pm10 = getAverage(pm10_arr);
-        const C_pm25 = getAverage(pm25_arr);
-        const C_so2 = getAverage(so2_arr);
-        const C_o3 = getAverage(o3_arr);
-        const C_co = getAverage(co_arr) / 1000; 
-        const C_no2 = data.current.nitrogen_dioxide;
-
-        const I_pm10 = calculateSubIndex(C_pm10, 'pm10');
-        const I_pm25 = calculateSubIndex(C_pm25, 'pm25');
-        const I_so2 = calculateSubIndex(C_so2, 'so2');
-        const I_o3 = calculateSubIndex(C_o3, 'o3');
-        const I_co = calculateSubIndex(C_co, 'co');
-        const I_no2 = calculateSubIndex(C_no2, 'no2');
-
-        const indices = [
-            { name: 'PM10', concentration: C_pm10.toFixed(1), value: I_pm10 },
-            { name: 'PM2.5', concentration: C_pm25.toFixed(1), value: I_pm25 },
-            { name: 'SO₂', concentration: C_so2.toFixed(1), value: I_so2 },
-            { name: 'O₃', concentration: C_o3.toFixed(1), value: I_o3 },
-            { name: 'CO', concentration: C_co.toFixed(2), value: I_co },
-            { name: 'NO₂', concentration: C_no2.toFixed(1), value: I_no2 }
-        ];
+    // If you want to find the highest AQI among all active stations:
+    if (stationDataList.length > 0) {
+        stationDataList.sort((a, b) => b.aqi - a.aqi);
+        const highest = stationDataList[0];
         
-        // Log to browser console to inspect which pollutant is spiking past 100
-        console.table(indices);
-
-        indices.sort((a,b) => b.value - a.value);
-        const maxAQI = indices[0].value;
-        const mainPollutant = maxAQI > 50 ? indices[0].name : '--';
+        // Update your UI state directly here
+        currentAQIState.aqi = highest.aqi;
+        currentAQIState.pollutant = highest.mainPollutant;
         
-        currentAQIState.aqi = maxAQI;
-        currentAQIState.pollutant = mainPollutant;
-
-        renderAQIBox(maxAQI, mainPollutant);
-    } catch(e) {
-        console.error("空氣質量載入失敗: ", e);
+        renderAQIBox(highest.aqi, highest.mainPollutant);
     }
 }
+
+// Run the function
+fetchAllMacauStations();
 
 function renderAQIBox(aqi, mainPollutant) {
     const box = document.getElementById('aqiBox');
