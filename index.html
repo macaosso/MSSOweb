@@ -1258,22 +1258,7 @@ body.light-theme .card-bottom {
     </div>
     <div id="wbgtContent" class="content-yellow"></div>
   </div>
-
-  <div id="aqiBox" class="box" style="display: none;">
-    <div id="aqiHeader" class="header-orange">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
-      實時空氣質量指數 (AQI)
-    </div>
-    <div id="aqiContent" class="content-yellow" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;"></div>
-  </div>
-  <div id="aqiBox" class="box" style="display: none;">
-    <div id="aqiHeader" class="header-orange">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
-      實時空氣質量指數 (AQI)
-    </div>
-    <div id="categoryGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px;"></div>
-    <div id="aqiUpdateTime" style="font-size: 12px; color: var(--text-muted); margin-top: 8px; text-align: right;"></div>
-  </div>
+  
   <div class="three-tab-weather-wrap">
     <div class="three-tab-header">
       <div class="three-tab-item active" data-tab="hourly">
@@ -1305,8 +1290,8 @@ body.light-theme .card-bottom {
                 <div id="feels-desc" style="font-size: 16px; margin-top: 8px; font-weight: 500;"></div>
               </div>
             </div>
-
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+              <!-- 相對濕度 -->
               <div class="weather-item" style="padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
                 <div style="color: var(--accent-blue); display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(56, 189, 248, 0.1); border-radius: 10px; flex-shrink: 0;">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
@@ -1316,24 +1301,33 @@ body.light-theme .card-bottom {
                   <div id="hum-value" style="font-size: 16px; font-weight: 700; margin-top: 2px;"></div>
                 </div>
               </div>
-              <div class="weather-item" style="padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
-                <div style="color: var(--accent-blue); display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(56, 189, 248, 0.1); border-radius: 10px; flex-shrink: 0;">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
-                </div>
-                <div style="flex: 1; min-width: 0;">
-                  <div class="weather-label-title" style="color: var(--text-muted); font-size: 12px;">風速</div>
-                  <div id="wind-speed" style="font-size: 16px; font-weight: 700; margin-top: 2px;"></div>
-                </div>
-              </div>
+            
+              <!-- 風速與風向 (Merged) -->
               <div class="weather-item" style="padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
                 <div style="color: var(--accent-blue); display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(56, 189, 248, 0.1); border-radius: 10px; flex-shrink: 0;">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 19 21 12 17 5 21 12 2"/></svg>
                 </div>
                 <div style="flex: 1; min-width: 0;">
-                  <div class="weather-label-title" style="color: var(--text-muted); font-size: 12px;">風向</div>
-                  <div id="wind-dir" style="font-size: 16px; font-weight: 700; margin-top: 2px;"></div>
+                  <div class="weather-label-title" style="color: var(--text-muted); font-size: 12px;">風速 / 風向</div>
+                  <div style="font-size: 16px; font-weight: 700; margin-top: 2px;">
+                    <span id="wind-speed"></span> <span id="wind-dir" style="font-weight: normal; font-size: 14px; margin-left: 4px;"></span>
+                  </div>
                 </div>
               </div>
+            
+              <!-- 實時空氣質量指數 (AQI) - Replaces 風向 slot -->
+              <div class="weather-item" style="padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
+                <div style="color: #f97316; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(249, 115, 22, 0.1); border-radius: 10px; flex-shrink: 0;">
+                  <!-- Air quality / atmosphere icon -->
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                  <div class="weather-label-title" style="color: var(--text-muted); font-size: 12px;">實時空氣質量 (AQI)</div>
+                  <div id="aqi-value" style="font-size: 16px; font-weight: 700; margin-top: 2px;"></div>
+                </div>
+              </div>
+            
+              <!-- 紫外線指數 -->
               <div class="weather-item" style="padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
                 <div style="color: var(--accent-yellow); display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(250, 204, 21, 0.1); border-radius: 10px; flex-shrink: 0;">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -1360,35 +1354,13 @@ body.light-theme .card-bottom {
     </div>
   </div>
 
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin: 25px 0 20px 0;">
-    <div class="weather-item" style="padding: 14px; text-align: center;">
-      <div class="weather-label-title" style="justify-content: center; color: var(--text-muted); font-size: 12px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
-        日出
-      </div>
-      <div id="sunrise-value" style="font-size: 15px; font-weight: 700; margin-top: 6px;">--:--</div>
+  <div id="categoryBox" class="box" style="display: none;">    <!-- 第二個：各區，id 已改 -->
+    <div id="categoryHeader" class="header-orange">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg>
+      各區空氣質量指數 (AQI)
     </div>
-    <div class="weather-item" style="padding: 14px; text-align: center;">
-      <div class="weather-label-title" style="justify-content: center; color: var(--text-muted); font-size: 12px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
-        日落
-      </div>
-      <div id="sunset-value" style="font-size: 15px; font-weight: 700; margin-top: 6px;">--:--</div>
-    </div>
-    <div class="weather-item" style="padding: 14px; text-align: center;">
-      <div class="weather-label-title" style="justify-content: center; color: var(--text-muted); font-size: 12px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        月出
-      </div>
-      <div id="moonrise-value" style="font-size: 15px; font-weight: 700; margin-top: 6px;">--:--</div>
-    </div>
-    <div class="weather-item" style="padding: 14px; text-align: center;">
-      <div class="weather-label-title" style="justify-content: center; color: var(--text-muted); font-size: 12px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        月落
-      </div>
-      <div id="moonset-value" style="font-size: 15px; font-weight: 700; margin-top: 6px;">--:--</div>
-    </div>
+    <div id="categoryGrid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 12px;"></div>
+    <div id="aqiUpdateTime" style="font-size: 12px; color: var(--text-muted); margin-top: 8px; text-align: right;"></div>
   </div>
 
   <div class="forecast-chart-row">
@@ -2598,9 +2570,11 @@ content.innerHTML = `
     `;
 }
 function renderCategoryCards(summary) {
+const box = document.getElementById('categoryBox');
 const grid = document.getElementById('categoryGrid');
 const timeEl = document.getElementById('aqiUpdateTime');
 if (!grid) return;
+if (box) box.style.display = 'block';
 
 const order = ['路邊', '高密度住宅區', '一般性'];
 grid.innerHTML = '';
