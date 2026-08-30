@@ -2445,6 +2445,7 @@ async function load7DaysForecastOpenMeteo() {
 window.addEventListener('DOMContentLoaded', () => {
     loadHourlyWeather();
     load7DaysForecastOpenMeteo();
+    setInterval(loadHourlyWeather, 60000);
 });
 </script>
 
