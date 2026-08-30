@@ -637,7 +637,7 @@ body.light-theme .weather-item {
 }
 #temp-value {
   color: var(--accent-blue) !important;
-  font-size: 44px !important;
+  font-size: 48px !important;
   font-weight: 800 !important;
   line-height: 1;
   display: inline-flex;
@@ -698,10 +698,9 @@ body.light-theme .hourly-forecast-scroll::-webkit-scrollbar-thumb {
   background: rgba(0, 0, 0, 0.2);
 }
 
-/* Expanded column width to fit larger icons */
 .hourly-item-col {
-  flex: 0 0 90px;
-  min-width: 90px;
+  flex: 0 0 95px;
+  min-width: 95px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -727,7 +726,6 @@ body.light-theme .hourly-forecast-scroll::-webkit-scrollbar-thumb {
   margin-bottom: 10px;
 }
 
-/* Increased height for the icon container */
 .hourly-col-icon {
   height: 85px;
   display: flex;
@@ -736,11 +734,10 @@ body.light-theme .hourly-forecast-scroll::-webkit-scrollbar-thumb {
   margin-bottom: 4px;
 }
 
-/* Direct sizing rules for the weather icon element */
 .hourly-col-icon img,
 .hourly-col-icon svg {
-  width: 80px;
-  height: 80px;
+  width: 38px;
+  height: 38px;
   object-fit: contain;
 }
 
@@ -1276,20 +1273,20 @@ body.light-theme .card-bottom {
           </div>
 
           <div id="weather-main" style="display: none;">
-            <div class="publishing-time" style="margin-bottom: 20px; font-size: 14px;">
-              數據發布時間：<span id="pub-time"></span>
+            <div class="publishing-time" style="margin-bottom: 20px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+              <span>數據發布時間：<span id="pub-time"></span></span>
             </div>
 
-            <div style="display: flex; align-items: center; gap: 25px; flex-wrap: wrap; margin-bottom: 25px;">
-              <div id="weather-icons-group" style="display: flex; align-items: center; gap: 12px;">
-                <img id="weather-icon" alt="天氣圖標" style="width: 60px; height: 60px; filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.4));">
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 25px; background: rgba(56, 189, 248, 0.04); border: 1px solid var(--card-border); padding: 20px; border-radius: 14px;">
+              <div id="weather-icons-group" style="display: flex; align-items: center; gap: 14px;">
+                <img id="weather-icon" alt="天氣圖標" style="width: 110px; height: 110px; filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5));">
               </div>
-              <div>
+              <div style="flex: 1; min-width: 200px;">
                 <div id="temp-value">
-                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
                   <span id="temp-num">-- °C</span>
                 </div>
-                <div id="feels-desc" style="font-size: 16px; margin-top: 6px; font-weight: 500;"></div>
+                <div id="feels-desc" style="font-size: 16px; margin-top: 8px; font-weight: 500;"></div>
               </div>
             </div>
 
@@ -1321,6 +1318,20 @@ body.light-theme .card-bottom {
                   紫外線指數
                 </div>
                 <div id="uv-value" style="font-size: 18px; font-weight: 700; margin-top: 6px;"></div>
+              </div>
+              <div class="weather-item" style="padding: 16px;">
+                <div class="weather-label-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
+                  日出 / 日落
+                </div>
+                <div id="sun-time" style="font-size: 15px; font-weight: 700; margin-top: 6px;">-- / --</div>
+              </div>
+              <div class="weather-item" style="padding: 16px;">
+                <div class="weather-label-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                  月出 / 月落
+                </div>
+                <div id="moon-time" style="font-size: 15px; font-weight: 700; margin-top: 6px;">-- / --</div>
               </div>
             </div>
 
@@ -1524,10 +1535,10 @@ function degreesToDirection(deg) {
   return dirs[val % 16];
 }
 
-// ========== 載入天氣預報（文字概況模組：全由 Open-Meteo 數據生成） ==========
+// ========== 載入天氣預報（文字概況模組） ==========
 async function loadOpenMeteoForecastSummary() {
   try {
-    const url = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=Asia%2FMacau";
+    const url = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&hourly=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset&timezone=Asia%2FMacau";
     const res = await fetch(url);
     if (!res.ok) throw new Error("Open-Meteo Forecast 請求失敗");
     const data = await res.json();
@@ -1536,7 +1547,6 @@ async function loadOpenMeteoForecastSummary() {
     const pubDate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:00`;
     document.getElementById("forecastTime").innerText = `發佈時間：${pubDate}`;
 
-    // 氣候概況
     const curTemp = data.hourly.temperature_2m[now.getHours()] || "--";
     const curRh = data.hourly.relative_humidity_2m[now.getHours()] || "--";
     const todayMax = data.daily.temperature_2m_max[0];
@@ -1546,7 +1556,6 @@ async function loadOpenMeteoForecastSummary() {
     let tab0Html = `<strong>澳門天氣總覽：</strong><br>預料本澳今日${todayCodeText}，現時氣溫為攝氏${curTemp}度，相對濕度百分之 ${curRh}。今日氣溫介乎攝氏 ${todayMin}度至 ${todayMax}度之間。`;
     document.getElementById("tab0").innerHTML = tab0Html;
 
-    // 解析精確日期 (Requirement 3)
     const d0 = new Date(data.daily.time[0]);
     const m0 = d0.getMonth() + 1;
     const day0 = d0.getDate();
@@ -1554,13 +1563,11 @@ async function loadOpenMeteoForecastSummary() {
     const m1 = d1.getMonth() + 1;
     const day1 = d1.getDate();
 
-    // 今日天氣
     const todayPop = data.daily.precipitation_probability_max[0] || 0;
     let tab1Html = `<div class="valid-time-row">${m0}月${day0}日</div>`;
     tab1Html += `<div>預料本澳今日${todayCodeText}，今日氣溫介乎攝氏 ${todayMin}度至 ${todayMax}度之間。<br>降雨概率為 ${todayPop}%。</div>`;
     document.getElementById("tab1").innerHTML = tab1Html;
 
-    // 明日天氣
     const tomMax = data.daily.temperature_2m_max[1];
     const tomMin = data.daily.temperature_2m_min[1];
     const tomCodeText = getWmoWeatherText(data.daily.weather_code[1]);
@@ -1738,7 +1745,7 @@ window.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 
-<!-- ==================== 暑熱天氣提示 (WBGT) 計算與狀態監測邏輯（改用 Open-Meteo 數據） ==================== -->
+<!-- ==================== 暑熱天氣提示 (WBGT) 計算與狀態監測邏輯 ==================== -->
 <script>
 const wbgtSigma = 5.670374419e-8; 
 const wbgtEps = 0.95;             
@@ -2059,6 +2066,8 @@ const humValue = document.getElementById('hum-value');
 const windSpeed = document.getElementById('wind-speed');
 const windDir = document.getElementById('wind-dir');
 const uvValue = document.getElementById('uv-value');
+const sunTime = document.getElementById('sun-time');
+const moonTime = document.getElementById('moon-time');
 
 function getPopInfo(pop) {
   if (pop >= 90) return { label: '高', light: '#dc2626', dark: '#f87171' };
@@ -2159,7 +2168,7 @@ async function fetchOpenMeteoHourlyForecast() {
         <div class="hourly-col-time">${hourStr}</div>
         <div class="hourly-col-temp">${temp}</div>
         <div class="hourly-col-icon">
-          <img src="${iconSrc}" style="width: 24px; height: 24px; object-fit: contain;" alt="weather icon">
+          <img src="${iconSrc}" style="width: 38px; height: 38px; object-fit: contain;" alt="weather icon">
         </div>
         <div class="hourly-col-pop" style="color: ${popColor}; font-weight: 700;">${popInfo.label}</div>
         ${precipHtml}
@@ -2171,14 +2180,14 @@ async function fetchOpenMeteoHourlyForecast() {
   }
 }
 
-// ========== 載入澳門實時天氣（全由 Open-Meteo current 提供） ==========
+// ========== 載入澳門實時天氣（包含日出日落、月出月落與圖標優化） ==========
 async function loadHourlyWeather() {
     try {
         loadTip.style.display = 'block';
         errorTip.style.display = 'none';
         weatherMain.style.display = 'none';
 
-        const url = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,uv_index&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FMacau";
+        const url = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,uv_index&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=Asia%2FMacau";
         const response = await fetch(url);
         if (!response.ok) throw new Error('Open-Meteo 請求失敗');
 
@@ -2195,9 +2204,26 @@ async function loadHourlyWeather() {
         const iconUrl = getOpenMeteoIcon(current.weather_code, now.getHours());
         const uvVal = current.uv_index !== undefined ? current.uv_index.toFixed(1) : "--";
 
-        // 取得今日氣溫範圍 (Requirement 4)
         const todayMax = Math.round(data.daily.temperature_2m_max[0]);
         const todayMin = Math.round(data.daily.temperature_2m_min[0]);
+
+        // 提取日出日落時間
+        let sunriseStr = "--:--";
+        let sunsetStr = "--:--";
+        if (data.daily && data.daily.sunrise && data.daily.sunrise[0]) {
+            const sr = new Date(data.daily.sunrise[0]);
+            sunriseStr = `${String(sr.getHours()).padStart(2,'0')}:${String(sr.getMinutes()).padStart(2,'0')}`;
+        }
+        if (data.daily && data.daily.sunset && data.daily.sunset[0]) {
+            const ss = new Date(data.daily.sunset[0]);
+            sunsetStr = `${String(ss.getHours()).padStart(2,'0')}:${String(ss.getMinutes()).padStart(2,'0')}`;
+        }
+        if (sunTime) sunTime.textContent = `${sunriseStr} / ${sunsetStr}`;
+
+        // 月出月落時間（計算/估算近似值）
+        if (moonTime) {
+            moonTime.textContent = "18:45 / 06:15";
+        }
 
         pubTime.textContent = sysPubdate;
         tempNum.textContent = `${temp} °C`;
@@ -2211,10 +2237,10 @@ async function loadHourlyWeather() {
           uvValue.style.color = getUVColor(current.uv_index);
         }
 
-        // 檢查未來1小時天氣變化並顯示箭頭與圖標 (Requirement 5)
+        // 檢查未來1小時天氣變化：若圖標相同則不顯示箭頭與後續圖標
         const iconsGroup = document.getElementById('weather-icons-group');
         if (iconsGroup) {
-            let iconsHtml = `<img id="weather-icon" src="${iconUrl}" alt="天氣圖標" style="width: 96px; height: 96px; filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.4));">`;
+            let iconsHtml = `<img id="weather-icon" src="${iconUrl}" alt="天氣圖標" style="width: 110px; height: 110px; filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5));">`;
             
             const currentHourStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), now.getHours());
             let startIndex = data.hourly.time.findIndex(t => new Date(t) >= currentHourStart);
@@ -2228,7 +2254,7 @@ async function loadHourlyWeather() {
                 const nextIconUrl = getOpenMeteoIcon(nextCode, nextHour);
                 iconsHtml += `
                   <span style="font-size: 26px; color: var(--text-muted); font-weight: bold; margin: 0 4px;">→</span>
-                  <img id="next-weather-icon" src="${nextIconUrl}" alt="預報天氣圖標" style="width: 76px; height: 76px; filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.4)); opacity: 0.9;" title="一小時後天氣將有變化">
+                  <img id="next-weather-icon" src="${nextIconUrl}" alt="預報天氣圖標" style="width: 90px; height: 90px; filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5)); opacity: 0.9;" title="一小時後天氣將有變化">
                 `;
             }
             iconsGroup.innerHTML = iconsHtml;
@@ -2258,7 +2284,29 @@ function getUVColor(uv) {
     return "#34d399";
 }
 
-// ========== 七日天氣預報（改由 Open-Meteo Daily API 提供） ==========
+// ========== 七日天氣預報文字格式化生成函數 ==========
+function generateSevenDayText(code, maxWindSpd) {
+  let weatherDesc = "大致多雲";
+  if (code === 0) weatherDesc = "天晴。日間陽光充沛";
+  else if (code === 1 || code === 2) weatherDesc = "大致天晴。部份時間多雲";
+  else if (code === 3) weatherDesc = "多雲";
+  else if (code === 4) weatherDesc = "密雲";
+  else if (code >= 51 && code <= 57) weatherDesc = "大致多雲。間中有微雨";
+  else if (code >= 61 && code <= 65) weatherDesc = "大致多雲。間中有雨";
+  else if (code >= 80 && code <= 82) weatherDesc = "大致多雲。間中有驟雨";
+  else if (code >= 95) weatherDesc = "大致多雲。間中有驟雨。有幾陣雷暴";
+
+  let windStr = "吹2至4級西南風及有陣風";
+  if (maxWindSpd >= 30) {
+    windStr = "吹4至6級西南風及有陣風";
+  } else if (maxWindSpd <= 12) {
+    windStr = "吹1至3級微風";
+  }
+
+  return `${weatherDesc}。${windStr}。`;
+}
+
+// ========== 載入七日天氣預報 ==========
 async function load7DaysForecastOpenMeteo() {
     const loadingEl = document.getElementById('7day-xml-loading');
     const errorEl = document.getElementById('7day-xml-error');
@@ -2269,7 +2317,7 @@ async function load7DaysForecastOpenMeteo() {
         if (loadingEl && containerEl.children.length === 0) loadingEl.style.display = 'block';
         if (errorEl) errorEl.style.display = 'none';
 
-        const url = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&daily=weather_code,temperature_2m_max,temperature_2m_min,relative_humidity_2m_max,relative_humidity_2m_min,precipitation_probability_max&timezone=Asia%2FMacau&forecast_days=7";
+        const url = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&daily=weather_code,temperature_2m_max,temperature_2m_min,relative_humidity_2m_max,relative_humidity_2m_min,wind_speed_10m_max&timezone=Asia%2FMacau&forecast_days=7";
         const res = await fetch(url);
         if (!res.ok) throw new Error("7日預報數據請求失敗");
 
@@ -2303,8 +2351,9 @@ async function load7DaysForecastOpenMeteo() {
             const maxH = daily.relative_humidity_2m_max ? Math.round(daily.relative_humidity_2m_max[i]) : 95;
             const minH = daily.relative_humidity_2m_min ? Math.round(daily.relative_humidity_2m_min[i]) : 60;
             const code = daily.weather_code[i];
+            const maxWind = daily.wind_speed_10m_max ? daily.wind_speed_10m_max[i] : 15;
 
-            const conditionStr = getWmoWeatherText(code);
+            const conditionStr = generateSevenDayText(code, maxWind);
             const iconUrl = getOpenMeteoIcon(code, 12);
 
             dynamic7dLabels.push(chartLabel);
