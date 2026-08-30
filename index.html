@@ -2533,6 +2533,7 @@ const categories = {
 };
 async function getCategoryExtremes() {
 const summary = {};
+let latestTime = null;
 for (const [catName, stations] of Object.entries(categories)) {
 let fetchedData = [];
 for (const station of stations) {
@@ -2540,10 +2541,16 @@ try {
 const res = await fetch(`https://api.waqi.info/feed/macau/${station.slug}/?token=${WAQI_TOKEN}`);
 const json = await res.json();
 if (json.status === "ok") {
+const stationTime = (json.data && json.data.time && json.data.time.s) ? json.data.time.s : null;
+// 記錄各站 API 時間戳中最新的一個
+if (stationTime && (!latestTime || stationTime > latestTime)) {
+latestTime = stationTime;
+}
 fetchedData.push({
 name: station.name,
 aqi: json.data.aqi,
-pollutant: json.data.dominentpol || '--'
+pollutant: json.data.dominentpol || '--',
+time: stationTime
                     });
                 }
             } catch (err) {
@@ -2551,7 +2558,6 @@ console.error(`Failed to fetch ${station.name}:`, err);
             }
         }
 if (fetchedData.length > 0) {
-// Sort ascending to easily extract lowest (index 0) and highest (last index)
 fetchedData.sort((a, b) => a.aqi - b.aqi);
 summary[catName] = {
 lowest: fetchedData[0],
@@ -2559,10 +2565,10 @@ highest: fetchedData[fetchedData.length - 1]
             };
         }
     }
-// Output category extremes directly to the console
-console.log("Category Extremes (Lowest & Highest):", summary);
+summary.fetchedAt = latestTime;
 return summary;
 }
+
 function renderAQIBox(aqi, mainPollutant) {
 const box = document.getElementById('aqiBox');
 const header = document.getElementById('aqiHeader');
@@ -2593,6 +2599,13 @@ if (!grid) return;
 
 const order = ['路邊', '高密度住宅區', '一般性'];
 grid.innerHTML = '';
+// 更新時間：採用 API 回傳的 time.s（各站中最新一個）
+if (summary.fetchedAt) {
+timeEl.textContent = `(更新時間: ${summary.fetchedAt})`;
+} else {
+timeEl.textContent = '';
+}
+
 
 for (const catName of order) {
 const data = summary[catName];
@@ -2641,10 +2654,11 @@ const summary = await getCategoryExtremes();
 // —— 主 widget：全澳最高 AQI ——
 let maxAqi = 0;
 let worstPollutant = '--';
-for (const cat in summary) {
-if (summary[cat].highest.aqi > maxAqi) {
-maxAqi = summary[cat].highest.aqi;
-worstPollutant = summary[cat].highest.pollutant;
+for (const cat of Object.keys(categories)) {
+const s = summary[cat];
+if (s && s.highest.aqi > maxAqi) {
+maxAqi = s.highest.aqi;
+worstPollutant = s.highest.pollutant;
         }
     }
 if (maxAqi > 0) {
