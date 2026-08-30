@@ -1183,9 +1183,6 @@ body.light-theme .card-bottom {
       臨近降雨提示
     </div>
     <div id="rainAlertContent" class="content-blue"></div>
-    <div id="rainAlertChartContainer" style="padding: 0 20px 20px 20px; height: 160px; display: none;">
-      <canvas id="rainIntensityChart"></canvas>
-    </div>
   </div>
   
   <div class="warning-card" id="tcCard">
@@ -1458,7 +1455,6 @@ let openMeteo24hTemp = [];
 let dynamic7dLabels = [];
 let dynamic7dMax = [];
 let dynamic7dMin = [];
-let rainChartInstance = null;
 
 function toggleMenu() {
   const nav = document.getElementById("navMenu");
@@ -2160,7 +2156,6 @@ async function fetchOpenMeteoHourlyForecast() {
 
     const rainAlertBox = document.getElementById('rainAlertBox');
     const rainAlertContent = document.getElementById('rainAlertContent');
-    const rainAlertChartContainer = document.getElementById('rainAlertChartContainer');
 
     if (precipitation_probability && startIndex + 1 < precipitation_probability.length) {
       const next2Pops = precipitation_probability.slice(startIndex, startIndex + 2);
@@ -2190,49 +2185,8 @@ async function fetchOpenMeteoHourlyForecast() {
 
         rainAlertContent.innerHTML = `未來2小時 ，（${startHourStr} - ${endHourStr}），${popDesc}，請市民留意天氣變化及最新天氣資訊。（${timeFormatted}）`;
         rainAlertBox.style.display = 'block';
-
-        if (rainAlertChartContainer) {
-          rainAlertChartContainer.style.display = 'block';
-          const rainLabels = time.slice(startIndex, startIndex + 3).map(t => {
-            const d = new Date(t);
-            return `${d.getHours()}時`;
-          });
-          const rainDataVals = precipitation.slice(startIndex, startIndex + 3);
-
-          const ctxRain = document.getElementById('rainIntensityChart').getContext('2d');
-          if (rainChartInstance) {
-            rainChartInstance.destroy();
-          }
-          rainChartInstance = new Chart(ctxRain, {
-            type: 'bar',
-            data: {
-              labels: rainLabels,
-              datasets: [{
-                label: '預測降雨量 (mm)',
-                data: rainDataVals,
-                backgroundColor: 'rgba(56, 189, 248, 0.5)',
-                borderColor: '#38bdf8',
-                borderWidth: 1,
-                borderRadius: 4
-              }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { display: false },
-                title: { display: true, text: '未來降雨強度預測', font: { size: 13 } }
-              },
-              scales: {
-                x: { grid: { display: false } },
-                y: { beginAtZero: true, title: { display: true, text: 'mm' } }
-              }
-            }
-          });
-        }
       } else {
         if (rainAlertBox) rainAlertBox.style.display = 'none';
-        if (rainAlertChartContainer) rainAlertChartContainer.style.display = 'none';
       }
     }
 
@@ -2468,8 +2422,8 @@ async function load7DaysForecastOpenMeteo() {
                     <div class="card-top">${labelStr}</div>
                     <div class="card-middle">
                         <img class="card-icon-large" src="${iconUrl}" alt="weather-icon">
-                        <div class="temp-range-text">${minT} - ${maxT} °C</div>
-                        <div class="humid-range-text">${minH} - ${maxH} %</div>
+                        <div class="temp-range-text">${minT}°C ～ ${maxT}°C</div>
+                        <div class="humid-range-text">濕度 ${minH}%-${maxH}%</div>
                     </div>
                     <div class="card-bottom">
                         <div class="card-condition">${conditionStr}</div>
@@ -2478,88 +2432,22 @@ async function load7DaysForecastOpenMeteo() {
             `;
         }
 
-        if (loadingEl) loadingEl.style.display = 'none';
-        containerEl.innerHTML = html;
-
+        if (containerEl) {
+            containerEl.innerHTML = html;
+        }
+        if (loadingEl) {
+            loadingEl.style.display = 'none';
+        }
     } catch (err) {
-        console.error("7日預報讀取錯誤：", err);
+        console.error("7日預報載入失敗：", err);
         if (loadingEl) loadingEl.style.display = 'none';
         if (errorEl) errorEl.style.display = 'block';
     }
-}
-function renderCategoryCards(summary) {
-  const box = document.getElementById('categoryBox');
-  const grid = document.getElementById('categoryGrid');
-  const timeEl = document.getElementById('aqiUpdateTime');
-  if (!grid) return;
-  if (box) box.style.display = 'block';
-
-  const order = ['路邊', '高密度住宅區', '一般性'];
-  grid.innerHTML = '';
-  
-  if (summary.fetchedAt) {
-    timeEl.textContent = `(更新時間: ${summary.fetchedAt})`;
-  } else {
-    timeEl.textContent = '';
-  }
-
-  for (const catName of order) {
-    const data = summary[catName];
-    if (!data) continue;
-
-    const low = data.lowest;
-    const high = data.highest;
-    const statusStyle = getAQIStyle(high.aqi);
-
-    const card = document.createElement('div');
-    card.style.cssText = `
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 12px;
-    `;
-    card.innerHTML = `
-      <div style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 10px;">${catName}</div>
-      <div style="font-size: 24px; font-weight: 800; color: var(--text-main); line-height: 1.2;">
-        ${low.aqi} <span style="font-size: 14px; color: var(--text-muted); font-weight: 400;">~</span> ${high.aqi}
-      </div>
-      <div style="display: inline-block; margin-top: 6px; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; color: ${statusStyle.text}; background: ${statusStyle.bg}; border: 1px solid ${statusStyle.border};">
-        ${statusStyle.label}
-      </div>
-      <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">
-        ${low.name} ${low.aqi} · ${high.name} ${high.aqi}
-      </div>
-    `;
-    grid.appendChild(card);
-  }
-}
-
-const currentAQIState = { aqi: 0, pollutant: '--' };
-
-async function initAQIDashboard() {
-  const summary = await getCategoryExtremes();
-  let maxAqi = 0;
-  let worstPollutant = '--';
-  for (const cat of Object.keys(categories)) {
-    const s = summary[cat];
-    if (s && s.highest.aqi > maxAqi) {
-      maxAqi = s.highest.aqi;
-      worstPollutant = s.highest.pollutant;
-    }
-  }
-  if (maxAqi > 0) {
-    currentAQIState.aqi = maxAqi;
-    currentAQIState.pollutant = worstPollutant;
-    renderAQIBox(maxAqi, worstPollutant);
-  }
-  renderCategoryCards(summary);
 }
 
 window.addEventListener('DOMContentLoaded', () => {
     loadHourlyWeather();
     load7DaysForecastOpenMeteo();
-    initAQIDashboard();
-    setInterval(initAQIDashboard, 5 * 60000);
 });
 </script>
 
