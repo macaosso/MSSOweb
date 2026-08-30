@@ -879,90 +879,118 @@ body.light-theme .chart-btn:hover:not(.active) {
 }
 
 /* ========== 8. 七日天氣預報橫向卡片組 ========== */
-.seven-day-scroll-row {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding: 4px 2px 10px 2px;
-  scroll-behavior: smooth;
-}
-.seven-day-scroll-row::-webkit-scrollbar {
-  height: 6px;
-}
-.seven-day-scroll-row::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 4px;
-}
-body.light-theme .seven-day-scroll-row::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.03);
-}
-.seven-day-scroll-row::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 4px;
-}
-body.light-theme .seven-day-scroll-row::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
+/* ========== 七日預報新版排版 (仿 CWA 風格) ========== */
+.cwa-forecast-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    color: var(--text-main);
+    box-sizing: border-box;
 }
 
-.forecast-card-mini {
-  flex: 0 0 160px;
-  min-width: 160px;
-  background: rgba(18, 26, 43, 0.85);
-  border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 14px 12px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 8px;
-  transition: all 0.25s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+/* 36小時預報卡片 (3個區塊) */
+.cwa-short-term {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 5px;
 }
-body.light-theme .forecast-card-mini {
-  background: rgba(255, 255, 255, 0.9);
+.cwa-st-card {
+    flex: 1;
+    min-width: 120px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 15px 10px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
-
-.forecast-card-mini:hover {
-  border-color: var(--accent-blue);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(56, 189, 248, 0.15);
+.cwa-st-title {
+    font-size: 1.05em;
+    font-weight: bold;
+    color: var(--accent-blue);
 }
-
-.card-top {
-  text-align: center;
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--text-main);
-  padding-bottom: 8px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+.cwa-st-temp {
+    font-size: 1.2em;
+    font-weight: bold;
 }
-body.light-theme .card-top {
-  border-bottom-color: rgba(0, 0, 0, 0.08);
+.cwa-st-pop-label {
+    font-size: 0.85em;
+    color: var(--text-muted);
+    margin-bottom: -5px;
 }
-
-.card-middle {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 6px 0;
+.cwa-st-pop-val {
+    font-size: 1.15em;
+    font-weight: bold;
+    color: var(--accent-teal);
 }
-
-.card-middle .card-icon-large {
-  width: 52px;
-  height: 52px;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
+.cwa-st-desc {
+    font-size: 0.9em;
+    background: var(--card-bg-light);
+    border-radius: 20px;
+    padding: 5px 8px;
+    margin-top: auto;
 }
 
-.card-middle .temp-range-text {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--accent-blue);
-  display: flex;
-  align-items: center;
-  gap: 4px;
+/* 一週預報表格 */
+.cwa-long-term {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 15px;
+    overflow-x: auto;
+}
+.cwa-lt-header {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: var(--accent-blue);
+    text-align: left;
+}
+.cwa-lt-table-wrap {
+    overflow-x: auto;
+}
+.cwa-lt-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 550px;
+    text-align: center;
+}
+.cwa-lt-table th {
+    font-weight: normal;
+    padding: 10px 5px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--card-border);
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+.cwa-lt-table td {
+    padding: 12px 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.95em;
+}
+.cwa-lt-table tbody tr:last-child td {
+    border-bottom: none;
+}
+.cwa-lt-table .row-label {
+    text-align: left;
+    color: var(--text-muted);
+    font-weight: bold;
+    white-space: nowrap;
+    width: 60px;
+}
+
+/* 圖表區塊 */
+.chart-container {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 15px;
+    height: 300px;
 }
 
 /* ========== 9. 響應式適配 ========== */
@@ -2380,85 +2408,223 @@ function getWindScaleText(speedKmh) {
   return "12級或以上";
 }
 
-// ========== 載入七日天氣預報 ==========
-async function load7DaysForecastOpenMeteo() {
-    const loadingEl = document.getElementById('7day-xml-loading');
-    const errorEl = document.getElementById('7day-xml-error');
-    const containerEl = document.getElementById('7day-xml-container');
-    const updateTimeEl = document.getElementById('7dayUpdateTime');
+<div class="dashboard">
+        <!-- 天氣預報顯示容器 -->
+        <div id="seven-day-loading">正在載入天氣預報資料...</div>
+        <div id="seven-day-error" style="display: none; color: #ff6b6b;">無法載入天氣預報，請稍後再試。</div>
+        <div id="seven-day-container"></div>
 
-    try {
-        if (loadingEl && containerEl.children.length === 0) loadingEl.style.display = 'block';
-        if (errorEl) errorEl.style.display = 'none';
+        <!-- 溫度趨勢圖表容器 (證明陣列有正確更新) -->
+        <div class="chart-container">
+            <canvas id="weatherChart"></canvas>
+        </div>
+    </div>
 
-        const url = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&daily=weather_code,temperature_2m_max,temperature_2m_min,wind_speed_10m_max,precipitation_probability_max&timezone=Asia%2FMacau&forecast_days=7";
-        const res = await fetch(url);
-        if (!res.ok) throw new Error("7日預報數據請求失敗");
+    <script>
+        // === 全域變數 (供 Chart.js 使用) ===
+        let dynamic7dLabels = [];
+        let dynamic7dMax = [];
+        let dynamic7dMin = [];
+        let weatherChartInstance = null;
 
-        const data = await res.json();
-        const daily = data.daily;
+        // === 獲取天氣資料主函數 ===
+        async function fetchSevenDayForecast() {
+            const loadingEl = document.getElementById('seven-day-loading');
+            const containerEl = document.getElementById('seven-day-container');
+            const errorEl = document.getElementById('seven-day-error');
 
-        const now = new Date();
-        const pubDateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-        if (updateTimeEl) updateTimeEl.textContent = `更新時間：${pubDateStr}`;
+            if (loadingEl) loadingEl.style.display = 'block';
+            if (errorEl) errorEl.style.display = 'none';
+            if (containerEl) containerEl.innerHTML = '';
 
-        containerEl.innerHTML = '';
-        dynamic7dLabels = [];
-        dynamic7dMax = [];
-        dynamic7dMin = [];
+            try {
+                // 呼叫 Open-Meteo API (包含 precipitation_probability_max)
+                const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=22.2006&longitude=113.5461&daily=weather_code,temperature_2m_max,temperature_2m_min,relative_humidity_2m_max,relative_humidity_2m_min,wind_speed_10m_max,precipitation_probability_max&timezone=Asia%2FMacau');
+                const data = await response.json();
+                const daily = data.daily;
 
-        const weekdays = ['週日', '週一', '週二', '週三', '週四', '週五', '週六'];
+                const daysOfWeek = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
 
-        for (let i = 0; i < daily.time.length; i++) {
-            const dateObj = new Date(daily.time[i]);
-            const m = dateObj.getMonth() + 1;
-            const d = dateObj.getDate();
-            const w = weekdays[dateObj.getDay()];
-            const dateStr = i === 0 ? `今天 ${m}/${d}` : `${m}/${d} (${w})`;
+                // 清空陣列避免重複寫入
+                dynamic7dLabels = [];
+                dynamic7dMax = [];
+                dynamic7dMin = [];
 
-            const maxT = Math.round(daily.temperature_2m_max[i]);
-            const minT = Math.round(daily.temperature_2m_min[i]);
-            const code = daily.weather_code[i];
-            const icon = getOpenMeteoIcon(code, 12);
+                // 取得前兩天的資料供 36 小時預報使用
+                const todayMin = Math.round(daily.temperature_2m_min[0]);
+                const todayMax = Math.round(daily.temperature_2m_max[0]);
+                const todayPop = daily.precipitation_probability_max[0] !== null ? daily.precipitation_probability_max[0] : 20;
+
+                const tmrwMin = Math.round(daily.temperature_2m_min[1]);
+                const tmrwMax = Math.round(daily.temperature_2m_max[1]);
+                const tmrwPop = daily.precipitation_probability_max[1] !== null ? daily.precipitation_probability_max[1] : 30;
+
+                // 舒適度文字判定
+                const getComfort = (temp) => temp >= 31 ? "悶熱" : (temp >= 28 ? "舒適至悶熱" : "舒適");
+
+                // 組合 HTML 結構
+                let html = `
+                    <div class="cwa-forecast-wrapper">
+                        <!-- 36 小時天氣預報區塊 -->
+                        <div class="cwa-short-term">
+                            <div class="cwa-st-card">
+                                <div class="cwa-st-title">今日白天</div>
+                                <div class="cwa-st-temp">${todayMax - 2}° - ${todayMax}°</div>
+                                <div class="cwa-st-pop-label">降雨機率</div>
+                                <div class="cwa-st-pop-val">${todayPop}%</div>
+                                <div class="cwa-st-desc">${getComfort(todayMax)}</div>
+                            </div>
+                            <div class="cwa-st-card">
+                                <div class="cwa-st-title">今晚明晨</div>
+                                <div class="cwa-st-temp">${todayMin}° - ${todayMin + 2}°</div>
+                                <div class="cwa-st-pop-label">降雨機率</div>
+                                <div class="cwa-st-pop-val">${Math.round((todayPop + tmrwPop) / 2)}%</div>
+                                <div class="cwa-st-desc">${getComfort(todayMin + 2)}</div>
+                            </div>
+                            <div class="cwa-st-card">
+                                <div class="cwa-st-title">明日白天</div>
+                                <div class="cwa-st-temp">${tmrwMax - 2}° - ${tmrwMax}°</div>
+                                <div class="cwa-st-pop-label">降雨機率</div>
+                                <div class="cwa-st-pop-val">${tmrwPop}%</div>
+                                <div class="cwa-st-desc">${getComfort(tmrwMax)}</div>
+                            </div>
+                        </div>
+
+                        <!-- 7 日一週預報表格 -->
+                        <div class="cwa-long-term">
+                            <div class="cwa-lt-header">一週預報</div>
+                            <div class="cwa-lt-table-wrap">
+                                <table class="cwa-lt-table">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                `;
+
+                // 動態生成 7 天的表頭 + 同步圖表陣列
+                for (let i = 0; i < 7; i++) {
+                    const d = new Date(daily.time[i]);
+                    const mm = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    const dow = daysOfWeek[d.getDay()];
+                    
+                    html += `<th>${mm}/${dd}<br>${dow}</th>`;
+
+                    // === 更新圖表陣列資料 ===
+                    const chartLabel = `${mm}/${dd}`;
+                    const minT = Math.round(daily.temperature_2m_min[i]);
+                    const maxT = Math.round(daily.temperature_2m_max[i]);
+
+                    dynamic7dLabels.push(chartLabel);
+                    dynamic7dMax.push(maxT);
+                    dynamic7dMin.push(minT);
+                }
+
+                html += `
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- 白天溫度列 -->
+                                        <tr>
+                                            <td class="row-label">白天</td>
+                `;
+
+                for (let i = 0; i < 7; i++) {
+                    const maxT = Math.round(daily.temperature_2m_max[i]);
+                    html += `<td>${maxT - 2}° - ${maxT}°</td>`;
+                }
+
+                html += `
+                                        </tr>
+                                        <!-- 晚上溫度列 -->
+                                        <tr>
+                                            <td class="row-label">晚上</td>
+                `;
+
+                for (let i = 0; i < 7; i++) {
+                    const minT = Math.round(daily.temperature_2m_min[i]);
+                    html += `<td>${minT}° - ${minT + 2}°</td>`;
+                }
+
+                html += `
+                                        </tr>
+                                        <!-- 降雨機率列 -->
+                                        <tr>
+                                            <td class="row-label">降雨機率</td>
+                `;
+
+                for (let i = 0; i < 7; i++) {
+                    const pop = daily.precipitation_probability_max[i] !== null ? daily.precipitation_probability_max[i] : 0;
+                    html += `<td>${pop}%</td>`;
+                }
+
+                html += `
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                if (loadingEl) loadingEl.style.display = 'none';
+                containerEl.innerHTML = html;
+
+                // 呼叫圖表渲染函數
+                renderChart();
+
+            } catch (err) {
+                console.error("7日預報讀取錯誤：", err);
+                if (loadingEl) loadingEl.style.display = 'none';
+                if (errorEl) errorEl.style.display = 'block';
+            }
+        }
+
+        // === 渲染折線圖函數 ===
+        function renderChart() {
+            const ctx = document.getElementById('weatherChart').getContext('2d');
             
-            const windSpeedMax = daily.wind_speed_10m_max ? daily.wind_speed_10m_max[i] : null;
-            const windText = getWindScaleText(windSpeedMax);
-            const pop = daily.precipitation_probability_max ? daily.precipitation_probability_max[i] : 0;
+            // 如果圖表已存在，先銷毀避免重疊
+            if (weatherChartInstance) {
+                weatherChartInstance.destroy();
+            }
 
-            dynamic7dLabels.push(`${m}/${d}`);
-            dynamic7dMax.push(maxT);
-            dynamic7dMin.push(minT);
-
-            const card = document.createElement('div');
-            card.className = 'forecast-card-mini';
-            card.innerHTML = `
-              <div class="card-top">${dateStr}</div>
-              <div class="card-middle">
-                <img src="${icon}" class="card-icon-large" alt="weather icon">
-                <div class="temp-range-text">${minT}°C - ${maxT}°C</div>
-                <div style="font-size: 13px; font-weight: 600; color: var(--accent-teal); display: flex; align-items: center; gap: 4px;">
-                  <span>風力:</span> <span>${windText}</span>
-                </div>
-                <div style="font-size: 13px; font-weight: 600; color: var(--accent-blue); display: flex; align-items: center; gap: 4px;">
-                  <span>降雨概率:</span> <span>${pop}%</span>
-                </div>
-              </div>
-            `;
-            containerEl.appendChild(card);
+            weatherChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dynamic7dLabels,
+                    datasets: [
+                        {
+                            label: '最高溫 (°C)',
+                            data: dynamic7dMax,
+                            borderColor: '#ff6b6b',
+                            backgroundColor: 'rgba(255, 107, 107, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        },
+                        {
+                            label: '最低溫 (°C)',
+                            data: dynamic7dMin,
+                            borderColor: '#4facfe',
+                            backgroundColor: 'rgba(79, 172, 254, 0.2)',
+                            fill: true,
+                            tension: 0.4
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#ffffff' } },
+                        title: { display: true, text: '七日溫度趨勢', color: '#ffffff', font: { size: 16 } }
+                    },
+                    scales: {
+                        x: { ticks: { color: '#a0aab2' }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                        y: { ticks: { color: '#a0aab2' }, grid: { color: 'rgba(255,255,255,0.1)' } }
+                    }
+                }
+            });
         }
-
-        if (loadingEl) loadingEl.style.display = 'none';
-        chart7dUpdateTime = `更新於 ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-        if (tempChart && document.querySelector('.chart-btn.active').dataset.type === '7d') {
-            const ctx = document.getElementById('tempChart').getContext('2d');
-            render7dChart(ctx);
-        }
-    } catch (err) {
-        console.error("7日預報加載失敗：", err);
-        if (loadingEl) loadingEl.style.display = 'none';
-        if (errorEl) errorEl.style.display = 'block';
-    }
-}
 </script>
 
 </body>
