@@ -1445,7 +1445,7 @@ function getAQIStyle(aqi) {
   if (aqi <= 200) return { bg: isLight ? '#ffedd5' : 'rgba(249, 115, 22, 0.12)', border: 'rgba(249, 115, 22, 0.35)', text: isLight ? '#c2410c' : '#fb923c', label: '不良' };
   if (aqi <= 300) return { bg: isLight ? '#fee2e2' : 'rgba(239, 68, 68, 0.12)', border: 'rgba(239, 68, 68, 0.35)', text: isLight ? '#b91c1c' : '#f87171', label: '非常不良' };
   if (aqi <= 400) return { bg: isLight ? '#f3e8ff' : 'rgba(168, 85, 247, 0.12)', border: 'rgba(168, 85, 247, 0.35)', text: isLight ? '#7e22ce' : '#c084fc', label: '嚴重' };
-  return { bg: isLight ? '#ffe4e6' : 'rgba(159, 18, 57, 0.12)', border: 'rgba(159, 18, 57, 0.35)', text: isLight ? '#be123c' : '#fb7185', label: '極嚴重' };
+  return { bg: isLight ? '#ffe4e6' : 'rgba(159, 18, 57, 0.12)', border: 'rgba(159, 18, 57, 0.35)', text: isLight ? '#be123c' : '#fb7185', label: '有害' };
 }
 
 async function getCategoryExtremes() {
@@ -1525,7 +1525,7 @@ function renderCategoryCards(summary) {
         ${statusStyle.label}
       </div>
       <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">
-        ${low.name} ${low.aqi} · ${high.name} ${high.aqi}
+        ${low.name} ${low.aqi} <br> ${high.name} ${high.aqi}
       </div>
     `;
     grid.appendChild(card);
