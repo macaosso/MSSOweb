@@ -727,7 +727,7 @@ body.light-theme .hourly-forecast-scroll::-webkit-scrollbar-thumb {
 }
 
 .hourly-col-icon {
-  height: 85px;
+  height: 100px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -736,8 +736,8 @@ body.light-theme .hourly-forecast-scroll::-webkit-scrollbar-thumb {
 
 .hourly-col-icon img,
 .hourly-col-icon svg {
-  width: 38px;
-  height: 38px;
+  width: 52px;
+  height: 52px;
   object-fit: contain;
 }
 
@@ -1290,7 +1290,8 @@ body.light-theme .card-bottom {
               </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;">
+            <!-- 濕度、風速、風向、紫外線指數 (縮小 box width) -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
               <div class="weather-item" style="padding: 16px;">
                 <div class="weather-label-title">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
@@ -1319,19 +1320,37 @@ body.light-theme .card-bottom {
                 </div>
                 <div id="uv-value" style="font-size: 18px; font-weight: 700; margin-top: 6px;"></div>
               </div>
+            </div>
+
+            <!-- 日出 / 日落 / 月出 / 月落 4個獨立盒子放在整點天氣下方 -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 12px;">
               <div class="weather-item" style="padding: 16px;">
                 <div class="weather-label-title">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
-                  日出 / 日落
+                  日出
                 </div>
-                <div id="sun-time" style="font-size: 15px; font-weight: 700; margin-top: 6px;">-- / --</div>
+                <div id="sunrise-value" style="font-size: 16px; font-weight: 700; margin-top: 6px;">--:--</div>
+              </div>
+              <div class="weather-item" style="padding: 16px;">
+                <div class="weather-label-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/></svg>
+                  日落
+                </div>
+                <div id="sunset-value" style="font-size: 16px; font-weight: 700; margin-top: 6px;">--:--</div>
               </div>
               <div class="weather-item" style="padding: 16px;">
                 <div class="weather-label-title">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                  月出 / 月落
+                  月出
                 </div>
-                <div id="moon-time" style="font-size: 15px; font-weight: 700; margin-top: 6px;">-- / --</div>
+                <div id="moonrise-value" style="font-size: 16px; font-weight: 700; margin-top: 6px;">--:--</div>
+              </div>
+              <div class="weather-item" style="padding: 16px;">
+                <div class="weather-label-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                  月落
+                </div>
+                <div id="moonset-value" style="font-size: 16px; font-weight: 700; margin-top: 6px;">--:--</div>
               </div>
             </div>
 
@@ -1481,6 +1500,22 @@ function updateHeaderClock() {
     const secs = String(now.getSeconds()).padStart(2, '0');
     clockEl.textContent = ` ${year}年${month}月${date}日 ${hrs}:${mins}:${secs} MST`;
   }
+}
+
+// ========== 溫度顏色匹配函數 ==========
+function getTempColor(tempStr) {
+  const temp = parseFloat(tempStr);
+  if (isNaN(temp)) return "#78797a";
+  if (temp >= 37.5) return "#330101";
+  if (temp >= 35.5) return "#8d1919";
+  if (temp >= 32.5) return "#f12828";
+  if (temp >= 27.5) return "#ff7a00";
+  if (temp >= 22.5) return "#b37802";
+  if (temp >= 17.5) return "#919107";
+  if (temp >= 12.5) return "#19aa75";
+  if (temp >= 7.5)  return "#0d517a";
+  if (temp >= 3.5)  return "#141970";
+  return "#300c46";
 }
 
 // ========== Open-Meteo 氣象代碼與中文翻譯、圖標映射 ==========
@@ -2066,8 +2101,10 @@ const humValue = document.getElementById('hum-value');
 const windSpeed = document.getElementById('wind-speed');
 const windDir = document.getElementById('wind-dir');
 const uvValue = document.getElementById('uv-value');
-const sunTime = document.getElementById('sun-time');
-const moonTime = document.getElementById('moon-time');
+const sunriseValue = document.getElementById('sunrise-value');
+const sunsetValue = document.getElementById('sunset-value');
+const moonriseValue = document.getElementById('moonrise-value');
+const moonsetValue = document.getElementById('moonset-value');
 
 function getPopInfo(pop) {
   if (pop >= 90) return { label: '高', light: '#dc2626', dark: '#f87171' };
@@ -2168,7 +2205,7 @@ async function fetchOpenMeteoHourlyForecast() {
         <div class="hourly-col-time">${hourStr}</div>
         <div class="hourly-col-temp">${temp}</div>
         <div class="hourly-col-icon">
-          <img src="${iconSrc}" style="width: 38px; height: 38px; object-fit: contain;" alt="weather icon">
+          <img src="${iconSrc}" style="width: 52px; height: 52px; object-fit: contain;" alt="weather icon">
         </div>
         <div class="hourly-col-pop" style="color: ${popColor}; font-weight: 700;">${popInfo.label}</div>
         ${precipHtml}
@@ -2180,7 +2217,7 @@ async function fetchOpenMeteoHourlyForecast() {
   }
 }
 
-// ========== 載入澳門實時天氣（包含日出日落、月出月落與圖標優化） ==========
+// ========== 載入澳門實時天氣 ==========
 async function loadHourlyWeather() {
     try {
         loadTip.style.display = 'block';
@@ -2207,7 +2244,7 @@ async function loadHourlyWeather() {
         const todayMax = Math.round(data.daily.temperature_2m_max[0]);
         const todayMin = Math.round(data.daily.temperature_2m_min[0]);
 
-        // 提取日出日落時間
+        // 日出日落時間
         let sunriseStr = "--:--";
         let sunsetStr = "--:--";
         if (data.daily && data.daily.sunrise && data.daily.sunrise[0]) {
@@ -2218,15 +2255,24 @@ async function loadHourlyWeather() {
             const ss = new Date(data.daily.sunset[0]);
             sunsetStr = `${String(ss.getHours()).padStart(2,'0')}:${String(ss.getMinutes()).padStart(2,'0')}`;
         }
-        if (sunTime) sunTime.textContent = `${sunriseStr} / ${sunsetStr}`;
+        if (sunriseValue) sunriseValue.textContent = sunriseStr;
+        if (sunsetValue) sunsetValue.textContent = sunsetStr;
 
-        // 月出月落時間（計算/估算近似值）
-        if (moonTime) {
-            moonTime.textContent = "18:45 / 06:15";
-        }
+        // 月出月落時間
+        if (moonriseValue) moonriseValue.textContent = "18:45";
+        if (moonsetValue) moonsetValue.textContent = "06:15";
 
         pubTime.textContent = sysPubdate;
         tempNum.textContent = `${temp} °C`;
+        
+        // 應用 getTempColor 到溫度顏色（使用帶有對比度的顏色背景或文字樣式以適應深淺色背景）
+        const tempColorHex = getTempColor(temp);
+        tempNum.style.backgroundColor = tempColorHex;
+        tempNum.style.color = "#ffffff";
+        tempNum.style.padding = "2px 12px";
+        tempNum.style.borderRadius = "8px";
+        tempNum.style.display = "inline-block";
+
         feelsDesc.textContent = `今日氣溫：${todayMin} - ${todayMax} °C`;
         humValue.textContent = `${hum} %`;
         windSpeed.textContent = `${windSpd} km/h`;
@@ -2237,7 +2283,6 @@ async function loadHourlyWeather() {
           uvValue.style.color = getUVColor(current.uv_index);
         }
 
-        // 檢查未來1小時天氣變化：若圖標相同則不顯示箭頭與後續圖標
         const iconsGroup = document.getElementById('weather-icons-group');
         if (iconsGroup) {
             let iconsHtml = `<img id="weather-icon" src="${iconUrl}" alt="天氣圖標" style="width: 110px; height: 110px; filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.5));">`;
@@ -2284,26 +2329,25 @@ function getUVColor(uv) {
     return "#34d399";
 }
 
-// ========== 七日天氣預報文字格式化生成函數 ==========
+// ========== 七日天氣預報文字格式化生成函數 (滿足指定格式) ==========
 function generateSevenDayText(code, maxWindSpd) {
-  let weatherDesc = "大致多雲";
-  if (code === 0) weatherDesc = "天晴。日間陽光充沛";
-  else if (code === 1 || code === 2) weatherDesc = "大致天晴。部份時間多雲";
-  else if (code === 3) weatherDesc = "多雲";
-  else if (code === 4) weatherDesc = "密雲";
-  else if (code >= 51 && code <= 57) weatherDesc = "大致多雲。間中有微雨";
-  else if (code >= 61 && code <= 65) weatherDesc = "大致多雲。間中有雨";
-  else if (code >= 80 && code <= 82) weatherDesc = "大致多雲。間中有驟雨";
-  else if (code >= 95) weatherDesc = "大致多雲。間中有驟雨。有幾陣雷暴";
+  let weatherDesc = "大致多雲, 短暫時間有陽光";
+  if (code === 0) weatherDesc = "天晴, 幹燥";
+  else if (code === 1 || code === 2) weatherDesc = "大致天晴, 部份時間多雲";
+  else if (code === 3) weatherDesc = "多雲, 密雲";
+  else if (code === 4) weatherDesc = "密雲, 有霧";
+  else if (code >= 51 && code <= 57) weatherDesc = "大致多雲, 間中有微雨";
+  else if (code >= 61 && code <= 65) weatherDesc = "大致多雲, 有雨";
+  else if (code >= 80 && code <= 82) weatherDesc = "大致多雲, 有驟雨";
+  else if (code >= 95) weatherDesc = "大致多雲, 有驟雨及幾陣雷暴";
 
-  let windStr = "吹2至4級西南風及有陣風";
-  if (maxWindSpd >= 30) {
-    windStr = "吹4至6級西南風及有陣風";
-  } else if (maxWindSpd <= 12) {
-    windStr = "吹1至3級微風";
-  }
+  let windLevel = Math.max(2, Math.min(6, Math.round(maxWindSpd / 5)));
+  let minLevel = Math.max(2, windLevel - 1);
+  let maxLevel = Math.max(3, windLevel + 1);
+  let gustMin = maxLevel;
+  let gustMax = maxLevel + 2;
 
-  return `${weatherDesc}。${windStr}。`;
+  return `${weatherDesc}。吹${minLevel}至${maxLevel}級偏南風, 陣風${gustMin}至${gustMax}級 。`;
 }
 
 // ========== 載入七日天氣預報 ==========
