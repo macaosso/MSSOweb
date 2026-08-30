@@ -1175,7 +1175,6 @@ body.light-theme .card-bottom {
 </div>
 
 <div class="page-wrapper">
-  <!-- 臨近降雨提示框 -->
   <div id="rainAlertBox" style="display: none;">
     <div class="header-blue">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1245,7 +1244,6 @@ body.light-theme .card-bottom {
     <div id="tideContent" class="content-yellow"></div>
   </div>
 
-  <!-- 暑熱天氣提示框 -->
   <div id="wbgtBox" class="box" style="display: none;">
     <div class="header-orange">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1259,6 +1257,14 @@ body.light-theme .card-bottom {
       暑熱天氣提示
     </div>
     <div id="wbgtContent" class="content-yellow"></div>
+  </div>
+
+  <div id="aqiBox" class="box" style="display: none;">
+    <div id="aqiHeader" class="header-orange">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg>
+      實時空氣質量指數 (AQI)
+    </div>
+    <div id="aqiContent" class="content-yellow" style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;"></div>
   </div>
 
   <div class="three-tab-weather-wrap">
@@ -1293,7 +1299,6 @@ body.light-theme .card-bottom {
               </div>
             </div>
 
-            <!-- 濕度、風速、風向、紫外線指數 -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
               <div class="weather-item" style="padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
                 <div style="color: var(--accent-blue); display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(56, 189, 248, 0.1); border-radius: 10px; flex-shrink: 0;">
@@ -1333,7 +1338,6 @@ body.light-theme .card-bottom {
               </div>
             </div>
 
-            <!-- 整點逐時天氣預報組件 -->
             <div class="hourly-forecast-section">
               <div class="hourly-forecast-date-title" id="hourlyForecastDateHeader">--月--日 --</div>
               <div class="hourly-forecast-scroll" id="hourlyForecastScrollContainer"></div>
@@ -1349,7 +1353,6 @@ body.light-theme .card-bottom {
     </div>
   </div>
 
-  <!-- 日出 / 日落 / 月出 / 月落 -->
   <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin: 25px 0 20px 0;">
     <div class="weather-item" style="padding: 14px; text-align: center;">
       <div class="weather-label-title" style="justify-content: center; color: var(--text-muted); font-size: 12px;">
@@ -1443,6 +1446,10 @@ function applyTheme(theme) {
     document.body.classList.remove('light-theme');
   }
   updateChartColors();
+  
+  if (typeof currentAQIState !== 'undefined' && typeof renderAQIBox === 'function' && currentAQIState.aqi > 0) {
+      renderAQIBox(currentAQIState.aqi, currentAQIState.pollutant);
+  }
 }
 
 function toggleTheme() {
@@ -1792,7 +1799,6 @@ window.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 
-<!-- ==================== 暑熱天氣提示 (WBGT) 計算與狀態監測邏輯 ==================== -->
 <script>
 const wbgtSigma = 5.670374419e-8; 
 const wbgtEps = 0.95;             
@@ -2495,6 +2501,149 @@ async function load7DaysForecastOpenMeteo() {
 window.addEventListener('DOMContentLoaded', () => {
     loadHourlyWeather();
     load7DaysForecastOpenMeteo();
+});
+</script>
+
+<script>
+let currentAQIState = { aqi: 0, pollutant: '--' };
+
+const aqi_I_bounds = [0, 50, 100, 200, 300, 400, 500];
+const aqi_breakpoints = {
+    pm10: [0, 50, 100, 250, 350, 420, 500],
+    pm25: [0, 25, 50, 115, 150, 250, 350],
+    so2:  [0, 20, 50, 150, 475, 800, 1600],
+    no2:  [0, 100, 200, 700, 1200, 2000, 2500],
+    o3:   [0, 80, 160, 240, 400, 600, 800],
+    co:   [0, 5, 10, 17, 34, 46, 57]
+};
+
+function calculateSubIndex(C, type) {
+    const C_bounds = aqi_breakpoints[type];
+    if (C < 0 || isNaN(C)) return 0;
+    for (let i = 0; i < C_bounds.length - 1; i++) {
+        if (C >= C_bounds[i] && C <= C_bounds[i+1]) {
+            const I_hi = aqi_I_bounds[i+1];
+            const I_lo = aqi_I_bounds[i];
+            const C_hi = C_bounds[i+1];
+            const C_lo = C_bounds[i];
+            return Math.round(((I_hi - I_lo) / (C_hi - C_lo)) * (C - C_lo) + I_lo);
+        }
+    }
+    // Extrapolate if > max
+    const last = C_bounds.length - 1;
+    const I_hi = aqi_I_bounds[last];
+    const I_lo = aqi_I_bounds[last - 1];
+    const C_hi = C_bounds[last];
+    const C_lo = C_bounds[last - 1];
+    return Math.round(((I_hi - I_lo) / (C_hi - C_lo)) * (C - C_lo) + I_lo);
+}
+
+function getAverage(arr) {
+    const valid = arr.filter(v => v !== null && v !== undefined && !isNaN(v));
+    if (valid.length === 0) return 0;
+    return valid.reduce((a, b) => a + b, 0) / valid.length;
+}
+
+function getAQIStyle(aqi) {
+    const isLight = document.body.classList.contains('light-theme');
+    if (aqi <= 50) return { bg: isLight ? '#dcfce7' : 'rgba(16, 185, 129, 0.12)', border: 'rgba(16, 185, 129, 0.35)', text: isLight ? '#047857' : '#34d399', label: '良好' };
+    if (aqi <= 100) return { bg: isLight ? '#fef9c3' : 'rgba(234, 179, 8, 0.12)', border: 'rgba(234, 179, 8, 0.35)', text: isLight ? '#a16207' : '#facc15', label: '普通' };
+    if (aqi <= 200) return { bg: isLight ? '#ffedd5' : 'rgba(249, 115, 22, 0.12)', border: 'rgba(249, 115, 22, 0.35)', text: isLight ? '#c2410c' : '#fb923c', label: '不良' };
+    if (aqi <= 300) return { bg: isLight ? '#fee2e2' : 'rgba(239, 68, 68, 0.12)', border: 'rgba(239, 68, 68, 0.35)', text: isLight ? '#b91c1c' : '#f87171', label: '非常不良' };
+    if (aqi <= 400) return { bg: isLight ? '#f3e8ff' : 'rgba(168, 85, 247, 0.12)', border: 'rgba(168, 85, 247, 0.35)', text: isLight ? '#7e22ce' : '#c084fc', label: '嚴重' };
+    return { bg: isLight ? '#ffe4e6' : 'rgba(159, 18, 57, 0.12)', border: 'rgba(159, 18, 57, 0.35)', text: isLight ? '#be123c' : '#fb7185', label: '極嚴重' };
+}
+
+async function fetchAQIData() {
+    try {
+        const url = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=22.1595&longitude=113.5685&hourly=pm10,pm2_5,sulphur_dioxide,nitrogen_dioxide,ozone,carbon_monoxide&current=carbon_monoxide,pm10,pm2_5,nitrogen_dioxide,ozone,sulphur_dioxide&timezone=Asia%2FSingapore&past_days=1&forecast_days=3";
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("AQI Fetch failed");
+        const data = await res.json();
+
+        const hourly = data.hourly;
+        let currentIdx = hourly.time.indexOf(data.current.time);
+        
+        if (currentIdx === -1) {
+            const now = new Date();
+            const nowStr = now.toISOString().slice(0, 13) + ":00";
+            currentIdx = hourly.time.indexOf(nowStr);
+            if (currentIdx === -1) currentIdx = hourly.time.length - 1; 
+        }
+
+        const pm10_arr = hourly.pm10.slice(Math.max(0, currentIdx - 23), currentIdx + 1);
+        const pm25_arr = hourly.pm2_5.slice(Math.max(0, currentIdx - 23), currentIdx + 1);
+        const so2_arr = hourly.sulphur_dioxide.slice(Math.max(0, currentIdx - 23), currentIdx + 1);
+
+        const o3_arr = hourly.ozone.slice(Math.max(0, currentIdx - 7), currentIdx + 1);
+        const co_arr = hourly.carbon_monoxide.slice(Math.max(0, currentIdx - 7), currentIdx + 1);
+
+        const C_pm10 = getAverage(pm10_arr);
+        const C_pm25 = getAverage(pm25_arr);
+        const C_so2 = getAverage(so2_arr);
+        const C_o3 = getAverage(o3_arr);
+        const C_co = getAverage(co_arr) / 1000; 
+        const C_no2 = data.current.nitrogen_dioxide;
+
+        const I_pm10 = calculateSubIndex(C_pm10, 'pm10');
+        const I_pm25 = calculateSubIndex(C_pm25, 'pm25');
+        const I_so2 = calculateSubIndex(C_so2, 'so2');
+        const I_o3 = calculateSubIndex(C_o3, 'o3');
+        const I_co = calculateSubIndex(C_co, 'co');
+        const I_no2 = calculateSubIndex(C_no2, 'no2');
+
+        const indices = [
+            { name: 'PM10', value: I_pm10 },
+            { name: 'PM2.5', value: I_pm25 },
+            { name: 'SO₂', value: I_so2 },
+            { name: 'O₃', value: I_o3 },
+            { name: 'CO', value: I_co },
+            { name: 'NO₂', value: I_no2 }
+        ];
+        
+        indices.sort((a,b) => b.value - a.value);
+        const maxAQI = indices[0].value;
+        const mainPollutant = maxAQI > 50 ? indices[0].name : '--';
+        
+        currentAQIState.aqi = maxAQI;
+        currentAQIState.pollutant = mainPollutant;
+
+        renderAQIBox(maxAQI, mainPollutant);
+    } catch(e) {
+        console.error("空氣質量載入失敗: ", e);
+    }
+}
+
+function renderAQIBox(aqi, mainPollutant) {
+    const box = document.getElementById('aqiBox');
+    const header = document.getElementById('aqiHeader');
+    const content = document.getElementById('aqiContent');
+    if (!box || !header || !content) return;
+
+    const style = getAQIStyle(aqi);
+
+    box.style.display = 'block';
+    box.style.background = style.bg;
+    box.style.borderColor = style.border;
+    header.style.background = style.bg;
+    header.style.color = style.text;
+    header.style.borderBottom = `1px solid ${style.border}`;
+
+    content.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 85px; height: 85px; background: rgba(0,0,0,0.05); border-radius: 16px; border: 1px solid ${style.border};">
+            <div style="font-size: 32px; font-weight: 800; color: ${style.text}; line-height: 1;">${aqi}</div>
+        </div>
+        <div style="flex: 1; padding: 4px 0;">
+            <div style="font-size: 20px; font-weight: 700; color: ${style.text}; margin-bottom: 4px;">${style.label}</div>
+            <div style="font-size: 14px; color: var(--text-main); font-weight: 500;">首要污染物: ${mainPollutant}</div>
+            <div style="font-size: 12.5px; margin-top: 6px; color: var(--text-muted);">實時空氣質量指數 (依據澳門相關計算標準)</div>
+        </div>
+    `;
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    fetchAQIData();
+    setInterval(fetchAQIData, 5 * 60000); 
 });
 </script>
 
