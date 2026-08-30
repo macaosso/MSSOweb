@@ -2493,224 +2493,163 @@ window.addEventListener('DOMContentLoaded', () => {
 
 <script>
 function getAQIStyle(aqi) {
-const isLight = document.body.classList.contains('light-theme');
-if (aqi <= 50) return { bg: isLight ? '#dcfce7' : 'rgba(16, 185, 129, 0.12)', border: 'rgba(16, 185, 129, 0.35)', text: isLight ? '#047857' : '#34d399', label: '良好' };
-if (aqi <= 100) return { bg: isLight ? '#fef9c3' : 'rgba(234, 179, 8, 0.12)', border: 'rgba(234, 179, 8, 0.35)', text: isLight ? '#a16207' : '#facc15', label: '普通' };
-if (aqi <= 200) return { bg: isLight ? '#ffedd5' : 'rgba(249, 115, 22, 0.12)', border: 'rgba(249, 115, 22, 0.35)', text: isLight ? '#c2410c' : '#fb923c', label: '不良' };
-if (aqi <= 300) return { bg: isLight ? '#fee2e2' : 'rgba(239, 68, 68, 0.12)', border: 'rgba(239, 68, 68, 0.35)', text: isLight ? '#b91c1c' : '#f87171', label: '非常不良' };
-if (aqi <= 400) return { bg: isLight ? '#f3e8ff' : 'rgba(168, 85, 247, 0.12)', border: 'rgba(168, 85, 247, 0.35)', text: isLight ? '#7e22ce' : '#c084fc', label: '嚴重' };
-return { bg: isLight ? '#ffe4e6' : 'rgba(159, 18, 57, 0.12)', border: 'rgba(159, 18, 57, 0.35)', text: isLight ? '#be123c' : '#fb7185', label: '極嚴重' };
+  const isLight = document.body.classList.contains('light-theme');
+  if (aqi <= 50) return { bg: isLight ? '#dcfce7' : 'rgba(16, 185, 129, 0.12)', border: 'rgba(16, 185, 129, 0.35)', text: isLight ? '#047857' : '#34d399', label: '良好' };
+  if (aqi <= 100) return { bg: isLight ? '#fef9c3' : 'rgba(234, 179, 8, 0.12)', border: 'rgba(234, 179, 8, 0.35)', text: isLight ? '#a16207' : '#facc15', label: '普通' };
+  if (aqi <= 200) return { bg: isLight ? '#ffedd5' : 'rgba(249, 115, 22, 0.12)', border: 'rgba(249, 115, 22, 0.35)', text: isLight ? '#c2410c' : '#fb923c', label: '不良' };
+  if (aqi <= 300) return { bg: isLight ? '#fee2e2' : 'rgba(239, 68, 68, 0.12)', border: 'rgba(239, 68, 68, 0.35)', text: isLight ? '#b91c1c' : '#f87171', label: '非常不良' };
+  if (aqi <= 400) return { bg: isLight ? '#f3e8ff' : 'rgba(168, 85, 247, 0.12)', border: 'rgba(168, 85, 247, 0.35)', text: isLight ? '#7e22ce' : '#c084fc', label: '嚴重' };
+  return { bg: isLight ? '#ffe4e6' : 'rgba(159, 18, 57, 0.12)', border: 'rgba(159, 18, 57, 0.35)', text: isLight ? '#be123c' : '#fb7185', label: '極嚴重' };
 }
+
 const WAQI_TOKEN = "12bb8b9424111ee0791c1492f0b3f346667737e2";
 const categories = {
-"路邊": [
-        { name: "荷蘭園", slug: "calcada-do-poco" },
-        { name: "九澳", slug: "ka-ho" }
-    ],
-"高密度住宅區": [
-        { name: "台山", slug: "subestacao-macau-norte" },
-        { name: "氹仔中心區", slug: "parque-central-da-taipa" }
-    ],
-"一般性": [
-        { name: "大潭山", slug: "taipa-grande" },
-        { name: "石排灣", slug: "coloane" }
-    ]
+  "路邊": [
+    { name: "荷蘭園", slug: "calcada-do-poco" },
+    { name: "九澳", slug: "ka-ho" }
+  ],
+  "高密度住宅區": [
+    { name: "台山", slug: "subestacao-macau-norte" },
+    { name: "氹仔中心區", slug: "parque-central-da-taipa" }
+  ],
+  "一般性": [
+    { name: "大潭山", slug: "taipa-grande" },
+    { name: "石排灣", slug: "coloane" }
+  ]
 };
 
-
 async function getCategoryExtremes() {
-const summary = {};
-let latestTime = null;
-for (const [catName, stations] of Object.entries(categories)) {
-let fetchedData = [];
-for (const station of stations) {
-try {
-const res = await fetch(`https://api.waqi.info/feed/macau/${station.slug}/?token=${WAQI_TOKEN}`);
-const json = await res.json();
-if (json.status === "ok") {
-const stationTime = (json.data && json.data.time && json.data.time.s) ? json.data.time.s : null;
-// 記錄各站 API 時間戳中最新的一個
-if (stationTime && (!latestTime || stationTime > latestTime)) {
-latestTime = stationTime;
-}
-fetchedData.push({
-name: station.name,
-aqi: json.data.aqi,
-pollutant: json.data.dominentpol || '--',
-time: stationTime
-                    });
-                }
-            } catch (err) {
-console.error(`Failed to fetch ${station.name}:`, err);
-            }
+  const summary = {};
+  let latestTime = null;
+  for (const [catName, stations] of Object.entries(categories)) {
+    let fetchedData = [];
+    for (const station of stations) {
+      try {
+        const res = await fetch(`https://api.waqi.info/feed/macau/${station.slug}/?token=${WAQI_TOKEN}`);
+        const json = await res.json();
+        if (json.status === "ok" && json.data && typeof json.data.aqi === 'number') {
+          const stationTime = (json.data.time && json.data.time.s) ? json.data.time.s : null;
+          if (stationTime && (!latestTime || stationTime > latestTime)) {
+            latestTime = stationTime;
+          }
+          fetchedData.push({
+            name: station.name,
+            aqi: json.data.aqi,
+            pollutant: json.data.dominentpol || '--',
+            time: stationTime
+          });
         }
-if (fetchedData.length > 0) {
-fetchedData.sort((a, b) => a.aqi - b.aqi);
-summary[catName] = {
-lowest: fetchedData[0],
-highest: fetchedData[fetchedData.length - 1]
-            };
-        }
+      } catch (err) {
+        console.error(`Failed to fetch ${station.name}:`, err);
+      }
     }
-summary.fetchedAt = latestTime;
-return summary;
+    if (fetchedData.length > 0) {
+      fetchedData.sort((a, b) => a.aqi - b.aqi);
+      summary[catName] = {
+        lowest: fetchedData[0],
+        highest: fetchedData[fetchedData.length - 1]
+      };
+    }
+  }
+  summary.fetchedAt = latestTime;
+  return summary;
 }
 
 function renderAQIBox(aqi, mainPollutant) {
-const box = document.getElementById('aqiBox');
-const header = document.getElementById('aqiHeader');
-const content = document.getElementById('aqiContent');
-if (!box || !header || !content) return;
-const style = getAQIStyle(aqi);
-box.style.display = 'block';
-box.style.background = style.bg;
-box.style.borderColor = style.border;
-header.style.background = style.bg;
-header.style.color = style.text;
-header.style.borderBottom = `1px solid ${style.border}`;
-content.innerHTML = `
-        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 85px; height: 85px; background: rgba(0,0,0,0.05); border-radius: 16px; border: 1px solid ${style.border};">
-            <div style="font-size: 32px; font-weight: 800; color: ${style.text}; line-height: 1;">${aqi}</div>
-        </div>
-        <div style="flex: 1; padding: 4px 0;">
-            <div style="font-size: 20px; font-weight: 700; color: ${style.text}; margin-bottom: 4px;">${style.label}</div>
-            <div style="font-size: 14px; color: var(--text-main); font-weight: 500;">首要污染物: ${mainPollutant}</div>
-            <div style="font-size: 12.5px; margin-top: 6px; color: var(--text-muted);">實時空氣質量指數 (依據澳門相關計算標準)</div>
-        </div>
-    `;
+  const box = document.getElementById('aqiBox');
+  const header = document.getElementById('aqiHeader');
+  const content = document.getElementById('aqiContent');
+  if (!box || !header || !content) return;
+  const style = getAQIStyle(aqi);
+  box.style.display = 'block';
+  box.style.background = style.bg;
+  box.style.borderColor = style.border;
+  header.style.background = style.bg;
+  header.style.color = style.text;
+  header.style.borderBottom = `1px solid ${style.border}`;
+  content.innerHTML = `
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 85px; height: 85px; background: rgba(0,0,0,0.05); border-radius: 16px; border: 1px solid ${style.border};">
+      <div style="font-size: 32px; font-weight: 800; color: ${style.text}; line-height: 1;">${aqi}</div>
+    </div>
+    <div style="flex: 1; padding: 4px 0;">
+      <div style="font-size: 20px; font-weight: 700; color: ${style.text}; margin-bottom: 4px;">${style.label}</div>
+      <div style="font-size: 14px; color: var(--text-main); font-weight: 500;">首要污染物: ${mainPollutant}</div>
+      <div style="font-size: 12.5px; margin-top: 6px; color: var(--text-muted);">實時空氣質量指數 (依據澳門相關計算標準)</div>
+    </div>
+  `;
 }
+
 function renderCategoryCards(summary) {
-const box = document.getElementById('categoryBox');
-const grid = document.getElementById('categoryGrid');
-const timeEl = document.getElementById('aqiUpdateTime');
-if (!grid) return;
-if (box) box.style.display = 'block';
+  const box = document.getElementById('categoryBox');
+  const grid = document.getElementById('categoryGrid');
+  const timeEl = document.getElementById('aqiUpdateTime');
+  if (!grid) return;
+  if (box) box.style.display = 'block';
 
-const order = ['路邊', '高密度住宅區', '一般性'];
-grid.innerHTML = '';
-// 更新時間：採用 API 回傳的 time.s（各站中最新一個）
-if (summary.fetchedAt) {
-timeEl.textContent = `(更新時間: ${summary.fetchedAt})`;
-} else {
-timeEl.textContent = '';
-}
+  const order = ['路邊', '高密度住宅區', '一般性'];
+  grid.innerHTML = '';
+  
+  if (summary.fetchedAt) {
+    timeEl.textContent = `(更新時間: ${summary.fetchedAt})`;
+  } else {
+    timeEl.textContent = '';
+  }
 
-async function loadAQIData() {
-  try {
-    const url = "https://air-quality-api.open-meteo.com/v1/air-quality?latitude=22.1595&longitude=113.5685&current=european_aqi,pm10,pm2_5,nitrogen_dioxide&timezone=Asia%2FMacau";
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("AQI 數據請求失敗");
-    const data = await res.json();
-    
-    if (data && data.current) {
-      const aqiVal = data.current.european_aqi || '--';
-      const aqiElem = document.getElementById('aqi-value');
-      if (aqiElem) {
-        aqiElem.textContent = `${aqiVal} (歐洲AQI)`;
-      }
+  for (const catName of order) {
+    const data = summary[catName];
+    if (!data) continue;
 
-      // Optional: Populate regional boxes if container exists
-      const categoryGrid = document.getElementById('categoryGrid');
-      const categoryBox = document.getElementById('categoryBox');
-      const aqiTime = document.getElementById('aqiUpdateTime');
-      
-      if (categoryGrid && categoryBox) {
-        const regions = [
-          { name: '澳門半島', pm25: data.current.pm2_5, aqi: aqiVal },
-          { name: '氹仔', pm25: (data.current.pm2_5 * 0.95).toFixed(1), aqi: Math.round(aqiVal * 0.95) },
-          { name: '路環', pm25: (data.current.pm2_5 * 0.9).toFixed(1), aqi: Math.round(aqiVal * 0.9) }
-        ];
+    const low = data.lowest;
+    const high = data.highest;
+    const statusStyle = getAQIStyle(high.aqi);
 
-        let gridHtml = '';
-        regions.forEach(reg => {
-          gridHtml += `
-            <div style="background: rgba(255,255,255,0.04); padding: 10px; border-radius: 8px; text-align: center; border: 1px solid var(--card-border);">
-              <div style="font-size: 13px; color: var(--text-muted);">${reg.name}</div>
-              <div style="font-size: 15px; font-weight: 700; color: var(--accent-orange); margin-top: 4px;">AQI: ${reg.aqi}</div>
-              <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">PM2.5: ${reg.pm25} µg/m³</div>
-            </div>
-          `;
-        });
-        categoryGrid.innerHTML = gridHtml;
-        categoryBox.style.display = 'block';
-        if (aqiTime) aqiTime.textContent = `更新時間：${new Date().toLocaleTimeString()}`;
-      }
-    }
-  } catch (err) {
-    console.error("AQI 數據載入錯誤：", err);
+    const card = document.createElement('div');
+    card.style.cssText = `
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px;
+    `;
+    card.innerHTML = `
+      <div style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 10px;">${catName}</div>
+      <div style="font-size: 24px; font-weight: 800; color: var(--text-main); line-height: 1.2;">
+        ${low.aqi} <span style="font-size: 14px; color: var(--text-muted); font-weight: 400;">~</span> ${high.aqi}
+      </div>
+      <div style="display: inline-block; margin-top: 6px; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; color: ${statusStyle.text}; background: ${statusStyle.bg}; border: 1px solid ${statusStyle.border};">
+        ${statusStyle.label}
+      </div>
+      <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">
+        ${low.name} ${low.aqi} · ${high.name} ${high.aqi}
+      </div>
+    `;
+    grid.appendChild(card);
   }
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  loadAQIData();
-});
-for (const catName of order) {
-const data = summary[catName];
-if (!data) continue;
-
-const low = data.lowest;
-const high = data.highest;
-// 以該分類最高 AQI 的等級作為整體狀態標籤
-const statusStyle = getAQIStyle(high.aqi);
-
-const card = document.createElement('div');
-card.style.cssText = `
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 12px;
-        `;
-card.innerHTML = `
-            <div style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 10px;">${catName}</div>
-
-            <div style="font-size: 24px; font-weight: 800; color: var(--text-main); line-height: 1.2;">
-                ${low.aqi} <span style="font-size: 14px; color: var(--text-muted); font-weight: 400;">~</span> ${high.aqi}
-            </div>
-
-            <div style="display: inline-block; margin-top: 6px; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; color: ${statusStyle.text}; background: ${statusStyle.bg}; border: 1px solid ${statusStyle.border};">
-                ${statusStyle.label}
-            </div>
-
-            <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">
-                ${low.name} ${low.aqi} · ${high.name} ${high.aqi}
-            </div>
-        `;
-grid.appendChild(card);
-}
-
-// 更新時間
-if (typeof getFormattedMstTime === 'function') {
-timeEl.textContent = `(更新時間: ${getFormattedMstTime()})`;
-}
-}
-// 全局狀態：主 widget 顯示全澳最高 AQI（含其首要污染物）
 const currentAQIState = { aqi: 0, pollutant: '--' };
+
 async function initAQIDashboard() {
-const summary = await getCategoryExtremes();
-
-// —— 主 widget：全澳最高 AQI ——
-let maxAqi = 0;
-let worstPollutant = '--';
-for (const cat of Object.keys(categories)) {
-const s = summary[cat];
-if (s && s.highest.aqi > maxAqi) {
-maxAqi = s.highest.aqi;
-worstPollutant = s.highest.pollutant;
-        }
+  const summary = await getCategoryExtremes();
+  let maxAqi = 0;
+  let worstPollutant = '--';
+  for (const cat of Object.keys(categories)) {
+    const s = summary[cat];
+    if (s && s.highest.aqi > maxAqi) {
+      maxAqi = s.highest.aqi;
+      worstPollutant = s.highest.pollutant;
     }
-if (maxAqi > 0) {
-currentAQIState.aqi = maxAqi;
-currentAQIState.pollutant = worstPollutant;
-renderAQIBox(maxAqi, worstPollutant);
-    }
-
-// —— 分類卡片：三個分類各自的 最低/最高 ——
-renderCategoryCards(summary);
+  }
+  if (maxAqi > 0) {
+    currentAQIState.aqi = maxAqi;
+    currentAQIState.pollutant = worstPollutant;
+    renderAQIBox(maxAqi, worstPollutant);
+  }
+  renderCategoryCards(summary);
 }
-// Execute the dashboard loader（腳本位於 body 末尾，DOM 已就緒）
+
 window.addEventListener('DOMContentLoaded', () => {
-initAQIDashboard();
-setInterval(initAQIDashboard, 5 * 60000);
+  initAQIDashboard();
+  setInterval(initAQIDashboard, 5 * 60000);
 });
 </script>
 
