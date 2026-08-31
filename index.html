@@ -2439,7 +2439,7 @@ async function fetchOpenMeteoHourlyForecast() {
         const mins = String(now.getMinutes()).padStart(2, '0');
         const timeFormatted = `${year}-${month}-${day} ${hrs}:${mins} MST`;
 
-        rainAlertContent.innerHTML = `未來2小時 ，（${startHourStr} 至 ${endHourStr}），${popDesc}。（${timeFormatted}）`;
+        rainAlertContent.innerHTML = `未來2小時，(${startHourStr}至${endHourStr})，${popDesc}。(${timeFormatted})`;
         rainAlertBox.style.display = 'block';
       } else {
         if (rainAlertBox) rainAlertBox.style.display = 'none';
