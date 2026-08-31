@@ -11,321 +11,293 @@
     }
   </script>
   <style>
-    /* ========== 1. 深太空 (Deep Space) 全域主題基礎 ========== */
-    :root {
-      --bg-dark: #0b0f19;
-      --card-bg: rgba(22, 30, 46, 0.75);
-      --card-bg-light: rgba(255, 255, 255, 0.03);
-      --card-border: rgba(255, 255, 255, 0.08);
-      --text-main: #f1f5f9;
-      --text-muted: #94a3b8;
-      
-      --accent-blue: #38bdf8;
-      --accent-teal: #2dd4bf;
-      --accent-green: #34d399;
-      --accent-yellow: #facc15;
-      --accent-orange: #f59e0b;
-      --accent-red: #ef4444;
-      --accent-purple: #c084fc;
-
-      --bg-red: rgba(239, 68, 68, 0.12);
-      --border-red: rgba(239, 68, 68, 0.35);
-      --bg-orange: rgba(245, 158, 11, 0.12);
-      --border-orange: rgba(245, 158, 11, 0.35);
-    }
-
-    /* ========== 明亮主題 (Light Theme) ========== */
-    body.light-theme, html.light-theme body {
-      --bg-dark: #f8fafc;
-      --card-bg: rgba(255, 255, 255, 0.85);
-      --card-bg-light: rgba(0, 0, 0, 0.04);
-      --card-border: rgba(0, 0, 0, 0.12);
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-
-      --accent-blue: #0284c7;
-      --accent-teal: #0d9488;
-      --accent-green: #059669;
-      --accent-yellow: #d97706;
-      --accent-orange: #d97706;
-      --accent-red: #dc2626;
-      --accent-purple: #9333ea;
-
-      --bg-red: rgba(239, 68, 68, 0.08);
-      --border-red: rgba(239, 68, 68, 0.25);
-      --bg-orange: rgba(245, 158, 11, 0.08);
-      --border-orange: rgba(245, 158, 11, 0.25);
-    }
-
-    html {
-      scroll-behavior: smooth;
-    }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: var(--bg-dark);
-      color: var(--text-main);
-      line-height: 1.6;
-      transition: background-color 0.3s ease, color 0.3s ease;
-    }
-
-    /* 頁面最大寬度容器 */
-    .page-wrapper {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 15px 80px 15px;
-    }
-
-    /* ========== 2. 頁頭 Header & 頂欄導航 ========== */
-    .header-nav-container {
-      position: sticky;
-      top: 0;
-      z-index: 3000;
-      background: rgba(11, 15, 25, 0.85);
-      backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--card-border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.75rem 1.5rem;
-      margin-bottom: 20px;
-      transition: background 0.3s ease;
-    }
-    body.light-theme .header-nav-container {
-      background: rgba(248, 250, 252, 0.88);
-    }
-
-    .header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .logo {
-      height: 38px;
-      width: auto;
-      filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.3));
-    }
-    .title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--accent-blue);
-      letter-spacing: 0.5px;
-      display: flex;
-      align-items: baseline;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    .header-clock {
-      font-size: 0.88rem;
-      font-weight: 500;
-      color: var(--accent-teal);
-      font-variant-numeric: tabular-nums;
-      opacity: 0.9;
-    }
-
-    .menu-container {
-      position: relative;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    /* 主題切換按鈕 */
-    .theme-toggle-btn {
-      background: var(--card-bg-light);
-      border: 1px solid var(--card-border);
-      color: var(--text-main);
-      padding: 8px 12px;
-      border-radius: 20px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 13px;
-      font-weight: 600;
-      transition: all 0.25s ease;
-      outline: none;
-    }
-    .theme-toggle-btn:hover {
-      border-color: var(--accent-blue);
-      color: var(--accent-blue);
-      transform: translateY(-1px);
-    }
-    .sun-icon { display: block; }
-    .moon-icon { display: none; }
-    body.light-theme .sun-icon { display: none; }
-    body.light-theme .moon-icon { display: block; }
-
-    .menu-toggle {
-      display: none;
-      font-size: 22px;
-      padding: 6px 12px;
-      cursor: pointer;
-      background: var(--card-bg-light);
-      border: 1px solid var(--card-border);
-      color: var(--text-main);
-      border-radius: 8px;
-      transition: all 0.2s;
-    }
-    .menu-toggle:hover {
-      border-color: var(--accent-blue);
-    }
-    .menu-toggle.active {
-      border-color: var(--accent-blue);
-      background: rgba(56, 189, 248, 0.12);
-    }
-
-    .nav {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    .nav a {
-      color: var(--text-muted);
-      padding: 8px 14px;
-      font-size: 0.92rem;
-      font-weight: 500;
-      text-decoration: none;
-      border-radius: 20px;
-      transition: all 0.2s ease;
-      display: block;
-    }
-    .nav a:hover, .nav a.active {
-      color: var(--text-main);
-      background: rgba(255, 255, 255, 0.05);
-    }
-    body.light-theme .nav a:hover, body.light-theme .nav a.active {
-      background: rgba(0, 0, 0, 0.05);
-    }
-
-    /* ========== 下拉選單樣式 (Dropdown Style) ========== */
-    .dropdown {
-      position: relative;
-      display: inline-block;
-    }
-
-    .dropdown-btn {
-      background: transparent;
-      border: none;
-      color: var(--text-muted);
-      padding: 8px 14px;
-      font-size: 0.92rem;
-      font-weight: 500;
-      font-family: inherit;
-      border-radius: 20px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .dropdown-btn .arrow {
-      font-size: 0.7rem;
-      transition: transform 0.2s ease;
-    }
-
-    .dropdown:hover .dropdown-btn,
-    .dropdown.active .dropdown-btn {
-      color: var(--text-main);
-      background: rgba(255, 255, 255, 0.05);
-    }
-    body.light-theme .dropdown:hover .dropdown-btn,
-    body.light-theme .dropdown.active .dropdown-btn {
-      background: rgba(0, 0, 0, 0.05);
-    }
-
-    .dropdown:hover .arrow,
-    .dropdown.active .arrow {
-      transform: rotate(180deg);
-    }
-
-    .dropdown-content {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      min-width: 190px;
-      background: rgba(15, 23, 42, 0.95);
-      backdrop-filter: blur(16px);
-      border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 6px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-      z-index: 3100;
-      margin-top: 4px;
-
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.25s ease, visibility 0s linear 0.4s;
-    }
-
-    .dropdown-content::before {
-      content: "";
-      position: absolute;
-      top: -8px;
-      left: 0;
-      width: 100%;
-      height: 8px;
-    }
-
-    body.light-theme .dropdown-content {
-      background: rgba(255, 255, 255, 0.98);
-    }
-
-    .dropdown:hover .dropdown-content,
-    .dropdown.active .dropdown-content {
-      opacity: 1;
-      visibility: visible;
-      transition: opacity 0.25s ease, visibility 0s linear 0s;
-    }
-
-    .dropdown-content a {
-      padding: 8px 12px;
-      border-radius: 8px;
-      white-space: nowrap;
-      font-size: 0.88rem;
-    }
-
-    @media (max-width: 900px) {
-      .menu-toggle { display: block; }
-      .nav {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        width: 100%;
-        background: rgba(11, 15, 25, 0.98);
-        backdrop-filter: blur(16px);
-        flex-direction: column;
-        align-items: stretch;
-        padding: 15px;
-        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        border-bottom: 1px solid var(--card-border);
-      }
-      body.light-theme .nav {
-        background: rgba(248, 250, 252, 0.98);
-      }
-      .nav.show { display: flex; }
-      .dropdown-content {
-        position: static;
-        box-shadow: none;
-        border: none;
-        background: transparent;
-        padding-left: 15px;
-        opacity: 1;
-        visibility: visible;
-        display: none;
-      }
-      .dropdown.active .dropdown-content {
-        display: block;
-      }
-    }
-
+  /* ========== 1. 深太空 (Deep Space) 全域主題基礎 ========== */
+  :root {
+    --bg-dark: #0b0f19;
+    --card-bg: rgba(22, 30, 46, 0.75);
+    --card-bg-light: rgba(255, 255, 255, 0.03);
+    --card-border: rgba(255, 255, 255, 0.08);
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    
+    --accent-blue: #38bdf8;
+    --accent-teal: #2dd4bf;
+    --accent-green: #34d399;
+    --accent-yellow: #facc15;
+    --accent-orange: #f59e0b;
+    --accent-red: #ef4444;
+    --accent-purple: #c084fc;
+  
+    --bg-red: rgba(239, 68, 68, 0.12);
+    --border-red: rgba(239, 68, 68, 0.35);
+    --bg-orange: rgba(245, 158, 11, 0.12);
+    --border-orange: rgba(245, 158, 11, 0.35);
+  }
+  
+  /* ========== 明亮主題 (Light Theme) ========== */
+  body.light-theme {
+    --bg-dark: #f8fafc;
+    --card-bg: rgba(255, 255, 255, 0.85);
+    --card-bg-light: rgba(0, 0, 0, 0.04);
+    --card-border: rgba(0, 0, 0, 0.12);
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+  
+    --accent-blue: #0284c7;
+    --accent-teal: #0d9488;
+    --accent-green: #059669;
+    --accent-yellow: #d97706;
+    --accent-orange: #d97706;
+    --accent-red: #dc2626;
+    --accent-purple: #9333ea;
+  
+    --bg-red: rgba(239, 68, 68, 0.08);
+    --border-red: rgba(239, 68, 68, 0.25);
+    --bg-orange: rgba(245, 158, 11, 0.08);
+    --border-orange: rgba(245, 158, 11, 0.25);
+  }
+  
+  html {
+    scroll-behavior: smooth;
+  }
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    line-height: 1.6;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  /* 頁面最大寬度容器 */
+  .page-wrapper {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 15px 80px 15px;
+  }
+  
+  /* ========== 2. 頁頭 Header & 頂欄導航 ========== */
+  .header-nav-container {
+    position: sticky;
+    top: 0;
+    z-index: 3000;
+    background: rgba(11, 15, 25, 0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--card-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1.5rem;
+    margin-bottom: 20px;
+    transition: background 0.3s ease;
+  }
+  body.light-theme .header-nav-container {
+    background: rgba(248, 250, 252, 0.88);
+  }
+  
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo {
+    height: 38px;
+    width: auto;
+    filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.3));
+  }
+  .title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--accent-blue);
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .header-clock {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--accent-teal);
+    font-variant-numeric: tabular-nums;
+    opacity: 0.9;
+  }
+  
+  .menu-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  /* 主題切換按鈕 */
+  .theme-toggle-btn {
+    background: var(--card-bg-light);
+    border: 1px solid var(--card-border);
+    color: var(--text-main);
+    padding: 8px 12px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.25s ease;
+    outline: none;
+  }
+  .theme-toggle-btn:hover {
+    border-color: var(--accent-blue);
+    color: var(--accent-blue);
+    transform: translateY(-1px);
+  }
+  .sun-icon {
+    display: block;
+  }
+  .moon-icon {
+    display: none;
+  }
+  body.light-theme .sun-icon {
+    display: none;
+  }
+  body.light-theme .moon-icon {
+    display: block;
+  }
+  
+  .menu-toggle {
+    display: none;
+    font-size: 22px;
+    padding: 6px 12px;
+    cursor: pointer;
+    background: var(--card-bg-light);
+    border: 1px solid var(--card-border);
+    color: var(--text-main);
+    border-radius: 8px;
+    transition: all 0.2s;
+  }
+  .menu-toggle:hover {
+    border-color: var(--accent-blue);
+  }
+  .menu-toggle.active {
+    border-color: var(--accent-blue);
+    background: rgba(56, 189, 248, 0.12);
+  }
+  
+  .nav {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .nav a {
+    color: var(--text-muted);
+    padding: 8px 14px;
+    font-size: 0.92rem;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 20px;
+    transition: all 0.2s ease;
+    display: block;
+  }
+  .nav a:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+  }
+  body.light-theme .nav a:hover {
+    background: rgba(0, 0, 0, 0.05);
+  }
+  
+  /* ========== 下拉選單樣式 (Dropdown Style) ========== */
+  .dropdown {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .dropdown-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 8px 14px;
+    font-size: 0.92rem;
+    font-weight: 500;
+    font-family: inherit;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  
+  .dropdown-btn .arrow {
+    font-size: 0.7rem;
+    transition: transform 0.2s ease;
+  }
+  
+  .dropdown:hover .dropdown-btn,
+  .dropdown.active .dropdown-btn {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+  }
+  body.light-theme .dropdown:hover .dropdown-btn,
+  body.light-theme .dropdown.active .dropdown-btn {
+    background: rgba(0, 0, 0, 0.05);
+  }
+  
+  .dropdown:hover .arrow,
+  .dropdown.active .arrow {
+    transform: rotate(180deg);
+  }
+  
+  .dropdown-content {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 190px;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 6px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    z-index: 3100;
+    margin-top: 4px;
+  
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0s linear 0.4s;
+  }
+  
+  .dropdown-content::before {
+    content: "";
+    position: absolute;
+    top: -8px;
+    left: 0;
+    width: 100%;
+    height: 8px;
+  }
+  
+  body.light-theme .dropdown-content {
+    background: rgba(255, 255, 255, 0.98);
+  }
+  
+  .dropdown:hover .dropdown-content,
+  .dropdown.active .dropdown-content {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.25s ease, visibility 0s linear 0s;
+  }
+  
+  .dropdown-content a {
+    padding: 8px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+    font-size: 0.88rem;
+  }
     /* Main Page Content Layout */
     .page-wrapper {
       max-width: 1100px;
@@ -439,6 +411,50 @@
       border-radius: 4px;
       margin-top: 2px;
       white-space: nowrap;
+    }
+
+    /* ========== 9. 底部固定導航欄 (Bottom Fixed Bar) ========== */
+    .bottom-fixed-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(11, 15, 25, 0.9);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--card-border);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 8px 0;
+      z-index: 2999;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+    }
+    body.light-theme .bottom-fixed-bar {
+      background: rgba(248, 250, 252, 0.92);
+    }
+    .bottom-bar-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex: 1;
+      padding: 4px;
+      outline: none;
+    }
+    .bottom-bar-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+    .bottom-bar-btn:hover,
+    .bottom-bar-btn.active {
+      color: var(--accent-blue);
     }
 
     /* Legend Box Overlay inside Map */
@@ -562,7 +578,6 @@
       <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
         <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        <span>主題</span>
       </button>
 
       <div class="menu-toggle" onclick="toggleMenu()">☰</div>
@@ -701,6 +716,26 @@
           </tbody>
         </table>
       </div>
+    </div>
+
+    <!-- 底部固定導航欄 (Bottom Fixed Bar) -->
+    <div class="bottom-fixed-bar">
+      <a href="https://macaosso.github.io/MSSOweb/index.html" class="bottom-bar-btn active" style="text-decoration: none;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/></svg>
+        <span>天氣實況</span>
+      </a>
+      <a href="https://macaosso.github.io/MSSOweb/tc.html" class="bottom-bar-btn" style="text-decoration: none;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 2a10 10 0 0 1 7.07 17.07"/><path d="M12 6a6 6 0 0 0-4.24 10.24"/></svg>
+        <span>熱帶氣旋</span>
+      </a>
+      <a href="https://macaosso.github.io/MSSOweb/your-page.html" class="bottom-bar-btn" style="text-decoration: none;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        <span>天氣預報</span>
+      </a>
+      <a href="https://macaosso.github.io/MSSOweb/AQImap.html" class="bottom-bar-btn" style="text-decoration: none;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19 12H2"/></svg>
+        <span>空氣質素</span>
+      </a>
     </div>
 
     <!-- Bottom Footer Bar Added Back -->
@@ -864,7 +899,31 @@
         grid.appendChild(card);
       }
     }
-
+    function applyTheme(theme) {
+      if (theme === 'light') {
+        document.body.classList.add('light-theme');
+      } else {
+        document.body.classList.remove('light-theme');
+      }
+      updateChartColors();
+    }
+    
+    function toggleTheme() {
+      const isLight = document.body.classList.contains('light-theme');
+      const newTheme = isLight ? 'dark' : 'light';
+      localStorage.setItem('msso_theme', newTheme);
+      applyTheme(newTheme);
+    }
+    
+    (function initTheme() {
+      const savedTheme = localStorage.getItem('msso_theme');
+      if (savedTheme) {
+        if (savedTheme === 'light') document.body.classList.add('light-theme');
+      } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+        document.body.classList.add('light-theme');
+      }
+    })();
+    
     function renderView(latestTimeString) {
       const mapContainer = document.getElementById('mapContainer');
       const tableBody = document.getElementById('aqiTableBody');
