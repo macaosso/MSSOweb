@@ -1222,6 +1222,15 @@ body.light-theme .bottom-fixed-bar {
 </div>
 
 <div class="page-wrapper">
+  <div class="warning-card" id="iconCard">
+    <div class="warning-header">
+      <span class="warning-title-text">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+        現時生效警報
+      </span>
+    </div>
+    <div id="iconContent" style="padding: 20px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;"></div>
+  </div>
   <div id="rainAlertBox" style="display: none;">
     <div class="header-blue">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -2582,8 +2591,39 @@ function getUVColor(uv) {
   return '#c084fc';
 }
 
+function renderAllIcons() {
+  const card = document.getElementById('iconCard');
+  const container = document.getElementById('iconContent');
+  if (!card || !container || typeof ICON_PRESETS === 'undefined') {
+    if (card) card.style.display = 'none';
+    return;
+  }
+
+  const keys = Object.keys(ICON_PRESETS);
+  if (keys.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+
+  let html = '';
+  keys.forEach(key => {
+    const path = ICON_PRESETS[key];
+    if (path) {
+      html += `
+        <div class="icon-box" title="${key}">
+          <img src="${path}" alt="${key}">
+        </div>
+      `;
+    }
+  });
+
+  container.innerHTML = html;
+  card.style.display = html ? 'block' : 'none';
+}
+
 window.addEventListener('DOMContentLoaded', () => {
     loadHourlyWeather();
+    renderAllIcons();
 });
 </script>
 
