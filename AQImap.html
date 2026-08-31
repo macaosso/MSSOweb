@@ -540,6 +540,24 @@
       margin-bottom: 16px;
       color: var(--text-main);
     }
+    .station-name-label {
+      background: rgba(30, 41, 59, 0.8);
+      backdrop-filter: blur(4px);
+      border: 1px solid var(--card-border);
+      color: #f1f5f9;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      margin-bottom: 3px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    body.light-theme .station-name-label {
+      background: rgba(255, 255, 255, 0.9);
+      color: #0f172a;
+    }
   </style>
 </head>
 <body>
@@ -724,7 +742,7 @@
     const WAQI_TOKEN = "12bb8b9424111ee0791c1492f0b3f346667737e2";
     
     const stationsConfig = [
-      { name: "荷蘭園", slug: "calcada-do-poco", category: "路邊", top: "31%", left: "39%" },
+      { name: "荷蘭園", slug: "calcada-do-poco", category: "路邊", top: "26%", left: "39%" },
       { name: "九澳", slug: "ka-ho", category: "路邊", top: "75%", left: "62%" },
       { name: "台山", slug: "subestacao-macau-norte", category: "高密度住宅區", top: "6%", left: "37%" },
       { name: "氹仔中心區", slug: "parque-central-da-taipa", category: "高密度住宅區", top: "54%", left: "40%" },
@@ -894,7 +912,17 @@
       const updateTimeFooter = document.getElementById('updateTimeFooter');
       const tableHeaderValue = document.getElementById('tableHeaderValue');
       const forecastTableBody = document.getElementById('forecastTableBody');
-
+      if (mapImageContainer) {
+        const marker = document.createElement('div');
+        marker.className = 'map-pin';
+        marker.style.top = st.top;
+        marker.style.left = st.left;
+        marker.innerHTML = `
+          <div class="station-name-label">${st.name}</div>
+          <div class="pin-badge" style="background-color: ${styleInfo.color};">${val}</div>
+        `;
+        mapImageContainer.appendChild(marker);
+      }
       // Clear existing pins safely without clearing the base image
       if (mapImageContainer) {
         mapImageContainer.querySelectorAll('.map-pin').forEach(pin => pin.remove());
