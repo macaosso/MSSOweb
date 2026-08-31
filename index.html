@@ -1222,14 +1222,14 @@ body.light-theme .bottom-fixed-bar {
 </div>
 
 <div class="page-wrapper">
-  <div class="warning-card" id="iconCard">
+  <div class="warning-card" id="activeIconsCard" style="display: none;">
     <div class="warning-header">
       <span class="warning-title-text">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
         現時生效警報
       </span>
     </div>
-    <div id="iconContent" style="padding: 20px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;"></div>
+    <div id="activeIconsContent" style="padding: 20px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;"></div>
   </div>
   <div id="rainAlertBox" style="display: none;">
     <div class="header-blue">
@@ -2591,39 +2591,54 @@ function getUVColor(uv) {
   return '#c084fc';
 }
 
-function renderAllIcons() {
-  const card = document.getElementById('iconCard');
-  const container = document.getElementById('iconContent');
-  if (!card || !container || typeof ICON_PRESETS === 'undefined') {
-    if (card) card.style.display = 'none';
-    return;
+function renderActiveIcons() {
+  const card = document.getElementById('activeIconsCard');
+  const container = document.getElementById('activeIconsContent');
+  if (!card || !container) return;
+
+  let iconList = [];
+
+  // Collect valid icons from tcWarnings
+  if (typeof tcWarnings !== 'undefined' && Array.isArray(tcWarnings)) {
+    tcWarnings.forEach(item => {
+      if (item && item.icon && item.icon.trim() !== '') {
+        const resolved = resolveIcon(item.icon);
+        if (resolved) iconList.push(resolved);
+      }
+    });
   }
 
-  const keys = Object.keys(ICON_PRESETS);
-  if (keys.length === 0) {
+  // Collect valid icons from warnWarnings
+  if (typeof warnWarnings !== 'undefined' && Array.isArray(warnWarnings)) {
+    warnWarnings.forEach(item => {
+      if (item && item.icon && item.icon.trim() !== '') {
+        const resolved = resolveIcon(item.icon);
+        if (resolved) iconList.push(resolved);
+      }
+    });
+  }
+
+  if (iconList.length === 0) {
     card.style.display = 'none';
     return;
   }
 
   let html = '';
-  keys.forEach(key => {
-    const path = ICON_PRESETS[key];
-    if (path) {
-      html += `
-        <div class="icon-box" title="${key}">
-          <img src="${path}" alt="${key}">
-        </div>
-      `;
-    }
+  iconList.forEach(path => {
+    html += `
+      <div class="icon-box">
+        <img src="${path}" alt="Warning Icon">
+      </div>
+    `;
   });
 
   container.innerHTML = html;
-  card.style.display = html ? 'block' : 'none';
+  card.style.display = 'block';
 }
 
 window.addEventListener('DOMContentLoaded', () => {
     loadHourlyWeather();
-    renderAllIcons();
+    renderActiveIcons();
 });
 </script>
 
