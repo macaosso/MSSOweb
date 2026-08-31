@@ -2585,9 +2585,8 @@ function getUVColor(uv) {
 }
 
 function renderActiveIcons() {
-  const card = document.getElementById('activeIconsCard');
   const container = document.getElementById('activeIconsContent');
-  if (!card || !container) return;
+  if (!container) return;
 
   let iconList = [];
 
@@ -2596,7 +2595,9 @@ function renderActiveIcons() {
     tcWarnings.forEach(item => {
       if (item && item.icon && item.icon.trim() !== '') {
         const resolved = resolveIcon(item.icon);
-        if (resolved) iconList.push(resolved);
+        if (resolved) {
+          iconList.push({ key: item.icon.trim(), path: resolved });
+        }
       }
     });
   }
@@ -2606,33 +2607,43 @@ function renderActiveIcons() {
     warnWarnings.forEach(item => {
       if (item && item.icon && item.icon.trim() !== '') {
         const resolved = resolveIcon(item.icon);
-        if (resolved) iconList.push(resolved);
+        if (resolved) {
+          iconList.push({ key: item.icon.trim(), path: resolved });
+        }
       }
     });
   }
 
   if (iconList.length === 0) {
-    card.style.display = 'none';
+    container.style.display = 'none';
     return;
   }
 
   let html = '';
-  iconList.forEach(path => {
-    html += `
+  iconList.forEach(item => {
+    const hasT = item.key.toLowerCase().includes('t');
+    const iconBoxHtml = `
       <div class="icon-box">
-        <img src="${path}" alt="Warning Icon">
+        <img src="${item.path}" alt="Warning Icon">
       </div>
     `;
+
+    if (hasT) {
+      html += `<a href="https://macaosso.github.io/MSSOweb/tc.html" style="text-decoration: none; display: inline-block;">${iconBoxHtml}</a>`;
+    } else {
+      html += iconBoxHtml;
+    }
   });
 
   container.innerHTML = html;
-  card.style.display = 'block';
+  container.style.display = 'flex';
 }
 
 window.addEventListener('DOMContentLoaded', () => {
     loadHourlyWeather();
     renderActiveIcons();
 });
+  
 </script>
 
 </body>
