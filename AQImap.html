@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>澳門民間氣象台 MSSO - 即時空氣質量水平</title>
+  <script>
+    // Immediately apply theme before render to prevent flashing and ensure cross-page sync
+    if (localStorage.getItem('theme') === 'light') {
+      document.documentElement.classList.add('light-theme');
+    }
+  </script>
   <style>
     /* ========== 1. 深太空 (Deep Space) 全域主題基礎 ========== */
     :root {
@@ -29,7 +35,7 @@
     }
 
     /* ========== 明亮主題 (Light Theme) ========== */
-    body.light-theme {
+    body.light-theme, html.light-theme body {
       --bg-dark: #f8fafc;
       --card-bg: rgba(255, 255, 255, 0.85);
       --card-bg-light: rgba(0, 0, 0, 0.04);
@@ -369,7 +375,7 @@
       box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     }
 
-    /* Category Cards Grid (Box before map) */
+    /* Category Cards Grid */
     .category-box {
       margin-bottom: 24px;
     }
@@ -518,6 +524,26 @@
       margin-bottom: 16px;
       color: var(--text-main);
     }
+
+    /* Bottom Footer Bar Style */
+    .site-footer {
+      margin-top: 40px;
+      padding: 24px 15px;
+      border-top: 1px solid var(--card-border);
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-muted);
+      border-radius: 12px;
+    }
+    .site-footer a {
+      color: var(--accent-blue);
+      text-decoration: none;
+    }
+    .site-footer a:hover {
+      text-decoration: underline;
+    }
   </style>
 </head>
 <body>
@@ -615,7 +641,7 @@
       <button class="var-pill" data-var="co">CO (mg/m³)</button>
     </div>
 
-    <!-- Category Summary Cards Box (Added back before map) -->
+    <!-- Category Summary Cards Box -->
     <div class="category-box" id="categoryBox" style="display:none;">
       <div class="variable-section-title" style="display: flex; justify-content: space-between; align-items: center;">
         <span>各區空氣質素極值概覽</span>
@@ -676,6 +702,12 @@
         </table>
       </div>
     </div>
+
+    <!-- Bottom Footer Bar Added Back -->
+    <footer class="site-footer">
+      <p>澳門民間氣象台 Macau Private Meteorological Observatory (MSSO) &copy; 2026</p>
+      <p style="margin-top: 6px;"><a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a> | <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a></p>
+    </footer>
   </div>
 
   <script>
@@ -718,12 +750,16 @@
 
     function toggleTheme() {
       document.body.classList.toggle('light-theme');
-      localStorage.setItem('theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
+      const isLight = document.body.classList.contains('light-theme');
+      localStorage.setItem('theme', isLight ? 'light' : 'dark');
       renderView(document.getElementById('updateTimeFooter').textContent.replace('更新時間: ', ''));
     }
 
+    // Initialize state on load
     if (localStorage.getItem('theme') === 'light') {
       document.body.classList.add('light-theme');
+    } else {
+      document.body.classList.remove('light-theme');
     }
 
     function updateClock() {
@@ -862,7 +898,6 @@
       }
       mainTitle.textContent = `即時空氣質量水平（${titleDateStr}）`;
 
-      // Render Category Box before map
       renderCategoryCards(latestTimeString);
 
       const varNames = {
@@ -886,7 +921,6 @@
           const numericVal = typeof val === 'number' ? val : 0;
           const styleInfo = getAQIStyle(currentSelectedVar === 'aqi' ? numericVal : (numericVal <= 50 ? 30 : numericVal <= 100 ? 80 : 150));
 
-          // Marker
           const marker = document.createElement('div');
           marker.className = 'station-marker';
           marker.style.top = st.top;
@@ -897,7 +931,6 @@
           `;
           mapContainer.appendChild(marker);
 
-          // Table row
           const tr = document.createElement('tr');
           let typeCellHtml = '';
           if (index === 0) {
@@ -913,7 +946,6 @@
         });
       });
 
-      // Render Forecast Table
       if (globalForecastData) {
         forecastTableBody.innerHTML = '';
         const pm25Days = globalForecastData.pm25 || [];
@@ -942,7 +974,6 @@
       }
     }
 
-    // Event listener for variable pills
     document.querySelectorAll('.var-pill').forEach(pill => {
       pill.addEventListener('click', (e) => {
         document.querySelectorAll('.var-pill').forEach(p => p.classList.remove('active'));
