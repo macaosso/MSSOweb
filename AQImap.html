@@ -912,17 +912,7 @@
       const updateTimeFooter = document.getElementById('updateTimeFooter');
       const tableHeaderValue = document.getElementById('tableHeaderValue');
       const forecastTableBody = document.getElementById('forecastTableBody');
-      if (mapImageContainer) {
-        const marker = document.createElement('div');
-        marker.className = 'map-pin';
-        marker.style.top = st.top;
-        marker.style.left = st.left;
-        marker.innerHTML = `
-          <div class="station-name-label">${st.name}</div>
-          <div class="pin-badge" style="background-color: ${styleInfo.color};">${val}</div>
-        `;
-        mapImageContainer.appendChild(marker);
-      }
+
       // Clear existing pins safely without clearing the base image
       if (mapImageContainer) {
         mapImageContainer.querySelectorAll('.map-pin').forEach(pin => pin.remove());
@@ -979,6 +969,7 @@
             marker.style.top = st.top;
             marker.style.left = st.left;
             marker.innerHTML = `
+              <div class="station-name-label">${st.name}</div>
               <div class="pin-badge" style="background-color: ${styleInfo.color};">${val}</div>
             `;
             mapImageContainer.appendChild(marker);
