@@ -2421,18 +2421,16 @@ async function fetchOpenMeteoHourlyForecast() {
 
       if (maxPop >= 45 && rainAlertBox && rainAlertContent) {
         let popDesc = '';
-        if (maxPop >= 95) {
-          popDesc = '降雨機率為極高：表示將會出現降雨情況';
-        } else if (maxPop >= 90) {
-          popDesc = '降雨機率為高：表示將會出現降雨情況';
+        if (maxPop >= 90) {
+          popDesc = '有高機會出現降雨情況';
         } else if (maxPop >= 75) {
-          popDesc = '降雨機率為中高：表示有較高機會出現降雨情況';
+          popDesc = '有較高機會出現降雨情況';
         } else {
-          popDesc = '降雨機率為中等：表示可能有降雨情況';
+          popDesc = '可能會有降雨情況';
         }
 
-        const startHourStr = new Date(time[startIndex]).getHours() + 'H';
-        const endHourStr = new Date(time[startIndex + 2] || time[startIndex + 1]).getHours() + 'H';
+        const startHourStr = new Date(time[startIndex]).getHours() + '時';
+        const endHourStr = new Date(time[startIndex + 2] || time[startIndex + 1]).getHours() + '時';
 
         const year = now.getFullYear();
         const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -2441,7 +2439,7 @@ async function fetchOpenMeteoHourlyForecast() {
         const mins = String(now.getMinutes()).padStart(2, '0');
         const timeFormatted = `${year}-${month}-${day} ${hrs}:${mins} MST`;
 
-        rainAlertContent.innerHTML = `未來2小時 ，（${startHourStr} - ${endHourStr}），${popDesc}，請市民留意天氣變化及最新天氣資訊。（${timeFormatted}）`;
+        rainAlertContent.innerHTML = `未來2小時 ，（${startHourStr} 至 ${endHourStr}），${popDesc}。（${timeFormatted}）`;
         rainAlertBox.style.display = 'block';
       } else {
         if (rainAlertBox) rainAlertBox.style.display = 'none';
