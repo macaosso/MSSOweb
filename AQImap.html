@@ -1,15 +1,12 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="icon" type="image/png" href="icons/MSSO.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <title>澳門民間氣象台 MSSO - 即時空氣質量水平</title>
-  <script>
-    // Immediately apply theme before render to prevent flashing and ensure cross-page sync
-    if (localStorage.getItem('theme') === 'light' || localStorage.getItem('msso_theme') === 'light') {
-      document.documentElement.classList.add('light-theme');
-    }
-  </script>
   <style>
   /* ========== 1. 深太空 (Deep Space) 全域主題基礎 ========== */
   :root {
