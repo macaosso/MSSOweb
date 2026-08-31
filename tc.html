@@ -1518,6 +1518,40 @@ function getFormattedMstTime() {
     const min = String(now.getMinutes()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd} ${hh}:${min} MST`;
 }
+window.addEventListener('DOMContentLoaded', function(){
+    updateHeaderClock();
+    setInterval(updateHeaderClock, 1000);
+
+    if (typeof TC_WARNING_DATA !== 'undefined') {
+      renderTcForecastTable(TC_WARNING_DATA);
+    }
+
+    if (typeof alertipsText !== 'undefined') renderTextBox('alertBox', 'alertContent', alertipsText);
+    if (typeof swtText !== 'undefined') renderTextBox('swtBox', 'swtContent', swtText);
+    if (typeof tideText !== 'undefined') {
+      renderTextBox('tideBox', 'tideContent', tideText);
+    } else if (typeof TideText !== 'undefined') {
+      renderTextBox('tideBox', 'tideContent', TideText);
+    }
+
+    if (typeof tcWarnings !== 'undefined') renderWarnings(tcWarnings, "tcContent", "tcCard");
+    if (typeof warnWarnings !== 'undefined') renderWarnings(warnWarnings, "warnContent", "warnCard");
+
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabItems = document.querySelectorAll('.tab-content');
+    tabBtns.forEach(btn => {
+      btn.onclick = function(){
+        tabBtns.forEach(b => b.classList.remove('active'));
+        tabItems.forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        let idx = this.dataset.index;
+        document.getElementById('tab' + idx).classList.add('active');
+      }
+    });
+
+    loadOpenMeteoForecastSummary();
+    loadOpenMeteo7DayForecast();
+});
 
 </script>
 
