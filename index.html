@@ -411,6 +411,7 @@ body.light-theme .icon-box {
   line-height: 1.7;
   color: #fecfcf;
   text-align: left;
+  white-space: pre-line; /* This preserves your line breaks and empty lines */
 }
 body.light-theme .text-box {
   color: #7f1d1d;
@@ -1226,10 +1227,10 @@ body.light-theme .bottom-fixed-bar {
     <div class="warning-header">
       <span class="warning-title-text">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-        現時生效警報
+        生效警告圖標
       </span>
     </div>
-    <div id="activeIconsContent" style="padding: 20px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;"></div>
+    <div id="activeIconsContent" style="padding: 20px; display: flex; flex-wrap: wrap; gap: 12px; justify-content: flex-start;"></div>
   </div>
   <div id="rainAlertBox" style="display: none;">
     <div class="header-blue">
