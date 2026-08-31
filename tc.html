@@ -820,7 +820,6 @@ body.light-theme .bottom-fixed-bar {
 
 <script src="webdata.js"></script>
 <script>
-
 function applyTheme(theme) {
   if (theme === 'light') {
     document.body.classList.add('light-theme');
@@ -853,36 +852,6 @@ function toggleMenu() {
   btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
 
-function scrollToSection(elementId, btn) {
-  const el = document.getElementById(elementId);
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }
-  document.querySelectorAll('.bottom-bar-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-  const dropdownBtns = document.querySelectorAll('.dropdown-btn');
-  
-  dropdownBtns.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const currentDropdown = btn.parentElement;
-      
-      document.querySelectorAll('.dropdown').forEach(d => {
-        if (d !== currentDropdown) d.classList.remove('active');
-      });
-
-      currentDropdown.classList.toggle('active');
-    });
-  });
-
-  document.addEventListener('click', () => {
-    document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('active'));
-  });
-});
-
 function updateHeaderClock() {
   const clockEl = document.getElementById('headerClock');
   if (clockEl) {
@@ -896,18 +865,16 @@ function updateHeaderClock() {
     clockEl.textContent = ` ${year}年${month}月${date}日 ${hrs}:${mins}:${secs} MST`;
   }
 }
+
 function resolveIcon(iconKey) {
   if (!iconKey) return "";
   const key = iconKey.trim();
-
   if (typeof ICON_PRESETS !== 'undefined' && ICON_PRESETS[key]) {
     return ICON_PRESETS[key];
   }
-
   if (key.includes('/') || key.includes('.')) {
     return key;
   }
-
   return `icons/${key.toLowerCase()}.jpg`;
 }
 
@@ -964,26 +931,22 @@ function renderTcForecastTable(data) {
 }
 
 function scrollToSection(sectionId, btn) {
-  // Remove active state from all bottom bar buttons
   document.querySelectorAll('.bottom-bar-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
 
-  // Find target element and scroll smoothly
   const element = document.getElementById(sectionId);
   if (element) {
     element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  } else {
-    console.warn(`Target section with ID "${sectionId}" was not found on this page.`);
   }
 }
   
 function formatTextBoxContent(data) {
   if (Array.isArray(data)) {
-    const validItems = data.filter(item => item && typeof item === 'string' && item.trim());
+    const validItems = data.filter(item => item && typeof item === 'string' && item.trim() !== '');
     if (validItems.length === 0) return "";
     return validItems.map(item => item.trim()).join('<div class="box-divider"></div>');
   }
-  return typeof data === 'string' ? data.trim() : "";
+  return typeof data === 'string' && data.trim() !== '' ? data.trim() : "";
 }
 
 function renderTextBox(boxId, contentId, data) {
@@ -1003,7 +966,12 @@ function renderTextBox(boxId, contentId, data) {
 function renderWarnings(data, containerId, cardId) {
   const container = document.getElementById(containerId);
   const card = document.getElementById(cardId);
-  if (!container || !card || !Array.isArray(data)) return;
+  if (!container || !card) return;
+  
+  if (!Array.isArray(data)) {
+    card.style.display = "none";
+    return;
+  }
   
   let html = "";
   let validCount = 0;
@@ -1028,8 +996,8 @@ function renderWarnings(data, containerId, cardId) {
     if (validCount > 0) html += `<div class="divider"></div>`;
     html += `
          <div class="warning-item">
-           ${iconSrc ? `<div class="icon-box"><img src="${iconSrc}" alt="Warning Icon"></div>` : ""}
-           ${text ? `<div class="text-box">${text}</div>` : ""}
+          ${iconSrc ? `<div class="icon-box"><img src="${iconSrc}" alt="Warning Icon"></div>` : ""}
+          ${text ? `<div class="text-box">${text}</div>` : ""}
          </div>
        `;
     validCount++;
@@ -1042,21 +1010,22 @@ function renderWarnings(data, containerId, cardId) {
 window.addEventListener('DOMContentLoaded', function(){
     updateHeaderClock();
     setInterval(updateHeaderClock, 1000);
+
+    if (typeof TC_WARNING_DATA !== 'undefined') {
+      renderTcForecastTable(TC_WARNING_DATA);
+    }
+
+    if (typeof alertipsText !== 'undefined') renderTextBox('alertBox', 'alertContent', alertipsText);
+    if (typeof swtText !== 'undefined') renderTextBox('swtBox', 'swtContent', swtText);
+    if (typeof tideText !== 'undefined') {
+      renderTextBox('tideBox', 'tideContent', tideText);
+    } else if (typeof TideText !== 'undefined') {
+      renderTextBox('tideBox', 'tideContent', TideText);
+    }
+
+    if (typeof tcWarnings !== 'undefined') renderWarnings(tcWarnings, "tcContent", "tcCard");
+    if (typeof warnWarnings !== 'undefined') renderWarnings(warnWarnings, "warnContent", "warnCard");
     if (typeof tcText !== 'undefined') renderWarnings(tcText, "tcNewsContent", "tcNewsCard");
-    if (typeof TC_WARNING_DATA !== 'undefined') {
-      renderTcForecastTable(TC_WARNING_DATA);
-    }
-
-    if (typeof alertipsText !== 'undefined') renderTextBox('alertBox', 'alertContent', alertipsText);
-    if (typeof swtText !== 'undefined') renderTextBox('swtBox', 'swtContent', swtText);
-    if (typeof tideText !== 'undefined') {
-      renderTextBox('tideBox', 'tideContent', tideText);
-    } else if (typeof TideText !== 'undefined') {
-      renderTextBox('tideBox', 'tideContent', TideText);
-    }
-
-    if (typeof tcWarnings !== 'undefined') renderWarnings(tcWarnings, "tcContent", "tcCard");
-    if (typeof warnWarnings !== 'undefined') renderWarnings(warnWarnings, "warnContent", "warnCard");
 
     const tabBtns = document.querySelectorAll('.tab-btn');
     const tabItems = document.querySelectorAll('.tab-content');
@@ -1070,52 +1039,6 @@ window.addEventListener('DOMContentLoaded', function(){
       }
     });
 });
-</script>
-<script>
-function getFormattedMstTime() {
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const hh = String(now.getHours()).padStart(2, '0');
-    const min = String(now.getMinutes()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd} ${hh}:${min} MST`;
-}
-window.addEventListener('DOMContentLoaded', function(){
-    updateHeaderClock();
-    setInterval(updateHeaderClock, 1000);
-
-    if (typeof TC_WARNING_DATA !== 'undefined') {
-      renderTcForecastTable(TC_WARNING_DATA);
-    }
-
-    if (typeof alertipsText !== 'undefined') renderTextBox('alertBox', 'alertContent', alertipsText);
-    if (typeof swtText !== 'undefined') renderTextBox('swtBox', 'swtContent', swtText);
-    if (typeof tideText !== 'undefined') {
-      renderTextBox('tideBox', 'tideContent', tideText);
-    } else if (typeof TideText !== 'undefined') {
-      renderTextBox('tideBox', 'tideContent', TideText);
-    }
-
-    if (typeof tcWarnings !== 'undefined') renderWarnings(tcWarnings, "tcContent", "tcCard");
-    if (typeof warnWarnings !== 'undefined') renderWarnings(warnWarnings, "warnContent", "warnCard");
-
-    const tabBtns = document.querySelectorAll('.tab-btn');
-    const tabItems = document.querySelectorAll('.tab-content');
-    tabBtns.forEach(btn => {
-      btn.onclick = function(){
-        tabBtns.forEach(b => b.classList.remove('active'));
-        tabItems.forEach(c => c.classList.remove('active'));
-        this.classList.add('active');
-        let idx = this.dataset.index;
-        document.getElementById('tab' + idx).classList.add('active');
-      }
-    });
-
-    loadOpenMeteoForecastSummary();
-    loadOpenMeteo7DayForecast();
-});
-
 </script>
 
 </body>
