@@ -372,7 +372,6 @@
     .map-container {
       position: relative;
       width: 100%;
-      aspect-ratio: 1 / 1.05;
       background: #e2e8f0 url('map/map.png') no-repeat center center;
       background-size: cover;
       border-radius: 12px;
@@ -540,26 +539,6 @@
       margin-bottom: 16px;
       color: var(--text-main);
     }
-
-    /* Bottom Footer Bar Style */
-    .site-footer {
-      margin-top: 40px;
-      padding: 24px 15px;
-      border-top: 1px solid var(--card-border);
-      background: var(--card-bg);
-      backdrop-filter: blur(12px);
-      text-align: center;
-      font-size: 13px;
-      color: var(--text-muted);
-      border-radius: 12px;
-    }
-    .site-footer a {
-      color: var(--accent-blue);
-      text-decoration: none;
-    }
-    .site-footer a:hover {
-      text-decoration: underline;
-    }
   </style>
 </head>
 <body>
@@ -643,7 +622,14 @@
   <!-- Page Main Container -->
   <div class="page-wrapper">
     <div id="mainTitle" class="main-title">即時空氣質量水平 (載入中...)</div>
-
+        <!-- Category Summary Cards Box -->
+    <div class="category-box" id="categoryBox" style="display:none;">
+      <div class="variable-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>各區空氣質素極值概覽</span>
+        <span id="aqiUpdateTime" style="font-size: 13px; font-weight: 400; color: var(--text-muted);"></span>
+      </div>
+      <div class="category-grid" id="categoryGrid"></div>
+    </div>
     <!-- Variable Selector Pills -->
     <div class="variable-section-title">氣象與空氣質量數據</div>
     <div class="variable-pills-container" id="variablePills">
@@ -654,15 +640,6 @@
       <button class="var-pill" data-var="o3">O 3 (μg/m³)</button>
       <button class="var-pill" data-var="so2">SO 2 (μg/m³)</button>
       <button class="var-pill" data-var="co">CO (mg/m³)</button>
-    </div>
-
-    <!-- Category Summary Cards Box -->
-    <div class="category-box" id="categoryBox" style="display:none;">
-      <div class="variable-section-title" style="display: flex; justify-content: space-between; align-items: center;">
-        <span>各區空氣質素極值概覽</span>
-        <span id="aqiUpdateTime" style="font-size: 13px; font-weight: 400; color: var(--text-muted);"></span>
-      </div>
-      <div class="category-grid" id="categoryGrid"></div>
     </div>
 
     <div class="content-grid">
@@ -695,27 +672,7 @@
         </table>
       </div>
     </div>
-
     <div class="update-time-footer" id="updateTimeFooter"></div>
-
-    <!-- Predict Variable Table Downwards -->
-    <div class="forecast-section">
-      <div class="forecast-title">空氣質量預測變數展望</div>
-      <div class="table-container">
-        <table>
-          <thead>
-            <tr>
-              <th>預測日期 / 參數</th>
-              <th>PM2.5 預測平均</th>
-              <th>PM10 預測平均</th>
-              <th>O3 預測平均</th>
-            </tr>
-          </thead>
-          <tbody id="forecastTableBody">
-            <tr><td colspan="4" style="padding: 20px; color: var(--text-muted);">正在載入預測數據...</td></tr>
-          </tbody>
-        </table>
-      </div>
     </div>
 
     <!-- 底部固定導航欄 (Bottom Fixed Bar) -->
@@ -737,12 +694,6 @@
         <span>空氣質素</span>
       </a>
     </div>
-
-    <!-- Bottom Footer Bar Added Back -->
-    <footer class="site-footer">
-      <p>澳門民間氣象台 Macau Private Meteorological Observatory (MSSO) &copy; 2026</p>
-      <p style="margin-top: 6px;"><a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a> | <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a></p>
-    </footer>
   </div>
 
   <script>
