@@ -2566,6 +2566,13 @@ async function loadHourlyWeather() {
         errorTip.style.display = 'block';
     }
 }
+function getUVColor(uv) {
+  if (uv <= 2) return '#34d399';
+  if (uv <= 5) return '#facc15';
+  if (uv <= 7) return '#fb923c';
+  if (uv <= 10) return '#f87171';
+  return '#c084fc';
+}
 
 window.addEventListener('DOMContentLoaded', () => {
     loadHourlyWeather();
