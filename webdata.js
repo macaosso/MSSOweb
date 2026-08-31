@@ -37,8 +37,8 @@ const ICON_PRESETS = {
 // 1. 熱帶氣旋警告 (tcWarnings) [已新增至 4 條]
 const tcWarnings = [
   {
-    icon: "",
-    text: ""
+    icon: "t1",
+    text: "戒備警報於本地時間08月31日19時40分發出。"
   },
   {
     icon: "",
@@ -58,8 +58,8 @@ const tcWarnings = [
 // 2. 天氣警告 (warnWarnings) [已新增至 4 條]
 const warnWarnings = [
   {
-    icon: "t0",
-    text: "注意警報於本地時間08月31日11時40分發出。"
+    icon: "",
+    text: ""
   },
   {
     icon: "",
