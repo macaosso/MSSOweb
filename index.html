@@ -1948,6 +1948,20 @@ function renderTcForecastTable(data) {
   tableCard.style.display = 'block';
 }
 
+function scrollToSection(sectionId, btn) {
+  // Remove active state from all bottom bar buttons
+  document.querySelectorAll('.bottom-bar-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  // Find target element and scroll smoothly
+  const element = document.getElementById(sectionId);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    console.warn(`Target section with ID "${sectionId}" was not found on this page.`);
+  }
+}
+  
 function formatTextBoxContent(data) {
   if (Array.isArray(data)) {
     const validItems = data.filter(item => item && typeof item === 'string' && item.trim());
