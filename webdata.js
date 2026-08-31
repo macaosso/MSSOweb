@@ -58,8 +58,8 @@ const tcWarnings = [
 // 2. 天氣警告 (warnWarnings) [已新增至 4 條]
 const warnWarnings = [
   {
-    icon: "",
-    text: ""
+    icon: "t0",
+    text: "注意警報於本地時間08月31日11時40分發出。"
   },
   {
     icon: "",
@@ -79,7 +79,7 @@ const warnWarnings = [
 // 3. 特別天氣提示 (swtText) [原 1 條 + 新增 2 條]
 // ==========================================================================
 const swtText = [
-  "",
+  "「沙德爾」殘餘低壓現時正位於海南島附近，預計該系統今日會向南移動，並逐漸發展，隨著「沙德爾」殘餘低壓向東移動，珠江口一帶風勢會有所增強，本澳風力可能間中達6級。而隨後路徑受南海東北部的96W影響，現時仍然存在較大變數。當低壓系統發展成熱帶氣旋時，本台將視乎情況在今日稍後至明日改發戒備警報或強風警報。與兩個低壓系統相關大雨及狂風雷暴將於今日稍後起影響珠江口一帶。市民應特別留意未來數日天氣資訊，做好防風及防水浸措施。",
   "",
   ""
 ];
@@ -104,12 +104,12 @@ const tideText = [
 
 // 6. 熱帶氣旋可能發佈之警報預測 (TC_WARNING_DATA)
 const TC_WARNING_DATA = {
-  mainTitle: "受熱帶氣旋「紫檀」可能發佈之警報",
-  updateTimeText: "2026-08-25  02:20 MST 更新",
+  mainTitle: "受熱帶氣旋「沙德爾」可能發佈之警報",
+  updateTimeText: "2026-08-31  18:20 MST 更新",
   tableRows: [
     { signal: "注意警報", period: "", probability: "" },
-    { signal: "戒備警報", period: "08月25日02時20分", probability: "" },
-    { signal: "強風警報", period: "", probability: "" },
+    { signal: "戒備警報", period: "08月31日19時20分", probability: "高" },
+    { signal: "強風警報", period: "09月01日日間", probability: "中等" },
     { signal: "烈風警報", period: "", probability: "" },
     { signal: "暴風警報", period: "", probability: "" },
     { signal: "颶風警報", period: "", probability: "" },
