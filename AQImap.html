@@ -183,9 +183,45 @@
       text-align: center;
       font-size: 22px;
       font-weight: 700;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       color: var(--text-main);
     }
+
+    /* Variable Selector Bar Style */
+    .variable-section-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text-main);
+    }
+    .variable-pills-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .var-pill {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .var-pill:hover {
+      border-color: var(--primary-color);
+      color: var(--text-main);
+    }
+    .var-pill.active {
+      background: var(--primary-color);
+      color: #fff;
+      border-color: var(--primary-color);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
     .content-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -219,16 +255,17 @@
     .station-badge {
       padding: 4px 8px;
       border-radius: 50%;
-      width: 28px;
+      min-width: 28px;
       height: 28px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 700;
-      font-size: 12px;
+      font-size: 11px;
       color: #fff;
       box-shadow: 0 2px 4px rgba(0,0,0,0.3);
       border: 2px solid #fff;
+      white-space: nowrap;
     }
     .station-label {
       background: rgba(0, 0, 0, 0.75);
@@ -315,6 +352,21 @@
       color: var(--text-muted);
       margin-top: 12px;
     }
+
+    /* Forecast Section Below */
+    .forecast-section {
+      margin-top: 32px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 20px;
+    }
+    .forecast-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      color: var(--text-main);
+    }
   </style>
 </head>
 <body>
@@ -399,6 +451,18 @@
   <div class="container">
     <div id="mainTitle" class="main-title">即時空氣質量水平 (載入中...)</div>
 
+    <!-- Variable Selector Pills -->
+    <div class="variable-section-title">氣象與空氣質量數據</div>
+    <div class="variable-pills-container" id="variablePills">
+      <button class="var-pill active" data-var="aqi">綜合空氣質量指數 (AQI)</button>
+      <button class="var-pill" data-var="pm25">PM 2.5 (μg/m³)</button>
+      <button class="var-pill" data-var="pm10">PM 10 (μg/m³)</button>
+      <button class="var-pill" data-var="no2">NO 2 (μg/m³)</button>
+      <button class="var-pill" data-var="o3">O 3 (μg/m³)</button>
+      <button class="var-pill" data-var="so2">SO 2 (μg/m³)</button>
+      <button class="var-pill" data-var="co">CO (mg/m³)</button>
+    </div>
+
     <div class="content-grid">
       <!-- Left: Map with Markers -->
       <div class="map-container" id="mapContainer">
@@ -420,7 +484,7 @@
               <th>監測站類型</th>
               <th>位置</th>
               <th>水平</th>
-              <th>指數</th>
+              <th id="tableHeaderValue">指數</th>
             </tr>
           </thead>
           <tbody id="aqiTableBody">
@@ -431,6 +495,26 @@
     </div>
 
     <div class="update-time-footer" id="updateTimeFooter"></div>
+
+    <!-- Predict Variable Table Downwards -->
+    <div class="forecast-section">
+      <div class="forecast-title">空氣質量預測變數展望</div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>預測日期 / 參數</th>
+              <th>PM2.5 預測平均</th>
+              <th>PM10 預測平均</th>
+              <th>O3 預測平均</th>
+            </tr>
+          </thead>
+          <tbody id="forecastTableBody">
+            <tr><td colspan="4" style="padding: 20px; color: var(--text-muted);">正在載入預測數據...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -444,6 +528,10 @@
       { name: "大潭山", slug: "taipa-grande", category: "一般性", top: "53%", left: "62%" },
       { name: "石排灣", slug: "coloane", category: "一般性", top: "80%", left: "22%" }
     ];
+
+    let globalFetchedData = [];
+    let globalForecastData = null;
+    let currentSelectedVar = 'aqi';
 
     function getAQIStyle(aqi) {
       if (aqi <= 50) return { color: '#10b981', label: '良好' };
@@ -464,12 +552,10 @@
       localStorage.setItem('theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
     }
 
-    // Load saved theme
     if (localStorage.getItem('theme') === 'light') {
       document.body.classList.add('light-theme');
     }
 
-    // Clock updater
     function updateClock() {
       const now = new Date();
       const timeStr = now.toLocaleString('zh-Hant', { hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -480,31 +566,33 @@
     updateClock();
 
     async function fetchAirQualityData() {
-      const mapContainer = document.getElementById('mapContainer');
-      const tableBody = document.getElementById('aqiTableBody');
-      const mainTitle = document.getElementById('mainTitle');
-      const updateTimeFooter = document.getElementById('updateTimeFooter');
-
-      // Preserve legend inside map container
-      const legendHTML = mapContainer.querySelector('.map-legend').outerHTML;
-      mapContainer.innerHTML = legendHTML;
-
       let fetchedResults = [];
       let latestTimeString = '';
+      let sampleForecast = null;
 
       for (const st of stationsConfig) {
         try {
           const res = await fetch(`https://api.waqi.info/feed/macau/${st.slug}/?token=${WAQI_TOKEN}`);
           const json = await res.json();
-          if (json.status === "ok" && json.data && typeof json.data.aqi === 'number') {
-            const aqi = json.data.aqi;
+          if (json.status === "ok" && json.data) {
             const timeStr = json.data.time && json.data.time.s ? json.data.time.s : '';
             if (timeStr && (!latestTimeString || timeStr > latestTimeString)) {
               latestTimeString = timeStr;
             }
+            if (!sampleForecast && json.data.forecast && json.data.forecast.daily) {
+              sampleForecast = json.data.forecast.daily;
+            }
+
+            const iaqi = json.data.iaqi || {};
             fetchedResults.push({
               ...st,
-              aqi: aqi,
+              aqi: json.data.aqi ?? 0,
+              pm25: iaqi.pm25 ? iaqi.pm25.v : '--',
+              pm10: iaqi.pm10 ? iaqi.pm10.v : '--',
+              no2: iaqi.no2 ? iaqi.no2.v : '--',
+              o3: iaqi.o3 ? iaqi.o3.v : '--',
+              so2: iaqi.so2 ? iaqi.so2.v : '--',
+              co: iaqi.co ? iaqi.co.v : '--',
               time: timeStr
             });
           }
@@ -513,12 +601,28 @@
         }
       }
 
-      if (fetchedResults.length === 0) {
+      globalFetchedData = fetchedResults;
+      globalForecastData = sampleForecast;
+
+      renderView(latestTimeString);
+    }
+
+    function renderView(latestTimeString) {
+      const mapContainer = document.getElementById('mapContainer');
+      const tableBody = document.getElementById('aqiTableBody');
+      const mainTitle = document.getElementById('mainTitle');
+      const updateTimeFooter = document.getElementById('updateTimeFooter');
+      const tableHeaderValue = document.getElementById('tableHeaderValue');
+      const forecastTableBody = document.getElementById('forecastTableBody');
+
+      const legendHTML = mapContainer.querySelector('.map-legend').outerHTML;
+      mapContainer.innerHTML = legendHTML;
+
+      if (globalFetchedData.length === 0) {
         tableBody.innerHTML = `<tr><td colspan="4" style="padding: 20px; color: var(--text-muted);">無法載入空氣質素數據，請稍後再試。</td></tr>`;
         return;
       }
 
-      // Format title and footer time
       let titleDateStr = '';
       if (latestTimeString) {
         const d = new Date(latestTimeString);
@@ -536,27 +640,40 @@
       }
       mainTitle.textContent = `即時空氣質量水平（${titleDateStr}）`;
 
-      // Render Map Markers & Table grouped by category
+      // Set Header name based on selection
+      const varNames = {
+        aqi: '指數',
+        pm25: 'PM2.5 (μg/m³)',
+        pm10: 'PM10 (μg/m³)',
+        no2: 'NO2 (μg/m³)',
+        o3: 'O3 (μg/m³)',
+        so2: 'SO2 (μg/m³)',
+        co: 'CO (mg/m³)'
+      };
+      tableHeaderValue.textContent = varNames[currentSelectedVar];
+
       const categories = ['路邊', '高密度住宅區', '一般性'];
       tableBody.innerHTML = '';
 
       categories.forEach(catName => {
-        const catStations = fetchedResults.filter(s => s.category === catName);
+        const catStations = globalFetchedData.filter(s => s.category === catName);
         catStations.forEach((st, index) => {
-          const styleInfo = getAQIStyle(st.aqi);
+          const val = st[currentSelectedVar];
+          const numericVal = typeof val === 'number' ? val : 0;
+          const styleInfo = getAQIStyle(currentSelectedVar === 'aqi' ? numericVal : (numericVal <= 50 ? 30 : numericVal <= 100 ? 80 : 150));
 
-          // 1. Render Marker on Map
+          // Marker
           const marker = document.createElement('div');
           marker.className = 'station-marker';
           marker.style.top = st.top;
           marker.style.left = st.left;
           marker.innerHTML = `
-            <div class="station-badge" style="background-color: ${styleInfo.color};">${st.aqi}</div>
+            <div class="station-badge" style="background-color: ${styleInfo.color};">${val}</div>
             <div class="station-label">${st.name}</div>
           `;
           mapContainer.appendChild(marker);
 
-          // 2. Render Table Row
+          // Table row
           const tr = document.createElement('tr');
           let typeCellHtml = '';
           if (index === 0) {
@@ -566,12 +683,50 @@
             ${typeCellHtml}
             <td>${st.name}</td>
             <td><span class="status-pill" style="background-color: ${styleInfo.color};">${styleInfo.label}</span></td>
-            <td style="font-weight: 700; font-size: 16px;">${st.aqi}</td>
+            <td style="font-weight: 700; font-size: 16px;">${val}</td>
           `;
           tableBody.appendChild(tr);
         });
       });
+
+      // Render Forecast Table
+      if (globalForecastData) {
+        forecastTableBody.innerHTML = '';
+        const pm25Days = globalForecastData.pm25 || [];
+        const pm10Days = globalForecastData.pm10 || [];
+        const o3Days = globalForecastData.o3 || [];
+
+        const maxDays = Math.max(pm25Days.length, pm10Days.length, o3Days.length);
+        for (let i = 0; i < Math.min(maxDays, 5); i++) {
+          const dayItem = pm25Days[i] || pm10Days[i] || o3Days[i];
+          const dateStr = dayItem ? dayItem.day : `預測日 ${i+1}`;
+          const p25Avg = pm25Days[i] ? pm25Days[i].avg : '--';
+          const p10Avg = pm10Days[i] ? pm10Days[i].avg : '--';
+          const o3Avg = o3Days[i] ? o3Days[i].avg : '--';
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="font-weight: 700;">${dateStr}</td>
+            <td>${p25Avg}</td>
+            <td>${p10Avg}</td>
+            <td>${o3Avg}</td>
+          `;
+          forecastTableBody.appendChild(tr);
+        }
+      } else {
+        forecastTableBody.innerHTML = `<tr><td colspan="4" style="padding: 20px; color: var(--text-muted);">暫無可用的預測數據變數。</td></tr>`;
+      }
     }
+
+    // Event listener for variable pills
+    document.querySelectorAll('.var-pill').forEach(pill => {
+      pill.addEventListener('click', (e) => {
+        document.querySelectorAll('.var-pill').forEach(p => p.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+        currentSelectedVar = e.currentTarget.getAttribute('data-var');
+        renderView('');
+      });
+    });
 
     document.addEventListener('DOMContentLoaded', fetchAirQualityData);
   </script>
