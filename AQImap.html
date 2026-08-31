@@ -5,151 +5,287 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>澳門民間氣象台 MSSO - 即時空氣質量水平</title>
   <style>
+    /* ========== 1. 深太空 (Deep Space) 全域主題基礎 ========== */
     :root {
-      --bg-color: #0f172a;
-      --card-bg: #1e293b;
-      --card-border: #334155;
-      --text-main: #f8fafc;
+      --bg-dark: #0b0f19;
+      --card-bg: rgba(22, 30, 46, 0.75);
+      --card-bg-light: rgba(255, 255, 255, 0.03);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-main: #f1f5f9;
       --text-muted: #94a3b8;
-      --primary-color: #3b82f6;
-      --header-bg: #1e293b;
-    }
-    body.light-theme {
-      --bg-color: #f1f5f9;
-      --card-bg: #ffffff;
-      --card-border: #e2e8f0;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --header-bg: #ffffff;
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      margin: 0;
-      padding: 0 0 40px 0;
+      
+      --accent-blue: #38bdf8;
+      --accent-teal: #2dd4bf;
+      --accent-green: #34d399;
+      --accent-yellow: #facc15;
+      --accent-orange: #f59e0b;
+      --accent-red: #ef4444;
+      --accent-purple: #c084fc;
+
+      --bg-red: rgba(239, 68, 68, 0.12);
+      --border-red: rgba(239, 68, 68, 0.35);
+      --bg-orange: rgba(245, 158, 11, 0.12);
+      --border-orange: rgba(245, 158, 11, 0.35);
     }
 
-    /* Header & Navigation Styles */
+    /* ========== 明亮主題 (Light Theme) ========== */
+    body.light-theme {
+      --bg-dark: #f8fafc;
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --card-bg-light: rgba(0, 0, 0, 0.04);
+      --card-border: rgba(0, 0, 0, 0.12);
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+
+      --accent-blue: #0284c7;
+      --accent-teal: #0d9488;
+      --accent-green: #059669;
+      --accent-yellow: #d97706;
+      --accent-orange: #d97706;
+      --accent-red: #dc2626;
+      --accent-purple: #9333ea;
+
+      --bg-red: rgba(239, 68, 68, 0.08);
+      --border-red: rgba(239, 68, 68, 0.25);
+      --bg-orange: rgba(245, 158, 11, 0.08);
+      --border-orange: rgba(245, 158, 11, 0.25);
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      line-height: 1.6;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* 頁面最大寬度容器 */
+    .page-wrapper {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 15px 80px 15px;
+    }
+
+    /* ========== 2. 頁頭 Header & 頂欄導航 ========== */
     .header-nav-container {
-      background: var(--header-bg);
-      border-bottom: 1px solid var(--card-border);
       position: sticky;
       top: 0;
-      z-index: 1000;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      z-index: 3000;
+      background: rgba(11, 15, 25, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.5rem;
+      margin-bottom: 20px;
+      transition: background 0.3s ease;
     }
+    body.light-theme .header-nav-container {
+      background: rgba(248, 250, 252, 0.88);
+    }
+
     .header {
       display: flex;
       align-items: center;
-      padding: 10px 16px;
       gap: 12px;
     }
     .logo {
-      height: 36px;
-      width: 36px;
-      object-fit: contain;
+      height: 38px;
+      width: auto;
+      filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.3));
     }
     .title {
-      font-size: 18px;
+      font-size: 1.15rem;
       font-weight: 700;
+      color: var(--accent-blue);
+      letter-spacing: 0.5px;
       display: flex;
-      flex-direction: column;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
     }
     .header-clock {
-      font-size: 12px;
-      font-weight: 400;
-      color: var(--text-muted);
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--accent-teal);
+      font-variant-numeric: tabular-nums;
+      opacity: 0.9;
     }
+
     .menu-container {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-      padding: 0 16px 10px 16px;
-      gap: 12px;
       position: relative;
-    }
-    .theme-toggle-btn {
-      background: none;
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
-      padding: 6px;
-      cursor: pointer;
-      color: var(--text-main);
       display: flex;
       align-items: center;
+      gap: 10px;
     }
-    body.light-theme .moon-icon { display: block; }
+
+    /* 主題切換按鈕 */
+    .theme-toggle-btn {
+      background: var(--card-bg-light);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      padding: 8px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.25s ease;
+      outline: none;
+    }
+    .theme-toggle-btn:hover {
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+      transform: translateY(-1px);
+    }
+    .sun-icon { display: block; }
+    .moon-icon { display: none; }
     body.light-theme .sun-icon { display: none; }
-    body:not(.light-theme) .moon-icon { display: none; }
-    body:not(.light-theme) .sun-icon { display: block; }
+    body.light-theme .moon-icon { display: block; }
 
     .menu-toggle {
       display: none;
       font-size: 22px;
+      padding: 6px 12px;
       cursor: pointer;
+      background: var(--card-bg-light);
+      border: 1px solid var(--card-border);
+      color: var(--text-main);
+      border-radius: 8px;
+      transition: all 0.2s;
     }
+    .menu-toggle:hover {
+      border-color: var(--accent-blue);
+    }
+    .menu-toggle.active {
+      border-color: var(--accent-blue);
+      background: rgba(56, 189, 248, 0.12);
+    }
+
     .nav {
       display: flex;
-      gap: 15px;
+      gap: 8px;
       align-items: center;
-      flex-wrap: wrap;
     }
     .nav a {
-      color: var(--text-main);
+      color: var(--text-muted);
+      padding: 8px 14px;
+      font-size: 0.92rem;
+      font-weight: 500;
       text-decoration: none;
-      font-size: 14px;
-      padding: 4px 8px;
-      border-radius: 4px;
+      border-radius: 20px;
+      transition: all 0.2s ease;
+      display: block;
     }
     .nav a:hover, .nav a.active {
-      background: var(--primary-color);
-      color: #fff;
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
     }
+    body.light-theme .nav a:hover, body.light-theme .nav a.active {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    /* ========== 下拉選單樣式 (Dropdown Style) ========== */
     .dropdown {
       position: relative;
       display: inline-block;
     }
+
     .dropdown-btn {
-      background: none;
+      background: transparent;
       border: none;
-      color: var(--text-main);
-      font-size: 14px;
+      color: var(--text-muted);
+      padding: 8px 14px;
+      font-size: 0.92rem;
+      font-weight: 500;
+      font-family: inherit;
+      border-radius: 20px;
       cursor: pointer;
-      padding: 4px 8px;
+      transition: all 0.2s ease;
       display: flex;
       align-items: center;
-      gap: 4px;
-    }
-    .dropdown-content {
-      display: none;
-      position: absolute;
-      background-color: var(--card-bg);
-      min-width: 180px;
-      box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
-      border: 1px solid var(--card-border);
-      z-index: 1001;
-      border-radius: 6px;
-      padding: 6px 0;
-      top: 100%;
-      left: 0;
-    }
-    .dropdown-content a {
-      color: var(--text-main);
-      padding: 8px 16px;
-      text-decoration: none;
-      display: block;
-      white-space: nowrap;
-    }
-    .dropdown-content a:hover {
-      background-color: var(--primary-color);
-      color: white;
-    }
-    .dropdown:hover .dropdown-content {
-      display: block;
+      gap: 6px;
     }
 
-    @media (max-width: 768px) {
+    .dropdown-btn .arrow {
+      font-size: 0.7rem;
+      transition: transform 0.2s ease;
+    }
+
+    .dropdown:hover .dropdown-btn,
+    .dropdown.active .dropdown-btn {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+    body.light-theme .dropdown:hover .dropdown-btn,
+    body.light-theme .dropdown.active .dropdown-btn {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .dropdown:hover .arrow,
+    .dropdown.active .arrow {
+      transform: rotate(180deg);
+    }
+
+    .dropdown-content {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      min-width: 190px;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 6px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      z-index: 3100;
+      margin-top: 4px;
+
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0s linear 0.4s;
+    }
+
+    .dropdown-content::before {
+      content: "";
+      position: absolute;
+      top: -8px;
+      left: 0;
+      width: 100%;
+      height: 8px;
+    }
+
+    body.light-theme .dropdown-content {
+      background: rgba(255, 255, 255, 0.98);
+    }
+
+    .dropdown:hover .dropdown-content,
+    .dropdown.active .dropdown-content {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.25s ease, visibility 0s linear 0s;
+    }
+
+    .dropdown-content a {
+      padding: 8px 12px;
+      border-radius: 8px;
+      white-space: nowrap;
+      font-size: 0.88rem;
+    }
+
+    @media (max-width: 900px) {
       .menu-toggle { display: block; }
       .nav {
         display: none;
@@ -157,11 +293,16 @@
         top: 100%;
         left: 0;
         width: 100%;
-        background: var(--card-bg);
+        background: rgba(11, 15, 25, 0.98);
+        backdrop-filter: blur(16px);
         flex-direction: column;
-        align-items: flex-start;
-        padding: 10px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        align-items: stretch;
+        padding: 15px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        border-bottom: 1px solid var(--card-border);
+      }
+      body.light-theme .nav {
+        background: rgba(248, 250, 252, 0.98);
       }
       .nav.show { display: flex; }
       .dropdown-content {
@@ -170,14 +311,20 @@
         border: none;
         background: transparent;
         padding-left: 15px;
+        opacity: 1;
+        visibility: visible;
+        display: none;
+      }
+      .dropdown.active .dropdown-content {
+        display: block;
       }
     }
 
     /* Main Page Content Layout */
-    .container {
+    .page-wrapper {
       max-width: 1100px;
       margin: 24px auto;
-      padding: 0 16px;
+      padding: 0 15px 80px 15px;
     }
     .main-title {
       text-align: center;
@@ -212,14 +359,25 @@
       transition: all 0.2s ease;
     }
     .var-pill:hover {
-      border-color: var(--primary-color);
+      border-color: var(--accent-blue);
       color: var(--text-main);
     }
     .var-pill.active {
-      background: var(--primary-color);
+      background: var(--accent-blue);
       color: #fff;
-      border-color: var(--primary-color);
+      border-color: var(--accent-blue);
       box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    /* Category Cards Grid (Box before map) */
+    .category-box {
+      margin-bottom: 24px;
+    }
+    .category-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
     }
 
     .content-grid {
@@ -239,7 +397,7 @@
       aspect-ratio: 1 / 1.05;
       background: #e2e8f0 url('map/map.png') no-repeat center center;
       background-size: cover;
-      border-radius: 8px;
+      border-radius: 12px;
       border: 1px solid var(--card-border);
       overflow: hidden;
     }
@@ -294,12 +452,6 @@
       color: #f8fafc;
       border: 1px solid var(--card-border);
     }
-    .legend-title {
-      font-weight: 700;
-      margin-bottom: 4px;
-      border-bottom: 1px solid rgba(0,0,0,0.1);
-      padding-bottom: 2px;
-    }
     .legend-row {
       display: flex;
       align-items: center;
@@ -316,8 +468,9 @@
     .table-container {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 8px;
+      border-radius: 12px;
       overflow: hidden;
+      backdrop-filter: blur(12px);
     }
     table {
       width: 100%;
@@ -329,14 +482,11 @@
       border: 1px solid var(--card-border);
       padding: 10px 8px;
       vertical-align: middle;
-    }
-    th {
-      background: rgba(0, 0, 0, 0.05);
-      font-weight: 700;
       color: var(--text-main);
     }
-    body:not(.light-theme) th {
-      background: rgba(255, 255, 255, 0.05);
+    th {
+      background: var(--card-bg-light);
+      font-weight: 700;
     }
     .status-pill {
       display: inline-block;
@@ -358,8 +508,9 @@
       margin-top: 32px;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 8px;
+      border-radius: 12px;
       padding: 20px;
+      backdrop-filter: blur(12px);
     }
     .forecast-title {
       font-size: 18px;
@@ -383,15 +534,16 @@
 
     <div class="menu-container">
       <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
-        <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-        <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <span>主題</span>
       </button>
 
       <div class="menu-toggle" onclick="toggleMenu()">☰</div>
       <div class="nav" id="navMenu">
         <a href="https://macaosso.github.io/MSSOweb/index.html">首頁</a>
 
-        <div class="dropdown">
+        <div class="dropdown" onclick="toggleDropdown(event)">
           <button class="dropdown-btn">澳門天氣 <span class="arrow">▼</span></button>
           <div class="dropdown-content">
             <a href="map.html">綜合氣象實況</a>
@@ -402,7 +554,7 @@
           </div>
         </div>
 
-        <div class="dropdown">
+        <div class="dropdown" onclick="toggleDropdown(event)">
           <button class="dropdown-btn">熱帶氣旋 <span class="arrow">▼</span></button>
           <div class="dropdown-content">
             <a href="https://macaosso.github.io/MSSOweb/tc.html">熱帶氣旋資訊</a>
@@ -412,14 +564,14 @@
           </div>
         </div>
         
-        <div class="dropdown">
+        <div class="dropdown" onclick="toggleDropdown(event)">
           <button class="dropdown-btn">天文 <span class="arrow">▼</span></button>
           <div class="dropdown-content">
             <a href="https://macaosso.github.io/MSSOweb/astro.html">天文</a>
           </div>
         </div>
         
-        <div class="dropdown">
+        <div class="dropdown" onclick="toggleDropdown(event)">
           <button class="dropdown-btn">氣候 <span class="arrow">▼</span></button>
           <div class="dropdown-content">
               <a href="https://macaosso.github.io/MSSOweb/climate.html">澳門氣候</a>
@@ -427,7 +579,7 @@
           </div>
         </div>
 
-        <div class="dropdown">
+        <div class="dropdown" onclick="toggleDropdown(event)">
           <button class="dropdown-btn">地球物理 <span class="arrow">▼</span></button>
           <div class="dropdown-content">
             <a href="earthquake.html">(NEW)地震</a>
@@ -436,7 +588,7 @@
           </div>
         </div>
         
-        <div class="dropdown">
+        <div class="dropdown" onclick="toggleDropdown(event)">
           <button class="dropdown-btn">其他 <span class="arrow">▼</span></button>
           <div class="dropdown-content">
             <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
@@ -448,7 +600,7 @@
   </div>
 
   <!-- Page Main Container -->
-  <div class="container">
+  <div class="page-wrapper">
     <div id="mainTitle" class="main-title">即時空氣質量水平 (載入中...)</div>
 
     <!-- Variable Selector Pills -->
@@ -461,6 +613,15 @@
       <button class="var-pill" data-var="o3">O 3 (μg/m³)</button>
       <button class="var-pill" data-var="so2">SO 2 (μg/m³)</button>
       <button class="var-pill" data-var="co">CO (mg/m³)</button>
+    </div>
+
+    <!-- Category Summary Cards Box (Added back before map) -->
+    <div class="category-box" id="categoryBox" style="display:none;">
+      <div class="variable-section-title" style="display: flex; justify-content: space-between; align-items: center;">
+        <span>各區空氣質素極值概覽</span>
+        <span id="aqiUpdateTime" style="font-size: 13px; font-weight: 400; color: var(--text-muted);"></span>
+      </div>
+      <div class="category-grid" id="categoryGrid"></div>
     </div>
 
     <div class="content-grid">
@@ -534,12 +695,12 @@
     let currentSelectedVar = 'aqi';
 
     function getAQIStyle(aqi) {
-      if (aqi <= 50) return { color: '#10b981', label: '良好' };
-      if (aqi <= 100) return { color: '#eab308', label: '普通' };
-      if (aqi <= 200) return { color: '#f97316', label: '不良' };
-      if (aqi <= 300) return { color: '#ef4444', label: '非常不良' };
-      if (aqi <= 400) return { color: '#a855f7', label: '嚴重' };
-      return { color: '#9f1239', label: '有害' };
+      if (aqi <= 50) return { color: '#10b981', label: '良好', text: 'var(--accent-green)', bg: 'var(--bg-red)', border: 'var(--border-red)' };
+      if (aqi <= 100) return { color: '#eab308', label: '普通', text: 'var(--accent-yellow)', bg: 'var(--bg-orange)', border: 'var(--border-orange)' };
+      if (aqi <= 200) return { color: '#f97316', label: '不良', text: 'var(--accent-orange)', bg: 'var(--bg-orange)', border: 'var(--border-orange)' };
+      if (aqi <= 300) return { color: '#ef4444', label: '非常不良', text: 'var(--accent-red)', bg: 'var(--bg-red)', border: 'var(--border-red)' };
+      if (aqi <= 400) return { color: '#a855f7', label: '嚴重', text: 'var(--accent-purple)', bg: 'var(--bg-red)', border: 'var(--border-red)' };
+      return { color: '#9f1239', label: '有害', text: 'var(--accent-red)', bg: 'var(--bg-red)', border: 'var(--border-red)' };
     }
 
     function toggleMenu() {
@@ -547,9 +708,18 @@
       nav.classList.toggle('show');
     }
 
+    function toggleDropdown(e) {
+      if (window.innerWidth <= 900) {
+        e.stopPropagation();
+        const dropdown = e.currentTarget;
+        dropdown.classList.toggle('active');
+      }
+    }
+
     function toggleTheme() {
       document.body.classList.toggle('light-theme');
       localStorage.setItem('theme', document.body.classList.contains('light-theme') ? 'light' : 'dark');
+      renderView(document.getElementById('updateTimeFooter').textContent.replace('更新時間: ', ''));
     }
 
     if (localStorage.getItem('theme') === 'light') {
@@ -607,6 +777,58 @@
       renderView(latestTimeString);
     }
 
+    function renderCategoryCards(summaryTime) {
+      const box = document.getElementById('categoryBox');
+      const grid = document.getElementById('categoryGrid');
+      const timeEl = document.getElementById('aqiUpdateTime');
+      if (!grid) return;
+      if (box) box.style.display = 'block';
+
+      const categories = {
+        "路邊": globalFetchedData.filter(s => s.category === "路邊"),
+        "高密度住宅區": globalFetchedData.filter(s => s.category === "高密度住宅區"),
+        "一般性": globalFetchedData.filter(s => s.category === "一般性")
+      };
+
+      grid.innerHTML = '';
+      if (summaryTime) {
+        timeEl.textContent = `(更新時間: ${summaryTime})`;
+      }
+
+      const order = ['路邊', '高密度住宅區', '一般性'];
+      for (const catName of order) {
+        const stations = categories[catName];
+        if (!stations || stations.length === 0) continue;
+
+        const sorted = [...stations].sort((a, b) => a.aqi - b.aqi);
+        const low = sorted[0];
+        const high = sorted[sorted.length - 1];
+        const statusStyle = getAQIStyle(high.aqi);
+
+        const card = document.createElement('div');
+        card.style.cssText = `
+          background: var(--card-bg);
+          border: 1px solid var(--card-border);
+          border-radius: 12px;
+          padding: 12px;
+          backdrop-filter: blur(12px);
+        `;
+        card.innerHTML = `
+          <div style="font-size: 14px; font-weight: 700; color: var(--text-main); margin-bottom: 10px;">${catName}</div>
+          <div style="font-size: 24px; font-weight: 800; color: var(--text-main); line-height: 1.2;">
+            ${low.aqi} <span style="font-size: 14px; color: var(--text-muted); font-weight: 400;">~</span> ${high.aqi}
+          </div>
+          <div style="display: inline-block; margin-top: 6px; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 700; color: ${statusStyle.text}; background: ${statusStyle.bg}; border: 1px solid ${statusStyle.border};">
+            ${statusStyle.label}
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">
+            ${low.name} ${low.aqi} <br> ${high.name} ${high.aqi}
+          </div>
+        `;
+        grid.appendChild(card);
+      }
+    }
+
     function renderView(latestTimeString) {
       const mapContainer = document.getElementById('mapContainer');
       const tableBody = document.getElementById('aqiTableBody');
@@ -640,7 +862,9 @@
       }
       mainTitle.textContent = `即時空氣質量水平（${titleDateStr}）`;
 
-      // Set Header name based on selection
+      // Render Category Box before map
+      renderCategoryCards(latestTimeString);
+
       const varNames = {
         aqi: '指數',
         pm25: 'PM2.5 (μg/m³)',
