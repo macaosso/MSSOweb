@@ -645,7 +645,11 @@
 
     <div class="content-grid">
       <!-- Left: Map with Markers -->
-      <img id="baseMapImg" src="map/map.png" alt="澳門氣象地圖" class="map-base-img">
+      <div class="wbgt-map-wrapper" id="mapContainer">
+        <div class="map-image-container">
+          <img id="baseMapImg" src="map/map.png" alt="澳門氣象地圖" class="map-base-img">
+          <!-- JavaScript will inject .map-pin elements inside here -->
+        </div>
         <div class="map-legend">
           <div class="legend-row"><span class="legend-dot" style="background:#10b981;"></span>良好</div>
           <div class="legend-row"><span class="legend-dot" style="background:#eab308;"></span>普通</div>
