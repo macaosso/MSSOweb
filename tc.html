@@ -1344,7 +1344,20 @@ function updateHeaderClock() {
     clockEl.textContent = ` ${year}年${month}月${date}日 ${hrs}:${mins}:${secs} MST`;
   }
 }
-  
+function resolveIcon(iconKey) {
+  if (!iconKey) return "";
+  const key = iconKey.trim();
+
+  if (typeof ICON_PRESETS !== 'undefined' && ICON_PRESETS[key]) {
+    return ICON_PRESETS[key];
+  }
+
+  if (key.includes('/') || key.includes('.')) {
+    return key;
+  }
+
+  return `icons/${key.toLowerCase()}.jpg`;
+}
 function renderTcForecastTable(data) {
   const tableCard = document.getElementById('tcForecastTableCard');
   const tableContent = document.getElementById('tcTableContent');
