@@ -2422,9 +2422,9 @@ async function fetchOpenMeteoHourlyForecast() {
       if (maxPop >= 45 && rainAlertBox && rainAlertContent) {
         let popDesc = '';
         if (maxPop >= 90) {
-          popDesc = '有高機會出現降雨情況';
+          popDesc = '有「高」機會出現降雨情況';
         } else if (maxPop >= 75) {
-          popDesc = '有較高機會出現降雨情況';
+          popDesc = '有「較高」機會出現降雨情況';
         } else {
           popDesc = '可能會有降雨情況';
         }
