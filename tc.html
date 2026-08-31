@@ -3,55 +3,82 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<link rel="icon" type="image/png" href="icons/MSSO.png">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<title>熱帶氣旋路徑追蹤器 - 澳門民間氣象台 MSSO</title>
+<title>澳門民間氣象台 - 首頁</title>
 <style>
+/* ========== 1. 深太空 (Deep Space) 全域主題基礎 ========== */
 :root {
   --bg-dark: #0b0f19;
-  --bg-panel: #121826;
-  --card-bg: #1a2235;
-  --card-bg-light: rgba(255, 255, 255, 0.06);
+  --card-bg: rgba(22, 30, 46, 0.75);
+  --card-bg-light: rgba(255, 255, 255, 0.03);
   --card-border: rgba(255, 255, 255, 0.08);
   --text-main: #f1f5f9;
   --text-muted: #94a3b8;
+  
   --accent-blue: #38bdf8;
   --accent-teal: #2dd4bf;
-  
-  --c-low: #94a3b8;
-  --c-td: #38bdf8;
-  --c-ts: #2dd4bf;
-  --c-sts: #facc15;
-  --c-t: #f59e0b;
-  --c-st: #ef4444;
-  --c-supert: #c084fc;
-  --c-ex: #64748b;
+  --accent-green: #34d399;
+  --accent-yellow: #facc15;
+  --accent-orange: #f59e0b;
+  --accent-red: #ef4444;
+  --accent-purple: #c084fc;
+
+  --bg-red: rgba(239, 68, 68, 0.12);
+  --border-red: rgba(239, 68, 68, 0.35);
+  --bg-orange: rgba(245, 158, 11, 0.12);
+  --border-orange: rgba(245, 158, 11, 0.35);
 }
 
+/* ========== 明亮主題 (Light Theme) ========== */
 body.light-theme {
   --bg-dark: #f8fafc;
-  --bg-panel: #ffffff;
-  --card-bg: #f1f5f9;
-  --card-bg-light: rgba(0, 0, 0, 0.05);
-  --card-border: rgba(0, 0, 0, 0.1);
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-bg-light: rgba(0, 0, 0, 0.04);
+  --card-border: rgba(0, 0, 0, 0.12);
   --text-main: #0f172a;
   --text-muted: #64748b;
+
+  --accent-blue: #0284c7;
+  --accent-teal: #0d9488;
+  --accent-green: #059669;
+  --accent-yellow: #d97706;
+  --accent-orange: #d97706;
+  --accent-red: #dc2626;
+  --accent-purple: #9333ea;
+
+  --bg-red: rgba(239, 68, 68, 0.08);
+  --border-red: rgba(239, 68, 68, 0.25);
+  --bg-orange: rgba(245, 158, 11, 0.08);
+  --border-orange: rgba(245, 158, 11, 0.25);
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  scroll-behavior: smooth;
+}
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 body {
+  margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background-color: var(--bg-dark);
   color: var(--text-main);
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Header & Navigation */
+/* 頁面最大寬度容器 */
+.page-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 15px 80px 15px;
+}
+
+/* ========== 2. 頁頭 Header & 頂欄導航 ========== */
 .header-nav-container {
   position: sticky;
   top: 0;
@@ -63,8 +90,8 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1.5rem;
+  margin-bottom: 20px;
   transition: background 0.3s ease;
-  flex-shrink: 0;
 }
 body.light-theme .header-nav-container {
   background: rgba(248, 250, 252, 0.88);
@@ -105,6 +132,7 @@ body.light-theme .header-nav-container {
   gap: 10px;
 }
 
+/* 主題切換按鈕 */
 .theme-toggle-btn {
   background: var(--card-bg-light);
   border: 1px solid var(--card-border);
@@ -125,10 +153,18 @@ body.light-theme .header-nav-container {
   color: var(--accent-blue);
   transform: translateY(-1px);
 }
-.sun-icon { display: block; }
-.moon-icon { display: none; }
-body.light-theme .sun-icon { display: none; }
-body.light-theme .moon-icon { display: block; }
+.sun-icon {
+  display: block;
+}
+.moon-icon {
+  display: none;
+}
+body.light-theme .sun-icon {
+  display: none;
+}
+body.light-theme .moon-icon {
+  display: block;
+}
 
 .menu-toggle {
   display: none;
@@ -141,7 +177,9 @@ body.light-theme .moon-icon { display: block; }
   border-radius: 8px;
   transition: all 0.2s;
 }
-.menu-toggle:hover { border-color: var(--accent-blue); }
+.menu-toggle:hover {
+  border-color: var(--accent-blue);
+}
 .menu-toggle.active {
   border-color: var(--accent-blue);
   background: rgba(56, 189, 248, 0.12);
@@ -170,10 +208,12 @@ body.light-theme .nav a:hover {
   background: rgba(0, 0, 0, 0.05);
 }
 
+/* ========== 下拉選單樣式 (Dropdown Style) ========== */
 .dropdown {
   position: relative;
   display: inline-block;
 }
+
 .dropdown-btn {
   background: transparent;
   border: none;
@@ -189,10 +229,12 @@ body.light-theme .nav a:hover {
   align-items: center;
   gap: 6px;
 }
+
 .dropdown-btn .arrow {
   font-size: 0.7rem;
   transition: transform 0.2s ease;
 }
+
 .dropdown:hover .dropdown-btn,
 .dropdown.active .dropdown-btn {
   color: var(--text-main);
@@ -202,6 +244,7 @@ body.light-theme .dropdown:hover .dropdown-btn,
 body.light-theme .dropdown.active .dropdown-btn {
   background: rgba(0, 0, 0, 0.05);
 }
+
 .dropdown:hover .arrow,
 .dropdown.active .arrow {
   transform: rotate(180deg);
@@ -220,10 +263,12 @@ body.light-theme .dropdown.active .dropdown-btn {
   box-shadow: 0 10px 25px rgba(0,0,0,0.5);
   z-index: 3100;
   margin-top: 4px;
+
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.25s ease, visibility 0s linear 0.4s;
 }
+
 .dropdown-content::before {
   content: "";
   position: absolute;
@@ -232,15 +277,18 @@ body.light-theme .dropdown.active .dropdown-btn {
   width: 100%;
   height: 8px;
 }
+
 body.light-theme .dropdown-content {
   background: rgba(255, 255, 255, 0.98);
 }
+
 .dropdown:hover .dropdown-content,
 .dropdown.active .dropdown-content {
   opacity: 1;
   visibility: visible;
   transition: opacity 0.25s ease, visibility 0s linear 0s;
 }
+
 .dropdown-content a {
   padding: 8px 12px;
   border-radius: 8px;
@@ -248,411 +296,847 @@ body.light-theme .dropdown-content {
   font-size: 0.88rem;
 }
 
-/* Map Container */
-.main-container {
+/* ========== 3. 首頁快捷鏈接模塊 ========== */
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 15px 0 25px 0;
+  width: 100%;
+}
+.link-box {
   display: flex;
-  flex: 1;
-  position: relative;
-  overflow: hidden;
-}
-
-#map-wrapper { flex: 1; position: relative; height: 100%; min-width: 0; }
-#map { width: 100%; height: 100%; background: #090d16; }
-
-.sub-header-bar {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 1000;
-  display: flex;
-  gap: 8px;
-  background: rgba(15, 21, 35, 0.85);
-  backdrop-filter: blur(8px);
-  padding: 6px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--card-border);
-}
-
-.ctrl-btn, .ctrl-select {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid var(--card-border);
+  align-items: center;
+  justify-content: center;
+  padding: 18px 10px;
+  border-radius: 14px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
   color: var(--text-main);
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.82rem;
-  cursor: pointer;
-  outline: none;
-}
-.ctrl-btn:hover, .ctrl-select:hover { background: rgba(255, 255, 255, 0.16); }
-.ctrl-btn.active { background: #0284c7; border-color: var(--accent-blue); color: #fff; }
-
-.resizer {
-  width: 6px;
-  background: rgba(255, 255, 255, 0.08);
-  cursor: col-resize;
-  transition: background 0.2s;
-  z-index: 1001;
-  flex-shrink: 0;
-}
-.resizer:hover, .resizer.dragging { background: var(--accent-blue); }
-
-.map-overlay-topright {
-  position: absolute;
-  top: 12px; right: 12px;
-  z-index: 1000;
-  background: rgba(15, 21, 35, 0.88);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--card-border);
-  border-radius: 8px;
-  padding: 10px; width: 280px;
-  transition: top 0.25s ease;
-}
-.overlay-storm-item {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 6px; font-size: 0.82rem; gap: 8px;
-}
-.overlay-storm-info {
-  display: flex; flex-direction: column; overflow: hidden;
-}
-.overlay-storm-title {
-  font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.overlay-storm-sub {
-  font-size: 0.72rem; color: var(--text-muted);
-}
-
-.btn-mini {
-  background: rgba(255, 255, 255, 0.1); color: var(--text-muted);
-  border: 1px solid var(--card-border);
-  padding: 3px 8px; border-radius: 6px; font-size: 0.75rem;
-  font-weight: bold; cursor: pointer; transition: all 0.2s;
-  white-space: nowrap; flex-shrink: 0;
-}
-.btn-mini.active {
-  background: var(--accent-blue); color: #000; border-color: var(--accent-blue);
-  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
-}
-
-.map-legend {
-  position: absolute; bottom: 24px; left: 12px;
-  z-index: 1000;
-  background: rgba(15, 21, 35, 0.88);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--card-border);
-  border-radius: 8px; padding: 10px 14px; font-size: 0.78rem;
-}
-.legend-title { font-weight: bold; margin-bottom: 6px; color: var(--text-muted); }
-.legend-grid { display: flex; flex-direction: column; gap: 4px; }
-.legend-item { display: flex; align-items: center; gap: 8px; }
-.legend-color { width: 12px; height: 12px; border-radius: 50%; }
-
-/* Sidebar */
-.sidebar {
-  width: 420px;
-  min-width: 280px;
-  max-width: 650px;
-  background: var(--bg-panel);
-  border-left: 1px solid var(--card-border);
-  display: flex; flex-direction: column;
-  z-index: 1000; overflow-y: auto;
-  transition: transform 0.25s ease, width 0.05s ease;
-  position: relative;
-  flex-shrink: 0;
-}
-.sidebar.collapsed {
-  width: 0 !important;
-  min-width: 0 !important;
-  border-left: none !important;
-  overflow: hidden !important;
-  padding: 0 !important;
-}
-
-.sidebar-header {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--card-border);
-  display: flex; align-items: center; justify-content: space-between;
-  font-size: 0.9rem; font-weight: bold; background: rgba(0,0,0,0.15);
-  white-space: nowrap; flex-shrink: 0;
-}
-
-.collapse-btn {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid var(--card-border);
-  color: var(--text-main);
-  padding: 2px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.8rem;
-}
-.collapse-btn:hover { background: rgba(255, 255, 255, 0.18); }
-
-.floating-toggle-btn {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  z-index: 2500;
-  background: var(--bg-panel);
-  border: 1px solid var(--accent-blue);
-  color: var(--accent-blue);
-  padding: 8px 14px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  font-weight: bold;
-  display: none;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
-}
-.floating-toggle-btn:hover {
-  background: var(--accent-blue);
-  color: #000;
-}
-
-.sidebar-content {
-  padding: 12px; display: flex; flex-direction: column; gap: 12px;
-  width: 100%; box-sizing: border-box; min-width: 0;
-}
-
-.tc-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 12px;
-  padding: 14px;
-  width: 100%;
-  box-sizing: border-box;
-  min-width: 0;
-}
-.tc-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.tc-header-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-.tc-storm-name {
-  font-size: 1.1rem;
-  font-weight: 700;
-  color: var(--text-main);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  transition: all 0.25s ease;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.tc-time-stamp {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  white-space: nowrap;
+.link-box.weather {
+  background: linear-gradient(135deg, rgba(20, 83, 116, 0.35), rgba(15, 23, 42, 0.6));
+  border-color: rgba(56, 189, 248, 0.3);
+}
+.link-box.flood {
+  background: linear-gradient(135deg, rgba(13, 110, 110, 0.35), rgba(15, 23, 42, 0.6));
+  border-color: rgba(45, 212, 191, 0.3);
+}
+.link-box.map {
+  background: linear-gradient(135deg, rgba(88, 28, 135, 0.35), rgba(15, 23, 42, 0.6));
+  border-color: rgba(192, 132, 252, 0.3);
+}
+body.light-theme .link-box.weather {
+  background: linear-gradient(135deg, rgba(186, 230, 253, 0.5), rgba(255, 255, 255, 0.9));
+}
+body.light-theme .link-box.flood {
+  background: linear-gradient(135deg, rgba(153, 246, 228, 0.5), rgba(255, 255, 255, 0.9));
+}
+body.light-theme .link-box.map {
+  background: linear-gradient(135deg, rgba(233, 213, 255, 0.5), rgba(255, 255, 255, 0.9));
+}
+.link-box:hover {
+  transform: translateY(-3px);
+  border-color: var(--accent-blue);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.2);
 }
 
-.badge-tag {
-  padding: 3px 8px; border-radius: 6px;
-  font-size: 0.75rem; font-weight: 700; color: #fff; display: inline-block;
-  white-space: nowrap; flex-shrink: 0;
-}
-
-.tc-info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 8px;
-  margin-bottom: 14px;
-  width: 100%;
-}
-.info-box {
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 8px;
-  padding: 8px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-.info-box-label { font-size: 0.72rem; color: var(--text-muted); white-space: nowrap; }
-.info-box-val {
-  font-size: 0.92rem; font-weight: 700; color: var(--text-main);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-
-.tab-group {
-  display: flex;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
-  padding: 2px;
-  margin-bottom: 10px;
-}
-.tab-btn {
-  flex: 1; background: transparent; border: none;
-  color: var(--text-muted); padding: 6px 0; font-size: 0.8rem;
-  font-weight: bold; border-radius: 4px; cursor: pointer; transition: all 0.2s;
-}
-.tab-btn.active { background: var(--accent-blue); color: #000; }
-
-.track-list { font-size: 0.78rem; display: flex; flex-direction: column; gap: 6px; width: 100%; }
-
-.track-row {
-  display: grid;
-  grid-template-columns: minmax(40px, 0.8fr) minmax(65px, 1fr) minmax(70px, 1.1fr) minmax(75px, 1.2fr) minmax(45px, 0.8fr);
-  align-items: center;
-  padding: 6px 8px;
-  background: rgba(255,255,255,0.02);
-  border-radius: 6px;
-  cursor: pointer;
-  gap: 4px;
-  transition: background 0.2s;
-  width: 100%;
-  box-sizing: border-box;
+/* ========== 4. 警告卡片 ========== */
+.warning-card {
+  margin: 20px 0;
+  border-radius: 16px;
+  background: var(--bg-red);
+  border: 1px solid var(--border-red);
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.1);
   overflow: hidden;
 }
-.track-row > span {
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+.warning-header {
+  background: rgba(239, 68, 68, 0.25);
+  color: #fca5a5;
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-red);
 }
-.track-row:hover { background: rgba(255,255,255,0.08); }
-
-.distance-label {
-  background: transparent; border: none; box-shadow: none;
-  color: rgba(255, 255, 255, 0.6); font-weight: bold; font-size: 10px;
+body.light-theme .warning-header {
+  color: #991b1b;
+  background: rgba(239, 68, 68, 0.15);
+}
+.warning-title-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.warning-item {
+  display: flex;
+  gap: 18px;
+  padding: 20px;
+  align-items: center;
+}
+.icon-box {
+  width: 70px;
+  height: 70px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 8px;
+}
+body.light-theme .icon-box {
+  background: rgba(255, 255, 255, 0.6);
+}
+.icon-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.text-box {
+  flex: 1;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: #fecfcf;
+  text-align: left;
+}
+body.light-theme .text-box {
+  color: #7f1d1d;
+}
+.divider {
+  height: 1px;
+  background: rgba(239, 68, 68, 0.2);
+  margin: 0 20px;
+}
+.tc-btn {
+  background: var(--accent-red);
+  color: #ffffff;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+  border: none;
+}
+.tc-btn:hover {
+  background: #dc2626;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
 }
 
-.storm-map-label {
-  border: none !important;
-  font-weight: bold !important;
-  font-size: 0.92rem !important;
-  border-radius: 10px !important;
-  padding: 5px 14px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
-  letter-spacing: 0.5px;
+.tc-forecast-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
-.storm-map-label::before { display: none !important; }
-
-.storm-label-LOW { background-color: var(--c-low) !important; color: #ffffff !important; }
-.storm-label-TD { background-color: var(--c-td) !important; color: #ffffff !important; }
-.storm-label-TS { background-color: var(--c-ts) !important; color: #000000 !important; }
-.storm-label-STS { background-color: var(--c-sts) !important; color: #000000 !important; }
-.storm-label-T { background-color: var(--c-t) !important; color: #ffffff !important; }
-.storm-label-ST { background-color: var(--c-st) !important; color: #ffffff !important; }
-.storm-label-SuperT { background-color: var(--c-supert) !important; color: #ffffff !important; }
-.storm-label-EX { background-color: var(--c-ex) !important; color: #ffffff !important; }
-
-.leaflet-popup-content-wrapper {
-  background: rgba(18, 24, 38, 0.95) !important;
-  backdrop-filter: blur(8px);
-  color: #f1f5f9 !important;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 8px !important;
-  padding: 2px;
+.tc-forecast-title {
+  white-space: nowrap;
 }
-.leaflet-popup-tip { background: rgba(18, 24, 38, 0.95) !important; }
-.popup-data-box { font-size: 0.8rem; line-height: 1.5; padding: 4px; }
-.popup-data-box strong { color: var(--accent-blue); }
+.tc-update-time {
+  font-size: 13px;
+  font-weight: normal;
+  color: #fca5a5;
+  opacity: 0.85;
+  text-align: right;
+}
+body.light-theme .tc-update-time {
+  color: #991b1b;
+}
+.tc-table-wrap {
+  padding: 16px 20px;
+}
+.tc-warning-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: #fecfcf;
+}
+body.light-theme .tc-warning-table {
+  color: #7f1d1d;
+}
+.tc-warning-table th,
+.tc-warning-table td {
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 12px 10px;
+  text-align: center;
+  font-size: 14px;
+}
+.tc-warning-table th {
+  background-color: rgba(239, 68, 68, 0.2);
+  color: #ffffff;
+  font-weight: 600;
+}
+body.light-theme .tc-warning-table th {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #991b1b;
+}
+.tc-warning-table tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+body.light-theme .tc-warning-table tr:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.03);
+}
 
-/* Mobile Adaptations */
+/* ========== 5. 橙色提示框 ========== */
+.box {
+  margin: 20px 0;
+  border-radius: 16px;
+  background: var(--bg-orange);
+  border: 1px solid var(--border-orange);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.08);
+  overflow: hidden;
+}
+.header-orange {
+  background: rgba(245, 158, 11, 0.25);
+  color: var(--accent-yellow);
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--border-orange);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+body.light-theme .header-orange {
+  color: #9a3412;
+  background: rgba(245, 158, 11, 0.15);
+}
+.content-yellow {
+  padding: 20px;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: #fef08a;
+}
+body.light-theme .content-yellow {
+  color: #78350f;
+}
+.box-divider {
+  height: 1px;
+  background: rgba(245, 158, 11, 0.25);
+  margin: 14px 0;
+}
+body.light-theme .box-divider {
+  background: rgba(245, 158, 11, 0.35);
+}
+
+/* ========== 5.5. 臨近降雨提示框 ========== */
+#rainAlertBox {
+  margin: 20px 0;
+  border-radius: 16px;
+  background: #0f172a;
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 6px 20px rgba(56, 189, 248, 0.08);
+  overflow: hidden;
+}
+body.light-theme #rainAlertBox {
+  background: #f0f9ff;
+  border-color: rgba(56, 189, 248, 0.35);
+}
+.header-blue {
+  background: rgba(56, 189, 248, 0.15);
+  color: var(--accent-blue);
+  padding: 14px 20px;
+  font-size: 16px;
+  font-weight: 700;
+  border-bottom: 1px solid rgba(56, 189, 248, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+body.light-theme .header-blue {
+  background: rgba(56, 189, 248, 0.18);
+  color: #0284c7;
+  border-bottom-color: rgba(56, 189, 248, 0.3);
+}
+.content-blue {
+  padding: 20px;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: #e0f2fe;
+}
+body.light-theme .content-blue {
+  color: #0c4a6e;
+}
+
+/* ========== 6. 澳門整點實時天氣 ========== */
+.three-tab-weather-wrap {
+  margin: 20px 0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+}
+.three-tab-header {
+  display: flex;
+  background: rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--card-border);
+}
+body.light-theme .three-tab-header {
+  background: rgba(0, 0, 0, 0.02);
+}
+.three-tab-item {
+  flex: 1;
+  padding: 16px;
+  text-align: center;
+  color: var(--accent-blue);
+  font-size: 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgba(56, 189, 248, 0.05);
+}
+.three-tab-content-box {
+  padding: 24px;
+}
+.tab-panel {
+  display: none;
+}
+.tab-panel.active {
+  display: block;
+}
+
+#load-tip {
+  color: var(--text-muted);
+}
+#error-tip {
+  color: var(--accent-red);
+}
+.weather-item {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 12px !important;
+  transition: transform 0.2s;
+}
+body.light-theme .weather-item {
+  background: rgba(0, 0, 0, 0.02) !important;
+}
+.weather-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56, 189, 248, 0.3) !important;
+}
+.weather-item div:first-child {
+  color: var(--text-muted) !important;
+}
+.weather-item div:last-child {
+  color: var(--text-main) !important;
+}
+#temp-value {
+  color: var(--accent-blue) !important;
+  font-size: 48px !important;
+  font-weight: 800 !important;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+#feels-desc {
+  color: var(--accent-teal) !important;
+}
+.publishing-time {
+  color: var(--text-muted) !important;
+}
+
+.weather-label-title {
+  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ========== 整點天氣橫向逐時預報 (Open-Meteo) ========== */
+.hourly-forecast-section {
+  margin-top: 25px;
+  border-top: 1px solid var(--card-border);
+  padding-top: 18px;
+}
+
+.hourly-forecast-date-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 14px;
+  padding-left: 4px;
+}
+
+.hourly-forecast-scroll {
+  display: flex;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+body.light-theme .hourly-forecast-scroll {
+  scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+.hourly-forecast-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.hourly-forecast-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+body.light-theme .hourly-forecast-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.hourly-item-col {
+  flex: 0 0 95px;
+  min-width: 95px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 1px dashed var(--card-border);
+  padding: 0 4px;
+}
+
+.hourly-item-col:last-child {
+  border-right: none;
+}
+
+.hourly-col-time {
+  font-size: 14px;
+  color: var(--text-main);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.hourly-col-temp {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 10px;
+}
+
+.hourly-col-icon {
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.hourly-col-icon img,
+.hourly-col-icon svg {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+}
+
+.hourly-col-pop {
+  font-size: 12px;
+  font-weight: 700;
+  min-height: 16px;
+}
+
+.hourly-col-precip {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent-blue);
+  margin-top: 2px;
+}
+
+
+/* ========== 7. 天氣預報 & 圖表並排模塊 ========== */
+.forecast-chart-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin: 10px 0;
+  align-items: stretch;
+}
+.forecast-tab-wrap {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  background: var(--card-bg);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.chart-wrap {
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--card-border);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  background: var(--card-bg);
+  display: flex;
+  flex-direction: column;
+  height: 460px;
+}
+.tab-header, .chart-btn-bar {
+  display: flex;
+  gap: 8px;
+  padding: 14px 16px;
+  background: rgba(0, 0, 0, 0.25);
+  border-bottom: 1px solid var(--card-border);
+  align-items: center;
+}
+body.light-theme .tab-header,
+body.light-theme .chart-btn-bar {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.tab-btn, .chart-btn {
+  flex: 1;
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  background: var(--card-bg-light);
+  color: var(--text-muted);
+  padding: 8px 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: center;
+}
+.tab-btn.active, .chart-btn.active {
+  background: var(--accent-blue);
+  color: #ffffff;
+  border-color: var(--accent-blue);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+}
+.tab-btn:hover:not(.active), .chart-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+}
+body.light-theme .tab-btn:hover:not(.active), 
+body.light-theme .chart-btn:hover:not(.active) {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.tab-content-box {
+  padding: 24px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow-y: auto;
+}
+.tab-content {
+  display: none;
+  font-size: 14.5px;
+  line-height: 1.7;
+  color: var(--text-main);
+}
+.tab-content.active {
+  display: block;
+}
+
+.forecast-time-bottom {
+  text-align: right;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-top: 15px;
+}
+
+.valid-time-row {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent-teal);
+  background: rgba(45, 212, 191, 0.1);
+  border: 1px solid rgba(45, 212, 191, 0.25);
+  padding: 6px 12px;
+  border-radius: 8px;
+  display: block;
+  margin-bottom: 14px;
+  width: fit-content;
+}
+
+.chart-date-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-teal);
+  margin-left: auto;
+}
+.chart-container {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  padding: 15px 20px 20px 20px;
+  box-sizing: border-box;
+}
+
+/* ========== 8. 七日天氣預報橫向卡片組 ========== */
+.seven-day-scroll-row {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 4px 2px 10px 2px;
+  scroll-behavior: smooth;
+}
+.seven-day-scroll-row::-webkit-scrollbar {
+  height: 6px;
+}
+.seven-day-scroll-row::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 4px;
+}
+body.light-theme .seven-day-scroll-row::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.03);
+}
+.seven-day-scroll-row::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+body.light-theme .seven-day-scroll-row::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+.forecast-card-mini {
+  flex: 0 0 175px;
+  min-width: 175px;
+  background: rgba(18, 26, 43, 0.85);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+body.light-theme .forecast-card-mini {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.forecast-card-mini:hover {
+  border-color: var(--accent-blue);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(56, 189, 248, 0.15);
+}
+
+.card-top {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-main);
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+body.light-theme .card-top {
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+.card-middle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 0;
+}
+
+.card-middle .card-icon-large {
+  width: 52px;
+  height: 52px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.2));
+}
+
+.card-middle .temp-range-text {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--accent-blue);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.card-middle .humid-range-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--accent-teal);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.card-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  padding-top: 8px;
+}
+body.light-theme .card-bottom {
+  border-top-color: rgba(0, 0, 0, 0.08);
+}
+
+.card-condition {
+  font-size: 12px;
+  color: var(--text-main);
+  line-height: 1.5;
+  white-space: normal;
+  word-break: break-word;
+  overflow: visible;
+}
+
+/* ========== 9. 底部固定導航欄 (Bottom Fixed Bar) ========== */
+.bottom-fixed-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: rgba(11, 15, 25, 0.9);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--card-border);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 0;
+  z-index: 2999;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+}
+body.light-theme .bottom-fixed-bar {
+  background: rgba(248, 250, 252, 0.92);
+}
+.bottom-bar-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+  padding: 4px;
+  outline: none;
+}
+.bottom-bar-btn svg {
+  width: 20px;
+  height: 20px;
+}
+.bottom-bar-btn:hover,
+.bottom-bar-btn.active {
+  color: var(--accent-blue);
+}
+
+/* ========== 10. 響應式適配 ========== */
 @media (max-width: 768px) {
-  .header-nav-container { padding: 0.75rem 1rem; }
-  .menu-toggle { display: block; }
-  .title { font-size: 0.95rem; }
-  .header-clock { display: none; }
-
+  .header-nav-container {
+    padding: 0.75rem 1rem;
+  }
+  .menu-toggle {
+    display: block;
+  }
   .nav {
-    display: none; flex-direction: column; width: 230px; position: absolute;
-    top: calc(100% + 8px); right: 0; background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(16px); border: 1px solid var(--card-border);
-    border-radius: 12px; padding: 10px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+    display: none;
+    flex-direction: column;
+    width: 230px;
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 10px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     align-items: stretch;
   }
-  body.light-theme .nav { background: rgba(255, 255, 255, 0.98); }
-  .nav a { width: 100%; padding: 10px 14px; border-radius: 8px; }
-  .nav.active { display: flex; }
+  body.light-theme .nav {
+    background: rgba(255, 255, 255, 0.98);
+  }
+  .nav a {
+    width: 100%;
+    padding: 10px 14px;
+    border-radius: 8px;
+  }
+  .nav.active {
+    display: flex;
+  }
 
-  .dropdown { width: 100%; }
-  .dropdown-btn { width: 100%; justify-content: space-between; padding: 10px 14px; border-radius: 8px; }
+  .dropdown {
+    width: 100%;
+  }
+  .dropdown-btn {
+    width: 100%;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-radius: 8px;
+  }
   .dropdown-content {
-    position: static; display: none; opacity: 1; visibility: visible;
-    box-shadow: none; border: none; background: rgba(255, 255, 255, 0.03);
-    margin-top: 4px; padding-left: 10px; border-left: 2px solid var(--accent-blue);
-    border-radius: 0 8px 8px 0; transition: none;
+    position: static;
+    display: none;
+    opacity: 1;
+    visibility: visible;
+    box-shadow: none;
+    border: none;
+    background: rgba(255, 255, 255, 0.03);
+    margin-top: 4px;
+    padding-left: 10px;
+    border-left: 2px solid var(--accent-blue);
+    border-radius: 0 8px 8px 0;
+    transition: none;
   }
-  body.light-theme .dropdown-content { background: rgba(0, 0, 0, 0.03); }
-  .dropdown.active .dropdown-content { display: block; }
-
-  .sub-header-bar {
-    top: 8px;
-    left: 8px;
-    right: 8px;
-    flex-wrap: wrap;
-    padding: 6px;
-  }
-  .ctrl-btn, .ctrl-select {
-    padding: 6px 10px;
-    font-size: 0.78rem;
-    flex: 1 1 auto;
-    text-align: center;
+  body.light-theme .dropdown-content {
+    background: rgba(0, 0, 0, 0.03);
   }
 
-  .map-overlay-topright {
-    top: 60px;
-    right: 8px;
-    width: calc(100% - 16px);
-    max-width: 300px;
+  .dropdown.active .dropdown-content {
+    display: block;
   }
 
-  .map-legend {
-    bottom: 12px;
-    left: 8px;
-    padding: 8px;
-    font-size: 0.72rem;
-    max-width: 220px;
+  .forecast-chart-row {
+    grid-template-columns: 1fr;
   }
-
-  .sidebar {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    width: 100% !important;
-    max-width: 100% !important;
-    height: 60vh;
-    border-left: none;
-    border-top: 1px solid var(--card-border);
-    transform: translateY(100%);
-    transition: transform 0.3s ease-in-out;
-    box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+  .chart-wrap {
+    height: 380px;
   }
-
-  .sidebar.mobile-open {
-    transform: translateY(0);
+  .quick-links {
+    grid-template-columns: 1fr;
   }
-
-  .resizer { display: none !important; }
-
-  .floating-toggle-btn {
-    display: block !important;
-    top: auto;
-    bottom: 16px;
-    right: 12px;
+  .tc-forecast-header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
   }
-
-  .tc-info-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .track-row {
-    font-size: 0.75rem;
-    grid-template-columns: 0.8fr 1fr 1fr 1fr;
-    gap: 2px;
+  .tc-update-time {
+    text-align: left;
   }
 }
 
 @media (min-width: 769px) {
-  .nav { display: flex !important; }
-  .menu-toggle { display: none !important; }
+  .nav {
+    display: flex !important;
+  }
+  .menu-toggle {
+    display: none !important;
+  }
 }
 
 @media (max-width: 375px) {
-  .nav { width: calc(100vw - 30px); }
+  .link-box {
+    padding: 14px 6px;
+    font-size: 12px;
+  }
+  .nav {
+    width: calc(100vw - 30px);
+  }
 }
 </style>
 </head>
@@ -696,6 +1180,7 @@ body.light-theme .dropdown-content {
           <a href="https://macaosso.github.io/MSSOweb/TCtracker.html">熱帶氣旋襲澳追蹤</a>
           <a href="https://macaosso.github.io/MSSOweb/cal_dis.html">熱帶氣旋計算工具</a>
           <a href="https://macaosso.github.io/MSSOweb/tc_gis.html">熱帶氣旋路徑GIS地圖</a>
+          <a href="https://macaosso.github.io/MSSOweb/TCrecord.html">熱帶氣旋警報記錄</a>
         </div>
       </div>
       
@@ -717,7 +1202,7 @@ body.light-theme .dropdown-content {
       <div class="dropdown">
         <button class="dropdown-btn">地球物理 <span class="arrow">▼</span></button>
         <div class="dropdown-content">
-          <a href="earthquake.html">(NEW)地震</a>
+          <a href="earthquake.html" class="active">(NEW)地震</a>
           <a href="https://macaosso.github.io/MSSOweb/tsunami.html">(NEW)海嘯</a>
           <a href="https://macaosso.github.io/MSSOweb/time.html">(NEW)授時</a>
         </div>
@@ -728,140 +1213,123 @@ body.light-theme .dropdown-content {
         <div class="dropdown-content">
           <a href="https://macaosso.github.io/MSSOweb/about.html">關於我們</a>
           <a href="https://macaosso.github.io/MSSOweb/ver.html">版本記錄</a>
+          <a href="https://macaosso.github.io/MSSOweb/Wrecord.html">天氣警報記錄</a>
+          <a href="https://macaosso.github.io/MSSOweb/Trecord.html">天氣提示記錄</a>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="main-container">
-  <div id="map-wrapper">
-    <div class="sub-header-bar">
-      <select class="ctrl-select" id="yearSelect" onchange="loadTCData()">
-        <option value="2026">2026 (即時)</option>
-        <option value="2024">2024 (歷史存檔 CSV)</option>
-      </select>
-      <button class="ctrl-btn active" id="btnCone" onclick="toggleErrorCone()">潛在路徑範圍錐體</button>
-      <button class="ctrl-btn" onclick="resetView()">重置視角(澳門)</button>
-      <button class="ctrl-btn" onclick="loadTCData()">立即刷新</button>
+<div class="page-wrapper">
+  
+  <div class="warning-card" id="tcCard">
+    <div class="warning-header">
+      <span class="warning-title-text">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3a9 9 0 0 0-9 9c0 2.5 1 4.8 2.6 6.4"/><path d="M12 21a9 9 0 0 0 9-9c0-2.5-1-4.8-2.6-6.4"/></svg>
+        熱帶氣旋
+      </span>
+      <a href="https://macaosso.github.io/MSSOweb/tc_gis.html" class="tc-btn">查看路徑</a>
     </div>
-
-    <div id="map"></div>
-
-    <button class="floating-toggle-btn" id="floatingToggleBtn" onclick="toggleSidebar()">
-      📋 風暴詳細數據 ❮
-    </button>
-
-    <div class="map-overlay-topright" id="mapQuickSelect">
-      <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 6px;">活躍熱帶氣旋</div>
-      <div id="quickSelectList">載入中...</div>
-    </div>
-
-    <div class="map-legend">
-      <div class="legend-title">熱帶氣旋強度分類</div>
-      <div class="legend-grid">
-        <div class="legend-item"><div class="legend-color" style="background:var(--c-td)"></div>熱帶低氣壓 TD (41-62 km/h)</div>
-        <div class="legend-item"><div class="legend-color" style="background:var(--c-ts)"></div>熱帶風暴 TS (63-87 km/h)</div>
-        <div class="legend-item"><div class="legend-color" style="background:var(--c-sts)"></div>強烈熱帶風暴 STS (88-117 km/h)</div>
-        <div class="legend-item"><div class="legend-color" style="background:var(--c-t)"></div>颱風 T (118-149 km/h)</div>
-        <div class="legend-item"><div class="legend-color" style="background:var(--c-st)"></div>強颱風 ST (150-184 km/h)</div>
-        <div class="legend-item"><div class="legend-color" style="background:var(--c-supert)"></div>超強颱風 SuperT (&ge;185 km/h)</div>
-      </div>
-    </div>
+    <div id="tcContent"></div>
   </div>
 
-  <div class="resizer" id="dragResizer"></div>
-
-  <div class="sidebar" id="sidebarPanel">
-    <div class="sidebar-header">
-      <div style="display:flex; align-items:center; gap:8px;">
-        <button class="collapse-btn" onclick="toggleSidebar()" title="收起數據欄">❯</button>
-        <span>風暴詳細數據</span>
-      </div>
-      <span id="updateClock" style="font-size: 0.75rem; color: var(--text-muted);">更新中...</span>
+  <div class="warning-card" id="tcForecastTableCard" style="display: none;">
+    <div class="warning-header tc-forecast-header-row">
+      <span class="warning-title-text">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 3a9 9 0 0 0-9 9c0 2.5 1 4.8 2.6 6.4"/><path d="M12 21a9 9 0 0 0 9-9c0-2.5-1-4.8-2.6-6.4"/></svg>
+        <span class="tc-forecast-title" id="tableMainTitle"></span>
+      </span>
+      <div class="tc-update-time" id="tableUpdateTime"></div>
     </div>
-    <div class="sidebar-content" id="sidebarCards"></div>
+    <div class="tc-table-wrap" id="tcTableContent"></div>
   </div>
 </div>
 
+<!-- 底部固定導航欄 (Bottom Fixed Bar) -->
+<div class="bottom-fixed-bar">
+  <button class="bottom-bar-btn active" onclick="scrollToSection('rainAlertBox', this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <span>天氣警告或提示</span>
+  </button>
+  <button class="bottom-bar-btn" onclick="scrollToSection('weather-main', this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+    <span>實時天氣</span>
+  </button>
+  <button class="bottom-bar-btn" onclick="scrollToSection('categoryBox', this)">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    <span>天氣預報</span>
+  </button>
+  <a href="AQImap.html" class="bottom-bar-btn">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19 12H2"/></svg>
+    <span>空氣質素</span>
+  </a>
+</div>
+
+<script src="webdata.js"></script>
 <script>
-const MACAU_COORDS = [22.1595, 113.5685];
-let map;
-let darkTile, lightTile, currentTile;
-let mapLayers = [];
-let showCone = true;
-let currentTCData = [];
-let activeTabState = {};
-let stormTrackVisibility = {}; 
 
-const INTENSITY_CONFIG = {
-  'LOW':    { name: '低壓區',       color: 'var(--c-low)',    logo: 'TC logo/LPA.png' },
-  'TD':     { name: '熱帶低氣壓',   color: 'var(--c-td)',     logo: 'TC logo/TD.png' },
-  'TS':     { name: '熱帶風暴',     color: 'var(--c-ts)',     logo: 'TC logo/TS.png' },
-  'STS':    { name: '強烈熱帶風暴', color: 'var(--c-sts)',    logo: 'TC logo/STS.png' },
-  'T':      { name: '颱風',         color: 'var(--c-t)',      logo: 'TC logo/TY.png' },
-  'ST':     { name: '強颱風',       color: 'var(--c-st)',     logo: 'TC logo/STY.png' },
-  'SuperT': { name: '超強颱風',     color: 'var(--c-supert)', logo: 'TC logo/SuTY.png' },
-  'EX':     { name: '溫帶氣旋',     color: 'var(--c-ex)',     logo: 'TC logo/Ex.png' }
-};
-
-const STANDARD_ERROR_RADIUS = {
-  0: 15,
-  24: 100,
-  48: 170,
-  72: 255,
-  96: 345,
-  120: 465
-};
-
-function initMap() {
-  map = L.map('map', { zoomControl: false }).setView(MACAU_COORDS, 6);
-  
-  darkTile = L.tileLayer('https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 19,
-    subdomains: 'abcd',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-  });
-
-  lightTile = L.tileLayer('https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    maxZoom: 19,
-    subdomains: 'abcd',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-  });
-
-  currentTile = darkTile;
-  currentTile.addTo(map);
-
-  L.control.zoom({ position: 'topleft' }).addTo(map);
-
-  L.circleMarker(MACAU_COORDS, {
-    radius: 6,
-    fillColor: '#ef4444',
-    color: '#ffffff',
-    weight: 2,
-    fillOpacity: 1
-  }).bindTooltip("澳門 Macau", { permanent: true, direction: "top", className: "distance-label" }).addTo(map);
-
-  drawMacauDistanceRings();
-  initSidebarControls();
+function applyTheme(theme) {
+  if (theme === 'light') {
+    document.body.classList.add('light-theme');
+  } else {
+    document.body.classList.remove('light-theme');
+  }
+  updateChartColors();
 }
 
 function toggleTheme() {
-  document.body.classList.toggle('light-theme');
   const isLight = document.body.classList.contains('light-theme');
-  if (map) {
-    map.removeLayer(currentTile);
-    currentTile = isLight ? lightTile : darkTile;
-    currentTile.addTo(map);
-  }
+  const newTheme = isLight ? 'dark' : 'light';
+  localStorage.setItem('msso_theme', newTheme);
+  applyTheme(newTheme);
 }
 
+(function initTheme() {
+  const savedTheme = localStorage.getItem('msso_theme');
+  if (savedTheme) {
+    if (savedTheme === 'light') document.body.classList.add('light-theme');
+  } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) {
+    document.body.classList.add('light-theme');
+  }
+})();
+
 function toggleMenu() {
-  const nav = document.getElementById('navMenu');
-  const toggle = document.querySelector('.menu-toggle');
-  if (nav) nav.classList.toggle('active');
-  if (toggle) toggle.classList.toggle('active');
+  const nav = document.getElementById("navMenu");
+  const btn = document.querySelector(".menu-toggle");
+  nav.classList.toggle("active");
+  btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
+
+function scrollToSection(elementId, btn) {
+  const el = document.getElementById(elementId);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  document.querySelectorAll('.bottom-bar-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const dropdownBtns = document.querySelectorAll('.dropdown-btn');
+  
+  dropdownBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const currentDropdown = btn.parentElement;
+      
+      document.querySelectorAll('.dropdown').forEach(d => {
+        if (d !== currentDropdown) d.classList.remove('active');
+      });
+
+      currentDropdown.classList.toggle('active');
+    });
+  });
+
+  document.addEventListener('click', () => {
+    document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('active'));
+  });
+});
 
 function updateHeaderClock() {
   const clockEl = document.getElementById('headerClock');
@@ -869,996 +1337,189 @@ function updateHeaderClock() {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    const seconds = String(now.getSeconds()).padStart(2, '0');
-    clockEl.textContent = `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    const date = String(now.getDate()).padStart(2, '0');
+    const hrs = String(now.getHours()).padStart(2, '0');
+    const mins = String(now.getMinutes()).padStart(2, '0');
+    const secs = String(now.getSeconds()).padStart(2, '0');
+    clockEl.textContent = ` ${year}年${month}月${date}日 ${hrs}:${mins}:${secs} MST`;
   }
 }
-
-function initSidebarControls() {
-  const resizer = document.getElementById('dragResizer');
-  const sidebar = document.getElementById('sidebarPanel');
-  let isResizing = false;
-
-  resizer.addEventListener('mousedown', (e) => {
-    isResizing = true;
-    resizer.classList.add('dragging');
-    document.body.style.cursor = 'col-resize';
-    document.body.style.userSelect = 'none';
-  });
-
-  document.addEventListener('mousemove', (e) => {
-    if (!isResizing) return;
-    const containerWidth = document.querySelector('.main-container').clientWidth;
-    let newWidth = containerWidth - e.clientX;
-    if (newWidth < 280) newWidth = 280;
-    if (newWidth > 650) newWidth = 650;
-    sidebar.style.width = `${newWidth}px`;
-    if (map) map.invalidateSize();
-  });
-
-  document.addEventListener('mouseup', () => {
-    if (isResizing) {
-      isResizing = false;
-      resizer.classList.remove('dragging');
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-      if (map) map.invalidateSize();
-    }
-  });
-
-  document.querySelectorAll('.dropdown-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      if (window.innerWidth <= 768) {
-        const dropdown = btn.closest('.dropdown');
-        if (dropdown) dropdown.classList.toggle('active');
-      }
-    });
-  });
-}
-
-function toggleSidebar() {
-  const sidebar = document.getElementById('sidebarPanel');
-  const resizer = document.getElementById('dragResizer');
-  const floatingBtn = document.getElementById('floatingToggleBtn');
-  const isMobile = window.innerWidth <= 768;
-
-  if (isMobile) {
-    sidebar.classList.toggle('mobile-open');
-  } else {
-    const isCollapsed = sidebar.classList.toggle('collapsed');
-    if (isCollapsed) {
-      resizer.style.display = 'none';
-      floatingBtn.style.display = 'block';
-    } else {
-      resizer.style.display = 'block';
-      floatingBtn.style.display = 'none';
-    }
-  }
-
-  setTimeout(() => { if (map) map.invalidateSize(); }, 300);
-}
-
-function drawMacauDistanceRings() {
-  const distances = [100, 200, 400, 800];
-  distances.forEach(d => {
-    L.circle(MACAU_COORDS, {
-      radius: d * 1000,
-      color: '#38bdf8',
-      weight: 1,
-      dashArray: '4, 6',
-      fill: false,
-      opacity: 0.4
-    }).addTo(map);
-
-    const labelLat = MACAU_COORDS[0] + (d / 111);
-    L.marker([labelLat, MACAU_COORDS[1]], {
-      icon: L.divIcon({
-        className: 'distance-label',
-        html: `${d} km`,
-        iconSize: [50, 15],
-        iconAnchor: [25, 7]
-      })
-    }).addTo(map);
-  });
-}
-
-function toggleErrorCone() {
-  showCone = !showCone;
-  document.getElementById('btnCone').classList.toggle('active', showCone);
-  if (currentTCData.length > 0) renderTCs(currentTCData);
-}
-
-function toggleStormTrack(stormName) {
-  if (stormTrackVisibility[stormName] === undefined) {
-    stormTrackVisibility[stormName] = false;
-  } else {
-    stormTrackVisibility[stormName] = !stormTrackVisibility[stormName];
-  }
-  renderTCs(currentTCData);
-}
-
-function resetView() {
-  map.setView(MACAU_COORDS, 6);
-}
-
-function calcDistance(lat1, lon1, lat2, lon2) {
-  const R = 6371;
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-            Math.sin(dLon/2) * Math.sin(dLon/2);
-  return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-}
-
-function calculateBearing(lat1, lon1, lat2, lon2) {
-  const rad = Math.PI / 180;
-  const φ1 = lat1 * rad, φ2 = lat2 * rad;
-  const Δλ = (lon2 - lon1) * rad;
-  const y = Math.sin(Δλ) * Math.cos(φ2);
-  const x = Math.cos(φ1) * Math.sin(φ2) - Math.sin(φ1) * Math.cos(φ2) * Math.cos(Δλ);
-  return (Math.atan2(y, x) / rad + 360) % 360;
-}
-
-function getDirection16(lat1, lon1, lat2, lon2) {
-  const bearing = calculateBearing(lat1, lon1, lat2, lon2);
-  const dirs = [
-      "N", "NNE", "NE", "ENE",
-      "E", "ESE", "SE", "SSE",
-      "S", "SSW", "SW", "WSW",
-      "W", "WNW", "NW", "NNW"
-  ];
-  const index = Math.round(bearing / 22.5) % 16;
-  return dirs[index];
-}
-
-function formatDateTime(timeStr) {
-  if (!timeStr) return '--';
-  const d = new Date(timeStr);
-  if (isNaN(d.getTime())) return timeStr;
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  const hh = String(d.getHours()).padStart(2, '0');
-  const min = String(d.getMinutes()).padStart(2, '0');
-  return `${mm}-${dd} ${hh}:${min}`;
-}
-
-function parseCoord(valStr) {
-  if (!valStr) return NaN;
-  const cleanStr = String(valStr).trim();
-  let num = parseFloat(cleanStr);
-  if (isNaN(num)) return NaN;
-  if (cleanStr.endsWith('S') || cleanStr.endsWith('W')) {
-    num = -Math.abs(num);
-  }
-  return num;
-}
-
-function getCategoryKey(catStr, windStr) {
-  let windSpeed = parseInt(windStr);
-  if (!isNaN(windSpeed)) {
-    if (windSpeed >= 185) return 'SuperT';
-    if (windSpeed >= 150) return 'ST';
-    if (windSpeed >= 118) return 'T';
-    if (windSpeed >= 88)  return 'STS';
-    if (windSpeed >= 63)  return 'TS';
-    if (windSpeed >= 41)  return 'TD';
-    return 'LOW';
-  }
-  if (!catStr) return 'TD';
-  const upper = String(catStr).toUpperCase();
-  if (upper.includes('EXTRATROPICAL') || upper.includes('EX')) return 'EX';
-  if (upper.includes('LOW')) return 'LOW';
-  if (upper.includes('SUPER')) return 'SuperT';
-  if (upper.includes('SEVERE TYPHOON') || upper.includes('ST')) return 'ST';
-  if (upper.includes('SEVERE TROPICAL') || upper.includes('STS')) return 'STS';
-  if (upper.includes('TYPHOON') || upper.includes('TY') || upper.includes('T')) return 'T';
-  if (upper.includes('TROPICAL STORM') || upper.includes('TS')) return 'TS';
-  return 'TD';
-}
-
-function getTCLogoIcon(catKey, size = 32) {
-  const config = INTENSITY_CONFIG[catKey] || INTENSITY_CONFIG['TD'];
-  return L.icon({
-    iconUrl: config.logo,
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-    popupAnchor: [0, -size / 2]
-  });
-}
-
-function clearMapLayers() {
-  mapLayers.forEach(l => map.removeLayer(l));
-  mapLayers = [];
-}
-
-function get800kmEntryForecastTime(tc) {
-  const anchors = [];
-  if (tc.currentPoint) anchors.push(tc.currentPoint);
-  if (tc.forecastPoints) anchors.push(...tc.forecastPoints);
-
-  if (anchors.length === 0) return null;
-  anchors.sort((a, b) => a.hours - b.hours);
-
-  const currentDist = calcDistance(anchors[0].lat, anchors[0].lon, MACAU_COORDS[0], MACAU_COORDS[1]);
-  if (currentDist <= 800) {
-    return {
-      hours: 0,
-      dist: currentDist,
-      timeFormatted: formatDateTime(anchors[0].time || new Date().toISOString())
-    };
-  }
-
-  const maxHour = anchors[anchors.length - 1].hours;
-
-  for (let h = 1; h <= maxHour; h++) {
-    let a1 = null, a2 = null;
-    for (let i = 0; i < anchors.length - 1; i++) {
-      if (h >= anchors[i].hours && h <= anchors[i + 1].hours) {
-        a1 = anchors[i];
-        a2 = anchors[i + 1];
-        break;
-      }
-    }
-
-    if (!a1 || !a2) continue;
-
-    const ratio = (h - a1.hours) / (a2.hours - a1.hours);
-    const interpLat = a1.lat + ratio * (a2.lat - a1.lat);
-    const interpLon = a1.lon + ratio * (a2.lon - a1.lon);
-
-    const dist = calcDistance(interpLat, interpLon, MACAU_COORDS[0], MACAU_COORDS[1]);
-
-    if (dist <= 800) {
-      let baseMs = Date.now();
-      if (tc.currentPoint && tc.currentPoint.time) {
-        const parsedBase = new Date(tc.currentPoint.time).getTime();
-        if (!isNaN(parsedBase)) baseMs = parsedBase;
-      }
-
-      const forecastTimeMs = baseMs + (h * 3600 * 1000);
-      const forecastDate = new Date(forecastTimeMs);
-
-      return {
-        hours: h,
-        dist: dist,
-        timeFormatted: formatDateTime(forecastDate.toISOString())
-      };
-    }
-  }
-
-  return null;
-}
-
-function drawSegmentedTrack(points, isForecast = false) {
-  for (let i = 0; i < points.length - 1; i++) {
-    const p1 = points[i];
-    const p2 = points[i + 1];
-    const catInfo = INTENSITY_CONFIG[p1.cat] || INTENSITY_CONFIG['TD'];
-
-    const segment = L.polyline([[p1.lat, p1.lon], [p2.lat, p2.lon]], {
-      color: catInfo.color,
-      weight: isForecast ? 3 : 4,
-      opacity: 0.9,
-      dashArray: isForecast ? '6, 6' : null
-    }).addTo(map);
-    
-    mapLayers.push(segment);
-  }
-}
-
-function drawSmoothSegmentedCone(conePoints) {
-  if (!conePoints || conePoints.length < 2) return;
-
-  const hours = conePoints.map(p => p.hours);
-  const lons = conePoints.map(p => p.lon);
-  const lats = conePoints.map(p => p.lat);
-  const radii = conePoints.map(p => p.radiusKm);
-
-  const maxHour = hours[hours.length - 1];
-  const smoothTrack = [];
-
-  for (let h = 0; h <= maxHour; h += 2) {
-    let idx = 0;
-    for (let i = 0; i < hours.length - 1; i++) {
-      if (h >= hours[i] && h <= hours[i+1]) {
-        idx = i;
-        break;
-      }
-    }
-
-    const h1 = hours[idx], h2 = hours[idx+1];
-    const t = (h2 === h1) ? 0 : (h - h1) / (h2 - h1);
-
-    const interpLat = lats[idx] + t * (lats[idx+1] - lats[idx]);
-    const interpLon = lons[idx] + t * (lons[idx+1] - lons[idx]);
-    const interpRadius = radii[idx] + t * (radii[idx+1] - radii[idx]);
-
-    smoothTrack.push({ hours: h, lat: interpLat, lon: interpLon, radiusKm: interpRadius });
-  }
-
-  const circlesSeg1 = [];
-  const circlesSeg2 = [];
-  let circle72Geom = null;
-
-  smoothTrack.forEach(pt => {
-    const circlePoly = turf.circle([pt.lon, pt.lat], pt.radiusKm, { units: 'kilometers', steps: 32 });
-
-    if (pt.hours <= 72) {
-      circlesSeg1.push(circlePoly);
-    } else {
-      circlesSeg2.push(circlePoly);
-    }
-
-    if (Math.abs(pt.hours - 72) <= 1) {
-      circle72Geom = circlePoly;
-    }
-  });
-
-  let envelopeFirst = null;
-  if (circlesSeg1.length > 0) {
-    envelopeFirst = circlesSeg1[0];
-    for (let i = 1; i < circlesSeg1.length; i++) {
-      try { envelopeFirst = turf.union(envelopeFirst, circlesSeg1[i]); } catch (e) {}
-    }
-  }
-
-  let envelopeSecond = null;
-  if (circlesSeg2.length > 0) {
-    envelopeSecond = circlesSeg2[0];
-    for (let i = 1; i < circlesSeg2.length; i++) {
-      try { envelopeSecond = turf.union(envelopeSecond, circlesSeg2[i]); } catch (e) {}
-    }
-  }
-
-  if (envelopeSecond && circle72Geom) {
-    try {
-      const diff72 = turf.difference(envelopeSecond, circle72Geom);
-      if (diff72) envelopeSecond = diff72;
-    } catch(e) {}
-  }
-
-  let envelopeSecondNoOverlap = envelopeSecond;
-  if (envelopeFirst && envelopeSecond) {
-    try {
-      const diffFirst = turf.difference(envelopeSecond, envelopeFirst);
-      if (diffFirst) envelopeSecondNoOverlap = diffFirst;
-    } catch(e) {}
-  }
-
-  if (envelopeFirst) {
-    const seg1Layer = L.geoJSON(envelopeFirst, {
-      style: {
-        color: 'rgba(255, 255, 255, 0.45)',
-        weight: 1.5,
-        fillColor: 'rgba(255, 255, 255, 0.16)',
-        fillOpacity: 1
-      }
-    }).addTo(map);
-    mapLayers.push(seg1Layer);
-  }
-
-  if (envelopeSecondNoOverlap) {
-    const seg2Layer = L.geoJSON(envelopeSecondNoOverlap, {
-      style: {
-        color: 'rgba(255, 255, 255, 0.3)',
-        weight: 1,
-        dashArray: '4, 4',
-        fillColor: 'rgba(255, 255, 255, 0.08)',
-        fillOpacity: 1
-      }
-    }).addTo(map);
-    mapLayers.push(seg2Layer);
-  }
-}
-
-async function load2024HistoricalData() {
-  const updateClock = document.getElementById('updateClock');
-  updateClock.textContent = "正在載入 past_tc/HKO2024BST.csv ...";
-
-  try {
-    const response = await fetch('past_tc/HKO2024BST.csv');
-    if (!response.ok) throw new Error("無法讀取 past_tc/HKO2024BST.csv");
-    const csvText = await response.text();
-
-    Papa.parse(csvText, {
-      header: true,
-      dynamicTyping: true,
-      skipEmptyLines: true,
-      complete: function(results) {
-        const rows = results.data;
-        const stormsMap = {};
-
-        rows.forEach(row => {
-          // Adjust column keys based on your CSV structure (e.g. Name, Time, Lat, Lon, Wind, Intensity)
-          const name = row.Name || row.storm_name || row.TC_Name || '歷史氣旋';
-          const englishName = row.EnglishName || row.English_Name || name;
-          const key = `${name} (${englishName})`;
-
-          if (!stormsMap[key]) {
-            stormsMap[key] = {
-              name: key,
-              englishName: englishName,
-              pastPoints: [],
-              currentPoint: null,
-              forecastPoints: []
-            };
-          }
-
-          const lat = parseCoord(row.Lat || row.Latitude);
-          const lon = parseCoord(row.Lon || row.Longitude);
-          const rawWind = row.Wind || row.MaxWind || 0;
-          const wind = typeof rawWind === 'number' ? `${rawWind} km/h` : (rawWind || '--');
-          const cat = row.Intensity || row.Grade || 'TS';
-          const time = row.Time || row.DTG || '';
-
-          if (!isNaN(lat) && !isNaN(lon)) {
-            stormsMap[key].pastPoints.push({
-              type: 'Past',
-              typeLabel: '歷史定位',
-              lat, lon, wind,
-              cat: getCategoryKey(cat, wind),
-              time,
-              hours: null,
-              radiusKm: null
-            });
-          }
-        });
-
-        const parsedTCList = Object.values(stormsMap);
-        parsedTCList.forEach(tc => {
-          if (tc.pastPoints.length > 0) {
-            // Take the last recorded point as currentPoint / peak point
-            tc.currentPoint = tc.pastPoints.pop();
-            tc.currentPoint.type = 'Current';
-            tc.currentPoint.typeLabel = '紀錄峰值/最接近時刻';
-            tc.currentPoint.hours = 0;
-            tc.currentPoint.radiusKm = 15;
-          }
-        });
-
-        currentTCData = parsedTCList;
-        if (parsedTCList.length > 0) {
-          renderTCs(parsedTCList);
-          updateClock.textContent = "CSV 歷史數據載入成功";
-        } else {
-          renderEmptyState();
-          updateClock.textContent = "CSV 內無有效記錄";
-        }
-      },
-      error: function(err) {
-        console.error("PapaParse error:", err);
-        updateClock.textContent = "CSV 解析失敗";
-        renderEmptyState();
-      }
-    });
-
-  } catch (err) {
-    console.error("Fetch CSV error:", err);
-    updateClock.textContent = "無法載入 past_tc/HKO2024BST_3.csv";
-    renderEmptyState();
-  }
-}
-
-async function loadTCData() {
-  const selectedYear = document.getElementById('yearSelect').value;
-  const updateClock = document.getElementById('updateClock');
   
-  if (selectedYear === '2024') {
-    load2024HistoricalData();
+function renderTcForecastTable(data) {
+  const tableCard = document.getElementById('tcForecastTableCard');
+  const tableContent = document.getElementById('tcTableContent');
+  const mainTitleEl = document.getElementById('tableMainTitle');
+  const updateTimeEl = document.getElementById('tableUpdateTime');
+
+  if (!tableCard || !tableContent || !data || !Array.isArray(data.tableRows)) {
+    if (tableCard) tableCard.style.display = 'none';
     return;
   }
 
-  updateClock.textContent = "更新時間：" + new Date().toLocaleTimeString('zh-HK', {hour: '2-digit', minute:'2-digit'});
+  const validRows = data.tableRows.filter(row => row.probability && row.probability.trim() !== '');
 
-  const indexUrl = "https://www.weather.gov.hk/wxinfo/currwx/tc_list.xml";
-  const proxyUrl = `https://corsproxy.io/?url=${encodeURIComponent(indexUrl)}`;
-
-  try {
-    const res = await fetch(proxyUrl, { cache: 'no-store' });
-    if (!res.ok) throw new Error("tc_list.xml 獲取失敗");
-    const xmlText = await res.text();
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-
-    const cyclones = Array.from(xmlDoc.querySelectorAll("TropicalCyclone"));
-
-    if (cyclones.length === 0) {
-      renderEmptyState();
-      return;
-    }
-
-    const parsedTCList = [];
-
-    for (const tc of cyclones) {
-      const cName = tc.querySelector("TropicalCycloneChineseName")?.textContent || "";
-      const eName = tc.querySelector("TropicalCycloneEnglishName")?.textContent || "";
-      let trackUrl = tc.querySelector("TropicalCycloneURL")?.textContent || "";
-
-      if (trackUrl.startsWith("http://")) trackUrl = trackUrl.replace("http://", "https://");
-
-      try {
-        const trackRes = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(trackUrl)}`, { cache: 'no-store' });
-        if (!trackRes.ok) continue;
-        const trackXmlText = await trackRes.text();
-        const trackXml = parser.parseFromString(trackXmlText, "text/xml");
-
-        const xmlNameNode = trackXml.querySelector("TropicalCycloneName");
-        const stormName = cName || eName || (xmlNameNode ? xmlNameNode.textContent.trim() : "熱帶氣旋");
-
-        const pastNodes = Array.from(trackXml.querySelectorAll("PastInformation"));
-        const pastPoints = [];
-        pastNodes.forEach(pt => {
-          const lat = parseCoord(pt.querySelector("Latitude, lat")?.textContent);
-          const lon = parseCoord(pt.querySelector("Longitude, lon")?.textContent);
-          const wind = pt.querySelector("MaximumWind, MaxWind")?.textContent || "--";
-          const cat = pt.querySelector("Intensity, Category")?.textContent || "";
-          const time = pt.querySelector("Time")?.textContent || "";
-
-          if (!isNaN(lat) && !isNaN(lon)) {
-            pastPoints.push({
-              type: 'Past',
-              typeLabel: '歷史定位',
-              lat, lon, wind,
-              cat: getCategoryKey(cat, wind),
-              time,
-              hours: null,
-              radiusKm: null
-            });
-          }
-        });
-
-        const analysisNode = trackXml.querySelector("AnalysisInformation");
-        let currentPoint = null;
-        if (analysisNode) {
-          const lat = parseCoord(analysisNode.querySelector("Latitude, lat")?.textContent);
-          const lon = parseCoord(analysisNode.querySelector("Longitude, lon")?.textContent);
-          const wind = analysisNode.querySelector("MaximumWind, MaxWind")?.textContent || "--";
-          const cat = analysisNode.querySelector("Intensity, Category")?.textContent || "";
-          const time = analysisNode.querySelector("Time")?.textContent || "";
-
-          if (!isNaN(lat) && !isNaN(lon)) {
-            currentPoint = {
-              type: 'Current',
-              typeLabel: '當前分析位置 (0h)',
-              lat, lon, wind,
-              cat: getCategoryKey(cat, wind),
-              time,
-              hours: 0,
-              radiusKm: STANDARD_ERROR_RADIUS[0]
-            };
-          }
-        }
-
-        const forecastNodes = Array.from(trackXml.querySelectorAll("ForecastInformation"));
-        const forecastPoints = [];
-
-        forecastNodes.forEach(pt => {
-          const intensityNode = pt.querySelector("Intensity");
-          const intensityText = intensityNode ? intensityNode.textContent.trim() : "";
-
-          if (!intensityText) return;
-
-          const lat = parseCoord(pt.querySelector("Latitude, lat")?.textContent);
-          const lon = parseCoord(pt.querySelector("Longitude, lon")?.textContent);
-          const wind = pt.querySelector("MaximumWind, MaxWind")?.textContent || "--";
-          const time = pt.querySelector("Time")?.textContent || "";
-
-          const indexVal = parseInt(pt.querySelector("Index")?.textContent || "0", 10);
-          const h = !isNaN(indexVal) && indexVal > 0 ? indexVal : 0;
-          const r = STANDARD_ERROR_RADIUS[h] !== undefined ? STANDARD_ERROR_RADIUS[h] : Math.round(15 + (450 / 120) * h);
-
-          if (!isNaN(lat) && !isNaN(lon)) {
-            forecastPoints.push({
-              type: 'Forecast',
-              typeLabel: `+${h}小時 預測位置`,
-              lat, lon, wind,
-              cat: getCategoryKey(intensityText, wind),
-              time,
-              hours: h,
-              radiusKm: r
-            });
-          }
-        });
-
-        parsedTCList.push({
-          name: stormName,
-          englishName: eName,
-          pastPoints,
-          currentPoint,
-          forecastPoints
-        });
-
-      } catch (e) {
-        console.error("解析異常:", e);
-      }
-    }
-
-    currentTCData = parsedTCList;
-    if (parsedTCList.length > 0) {
-      renderTCs(parsedTCList);
-    } else {
-      renderEmptyState();
-    }
-
-  } catch (err) {
-    console.error("數據擷取失敗:", err);
-    document.getElementById('quickSelectList').innerHTML = "<div style='font-size:0.78rem; color:#ef4444;'>獲取失敗</div>";
-    document.getElementById('sidebarCards').innerHTML = "<div style='text-align:center; padding:20px; color:#ef4444; font-size:0.88rem;'>無法連接氣旋數據源</div>";
+  if (validRows.length === 0) {
+    tableCard.style.display = 'none';
+    return;
   }
-}
 
-function renderTCs(tcList) {
-  clearMapLayers();
-  
-  const quickSelectEl = document.getElementById('quickSelectList');
-  const sidebarEl = document.getElementById('sidebarCards');
-  quickSelectEl.innerHTML = "";
-  sidebarEl.innerHTML = "";
+  if (mainTitleEl) mainTitleEl.textContent = data.mainTitle || '';
+  if (updateTimeEl) updateTimeEl.textContent = data.updateTimeText || '';
 
-  tcList.forEach(tc => {
-    const activePoint = tc.currentPoint || tc.pastPoints[tc.pastPoints.length - 1] || tc.forecastPoints[0];
-    if (!activePoint) return;
+  let html = `
+    <table class="tc-warning-table">
+      <thead>
+        <tr>
+          <th>警報</th>
+          <th>發佈時段</th>
+          <th>機率</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
 
-    const catInfo = INTENSITY_CONFIG[activePoint.cat] || INTENSITY_CONFIG['TD'];
-    const distMacau = calcDistance(activePoint.lat, activePoint.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
-    const dirMacau = getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], activePoint.lat, activePoint.lon);
-
-    if (stormTrackVisibility[tc.name] === undefined) {
-      stormTrackVisibility[tc.name] = true;
-    }
-    const isTrackVisible = stormTrackVisibility[tc.name];
-
-    const qsItem = document.createElement('div');
-    qsItem.className = 'overlay-storm-item';
-    qsItem.innerHTML = `
-      <div class="overlay-storm-info">
-        <div class="overlay-storm-title"><strong style="color:${catInfo.color}">● ${catInfo.name}</strong> ${tc.name}</div>
-        <div class="overlay-storm-sub">距澳門約 ${distMacau} km (${dirMacau})</div>
-      </div>
-      <button class="btn-mini ${isTrackVisible ? 'active' : ''}" onclick="toggleStormTrack('${tc.name}')">
-        顯示路徑
-      </button>
+  validRows.forEach(row => {
+    html += `
+      <tr>
+        <td>${row.signal || ''}</td>
+        <td>${row.period || '-'}</td>
+        <td>${row.probability || ''}</td>
+      </tr>
     `;
-    quickSelectEl.appendChild(qsItem);
-
-    if (!activeTabState[tc.name]) {
-      activeTabState[tc.name] = (tc.forecastPoints && tc.forecastPoints.length > 0) ? 'forecast' : 'past';
-    }
-
-    const card = document.createElement('div');
-    card.className = 'tc-card';
-    card.id = `card-${tc.name}`;
-    
-    renderCardContent(card, tc, activePoint, catInfo, distMacau, dirMacau);
-    sidebarEl.appendChild(card);
-
-    if (!isTrackVisible) return;
-
-    const allPastPoints = [...tc.pastPoints];
-    if (tc.currentPoint) allPastPoints.push(tc.currentPoint);
-
-    if (allPastPoints.length > 1) {
-      drawSegmentedTrack(allPastPoints, false);
-    }
-
-    tc.pastPoints.forEach(pt => {
-      const pCat = INTENSITY_CONFIG[pt.cat] || INTENSITY_CONFIG['TD'];
-      const marker = L.circleMarker([pt.lat, pt.lon], {
-        radius: 6,
-        fillColor: pCat.color,
-        color: '#ffffff',
-        weight: 2,
-        fillOpacity: 1
-      }).addTo(map);
-
-      bindPointDataPopup(marker, tc.name, pt);
-      mapLayers.push(marker);
-    });
-
-    const anchors = [];
-    if (tc.currentPoint) anchors.push(tc.currentPoint);
-    if (tc.forecastPoints) anchors.push(...tc.forecastPoints);
-    anchors.sort((a, b) => a.hours - b.hours);
-
-    function getPointAtHour(targetH) {
-      if (anchors.length === 0) return null;
-      const maxH = anchors[anchors.length - 1].hours;
-      if (targetH > maxH) return null;
-
-      const exact = anchors.find(a => a.hours === targetH);
-      if (exact) return exact;
-
-      for (let i = 0; i < anchors.length - 1; i++) {
-        const a1 = anchors[i];
-        const a2 = anchors[i + 1];
-        if (targetH > a1.hours && targetH < a2.hours) {
-          const ratio = (targetH - a1.hours) / (a2.hours - a1.hours);
-          const lat = a1.lat + ratio * (a2.lat - a1.lat);
-          const lon = a1.lon + ratio * (a2.lon - a1.lon);
-          
-          const w1 = parseInt(a1.wind) || 0;
-          const w2 = parseInt(a2.wind) || 0;
-          const interpWindNum = Math.round(w1 + ratio * (w2 - w1));
-          const windStr = interpWindNum > 0 ? `${interpWindNum} km/h` : a1.wind;
-
-          const cat = getCategoryKey('', windStr);
-
-          let timeStr = a1.time;
-          if (a1.time && a2.time) {
-            const t1 = new Date(a1.time).getTime();
-            const t2 = new Date(a2.time).getTime();
-            if (!isNaN(t1) && !isNaN(t2)) {
-              timeStr = new Date(t1 + ratio * (t2 - t1)).toISOString();
-            }
-          }
-
-          const r1 = (a1.radiusKm !== null && a1.radiusKm !== undefined) ? a1.radiusKm : (STANDARD_ERROR_RADIUS[a1.hours] || 15);
-          const r2 = (a2.radiusKm !== null && a2.radiusKm !== undefined) ? a2.radiusKm : (STANDARD_ERROR_RADIUS[a2.hours] || 465);
-          const radiusKm = Math.round(r1 + ratio * (r2 - r1));
-
-          return {
-            type: 'Forecast',
-            typeLabel: `+${targetH}小時 預測位置`,
-            lat, lon,
-            wind: windStr,
-            cat,
-            time: timeStr,
-            hours: targetH,
-            radiusKm
-          };
-        }
-      }
-      return null;
-    }
-
-    const logoHoursSet = new Set([24, 48, 72, 96, 120]);
-    let whiteHoursList = [12, 36, 60, 84, 108];
-
-    if (distMacau <= 800) whiteHoursList.push(6, 18);
-    if (distMacau <= 400) whiteHoursList.push(3, 9);
-    if (distMacau <= 200) whiteHoursList.push(1, 2, 4, 5, 7, 8, 10, 11);
-
-    const whiteHoursSet = new Set(whiteHoursList);
-    const allHoursSet = new Set([0]);
-    anchors.forEach(a => allHoursSet.add(a.hours));
-    logoHoursSet.forEach(h => allHoursSet.add(h));
-    whiteHoursSet.forEach(h => allHoursSet.add(h));
-
-    const sortedHours = Array.from(allHoursSet).sort((a, b) => a - b);
-    const conePoints = [];
-
-    sortedHours.forEach(h => {
-      const pt = getPointAtHour(h);
-      if (pt) conePoints.push(pt);
-    });
-
-    if (conePoints.length > 1) {
-      drawSegmentedTrack(conePoints, true);
-      if (showCone && conePoints.some(p => p.radiusKm)) drawSmoothSegmentedCone(conePoints);
-    }
-
-    conePoints.forEach(pt => {
-      const pCat = INTENSITY_CONFIG[pt.cat] || INTENSITY_CONFIG['TD'];
-      let marker;
-
-      if (pt.hours === 0 || pt.type === 'Current') {
-        marker = L.marker([pt.lat, pt.lon], {
-          icon: getTCLogoIcon(pt.cat, 34),
-          zIndexOffset: 1000
-        }).addTo(map);
-
-        marker.bindTooltip(tc.name, {
-          permanent: true,
-          direction: 'top',
-          offset: [0, -18],
-          className: `storm-map-label storm-label-${pt.cat}`
-        });
-
-      } else if (logoHoursSet.has(pt.hours)) {
-        marker = L.marker([pt.lat, pt.lon], {
-          icon: getTCLogoIcon(pt.cat, 26),
-          zIndexOffset: 800
-        }).addTo(map);
-
-      } else if (whiteHoursSet.has(pt.hours)) {
-        marker = L.circleMarker([pt.lat, pt.lon], {
-          radius: 4,
-          fillColor: '#ffffff',
-          color: '#1e293b',
-          weight: 1.5,
-          fillOpacity: 1
-        }).addTo(map);
-
-      } else {
-        marker = L.circleMarker([pt.lat, pt.lon], {
-          radius: 5,
-          fillColor: pCat.color,
-          color: '#ffffff',
-          weight: 2,
-          fillOpacity: 1
-        }).addTo(map);
-      }
-
-      bindPointDataPopup(marker, tc.name, pt);
-      mapLayers.push(marker);
-    });
   });
+
+  html += `
+      </tbody>
+    </table>
+  `;
+
+  tableContent.innerHTML = html;
+  tableCard.style.display = 'block';
 }
 
-function renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau) {
-  const currentTab = activeTabState[tc.name];
+function scrollToSection(sectionId, btn) {
+  // Remove active state from all bottom bar buttons
+  document.querySelectorAll('.bottom-bar-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
 
-  let closestPt = null;
-  let minD = Infinity;
-  const allForecast = [];
-  if (tc.currentPoint) allForecast.push(tc.currentPoint);
-  if (tc.forecastPoints) allForecast.push(...tc.forecastPoints);
-
-  allForecast.forEach(pt => {
-    const d = calcDistance(pt.lat, pt.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
-    if (d < minD) {
-      minD = d;
-      closestPt = pt;
-    }
-  });
-
-  let closestStr = '--';
-  if (closestPt) {
-    const cDir = getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], closestPt.lat, closestPt.lon);
-    closestStr = `${cDir} ${minD}km`;
-  }
-
-  const entry800Data = get800kmEntryForecastTime(tc);
-  let entry800Str = '未進入 800km';
-  if (entry800Data) {
-    entry800Str = entry800Data.hours === 0 
-      ? '已進入 800km' 
-      : `${entry800Data.timeFormatted} (+${entry800Data.hours}h)`;
-  }
-
-  let listHTML = '';
-  if (currentTab === 'forecast' && tc.forecastPoints && tc.forecastPoints.length > 0) {
-    listHTML = tc.forecastPoints.map(fp => {
-      const fCat = INTENSITY_CONFIG[fp.cat] || INTENSITY_CONFIG['TD'];
-      const fDist = calcDistance(fp.lat, fp.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
-      const fDir = getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], fp.lat, fp.lon);
-      return `
-        <div class="track-row" onclick="focusStorm(${fp.lat}, ${fp.lon})">
-          <span style="font-weight:bold;">+${fp.hours}h</span>
-          <span><span class="badge-tag" style="background:${fCat.color}">${fCat.name}</span></span>
-          <span style="color:var(--text-muted); font-size:0.73rem;">${fp.lat.toFixed(1)}°N ${fp.lon.toFixed(1)}°E</span>
-          <span style="color:var(--accent-blue); font-size:0.73rem; font-weight:600;">${fDir} ${fDist}km</span>
-          <span style="text-align:right; font-weight:600;">${fp.wind}</span>
-        </div>
-      `;
-    }).join('');
+  // Find target element and scroll smoothly
+  const element = document.getElementById(sectionId);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } else {
-    listHTML = tc.pastPoints.map(pp => {
-      const pCat = INTENSITY_CONFIG[pp.cat] || INTENSITY_CONFIG['TD'];
-      const formattedTime = formatDateTime(pp.time);
-      const pDist = calcDistance(pp.lat, pp.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
-      const pDir = getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], pp.lat, pp.lon);
-
-      return `
-        <div class="track-row" onclick="focusStorm(${pp.lat}, ${pp.lon})">
-          <span style="font-size:0.72rem; color:var(--text-muted); font-weight:bold;">${formattedTime}</span>
-          <span><span class="badge-tag" style="background:${pCat.color}">${pCat.name}</span></span>
-          <span style="color:var(--text-muted); font-size:0.73rem;">${pp.lat.toFixed(1)}°N ${pp.lon.toFixed(1)}°E</span>
-          <span style="color:var(--accent-blue); font-size:0.73rem; font-weight:600;">${pDir} ${pDist}km</span>
-          <span style="text-align:right; font-weight:600;">${pp.wind}</span>
-        </div>
-      `;
-    }).join('');
+    console.warn(`Target section with ID "${sectionId}" was not found on this page.`);
   }
-
-  const reportTimeFormatted = formatDateTime(activePoint.time);
-
-  cardEl.innerHTML = `
-    <div class="tc-header-row">
-      <div class="tc-header-left">
-        <span class="badge-tag" style="background:${catInfo.color}">${catInfo.name}</span>
-        <span class="tc-storm-name">${tc.name}</span>
-      </div>
-      <div class="tc-time-stamp">${reportTimeFormatted}</div>
-    </div>
-
-    <div class="tc-info-grid">
-      <div class="info-box">
-        <span class="info-box-label">最新位置</span>
-        <span class="info-box-val">${activePoint.lat.toFixed(1)}°N ${activePoint.lon.toFixed(1)}°E</span>
-      </div>
-      <div class="info-box">
-        <span class="info-box-label">與澳門距離</span>
-        <span class="info-box-val" style="color:#f59e0b;">${dirMacau} ${distMacau}km</span>
-      </div>
-      <div class="info-box">
-        <span class="info-box-label">中心最高持續風速</span>
-        <span class="info-box-val">${activePoint.wind}</span>
-      </div>
-      <div class="info-box">
-        <span class="info-box-label">預計最接近距離</span>
-        <span class="info-box-val" style="color:#ef4444;">${closestStr}</span>
-      </div>
-      <div class="info-box">
-        <span class="info-box-label">預計進入800km時間</span>
-        <span class="info-box-val" style="color:#2dd4bf;">${entry800Str}</span>
-      </div>
-    </div>
-
-    <div class="tab-group">
-      <button class="tab-btn ${currentTab === 'forecast' ? 'active' : ''}" onclick="toggleTab('${tc.name}', 'forecast')">預測路徑</button>
-      <button class="tab-btn ${currentTab === 'past' ? 'active' : ''}" onclick="toggleTab('${tc.name}', 'past')">歷史路徑</button>
-    </div>
-
-    <div class="track-list">
-      ${listHTML || '<div style="text-align:center; padding:10px; color:var(--text-muted);">無資料</div>'}
-    </div>
-  `;
+}
+  
+function formatTextBoxContent(data) {
+  if (Array.isArray(data)) {
+    const validItems = data.filter(item => item && typeof item === 'string' && item.trim());
+    if (validItems.length === 0) return "";
+    return validItems.map(item => item.trim()).join('<div class="box-divider"></div>');
+  }
+  return typeof data === 'string' ? data.trim() : "";
 }
 
-function toggleTab(stormName, tabType) {
-  activeTabState[stormName] = tabType;
-  const tc = currentTCData.find(t => t.name === stormName);
-  if (!tc) return;
+function renderTextBox(boxId, contentId, data) {
+  const box = document.getElementById(boxId);
+  const content = document.getElementById(contentId);
+  if (!box || !content) return;
 
-  const cardEl = document.getElementById(`card-${stormName}`);
-  if (cardEl) {
-    const activePoint = tc.currentPoint || tc.pastPoints[tc.pastPoints.length - 1] || tc.forecastPoints[0];
-    const catInfo = INTENSITY_CONFIG[activePoint.cat] || INTENSITY_CONFIG['TD'];
-    const distMacau = calcDistance(activePoint.lat, activePoint.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
-    const dirMacau = getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], activePoint.lat, activePoint.lon);
-    renderCardContent(cardEl, tc, activePoint, catInfo, distMacau, dirMacau);
+  const htmlContent = formatTextBoxContent(data);
+  if (htmlContent) {
+    box.style.display = 'block';
+    content.innerHTML = htmlContent;
+  } else {
+    box.style.display = 'none';
   }
 }
 
-function bindPointDataPopup(marker, stormName, pt) {
-  const pCat = INTENSITY_CONFIG[pt.cat] || INTENSITY_CONFIG['TD'];
-  const dist = calcDistance(pt.lat, pt.lon, MACAU_COORDS[0], MACAU_COORDS[1]);
-  const dir = getDirection16(MACAU_COORDS[0], MACAU_COORDS[1], pt.lat, pt.lon);
-  const formattedTime = formatDateTime(pt.time);
+function renderWarnings(data, containerId, cardId) {
+  const container = document.getElementById(containerId);
+  const card = document.getElementById(cardId);
+  if (!container || !card || !Array.isArray(data)) return;
+  
+  let html = "";
+  let validCount = 0;
 
-  const popupHTML = `
-    <div class="popup-data-box">
-      <div style="font-weight:bold; border-bottom:1px solid rgba(255,255,255,0.15); padding-bottom:3px; margin-bottom:4px;">
-        ${stormName} - ${pt.typeLabel}
-      </div>
-      <div><strong>強度等級：</strong><span class="badge-tag" style="background:${pCat.color}">${pCat.name}</span></div>
-      <div><strong>中心座標：</strong>${pt.lat.toFixed(2)}°N, ${pt.lon.toFixed(2)}°E</div>
-      <div><strong>中心最高風速：</strong>${pt.wind}</div>
-      <div><strong>報告時間：</strong>${formattedTime}</div>
-      <div><strong>相對澳門方位距離：</strong>${dir} ${dist} km</div>
-    </div>
-  `;
+  data.forEach((item) => {
+    if (!item) return;
 
-  marker.bindPopup(popupHTML, { offset: [0, -5] });
+    let text = "";
+    let iconSrc = "";
+
+    if (typeof item === 'string') {
+      text = item.trim();
+    } else if (typeof item === 'object') {
+      text = item.text ? item.text.trim() : "";
+      if (item.icon && item.icon.trim()) {
+        iconSrc = resolveIcon(item.icon);
+      }
+    }
+
+    if (!text && !iconSrc) return;
+
+    if (validCount > 0) html += `<div class="divider"></div>`;
+    html += `
+         <div class="warning-item">
+           ${iconSrc ? `<div class="icon-box"><img src="${iconSrc}" alt="Warning Icon"></div>` : ""}
+           ${text ? `<div class="text-box">${text}</div>` : ""}
+         </div>
+       `;
+    validCount++;
+  });
+
+  container.innerHTML = html;
+  card.style.display = validCount > 0 ? "block" : "none";
 }
 
-function focusStorm(lat, lon) {
-  map.flyTo([lat, lon], 6, { duration: 1.0 });
-  if (window.innerWidth <= 768) {
-    const sidebar = document.getElementById('sidebarPanel');
-    if (sidebar) sidebar.classList.remove('mobile-open');
-  }
-}
+window.addEventListener('DOMContentLoaded', function(){
+    updateHeaderClock();
+    setInterval(updateHeaderClock, 1000);
 
-function renderEmptyState() {
-  document.getElementById('quickSelectList').innerHTML = "<div style='font-size:0.78rem;'>無活躍熱帶氣旋</div>";
-  document.getElementById('sidebarCards').innerHTML = "<div style='text-align:center; padding:20px; color:var(--text-muted); font-size:0.88rem;'>西北太平洋及南海當前無活躍熱帶氣旋系統</div>";
-}
+    if (typeof TC_WARNING_DATA !== 'undefined') {
+      renderTcForecastTable(TC_WARNING_DATA);
+    }
 
-window.addEventListener('DOMContentLoaded', () => {
-  initMap();
-  loadTCData();
-  setInterval(() => {
-    if (document.getElementById('yearSelect').value === '2026') loadTCData();
-  }, 300000);
-  setInterval(updateHeaderClock, 1000);
-  updateHeaderClock();
+    if (typeof alertipsText !== 'undefined') renderTextBox('alertBox', 'alertContent', alertipsText);
+    if (typeof swtText !== 'undefined') renderTextBox('swtBox', 'swtContent', swtText);
+    if (typeof tideText !== 'undefined') {
+      renderTextBox('tideBox', 'tideContent', tideText);
+    } else if (typeof TideText !== 'undefined') {
+      renderTextBox('tideBox', 'tideContent', TideText);
+    }
+
+    if (typeof tcWarnings !== 'undefined') renderWarnings(tcWarnings, "tcContent", "tcCard");
+    if (typeof warnWarnings !== 'undefined') renderWarnings(warnWarnings, "warnContent", "warnCard");
+
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const tabItems = document.querySelectorAll('.tab-content');
+    tabBtns.forEach(btn => {
+      btn.onclick = function(){
+        tabBtns.forEach(b => b.classList.remove('active'));
+        tabItems.forEach(c => c.classList.remove('active'));
+        this.classList.add('active');
+        let idx = this.dataset.index;
+        document.getElementById('tab' + idx).classList.add('active');
+      }
+    });
+
+    loadOpenMeteoForecastSummary();
+    loadOpenMeteo7DayForecast();
 });
 </script>
+<script>
+function getFormattedMstTime() {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd} ${hh}:${min} MST`;
+}
+
+</script>
+
 </body>
 </html>
