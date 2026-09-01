@@ -951,7 +951,12 @@
 
       renderView(latestTimeString);
     }
-
+    function toggleMenu() {
+      const nav = document.getElementById("navMenu");
+      const btn = document.querySelector(".menu-toggle");
+      nav.classList.toggle("active");
+      btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
+    }
     function renderCategoryCards(summaryTime) {
       const box = document.getElementById('categoryBox');
       const grid = document.getElementById('categoryGrid');
