@@ -742,11 +742,10 @@
   <div class="page-wrapper">
     <div id="mainTitle" class="main-title">即時空氣質量水平 (載入中...)</div>
         <!-- Category Summary Cards Box -->
-    <div class="category-box" id="categoryBox" style="display:none;">
-      <div class="variable-section-title" style="display: flex; justify-content: space-between; align-items: center;">
-        <span>各區空氣質素極值概覽</span>
-        <span id="aqiUpdateTime" style="font-size: 13px; font-weight: 400; color: var(--text-muted);"></span>
-      </div>
+    <div style="flex: 1; min-width: 0;">
+                  <div class="weather-label-title" style="color: var(--text-muted); font-size: 12px;">實時空氣質量 (AQI)</div>
+                  <div id="aqi-value" style="font-size: 16px; font-weight: 700; margin-top: 2px;">載入中...</div>
+                </div>
       <div class="category-grid" id="categoryGrid"></div>
     </div>
     <!-- Variable Selector Pills -->
