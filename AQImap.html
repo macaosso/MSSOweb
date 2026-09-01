@@ -408,7 +408,47 @@
       border: 1px solid rgba(255,255,255,0.4);
       text-align: center;
     }
-
+    /* ========== 5. 橙色提示框 ========== */
+    .box {
+      margin: 20px 0;
+      border-radius: 16px;
+      background: var(--bg-orange);
+      border: 1px solid var(--border-orange);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.08);
+      overflow: hidden;
+    }
+    .header-orange {
+      background: rgba(245, 158, 11, 0.25);
+      color: var(--accent-yellow);
+      padding: 14px 20px;
+      font-size: 16px;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border-orange);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    body.light-theme .header-orange {
+      color: #9a3412;
+      background: rgba(245, 158, 11, 0.15);
+    }
+    .content-yellow {
+      padding: 20px;
+      font-size: 14.5px;
+      line-height: 1.7;
+      color: #fef08a;
+    }
+    body.light-theme .content-yellow {
+      color: #78350f;
+    }
+    .box-divider {
+      height: 1px;
+      background: rgba(245, 158, 11, 0.25);
+      margin: 14px 0;
+    }
+    body.light-theme .box-divider {
+      background: rgba(245, 158, 11, 0.35);
+    }
     /* ========== 9. 底部固定導航欄 (Bottom Fixed Bar) ========== */
     .bottom-fixed-bar {
       position: fixed;
