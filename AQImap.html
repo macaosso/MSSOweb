@@ -990,7 +990,7 @@
       if (latestTimeString) {
         const d = new Date(latestTimeString);
         if (!isNaN(d)) {
-          titleDateStr = `${d.getFullYear()}年 ${String(d.getMonth()+1).padStart(2,'0')}月 ${String(d.getDate()).padStart(2,'0')}日 ${String(d.getHours()).padStart(2,'0')}時`;
+          titleDateStr = `${d.getFullYear()}年${String(d.getMonth()+1).padStart(2,'0')}月${String(d.getDate()).padStart(2,'0')}日${String(d.getHours()).padStart(2,'0')}時`;
           updateTimeFooter.textContent = `更新時間: ${latestTimeString}`;
         } else {
           titleDateStr = latestTimeString;
@@ -1001,7 +1001,7 @@
         titleDateStr = `${now.getFullYear()}年 ${String(now.getMonth()+1).padStart(2,'0')}月 ${String(now.getDate()).padStart(2,'0')}日 ${String(now.getHours()).padStart(2,'0')}時`;
         updateTimeFooter.textContent = `更新時間: ${now.toISOString().slice(0, 19).replace('T', ' ')}`;
       }
-      mainTitle.textContent = `即時空氣質量水平（${titleDateStr}）`;
+      mainTitle.textContent = `即時空氣質量水平<br>（${titleDateStr}）`;
 
       renderCategoryCards(latestTimeString);
 
