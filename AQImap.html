@@ -288,7 +288,7 @@
 
   .main-title {
     text-align: center;
-    font-size: 22px;
+    font-size: 16px;
     font-weight: 700;
     margin-bottom: 20px;
     color: var(--text-main);
@@ -1001,7 +1001,7 @@
         titleDateStr = `${now.getFullYear()}年 ${String(now.getMonth()+1).padStart(2,'0')}月 ${String(now.getDate()).padStart(2,'0')}日 ${String(now.getHours()).padStart(2,'0')}時`;
         updateTimeFooter.textContent = `更新時間: ${now.toISOString().slice(0, 19).replace('T', ' ')}`;
       }
-      mainTitle.textContent = `即時空氣質量水平<br>（${titleDateStr}）`;
+      mainTitle.textContent = `即時空氣質量水平（${titleDateStr}）`;
 
       renderCategoryCards(latestTimeString);
 
