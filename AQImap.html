@@ -555,6 +555,109 @@
       background: rgba(255, 255, 255, 0.9);
       color: #0f172a;
     }
+    /* ========== 10. 響應式適配 ========== */
+    @media (max-width: 768px) {
+      .header-nav-container {
+        padding: 0.75rem 1rem;
+      }
+      .menu-toggle {
+        display: block;
+      }
+      .nav {
+        display: none;
+        flex-direction: column;
+        width: 230px;
+        position: absolute;
+        top: calc(100% + 8px);
+        right: 0;
+        background: rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(16px);
+        border: 1px solid var(--card-border);
+        border-radius: 12px;
+        padding: 10px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        align-items: stretch;
+      }
+      body.light-theme .nav {
+        background: rgba(255, 255, 255, 0.98);
+      }
+      .nav a {
+        width: 100%;
+        padding: 10px 14px;
+        border-radius: 8px;
+      }
+      .nav.active {
+        display: flex;
+      }
+    
+      .dropdown {
+        width: 100%;
+      }
+      .dropdown-btn {
+        width: 100%;
+        justify-content: space-between;
+        padding: 10px 14px;
+        border-radius: 8px;
+      }
+      .dropdown-content {
+        position: static;
+        display: none;
+        opacity: 1;
+        visibility: visible;
+        box-shadow: none;
+        border: none;
+        background: rgba(255, 255, 255, 0.03);
+        margin-top: 4px;
+        padding-left: 10px;
+        border-left: 2px solid var(--accent-blue);
+        border-radius: 0 8px 8px 0;
+        transition: none;
+      }
+      body.light-theme .dropdown-content {
+        background: rgba(0, 0, 0, 0.03);
+      }
+    
+      .dropdown.active .dropdown-content {
+        display: block;
+      }
+    
+      .forecast-chart-row {
+        grid-template-columns: 1fr;
+      }
+      .chart-wrap {
+        height: 380px;
+      }
+      .quick-links {
+        grid-template-columns: 1fr;
+      }
+      .tc-forecast-header-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+      .tc-update-time {
+        text-align: left;
+      }
+    }
+    
+    @media (min-width: 769px) {
+      .nav {
+        display: flex !important;
+      }
+      .menu-toggle {
+        display: none !important;
+      }
+    }
+    
+    @media (max-width: 375px) {
+      .link-box {
+        padding: 14px 6px;
+        font-size: 12px;
+      }
+      .nav {
+        width: calc(100vw - 30px);
+      }
+    }
   </style>
 </head>
 <body>
