@@ -49,8 +49,8 @@ const tcText = [
 
 const tcWarnings = [
   {
-    icon: "t2",
-    text: "強風警報於本地時間09月01日13時20分發出。"
+    icon: "t1",
+    text: "戒備警報於本地時間09月02日14時20分發出。"
   },
   {
     icon: "",
