@@ -66,8 +66,8 @@ const tcWarnings = [
 // 2. 天氣警告 (warnWarnings) [已新增至 4 條]
 const warnWarnings = [
   {
-    icon: "",
-    text: ""
+    icon: "h1",
+    text: "酷熱警報於本地時間09月02日15時50分發出。"
   },
   {
     icon: "",
