@@ -2,11 +2,11 @@
 <ActualWeatherBrief>
 <System>
 <SysAuthor>DINF</SysAuthor>
-<SysPubdate>2026-09-02 05:55</SysPubdate>
+<SysPubdate>2026-09-02 07:53</SysPubdate>
 <SysLanguage>0</SysLanguage>
 </System>
 <Custom>
-<ValidFor>2026-09-02 06:00</ValidFor>
+<ValidFor>2026-09-02 08:00</ValidFor>
 <Temperature>
 <MeasureUnit>°C</MeasureUnit>
 <Type>3</Type>
@@ -15,13 +15,13 @@
 <Humidity>
 <MeasureUnit>%</MeasureUnit>
 <Type>3</Type>
-<Value>86</Value>
+<Value>82</Value>
 </Humidity>
 <WindSpeed>
 <MeasureUnit>km/h</MeasureUnit>
 <Type>3</Type>
-<Value>16</Value>
-<WindSpeedDescription>三級</WindSpeedDescription>
+<Value>22</Value>
+<WindSpeedDescription>四級</WindSpeedDescription>
 </WindSpeed>
 <WindDirection>
 <MeasureUnit>°</MeasureUnit>
@@ -29,6 +29,11 @@
 <Value>NW</Value>
 <WindDescription>西北</WindDescription>
 </WindDirection>
+<Temperature>
+<MeasureUnit>°C</MeasureUnit>
+<Type>9</Type>
+<Value>24</Value>
+</Temperature>
 <Icon>
 <IconName>ww-c03.gif</IconName>
 <IconURL>https://www.smg.gov.mo/icons/weatherIcon/ww-c03.gif</IconURL>
