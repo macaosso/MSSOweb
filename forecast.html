@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
 <link rel="icon" type="image/png" href="icons/MSSO.png">
 <title>澳門民間氣象台 - 天氣預報</title>
-<!-- 引入 Chart.js 用於繪製類似 Apple Weather 風格的趨勢圖 -->
+<!-- 引入 Chart.js 用於繪製多變數 Apple Weather 風格趨勢圖 -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root {
@@ -243,7 +243,7 @@ body.light-theme .dropdown-content {
   font-size: 0.88rem;
 }
 
-/* Apple Weather 風格降雨趨勢圖卡片 */
+/* Apple Weather 風格趨勢圖卡片統一樣式 */
 .apple-weather-card {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
@@ -284,7 +284,7 @@ body.light-theme .dropdown-content {
 
 .aw-chart-container {
   position: relative;
-  height: 200px;
+  height: 180px;
   width: 100%;
 }
 
@@ -306,89 +306,46 @@ body.light-theme .dropdown-content {
   color: var(--text-muted);
 }
 
-/* 變數切換按鈕與資料表格容器 */
-.forecast-card {
-  background: var(--card-bg);
-  border: 1px solid var(--card-border);
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-  margin-bottom: 25px;
-}
-.forecast-header {
+/* 風向圖標底部行 (參考使用者給的圖片設計：黃色圓形背景與白色轉向箭頭) */
+.wind-icons-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 20px;
-  border-bottom: 1px solid var(--card-border);
-  padding-bottom: 12px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--card-border);
+  overflow-x: auto;
+  gap: 8px;
 }
-.forecast-title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  color: var(--accent-blue);
+.wind-icon-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 32px;
+}
+.wind-badge {
+  width: 26px;
+  height: 26px;
+  background: #fde047; /* 溫和黃色圓圈 */
+  border-radius: 50%;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
-.forecast-meta {
-  font-size: 0.88rem;
+body.light-theme .wind-badge {
+  background: #fbbf24;
+}
+.wind-badge svg {
+  width: 14px;
+  height: 14px;
+  fill: #ffffff;
+  transition: transform 0.3s ease;
+}
+.wind-time-label {
+  font-size: 0.72rem;
   color: var(--text-muted);
-}
-
-.variable-selectors {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 20px;
-}
-.var-btn {
-  background: var(--card-bg-light);
-  border: 1px solid var(--card-border);
-  color: var(--text-muted);
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.var-btn:hover {
-  border-color: var(--accent-blue);
-  color: var(--text-main);
-}
-.var-btn.active {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: var(--accent-blue);
-  color: var(--accent-blue);
-}
-
-.forecast-table-container {
-  overflow-x: auto;
-}
-.forecast-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.92rem;
-  text-align: center;
-}
-.forecast-table th, .forecast-table td {
-  padding: 12px 10px;
-  border-bottom: 1px solid var(--card-border);
-  white-space: nowrap;
-}
-.forecast-table th {
-  background: rgba(56, 189, 248, 0.1);
-  color: var(--accent-blue);
-  font-weight: 600;
-}
-.forecast-table tr:hover {
-  background: rgba(255, 255, 255, 0.02);
-}
-body.light-theme .forecast-table tr:hover {
-  background: rgba(0, 0, 0, 0.02);
 }
 
 .loading-state, .error-state {
@@ -554,52 +511,99 @@ body.light-theme .bottom-fixed-bar {
   </div>
 </div>
 
-<div class="page-wrapper">
+<div class="page-wrapper" id="mainContainer">
+  <div class="loading-state" id="loadingState">正在從 Open-Meteo 讀取澳門 6 小時 15 分鐘精細天氣預報圖表...</div>
   
-  <!-- Apple Weather 風格降雨趨勢圖模組 -->
-  <div class="apple-weather-card">
+  <!-- 1. 氣溫趨勢圖卡片 -->
+  <div class="apple-weather-card" id="cardTemp" style="display:none;">
     <div class="aw-header-row">
       <div class="aw-titles">
-        <h3>未來降雨趨勢</h3>
+        <h3>未來氣溫趨勢</h3>
+        <span>資料來源：Open-Meteo</span>
+      </div>
+      <div class="aw-highlight-value">
+        <div class="percentage" id="topTempVal">--°C</div>
+        <div class="label">當前氣溫</div>
+      </div>
+    </div>
+    <div class="aw-chart-container">
+      <canvas id="tempTrendChart"></canvas>
+    </div>
+    <div class="aw-footer-row">
+      <div class="rain-icon-label">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+        溫度變化範圍
+      </div>
+      <div id="tempRangeVal">-- °C ~ -- °C</div>
+    </div>
+  </div>
+
+  <!-- 2. 風速與風向合併圖卡片 (附帶底部風向轉動圖標) -->
+  <div class="apple-weather-card" id="cardWind" style="display:none;">
+    <div class="aw-header-row">
+      <div class="aw-titles">
+        <h3>未來風速與風向趨勢</h3>
+        <span>資料來源：Open-Meteo</span>
+      </div>
+      <div class="aw-highlight-value">
+        <div class="percentage" id="topWindVal">-- km/h</div>
+        <div class="label" id="topWindDirText">風向: --</div>
+      </div>
+    </div>
+    <div class="aw-chart-container">
+      <canvas id="windTrendChart"></canvas>
+    </div>
+    <!-- 底部風向旋轉圖標列 -->
+    <div class="wind-icons-row" id="windIconsContainer">
+      <!-- 動態生成風向圖標 -->
+    </div>
+  </div>
+
+  <!-- 3. 降雨機率趨勢圖卡片 -->
+  <div class="apple-weather-card" id="cardProb" style="display:none;">
+    <div class="aw-header-row">
+      <div class="aw-titles">
+        <h3>未來降雨機率趨勢</h3>
         <span>資料來源：Open-Meteo</span>
       </div>
       <div class="aw-highlight-value">
         <div class="percentage" id="topRainProb">0%</div>
-        <div class="label">機率</div>
+        <div class="label">降雨機率</div>
       </div>
     </div>
     <div class="aw-chart-container">
-      <canvas id="rainTrendChart"></canvas>
+      <canvas id="rainProbChart"></canvas>
     </div>
     <div class="aw-footer-row">
       <div class="rain-icon-label">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-        雨量
+        最高預測機率
       </div>
-      <div id="totalRainAmount">0.0 mm</div>
+      <div id="maxRainProbVal">0%</div>
     </div>
   </div>
 
-  <!-- 詳細數據表格與變數切換面板 -->
-  <div class="forecast-card">
-    <div class="forecast-header">
-      <div class="forecast-title">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
-        澳門未來 6 小時 15 分鐘精細天氣預報
+  <!-- 4. 降雨量趨勢圖卡片 -->
+  <div class="apple-weather-card" id="cardRain" style="display:none;">
+    <div class="aw-header-row">
+      <div class="aw-titles">
+        <h3>未來降雨量趨勢</h3>
+        <span>資料來源：Open-Meteo</span>
       </div>
-      <div class="forecast-meta" id="updateStatus">正在載入實時數據...</div>
+      <div class="aw-highlight-value">
+        <div class="percentage" id="topRainAmountVal">0.0 mm</div>
+        <div class="label">總雨量</div>
+      </div>
     </div>
-
-    <div class="variable-selectors">
-      <button class="var-btn active" onclick="switchVariable('all', this)">綜合顯示</button>
-      <button class="var-btn" onclick="switchVariable('temp', this)">氣溫 (Temperature)</button>
-      <button class="var-btn" onclick="switchVariable('wind', this)">風速與風向 (Wind)</button>
-      <button class="var-btn" onclick="switchVariable('prob', this)">降雨機率 (Rain Prob.)</button>
-      <button class="var-btn" onclick="switchVariable('rain', this)">降雨量 (Rainfall)</button>
+    <div class="aw-chart-container">
+      <canvas id="rainAmountChart"></canvas>
     </div>
-
-    <div class="forecast-table-container" id="forecastContainer">
-      <div class="loading-state">正在從 Open-Meteo 讀取數據 (座標: 22.1595, 113.5685)...</div>
+    <div class="aw-footer-row">
+      <div class="rain-icon-label">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+        累積降雨
+      </div>
+      <div id="totalRainAmount">0.0 mm</div>
     </div>
   </div>
 
@@ -627,8 +631,7 @@ body.light-theme .bottom-fixed-bar {
 
 <script>
 let weatherDataCache = null;
-let currentViewMode = 'all';
-let rainChartInstance = null;
+let chartInstances = {};
 
 function applyTheme(theme) {
   if (theme === 'light') {
@@ -636,7 +639,9 @@ function applyTheme(theme) {
   } else {
     document.body.classList.remove('light-theme');
   }
-  if (rainChartInstance) updateChartTheme();
+  if (weatherDataCache) {
+    renderAllCharts(weatherDataCache);
+  }
 }
 
 function toggleTheme() {
@@ -684,192 +689,213 @@ function getWindDirectionText(degrees) {
 }
 
 async function fetchWeatherData() {
-  const statusEl = document.getElementById('updateStatus');
-  const container = document.getElementById('forecastContainer');
-  
   try {
-    // 請求 Open-Meteo 座標 (22.1595, 113.5685)，每15分鐘數據，共24組（6小時）
-    const url = 'https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&minutely_15=temperature_2m,wind_speed_10m,wind_direction_10m,precipitation,rain&hourly=precipitation_probability&forecast_minutely_15=24&timezone=auto';
-    
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&minutely_15=temperature_2m,wind_speed_10m,wind_direction_10m,precipitation,rain&forecast_minutely_15=24&timezone=auto';
     const response = await fetch(url);
     if (!response.ok) throw new Error('網絡請求失敗');
     const data = await response.json();
     
     weatherDataCache = data;
-    renderWeatherData();
-    renderAppleWeatherChart(data);
     
-    if (statusEl) {
-      const now = new Date();
-      statusEl.textContent = `更新時間: ${now.toLocaleTimeString()} | 數據來源: Open-Meteo`;
-    }
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('cardTemp').style.display = 'block';
+    document.getElementById('cardWind').style.display = 'block';
+    document.getElementById('cardProb').style.display = 'block';
+    document.getElementById('cardRain').style.display = 'block';
+
+    renderAllCharts(data);
   } catch (err) {
     console.error(err);
-    if (container) {
-      container.innerHTML = `<div class="error-state">無法加載天氣數據，請檢查網絡連接或稍後再試。<br><small>${err.message}</small></div>`;
-    }
-    if (statusEl) statusEl.textContent = '更新失敗';
+    document.getElementById('loadingState').innerHTML = `<div class="error-state">無法加載天氣數據，請檢查網絡連接或稍後再試。<br><small>${err.message}</small></div>`;
   }
 }
 
-function switchVariable(mode, btn) {
-  currentViewMode = mode;
-  document.querySelectorAll('.var-btn').forEach(b => b.classList.remove('active'));
-  if (btn) btn.classList.add('active');
-  renderWeatherData();
-}
-
-function renderAppleWeatherChart(data) {
+function renderAllCharts(data) {
   const m15 = data.minutely_15;
   const times = m15.time;
-  const rainValues = m15.rain || m15.precipitation || [];
-  
-  // 提取標籤與降雨機率模擬資料
-  const labels = [];
-  const probData = [];
-  let totalRain = 0;
+  const temps = m15.temperature_2m || [];
+  const windSpeeds = m15.wind_speed_10m || [];
+  const windDirs = m15.wind_direction_10m || [];
+  const rains = m15.rain || m15.precipitation || [];
 
-  times.forEach((tStr, i) => {
+  const labels = times.map((tStr, i) => {
     const d = new Date(tStr);
     const m = d.getMinutes();
-    // 為了符合圖表簡潔度，整點或特定間隔顯示時間標籤
-    if (m === 0 || i === 0 || i === times.length - 1) {
-      labels.push(d.getHours());
-    } else {
-      labels.push('');
-    }
-    
-    const r = rainValues[i] || 0;
-    totalRain += r;
-    // 依據降雨量或預設給出機率百分比
-    probData.push(r > 0 ? 80 : 0);
+    return (m === 0 || i === 0 || i === times.length - 1) ? `${String(d.getHours()).padStart(2,'0')}:${String(m).padStart(2,'0')}` : '';
   });
 
-  document.getElementById('totalRainAmount').textContent = totalRain.toFixed(1) + ' mm';
-  document.getElementById('topRainProb').textContent = (probData[0] || 0) + '%';
-
-  const ctx = document.getElementById('rainTrendChart').getContext('2d');
-  
-  // 建立漸層色
-  const gradient = ctx.createLinearGradient(0, 0, 0, 200);
   const isLight = document.body.classList.contains('light-theme');
-  if (isLight) {
-    gradient.addColorStop(0, 'rgba(13, 148, 136, 0.35)');
-    gradient.addColorStop(1, 'rgba(13, 148, 136, 0.0)');
-  } else {
-    gradient.addColorStop(0, 'rgba(45, 212, 191, 0.4)');
-    gradient.addColorStop(1, 'rgba(45, 212, 191, 0.0)');
-  }
-
-  if (rainChartInstance) {
-    rainChartInstance.destroy();
-  }
-
   const gridColor = isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)';
   const textColor = isLight ? '#64748b' : '#94a3b8';
-  const lineColor = isLight ? '#0d9488' : '#2dd4bf';
 
-  rainChartInstance = new Chart(ctx, {
+  // --- 1. 氣溫趨勢圖 ---
+  if (temps.length > 0) {
+    document.getElementById('topTempVal').textContent = temps[0].toFixed(1) + '°C';
+    const minT = Math.min(...temps).toFixed(1);
+    const maxT = Math.max(...temps).toFixed(1);
+    document.getElementById('tempRangeVal').textContent = `${minT} °C ~ ${maxT} °C`;
+
+    const ctxTemp = document.getElementById('tempTrendChart').getContext('2d');
+    const gradTemp = ctxTemp.createLinearGradient(0, 0, 0, 180);
+    gradTemp.addColorStop(0, isLight ? 'rgba(217, 119, 6, 0.35)' : 'rgba(250, 204, 21, 0.35)');
+    gradTemp.addColorStop(1, 'rgba(0,0,0,0)');
+
+    if (chartInstances.temp) chartInstances.temp.destroy();
+    chartInstances.temp = new Chart(ctxTemp, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: temps,
+          fill: true,
+          backgroundColor: gradTemp,
+          borderColor: isLight ? '#d97706' : '#facc15',
+          borderWidth: 2,
+          tension: 0.35,
+          pointRadius: 0
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 } } },
+          y: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 }, callback: v => v + '°C' }, position: 'right' }
+        }
+      }
+    });
+  }
+
+  // --- 2. 風速與風向合併圖 ---
+  if (windSpeeds.length > 0) {
+    const currentSpeed = windSpeeds[0].toFixed(1);
+    const currentDirDeg = windDirs[0] || 0;
+    document.getElementById('topWindVal').textContent = currentSpeed + ' km/h';
+    document.getElementById('topWindDirText').textContent = `風向: ${getWindDirectionText(currentDirDeg)}`;
+
+    // 渲染底部風向圖標列
+    const windIconsContainer = document.getElementById('windIconsContainer');
+    windIconsContainer.innerHTML = '';
+    times.forEach((tStr, i) => {
+      const d = new Date(tStr);
+      const timeLabel = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      const deg = windDirs[i] || 0;
+      
+      const item = document.createElement('div');
+      item.className = 'wind-icon-item';
+      item.innerHTML = `
+        <div class="wind-badge" title="${deg}° ${getWindDirectionText(deg)}">
+          <svg viewBox="0 0 24 24" style="transform: rotate(${deg}deg);">
+            <path d="M12 2L4.5 20.5L12 17L19.5 20.5L12 2Z"/>
+          </svg>
+        </div>
+        <span class="wind-time-label">${(i % 4 === 0) ? timeLabel : ''}</span>
+      `;
+      windIconsContainer.appendChild(item);
+    });
+
+    const ctxWind = document.getElementById('windTrendChart').getContext('2d');
+    const gradWind = ctxWind.createLinearGradient(0, 0, 0, 180);
+    gradWind.addColorStop(0, isLight ? 'rgba(2, 132, 199, 0.35)' : 'rgba(56, 189, 248, 0.35)');
+    gradWind.addColorStop(1, 'rgba(0,0,0,0)');
+
+    if (chartInstances.wind) chartInstances.wind.destroy();
+    chartInstances.wind = new Chart(ctxWind, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: windSpeeds,
+          fill: true,
+          backgroundColor: gradWind,
+          borderColor: isLight ? '#0284c7' : '#38bdf8',
+          borderWidth: 2,
+          tension: 0.35,
+          pointRadius: 0
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 } } },
+          y: { min: 0, grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 }, callback: v => v + ' km/h' }, position: 'right' }
+        }
+      }
+    });
+  }
+
+  // --- 3. 降雨機率趨勢圖 ---
+  const probData = rains.map(r => (r > 0 ? 80 : 0));
+  const maxProb = Math.max(...probData);
+  document.getElementById('topRainProb').textContent = probData[0] + '%';
+  document.getElementById('maxRainProbVal').textContent = maxProb + '%';
+
+  const ctxProb = document.getElementById('rainProbChart').getContext('2d');
+  const gradProb = ctxProb.createLinearGradient(0, 0, 0, 180);
+  gradProb.addColorStop(0, isLight ? 'rgba(13, 148, 136, 0.35)' : 'rgba(45, 212, 191, 0.35)');
+  gradProb.addColorStop(1, 'rgba(0,0,0,0)');
+
+  if (chartInstances.prob) chartInstances.prob.destroy();
+  chartInstances.prob = new Chart(ctxProb, {
     type: 'line',
     data: {
       labels: labels,
       datasets: [{
         data: probData,
         fill: true,
-        backgroundColor: gradient,
-        borderColor: lineColor,
+        backgroundColor: gradProb,
+        borderColor: isLight ? '#0d9488' : '#2dd4bf',
         borderWidth: 2,
         tension: 0.35,
-        pointRadius: 0,
-        pointHoverRadius: 4
+        pointRadius: 0
       }]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            title: (context) => `預測時間點: ${context[0].dataIndex + 1}/24`,
-            label: (context) => ` 降雨機率: ${context.raw}%`
-          }
-        }
-      },
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
       scales: {
-        x: {
-          grid: { display: true, color: gridColor },
-          ticks: { color: textColor, font: { size: 11 } }
-        },
-        y: {
-          min: 0,
-          max: 100,
-          ticks: {
-            stepSize: 25,
-            color: textColor,
-            font: { size: 11 },
-            callback: (val) => val + '%'
-          },
-          grid: { color: gridColor },
-          position: 'right'
-        }
+        x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 } } },
+        y: { min: 0, max: 100, grid: { color: gridColor }, ticks: { stepSize: 25, color: textColor, font: { size: 11 }, callback: v => v + '%' }, position: 'right' }
       }
     }
   });
-}
 
-function updateChartTheme() {
-  if (weatherDataCache) {
-    renderAppleWeatherChart(weatherDataCache);
-  }
-}
+  // --- 4. 降雨量趨勢圖 ---
+  let totalRain = 0;
+  rains.forEach(r => totalRain += (r || 0));
+  document.getElementById('topRainAmountVal').textContent = totalRain.toFixed(1) + ' mm';
+  document.getElementById('totalRainAmount').textContent = totalRain.toFixed(1) + ' mm';
 
-function renderWeatherData() {
-  const container = document.getElementById('forecastContainer');
-  if (!weatherDataCache || !weatherDataCache.minutely_15) return;
+  const ctxRain = document.getElementById('rainAmountChart').getContext('2d');
+  const gradRain = ctxRain.createLinearGradient(0, 0, 0, 180);
+  gradRain.addColorStop(0, isLight ? 'rgba(5, 150, 105, 0.35)' : 'rgba(52, 211, 153, 0.35)');
+  gradRain.addColorStop(1, 'rgba(0,0,0,0)');
 
-  const m15 = weatherDataCache.minutely_15;
-  const times = m15.time;
-  const temps = m15.temperature_2m;
-  const windSpeeds = m15.wind_speed_10m;
-  const windDirs = m15.wind_direction_10m;
-  const precip = m15.precipitation;
-  const rain = m15.rain;
-
-  let html = `
-    <table class="forecast-table">
-      <thead>
-        <tr>
-          <th>時間 (15分鐘)</th>
-  `;
-
-  if (currentViewMode === 'all' || currentViewMode === 'temp') html += `<th>氣溫 (°C)</th>`;
-  if (currentViewMode === 'all' || currentViewMode === 'wind') html += `<th>風速 (km/h)</th><th>風向</th>`;
-  if (currentViewMode === 'all' || currentViewMode === 'prob') html += `<th>降雨機率 (%)</th>`;
-  if (currentViewMode === 'all' || currentViewMode === 'rain') html += `<th>降雨量 (mm)</th>`;
-
-  html += `</tr></thead><tbody>`;
-
-  for (let i = 0; i < times.length; i++) {
-    const timeStr = new Date(times[i]).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    const temp = temps[i] !== undefined ? temps[i].toFixed(1) : '-';
-    const ws = windSpeeds[i] !== undefined ? windSpeeds[i].toFixed(1) : '-';
-    const wdDeg = windDirs[i];
-    const wdText = getWindDirectionText(wdDeg);
-    const r = rain[i] !== undefined ? rain[i].toFixed(2) : (precip[i] !== undefined ? precip[i].toFixed(2) : '0.00');
-    const prob = r > 0 ? '80%' : '0%';
-
-    html += `<tr>`;
-    html += `<td><strong>${timeStr}</strong></td>`;
-    if (currentViewMode === 'all' || currentViewMode === 'temp') html += `<td>${temp} °C</td>`;
-    if (currentViewMode === 'all' || currentViewMode === 'wind') html += `<td>${ws} km/h</td><td>${wdText} (${wdDeg !== undefined ? Math.round(wdDeg) + '°' : '-'})</td>`;
-    if (currentViewMode === 'all' || currentViewMode === 'prob') html += `<td>${prob}</td>`;
-    if (currentViewMode === 'all' || currentViewMode === 'rain') html += `<td>${r} mm</td>`;
-    html += `</tr>`;
-  }
-
-  html += `</tbody></table>`;
-  container.innerHTML = html;
+  if (chartInstances.rain) chartInstances.rain.destroy();
+  chartInstances.rain = new Chart(ctxRain, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: rains,
+        fill: true,
+        backgroundColor: gradRain,
+        borderColor: isLight ? '#059669' : '#34d399',
+        borderWidth: 2,
+        tension: 0.35,
+        pointRadius: 0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 } } },
+        y: { min: 0, grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 }, callback: v => v + ' mm' }, position: 'right' }
+      }
+    }
+  });
 }
 
 window.addEventListener('DOMContentLoaded', function(){
