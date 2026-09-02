@@ -720,9 +720,12 @@ function renderAllCharts(data) {
 
   const labels = times.map((tStr, i) => {
     const d = new Date(tStr);
-    const m = d.getMinutes();
-    return (m === 0 || i === 0 || i === times.length - 1) ? `${String(d.getHours()).padStart(2,'0')}:${String(m).padStart(2,'0')}` : '';
+    const hrs = String(d.getHours()).padStart(2, '0');
+    const mins = String(d.getMinutes()).padStart(2, '0');
+    // Show label every hour (when minutes is 00) or default to every 4 steps if timestamps don't align perfectly on the hour
+    return (mins === '00' || i % 4 === 0) ? `${hrs}:${mins}` : '';
   });
+
 
   const isLight = document.body.classList.contains('light-theme');
   const gridColor = isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)';
