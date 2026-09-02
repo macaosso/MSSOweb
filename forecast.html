@@ -306,45 +306,45 @@ body.light-theme .dropdown-content {
   color: var(--text-muted);
 }
 
-/* 風向圖標底部行 (參考使用者給的圖片設計：黃色圓形背景與白色轉向箭頭) */
+/* 風向圖標底部行 (微調縮小尺寸以符合移動端比例) */
 .wind-icons-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-top: 12px;
-  padding-top: 10px;
+  padding-top: 8px;
   border-top: 1px solid var(--card-border);
   overflow-x: auto;
-  gap: 8px;
+  gap: 4px;
 }
 .wind-icon-item {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  min-width: 32px;
+  gap: 3px;
+  min-width: 24px;
 }
 .wind-badge {
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   background: #fde047; /* 溫和黃色圓圈 */
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
 }
 body.light-theme .wind-badge {
   background: #fbbf24;
 }
 .wind-badge svg {
-  width: 14px;
-  height: 14px;
+  width: 12px;
+  height: 12px;
   fill: #ffffff;
   transition: transform 0.3s ease;
 }
 .wind-time-label {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: var(--text-muted);
 }
 
@@ -514,52 +514,7 @@ body.light-theme .bottom-fixed-bar {
 <div class="page-wrapper" id="mainContainer">
   <div class="loading-state" id="loadingState">正在從 Open-Meteo 讀取澳門 6 小時 15 分鐘精細天氣預報圖表...</div>
   
-  <!-- 1. 氣溫趨勢圖卡片 -->
-  <div class="apple-weather-card" id="cardTemp" style="display:none;">
-    <div class="aw-header-row">
-      <div class="aw-titles">
-        <h3>未來氣溫趨勢</h3>
-        <span>資料來源：Open-Meteo</span>
-      </div>
-      <div class="aw-highlight-value">
-        <div class="percentage" id="topTempVal">--°C</div>
-        <div class="label">當前氣溫</div>
-      </div>
-    </div>
-    <div class="aw-chart-container">
-      <canvas id="tempTrendChart"></canvas>
-    </div>
-    <div class="aw-footer-row">
-      <div class="rain-icon-label">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
-        溫度變化範圍
-      </div>
-      <div id="tempRangeVal">-- °C ~ -- °C</div>
-    </div>
-  </div>
-
-  <!-- 2. 風速與風向合併圖卡片 (附帶底部風向轉動圖標) -->
-  <div class="apple-weather-card" id="cardWind" style="display:none;">
-    <div class="aw-header-row">
-      <div class="aw-titles">
-        <h3>未來風速與風向趨勢</h3>
-        <span>資料來源：Open-Meteo</span>
-      </div>
-      <div class="aw-highlight-value">
-        <div class="percentage" id="topWindVal">-- km/h</div>
-        <div class="label" id="topWindDirText">風向: --</div>
-      </div>
-    </div>
-    <div class="aw-chart-container">
-      <canvas id="windTrendChart"></canvas>
-    </div>
-    <!-- 底部風向旋轉圖標列 -->
-    <div class="wind-icons-row" id="windIconsContainer">
-      <!-- 動態生成風向圖標 -->
-    </div>
-  </div>
-
-  <!-- 3. 降雨機率趨勢圖卡片 -->
+  <!-- 1. 降雨機率趨勢圖卡片 (優先移至上方) -->
   <div class="apple-weather-card" id="cardProb" style="display:none;">
     <div class="aw-header-row">
       <div class="aw-titles">
@@ -583,7 +538,7 @@ body.light-theme .bottom-fixed-bar {
     </div>
   </div>
 
-  <!-- 4. 降雨量趨勢圖卡片 -->
+  <!-- 2. 降雨量趨勢圖卡片 (優先移至上方) -->
   <div class="apple-weather-card" id="cardRain" style="display:none;">
     <div class="aw-header-row">
       <div class="aw-titles">
@@ -604,6 +559,51 @@ body.light-theme .bottom-fixed-bar {
         累積降雨
       </div>
       <div id="totalRainAmount">0.0 mm</div>
+    </div>
+  </div>
+
+  <!-- 3. 氣溫趨勢圖卡片 -->
+  <div class="apple-weather-card" id="cardTemp" style="display:none;">
+    <div class="aw-header-row">
+      <div class="aw-titles">
+        <h3>未來氣溫趨勢</h3>
+        <span>資料來源：Open-Meteo</span>
+      </div>
+      <div class="aw-highlight-value">
+        <div class="percentage" id="topTempVal">--°C</div>
+        <div class="label">當前氣溫</div>
+      </div>
+    </div>
+    <div class="aw-chart-container">
+      <canvas id="tempTrendChart"></canvas>
+    </div>
+    <div class="aw-footer-row">
+      <div class="rain-icon-label">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+        溫度變化範圍
+      </div>
+      <div id="tempRangeVal">-- °C ~ -- °C</div>
+    </div>
+  </div>
+
+  <!-- 4. 風速與風向合併圖卡片 (附帶底部風向轉動圖標) -->
+  <div class="apple-weather-card" id="cardWind" style="display:none;">
+    <div class="aw-header-row">
+      <div class="aw-titles">
+        <h3>未來風速與風向趨勢</h3>
+        <span>資料來源：Open-Meteo</span>
+      </div>
+      <div class="aw-highlight-value">
+        <div class="percentage" id="topWindVal">-- km/h</div>
+        <div class="label" id="topWindDirText">風向: --</div>
+      </div>
+    </div>
+    <div class="aw-chart-container">
+      <canvas id="windTrendChart"></canvas>
+    </div>
+    <!-- 底部風向旋轉圖標列 (修正轉向角度：氣象風向為來源方向，需 +180 度讓箭頭指向風吹去的方向或配合圖標設計) -->
+    <div class="wind-icons-row" id="windIconsContainer">
+      <!-- 動態生成風向圖標 -->
     </div>
   </div>
 
@@ -728,7 +728,99 @@ function renderAllCharts(data) {
   const gridColor = isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)';
   const textColor = isLight ? '#64748b' : '#94a3b8';
 
-  // --- 1. 氣溫趨勢圖 ---
+  // 通用互動設定：不顯示點 (pointRadius: 0)，但懸停時可抓取整條線顯示數值 (intersect: false, mode: 'index')
+  const sharedOptions = (unitStr) => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      intersect: false,
+      mode: 'index'
+    },
+    plugins: {
+      legend: { display: false }
+    },
+    scales: {
+      x: {
+        grid: { color: gridColor },
+        ticks: { color: textColor, font: { size: 11 } }
+      },
+      y: {
+        grid: { color: gridColor },
+        ticks: { color: textColor, font: { size: 11 }, callback: v => v + unitStr },
+        position: 'right'
+      }
+    }
+  });
+
+  // --- 1. 降雨機率趨勢圖 ---
+  const probData = rains.map(r => (r > 0 ? 80 : 0));
+  const maxProb = Math.max(...probData);
+  document.getElementById('topRainProb').textContent = probData[0] + '%';
+  document.getElementById('maxRainProbVal').textContent = maxProb + '%';
+
+  const ctxProb = document.getElementById('rainProbChart').getContext('2d');
+  const gradProb = ctxProb.createLinearGradient(0, 0, 0, 180);
+  gradProb.addColorStop(0, isLight ? 'rgba(13, 148, 136, 0.35)' : 'rgba(45, 212, 191, 0.35)');
+  gradProb.addColorStop(1, 'rgba(0,0,0,0)');
+
+  if (chartInstances.prob) chartInstances.prob.destroy();
+  let probOpts = sharedOptions('%');
+  probOpts.scales.y.min = 0;
+  probOpts.scales.y.max = 100;
+  probOpts.scales.y.ticks.stepSize = 25;
+
+  chartInstances.prob = new Chart(ctxProb, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: probData,
+        fill: true,
+        backgroundColor: gradProb,
+        borderColor: isLight ? '#0d9488' : '#2dd4bf',
+        borderWidth: 2,
+        tension: 0.35,
+        pointRadius: 0,
+        pointHoverRadius: 6
+      }]
+    },
+    options: probOpts
+  });
+
+  // --- 2. 降雨量趨勢圖 ---
+  let totalRain = 0;
+  rains.forEach(r => totalRain += (r || 0));
+  document.getElementById('topRainAmountVal').textContent = totalRain.toFixed(1) + ' mm';
+  document.getElementById('totalRainAmount').textContent = totalRain.toFixed(1) + ' mm';
+
+  const ctxRain = document.getElementById('rainAmountChart').getContext('2d');
+  const gradRain = ctxRain.createLinearGradient(0, 0, 0, 180);
+  gradRain.addColorStop(0, isLight ? 'rgba(5, 150, 105, 0.35)' : 'rgba(52, 211, 153, 0.35)');
+  gradRain.addColorStop(1, 'rgba(0,0,0,0)');
+
+  if (chartInstances.rain) chartInstances.rain.destroy();
+  let rainOpts = sharedOptions(' mm');
+  rainOpts.scales.y.min = 0;
+
+  chartInstances.rain = new Chart(ctxRain, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: rains,
+        fill: true,
+        backgroundColor: gradRain,
+        borderColor: isLight ? '#059669' : '#34d399',
+        borderWidth: 2,
+        tension: 0.35,
+        pointRadius: 0,
+        pointHoverRadius: 6
+      }]
+    },
+    options: rainOpts
+  });
+
+  // --- 3. 氣溫趨勢圖 ---
   if (temps.length > 0) {
     document.getElementById('topTempVal').textContent = temps[0].toFixed(1) + '°C';
     const minT = Math.min(...temps).toFixed(1);
@@ -752,40 +844,35 @@ function renderAllCharts(data) {
           borderColor: isLight ? '#d97706' : '#facc15',
           borderWidth: 2,
           tension: 0.35,
-          pointRadius: 0
+          pointRadius: 0,
+          pointHoverRadius: 6
         }]
       },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 } } },
-          y: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 }, callback: v => v + '°C' }, position: 'right' }
-        }
-      }
+      options: sharedOptions('°C')
     });
   }
 
-  // --- 2. 風速與風向合併圖 ---
+  // --- 4. 風速與風向合併圖 ---
   if (windSpeeds.length > 0) {
     const currentSpeed = windSpeeds[0].toFixed(1);
     const currentDirDeg = windDirs[0] || 0;
     document.getElementById('topWindVal').textContent = currentSpeed + ' km/h';
     document.getElementById('topWindDirText').textContent = `風向: ${getWindDirectionText(currentDirDeg)}`;
 
-    // 渲染底部風向圖標列
+    // 渲染底部風向旋轉圖標列 (氣象風向為來源，故圖標旋轉角度修正為 deg + 180 度指向風吹去方向)
     const windIconsContainer = document.getElementById('windIconsContainer');
     windIconsContainer.innerHTML = '';
     times.forEach((tStr, i) => {
       const d = new Date(tStr);
       const timeLabel = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
       const deg = windDirs[i] || 0;
+      const correctedDeg = (deg + 180) % 360;
       
       const item = document.createElement('div');
       item.className = 'wind-icon-item';
       item.innerHTML = `
-        <div class="wind-badge" title="${deg}° ${getWindDirectionText(deg)}">
-          <svg viewBox="0 0 24 24" style="transform: rotate(${deg}deg);">
+        <div class="wind-badge" title="來向: ${deg}° (${getWindDirectionText(deg)})">
+          <svg viewBox="0 0 24 24" style="transform: rotate(${correctedDeg}deg);">
             <path d="M12 2L4.5 20.5L12 17L19.5 20.5L12 2Z"/>
           </svg>
         </div>
@@ -800,6 +887,9 @@ function renderAllCharts(data) {
     gradWind.addColorStop(1, 'rgba(0,0,0,0)');
 
     if (chartInstances.wind) chartInstances.wind.destroy();
+    let windOpts = sharedOptions(' km/h');
+    windOpts.scales.y.min = 0;
+
     chartInstances.wind = new Chart(ctxWind, {
       type: 'line',
       data: {
@@ -811,91 +901,13 @@ function renderAllCharts(data) {
           borderColor: isLight ? '#0284c7' : '#38bdf8',
           borderWidth: 2,
           tension: 0.35,
-          pointRadius: 0
+          pointRadius: 0,
+          pointHoverRadius: 6
         }]
       },
-      options: {
-        responsive: true, maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 } } },
-          y: { min: 0, grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 }, callback: v => v + ' km/h' }, position: 'right' }
-        }
-      }
+      options: windOpts
     });
   }
-
-  // --- 3. 降雨機率趨勢圖 ---
-  const probData = rains.map(r => (r > 0 ? 80 : 0));
-  const maxProb = Math.max(...probData);
-  document.getElementById('topRainProb').textContent = probData[0] + '%';
-  document.getElementById('maxRainProbVal').textContent = maxProb + '%';
-
-  const ctxProb = document.getElementById('rainProbChart').getContext('2d');
-  const gradProb = ctxProb.createLinearGradient(0, 0, 0, 180);
-  gradProb.addColorStop(0, isLight ? 'rgba(13, 148, 136, 0.35)' : 'rgba(45, 212, 191, 0.35)');
-  gradProb.addColorStop(1, 'rgba(0,0,0,0)');
-
-  if (chartInstances.prob) chartInstances.prob.destroy();
-  chartInstances.prob = new Chart(ctxProb, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        data: probData,
-        fill: true,
-        backgroundColor: gradProb,
-        borderColor: isLight ? '#0d9488' : '#2dd4bf',
-        borderWidth: 2,
-        tension: 0.35,
-        pointRadius: 0
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 } } },
-        y: { min: 0, max: 100, grid: { color: gridColor }, ticks: { stepSize: 25, color: textColor, font: { size: 11 }, callback: v => v + '%' }, position: 'right' }
-      }
-    }
-  });
-
-  // --- 4. 降雨量趨勢圖 ---
-  let totalRain = 0;
-  rains.forEach(r => totalRain += (r || 0));
-  document.getElementById('topRainAmountVal').textContent = totalRain.toFixed(1) + ' mm';
-  document.getElementById('totalRainAmount').textContent = totalRain.toFixed(1) + ' mm';
-
-  const ctxRain = document.getElementById('rainAmountChart').getContext('2d');
-  const gradRain = ctxRain.createLinearGradient(0, 0, 0, 180);
-  gradRain.addColorStop(0, isLight ? 'rgba(5, 150, 105, 0.35)' : 'rgba(52, 211, 153, 0.35)');
-  gradRain.addColorStop(1, 'rgba(0,0,0,0)');
-
-  if (chartInstances.rain) chartInstances.rain.destroy();
-  chartInstances.rain = new Chart(ctxRain, {
-    type: 'line',
-    data: {
-      labels: labels,
-      datasets: [{
-        data: rains,
-        fill: true,
-        backgroundColor: gradRain,
-        borderColor: isLight ? '#059669' : '#34d399',
-        borderWidth: 2,
-        tension: 0.35,
-        pointRadius: 0
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 } } },
-        y: { min: 0, grid: { color: gridColor }, ticks: { color: textColor, font: { size: 11 }, callback: v => v + ' mm' }, position: 'right' }
-      }
-    }
-  });
 }
 
 window.addEventListener('DOMContentLoaded', function(){
