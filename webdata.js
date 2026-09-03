@@ -36,17 +36,13 @@ const ICON_PRESETS = {
 
 // 1. 熱帶氣旋警告 (tcWarnings) [已新增至 4 條]
 const tcText = [
-  `預計「沙德爾」將會逐漸採取西南偏西方向路徑移動，並靠近珠江口一帶，但同時逐漸減弱。本地風力今日進一步增強機會頗低。因此，戒備警報會在今日餘下時間維持。
-
-按照現時預測，「沙德爾」會在明日最接近澳門，有機會在本澳西北偏北100公里附近掠過。由於其減弱程度及路徑仍存在不確定性，是否需要在明日再次改發強風警報仍然存在變數。
-
-受「沙德爾」外圍雲雨帶影響，本澳明日多雲及有幾陣驟雨。市民應完成適當的預防措施，留意未來數日天氣資訊。`
+  `「沙德爾」已減弱為低壓區。預計「沙德爾」殘餘雲雨帶仍會靠近珠江口一帶，受其影響，本澳今日多雲及有一兩陣驟雨。`
 ];
 
 const tcWarnings = [
   {
-    icon: "t1",
-    text: "戒備警報於本地時間09月02日14時20分發出。"
+    icon: "",
+    text: "戒備警報於本地時間09月04日00時20分取消。"
   },
   {
     icon: "",
@@ -66,8 +62,8 @@ const tcWarnings = [
 // 2. 天氣警告 (warnWarnings) [已新增至 4 條]
 const warnWarnings = [
   {
-    icon: "h1",
-    text: "酷熱警報於本地時間09月03日12時45分發出。"
+    icon: "",
+    text: "酷熱警報於本地時間09月03日18時45分取消。"
   },
   {
     icon: "",
@@ -116,8 +112,8 @@ const TC_WARNING_DATA = {
   updateTimeText: "2026-09-02  14:20 MST 更新",
   tableRows: [
     { signal: "注意警報", period: "", probability: "" },
-    { signal: "戒備警報", period: "09月02日 14時20分", probability: "現正生效" },
-    { signal: "強風警報", period: "09月04日 日間", probability: "偏低至中等" },
+    { signal: "戒備警報", period: "09月02日 14時20分", probability: "" },
+    { signal: "強風警報", period: "09月04日 日間", probability: "" },
     { signal: "烈風警報", period: "09月01日", probability: "" },
     { signal: "暴風警報", period: "", probability: "" },
     { signal: "颶風警報", period: "", probability: "" },
