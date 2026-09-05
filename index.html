@@ -411,7 +411,7 @@ body.light-theme .icon-box {
   line-height: 1.7;
   color: #fecfcf;
   text-align: left;
-  white-space: pre-line;
+  white-space: pre-line; /* This preserves your line breaks and empty lines */
 }
 body.light-theme .text-box {
   color: #7f1d1d;
@@ -755,6 +755,7 @@ body.light-theme .hourly-forecast-scroll::-webkit-scrollbar-thumb {
   margin-top: 2px;
 }
 
+
 /* ========== 7. 天氣預報 & 圖表並排模塊 ========== */
 .forecast-chart-row {
   display: grid;
@@ -772,6 +773,44 @@ body.light-theme .hourly-forecast-scroll::-webkit-scrollbar-thumb {
   display: flex;
   flex-direction: column;
   height: 100%;
+}
+
+.icon-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  margin-right: 8px;
+}
+
+.icon-box img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+/* ========== 4. 區域即時天氣地圖樣式 ========== */
+.map-section {
+  margin-bottom: 24px;
+}
+
+#regional-weather-map {
+  width: 100%;
+  height: 420px;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: #111827;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  #regional-weather-map {
+    height: 320px;
+  }
 }
 .chart-wrap {
   border-radius: 16px;
@@ -1234,6 +1273,7 @@ body.light-theme .bottom-fixed-bar {
     <div id="rainAlertContent" class="content-blue"></div>
   </div>
 
+
   <div class="warning-card" id="warnCard">
     <div class="warning-header">
       <span class="warning-title-text">
@@ -1326,7 +1366,7 @@ body.light-theme .bottom-fixed-bar {
                 </div>
               </div>
             
-              <!-- 風速與風向 -->
+              <!-- 風速與風向 (Merged) -->
               <div class="weather-item" style="padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
                 <div style="color: var(--accent-blue); display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(56, 189, 248, 0.1); border-radius: 10px; flex-shrink: 0;">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 19 21 12 17 5 21 12 2"/></svg>
@@ -1339,7 +1379,7 @@ body.light-theme .bottom-fixed-bar {
                 </div>
               </div>
             
-              <!-- 實時空氣質量指數 (AQI) -->
+              <!-- 實時空氣質量指數 (AQI) - 採用指定大潭山 API -->
               <div class="weather-item" style="padding: 14px 16px; display: flex; align-items: center; gap: 14px;">
                 <div style="color: #f97316; display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; background: rgba(249, 115, 22, 0.1); border-radius: 10px; flex-shrink: 0;">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1361,7 +1401,7 @@ body.light-theme .bottom-fixed-bar {
                 </div>
                 <div style="flex: 1; min-width: 0;">
                   <div class="weather-label-title" style="color: var(--text-muted); font-size: 12px;">紫外線指數</div>
-                  <div id="uv-value" style="font-size: 16px; font-weight: 700; margin-top: 2px;">--</div>
+                  <div id="uv-value" style="font-size: 16px; font-weight: 700; margin-top: 2px;"></div>
                 </div>
               </div>
             </div>
@@ -1466,6 +1506,8 @@ body.light-theme .bottom-fixed-bar {
     <span>空氣質素</span>
   </a>
 </div>
+
+change it to link to other subpage
 
 <script src="webdata.js"></script>
 <script>
@@ -1628,6 +1670,15 @@ function toggleMenu() {
   btn.innerHTML = nav.classList.contains("active") ? "✕" : "☰";
 }
 
+function scrollToSection(elementId, btn) {
+  const el = document.getElementById(elementId);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  document.querySelectorAll('.bottom-bar-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const dropdownBtns = document.querySelectorAll('.dropdown-btn');
   
@@ -1661,6 +1712,21 @@ function updateHeaderClock() {
     const secs = String(now.getSeconds()).padStart(2, '0');
     clockEl.textContent = ` ${year}年${month}月${date}日 ${hrs}:${mins}:${secs} MST`;
   }
+}
+
+function getTempColor(tempStr) {
+  const temp = parseFloat(tempStr);
+  if (isNaN(temp)) return "#78797a";
+  if (temp >= 37.5) return "#330101";
+  if (temp >= 35.5) return "#8d1919";
+  if (temp >= 32.5) return "#f12828";
+  if (temp >= 27.5) return "#ff7a00";
+  if (temp >= 22.5) return "#b37802";
+  if (temp >= 17.5) return "#919107";
+  if (temp >= 12.5) return "#19aa75";
+  if (temp >= 7.5)  return "#0d517a";
+  if (temp >= 3.5)  return "#141970";
+  return "#300c46";
 }
 
 function getOpenMeteoIcon(code, hour = 12) {
@@ -1759,6 +1825,7 @@ async function loadOpenMeteoForecastSummary() {
   }
 }
 
+/* ================= 修正：七日天氣預報載入函數 (Open-Meteo) ================= */
 async function loadOpenMeteo7DayForecast() {
   const loadingEl = document.getElementById('7day-xml-loading');
   const errorEl = document.getElementById('7day-xml-error');
@@ -1840,13 +1907,82 @@ async function loadOpenMeteo7DayForecast() {
 function resolveIcon(iconKey) {
   if (!iconKey) return "";
   const key = iconKey.trim();
+
   if (typeof ICON_PRESETS !== 'undefined' && ICON_PRESETS[key]) {
     return ICON_PRESETS[key];
   }
+
   if (key.includes('/') || key.includes('.')) {
     return key;
   }
+
   return `icons/${key.toLowerCase()}.jpg`;
+}
+  
+function renderTcForecastTable(data) {
+  const tableCard = document.getElementById('tcForecastTableCard');
+  const tableContent = document.getElementById('tcTableContent');
+  const mainTitleEl = document.getElementById('tableMainTitle');
+  const updateTimeEl = document.getElementById('tableUpdateTime');
+
+  if (!tableCard || !tableContent || !data || !Array.isArray(data.tableRows)) {
+    if (tableCard) tableCard.style.display = 'none';
+    return;
+  }
+
+  const validRows = data.tableRows.filter(row => row.probability && row.probability.trim() !== '');
+
+  if (validRows.length === 0) {
+    tableCard.style.display = 'none';
+    return;
+  }
+
+  if (mainTitleEl) mainTitleEl.textContent = data.mainTitle || '';
+  if (updateTimeEl) updateTimeEl.textContent = data.updateTimeText || '';
+
+  let html = `
+    <table class="tc-warning-table">
+      <thead>
+        <tr>
+          <th>警報名稱</th>
+          <th>發佈時段</th>
+          <th>機率</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  validRows.forEach(row => {
+    html += `
+      <tr>
+        <td>${row.signal || ''}</td>
+        <td>${row.period || '-'}</td>
+        <td>${row.probability || ''}</td>
+      </tr>
+    `;
+  });
+
+  html += `
+      </tbody>
+    </table>
+  `;
+
+  tableContent.innerHTML = html;
+  tableCard.style.display = 'block';
+}
+
+function scrollToSection(sectionId, btn) {
+  // Remove active state from all bottom bar buttons
+  document.querySelectorAll('.bottom-bar-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  // Find target element and scroll smoothly
+  const element = document.getElementById(sectionId);
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    console.warn(`Target section with ID "${sectionId}" was not found on this page.`);
+  }
 }
   
 function formatTextBoxContent(data) {
@@ -1882,6 +2018,7 @@ function renderWarnings(data, containerId, cardId) {
 
   data.forEach((item) => {
     if (!item) return;
+
     let text = "";
     let iconSrc = "";
 
@@ -1913,6 +2050,10 @@ function renderWarnings(data, containerId, cardId) {
 window.addEventListener('DOMContentLoaded', function(){
     updateHeaderClock();
     setInterval(updateHeaderClock, 1000);
+
+    if (typeof TC_WARNING_DATA !== 'undefined') {
+      renderTcForecastTable(TC_WARNING_DATA);
+    }
 
     if (typeof alertipsText !== 'undefined') renderTextBox('alertBox', 'alertContent', alertipsText);
     if (typeof swtText !== 'undefined') renderTextBox('swtBox', 'swtContent', swtText);
@@ -2372,64 +2513,247 @@ async function fetchOpenMeteoHourlyForecast() {
 
       const iconSrc = getOpenMeteoIcon(code, hourNum);
       const popInfo = getPopInfo(pop);
+      const popColor = isLightTheme ? popInfo.light : popInfo.dark;
 
-      const col = document.createElement('div');
-      col.className = 'hourly-item-col';
-      col.innerHTML = `
+      const precipHtml = (precip !== undefined && precip >= 0.1) 
+        ? `<div class="hourly-col-precip">${precip.toFixed(1)}mm</div>` 
+        : '';
+
+      const item = document.createElement('div');
+      item.className = 'hourly-item-col';
+      item.innerHTML = `
         <div class="hourly-col-time">${hourStr}</div>
         <div class="hourly-col-temp">${temp}</div>
-        <div class="hourly-col-icon"><img src="${iconSrc}" alt="weather"></div>
-        <div class="hourly-col-pop" style="color: ${isLightTheme ? popInfo.light : popInfo.dark}">${pop}%</div>
-        <div class="hourly-col-precip">${precip > 0 ? precip + 'mm' : ''}</div>
+        <div class="hourly-col-icon">
+          <img src="${iconSrc}" style="width: 52px; height: 52px; object-fit: contain;" alt="weather icon">
+        </div>
+        <div class="hourly-col-pop" style="color: ${popColor}; font-weight: 700;">${popInfo.label}</div>
+        ${precipHtml}
       `;
-      container.appendChild(col);
+      container.appendChild(item);
     }
   } catch (err) {
-    console.error("Hourly forecast fetch error:", err);
+    console.error("Open-Meteo 逐時預報讀取失敗:", err);
   }
 }
 
-async function initWeather() {
-  if (loadTip) loadTip.style.display = 'none';
-  if (weatherMain) weatherMain.style.display = 'block';
-  
-  try {
-    const url = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&current=temperature_2m,relative_humidity_2m,precipitation,weather_code,wind_speed_10m,wind_direction_10m&timezone=Asia%2FMacau";
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Current weather fetch failed");
-    const data = await res.json();
-    
-    const cur = data.current;
-    if (cur) {
-      const temp = Math.round(cur.temperature_2m);
-      const rh = cur.relative_humidity_2m;
-      const windS = cur.wind_speed_10m;
-      const windD = degreesToDirection(cur.wind_direction_10m);
-      const code = cur.weather_code;
-      const hour = new Date().getHours();
-      
-      if (tempNum) tempNum.textContent = temp + " °C";
-      if (humValue) humValue.textContent = rh + " %";
-      if (windSpeed) windSpeed.textContent = windS + " km/h";
-      if (windDir) windDir.textContent = windD;
-      if (weatherIcon) weatherIcon.src = getOpenMeteoIcon(code, hour);
-      if (feelsDesc) feelsDesc.textContent = getWmoWeatherText(code);
-      
-      const now = new Date();
-      if (pubTime) pubTime.textContent = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} MST`;
+async function loadHourlyWeather() {
+    try {
+        loadTip.style.display = 'block';
+        errorTip.style.display = 'none';
+        weatherMain.style.display = 'none';
+
+        const url = "https://api.open-meteo.com/v1/forecast?latitude=22.1595&longitude=113.5685&current=temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,wind_direction_10m,uv_index&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset&timezone=Asia%2FMacau";
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Open-Meteo 請求失敗');
+
+        const data = await response.json();
+        const current = data.current;
+
+        const now = new Date();
+        const sysPubdate = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+        
+        const temp = Math.round(current.temperature_2m);
+        const hum = current.relative_humidity_2m;
+        const windSpd = Math.round(current.wind_speed_10m);
+        const windDirText = degreesToDirection(current.wind_direction_10m);
+        const iconUrl = getOpenMeteoIcon(current.weather_code, now.getHours());
+        const uvVal = current.uv_index !== undefined ? current.uv_index.toFixed(1) : "--";
+
+        const todayMax = Math.round(data.daily.temperature_2m_max[0]);
+        const todayMin = Math.round(data.daily.temperature_2m_min[0]);
+
+        pubTime.textContent = sysPubdate;
+        tempNum.textContent = `${temp} °C`;
+        
+        const tempColorHex = getTempColor(temp);
+        tempNum.style.color = tempColorHex;
+        tempNum.style.backgroundColor = "";
+        tempNum.style.padding = "";
+        tempNum.style.borderRadius = "";
+
+        const tempSvgIcon = document.querySelector('#temp-value svg');
+        if (tempSvgIcon) {
+            tempSvgIcon.style.color = tempColorHex;
+            tempSvgIcon.style.stroke = tempColorHex;
+        }
+
+        feelsDesc.textContent = `今日氣溫：${todayMin} - ${todayMax} °C`;
+        humValue.textContent = `${hum} %`;
+        windSpeed.textContent = `${windSpd} km/h`;
+        windDir.textContent = windDirText;
+
+        uvValue.textContent = uvVal;
+        if (typeof current.uv_index === 'number') {
+          uvValue.style.color = getUVColor(current.uv_index);
+        }
+
+        if (weatherIcon) {
+            weatherIcon.src = iconUrl;
+        }
+
+        loadTip.style.display = 'none';
+        weatherMain.style.display = 'block';
+
+        fetchAQI();
+        fetchOpenMeteoHourlyForecast();
+    } catch (err) {
+        console.error("整點天氣載入失敗：", err);
+        loadTip.style.display = 'none';
+        errorTip.style.display = 'block';
     }
-  } catch (err) {
-    console.error("Current weather error:", err);
-    if (loadTip) loadTip.style.display = 'none';
-    if (errorTip) errorTip.style.display = 'block';
+}
+function getUVColor(uv) {
+  if (uv <= 2) return '#34d399';
+  if (uv <= 5) return '#facc15';
+  if (uv <= 7) return '#fb923c';
+  if (uv <= 10) return '#f87171';
+  return '#c084fc';
+}
+
+function renderActiveIcons() {
+  const container = document.getElementById('activeIconsContent');
+  if (!container) return;
+
+  let iconList = [];
+
+  // Collect valid icons from tcWarnings
+  if (typeof tcWarnings !== 'undefined' && Array.isArray(tcWarnings)) {
+    tcWarnings.forEach(item => {
+      if (item && item.icon && item.icon.trim() !== '') {
+        const resolved = resolveIcon(item.icon);
+        if (resolved) {
+          iconList.push({ key: item.icon.trim(), path: resolved });
+        }
+      }
+    });
   }
+
+  // Collect valid icons from warnWarnings
+  if (typeof warnWarnings !== 'undefined' && Array.isArray(warnWarnings)) {
+    warnWarnings.forEach(item => {
+      if (item && item.icon && item.icon.trim() !== '') {
+        const resolved = resolveIcon(item.icon);
+        if (resolved) {
+          iconList.push({ key: item.icon.trim(), path: resolved });
+        }
+      }
+    });
+  }
+
+  if (iconList.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+
+  let html = '';
+  iconList.forEach(item => {
+    const hasT = item.key.toLowerCase().includes('t');
+    const iconBoxHtml = `
+      <div class="icon-box">
+        <img src="${item.path}" alt="Warning Icon">
+      </div>
+    `;
+
+    if (hasT) {
+      html += `<a href="https://macaosso.github.io/MSSOweb/tc.html" style="text-decoration: none; display: inline-block;">${iconBoxHtml}</a>`;
+    } else {
+      html += iconBoxHtml;
+    }
+  });
+
+  container.innerHTML = html;
+  container.style.display = 'flex';
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-  initWeather();
-  fetchAQI();
-  fetchOpenMeteoHourlyForecast();
+    loadHourlyWeather();
+    renderActiveIcons();
 });
+
+// ==========================================
+  // 各區即時天氣地圖與 Open-Meteo 15分鐘更新
+  // ==========================================
+const stations = [
+    { lat: 22.214016, lng: 113.546198 },
+    { lat: 22.203504, lng: 113.540908 },
+    { lat: 22.185825, lng: 113.531621 },
+    { lat: 22.201175, lng: 113.554584 },
+    { lat: 22.189409, lng: 113.551810 },
+    { lat: 22.200637, lng: 113.576388 },
+    { lat: 22.159840, lng: 113.547617 },
+    { lat: 22.159423, lng: 113.567679 },
+    { lat: 22.138809, lng: 113.563421 },
+    { lat: 22.147771, lng: 113.583289 },
+    { lat: 22.129845, lng: 113.544972 },
+    { lat: 22.112935, lng: 113.554907 },
+    { lat: 22.134685, lng: 113.582386 }
+  ];
+
+  // 初始化 Leaflet 地圖 (以澳門為中心)
+const regionalMap = L.map('regional-weather-map', {
+    center: [22.175, 113.555],
+    zoom: 13,
+    zoomControl: true,
+    attributionControl: false
+  });
+
+  // 設定背景圖片地圖 (map.jpg) 涵蓋的地理邊界
+const mapBounds = [[22.10, 113.51], [22.25, 113.61]];
+  L.imageOverlay('map.jpg', mapBounds).addTo(regionalMap);
+
+  let stationMarkers = [];
+
+  // WMO 天氣代碼轉換圖示
+  function getWeatherIconUrl(code) {
+    if (code === 0) return 'icons/sun.png';
+    if (code >= 1 && code <= 3) return 'icons/cloudy.png';
+    if (code >= 51 && code <= 67) return 'icons/rain.png';
+    if (code >= 80 && code <= 82) return 'icons/rain.png';
+    if (code >= 95) return 'icons/storm.png';
+    return 'icons/cloudy.png';
+  }
+
+  // 從 Open-Meteo 獲取各站點氣象數據 (每 15 分鐘自動更新)
+  async function updateRegionalWeather() {
+    for (let i = 0; i < stations.length; i++) {
+      const st = stations[i];
+      try {
+        const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${st.lat}&longitude=${st.lng}&current=temperature_2m,weather_code`);
+        const data = await response.json();
+        if (data && data.current) {
+          const temp = data.current.temperature_2m;
+          const code = data.current.weather_code;
+          const iconUrl = getWeatherIconUrl(code);
+
+          const customIcon = L.divIcon({
+            className: 'weather-map-marker',
+            html: `<div style="background: rgba(11, 15, 25, 0.88); border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 6px; padding: 2px 6px; display: flex; align-items: center; gap: 4px; white-space: nowrap; font-size: 11px; font-weight: 500; color: #f1f5f9; box-shadow: 0 2px 6px rgba(0,0,0,0.5);">
+                     <img src="${iconUrl}" style="width: 16px; height: 16px;" alt="weather">
+                     <span>${temp}°C</span>
+                   </div>`,
+            iconSize: [48, 22],
+            iconAnchor: [24, 11]
+          });
+
+          if (stationMarkers[i]) {
+            stationMarkers[i].setIcon(customIcon);
+          } else {
+            const marker = L.marker([st.lat, st.lng], { icon: customIcon }).addTo(regionalMap);
+            stationMarkers[i] = marker;
+          }
+        }
+      } catch (err) {
+        console.error("Open-Meteo fetch error for station " + i, err);
+      }
+    }
+  }
+
+  // 初次載入並設定每 15 分鐘更新一次
+  updateRegionalWeather();
+  setInterval(updateRegionalWeather, 15 * 60 * 1000);
+  
 </script>
+
 </body>
 </html>
