@@ -2708,10 +2708,9 @@ const mapBounds = [[22.10, 113.51], [22.25, 113.61]];
   let stationMarkers = [];
 
   // WMO 天氣代碼轉換圖示
-  function getWeatherIconUrl(code) {
-    const hour = new Date(data.current.time).getHours();
-    const iconUrl = getWeatherIconUrl(code, hour);
+  function getWeatherIconUrl(code, hour) {
     const isNight = (hour < 6 || hour >= 18);
+
     if (code === 0) return isNight ? "icons/NightS.png" : "icons/s.png";
     if (code === 1 || code === 2) return isNight ? "icons/NightSC.png" : "icons/sc.png";
     if (code === 3) return "icons/c.png";
@@ -2723,8 +2722,9 @@ const mapBounds = [[22.10, 113.51], [22.25, 113.61]];
     if (code === 80) return "icons/r.png";
     if (code >= 81 && code <= 82) return "icons/tr.png";
     if (code >= 95 && code <= 99) return "icons/tr.png";
+
     return isNight ? "icons/NightS.png" : "icons/s.png";
-  }
+}
 
   // 從 Open-Meteo 獲取各站點氣象數據 (每 15 分鐘自動更新)
   async function updateRegionalWeather() {
@@ -2736,7 +2736,10 @@ const mapBounds = [[22.10, 113.51], [22.25, 113.61]];
         if (data && data.current) {
           const temp = data.current.temperature_2m;
           const code = data.current.weather_code;
-          const iconUrl = getWeatherIconUrl(code);
+          
+          const hour = new Date(data.current.time).getHours();
+          
+          const iconUrl = getWeatherIconUrl(code, hour);
 
           const customIcon = L.divIcon({
             className: 'weather-map-marker',
