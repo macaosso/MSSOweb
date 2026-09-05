@@ -2710,12 +2710,19 @@ const mapBounds = [[22.10, 113.51], [22.25, 113.61]];
 
   // WMO 天氣代碼轉換圖示
   function getWeatherIconUrl(code) {
-    if (code === 0) return 'icons/s.png';
-    if (code >= 1 && code <= 3) return 'icons/c.png';
-    if (code >= 51 && code <= 67) return 'icons/r.png';
-    if (code >= 80 && code <= 82) return 'icons/r.png';
-    if (code >= 95) return 'icons/tr.png';
-    return 'icons/cloudy.png';
+    const isNight = (hour < 6 || hour >= 18);
+    if (code === 0) return isNight ? "icons/NightS.png" : "icons/s.png";
+    if (code === 1 || code === 2) return isNight ? "icons/NightSC.png" : "icons/sc.png";
+    if (code === 3) return "icons/c.png";
+    if (code === 4) return "icons/Overcast.png";
+    if (code === 45 || code === 48) return "icons/Fog.png";
+    if (code >= 51 && code <= 57) return "icons/scr.png";
+    if (code >= 61 && code <= 65) return "icons/r.png";
+    if (code >= 66 && code <= 67) return "icons/tr.png";
+    if (code === 80) return "icons/r.png";
+    if (code >= 81 && code <= 82) return "icons/tr.png";
+    if (code >= 95 && code <= 99) return "icons/tr.png";
+    return isNight ? "icons/NightS.png" : "icons/s.png";
   }
 
   // 從 Open-Meteo 獲取各站點氣象數據 (每 15 分鐘自動更新)
