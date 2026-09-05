@@ -2709,6 +2709,8 @@ const mapBounds = [[22.10, 113.51], [22.25, 113.61]];
 
   // WMO 天氣代碼轉換圖示
   function getWeatherIconUrl(code) {
+    const hour = new Date(data.current.time).getHours();
+    const iconUrl = getWeatherIconUrl(code, hour);
     const isNight = (hour < 6 || hour >= 18);
     if (code === 0) return isNight ? "icons/NightS.png" : "icons/s.png";
     if (code === 1 || code === 2) return isNight ? "icons/NightSC.png" : "icons/sc.png";
