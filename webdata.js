@@ -36,13 +36,13 @@ const ICON_PRESETS = {
 
 // 1. 熱帶氣旋警告 (tcWarnings) [已新增至 4 條]
 const tcText = [
-  `「沙德爾」已減弱為低壓區。預計「沙德爾」殘餘雲雨帶仍會靠近珠江口一帶，受其影響，本澳今日多雲及有一兩陣驟雨。`
+  ``
 ];
 
 const tcWarnings = [
   {
     icon: "",
-    text: "戒備警報於本地時間09月04日00時20分取消。"
+    text: ""
   },
   {
     icon: "",
@@ -63,7 +63,7 @@ const tcWarnings = [
 const warnWarnings = [
   {
     icon: "",
-    text: "酷熱警報於本地時間09月03日18時45分取消。"
+    text: "酷熱警報於本地時間09月07日16時00分發出，預料本澳今日天氣酷熱，最高氣溫約32 - 33度，部分地區34度。"
   },
   {
     icon: "",
