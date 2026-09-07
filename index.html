@@ -1555,6 +1555,21 @@ body.light-theme .bottom-fixed-bar {
       <div id="7dayUpdateTime" class="forecast-time-bottom"></div>
     </div>
   </div>
+  <div class="weather-card" style="text-align: center; background: #fff; padding: 15px; border-radius: 8px;">
+    <h3>Regional Synoptic Chart</h3>
+    <!-- The src points to your Python Flask route -->
+    <img id="synopticMap" src="http://127.0.0.1:5000/generate-map" alt="Synoptic Pressure Chart" style="max-width: 100%; height: auto; border-radius: 4px;">
+  </div>
+  
+  <script>
+    // Optional: Refresh the map image every 30 minutes to capture updated Open-Meteo data
+    setInterval(() => {
+      const mapImg = document.getElementById('synopticMap');
+      if (mapImg) {
+        mapImg.src = `http://127.0.0.1:5000/generate-map?t=${new Date().getTime()}`;
+      }
+    }, 1800000);
+  </script>
 
 </div>
 
@@ -2817,6 +2832,7 @@ async function updateRegionalWeather() {
         }
     }
 }
+
 
 updateRegionalWeather();
 setInterval(updateRegionalWeather, 15 * 60 * 1000);
