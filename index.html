@@ -1244,6 +1244,20 @@ body.light-theme .bottom-fixed-bar {
   }
 }
 </style>
+
+<style>
+/* ===== MSSO Aurora editorial redesign ===== */
+:root{--bg-dark:#07111f;--card-bg:rgba(13,29,49,.82);--card-bg-light:rgba(255,255,255,.06);--card-border:rgba(148,196,255,.16);--text-main:#edf6ff;--text-muted:#91a8c1;--accent-blue:#68c7ff;--accent-teal:#45e0c0;--accent-green:#72e2a8;--accent-yellow:#ffd166;--accent-orange:#ff9f68;--accent-red:#ff6b7d;--accent-purple:#bd9cff;--bg-red:rgba(255,71,99,.11);--border-red:rgba(255,107,125,.42);--bg-orange:rgba(255,159,104,.1);--border-orange:rgba(255,159,104,.38)}
+body{font-family:Inter,"Noto Sans TC","PingFang TC",system-ui,sans-serif;background:radial-gradient(circle at 8% 0%,#123b59 0,transparent 30%),radial-gradient(circle at 100% 12%,#35204c 0,transparent 28%),#07111f;color:var(--text-main);letter-spacing:.01em}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.16;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:38px 38px;mask-image:linear-gradient(to bottom,#000,transparent 78%);z-index:-1}
+.page-wrapper{max-width:1240px;padding:26px 22px 90px}.header-nav-container{position:sticky;top:0;margin:0 auto;padding:14px max(22px,calc((100vw - 1240px)/2));background:rgba(5,15,29,.78);border-bottom:1px solid rgba(104,199,255,.18);box-shadow:0 12px 40px rgba(0,0,0,.22);backdrop-filter:blur(22px)}.logo{height:44px;filter:drop-shadow(0 0 14px rgba(104,199,255,.45))}.title{font-size:1.3rem;color:#e8f7ff;letter-spacing:.04em}.title:before{content:"LIVE WEATHER / MACAU";display:block;font-size:.58rem;letter-spacing:.2em;color:var(--accent-teal);font-weight:800;margin-bottom:2px}.header-clock{font-size:.78rem;color:var(--text-muted)}.nav{gap:3px}.nav a,.dropdown-btn{border-radius:9px;color:#b8cbe0;font-size:.84rem;padding:9px 11px}.nav a:hover,.dropdown:hover .dropdown-btn,.dropdown.active .dropdown-btn{background:rgba(104,199,255,.12);color:#fff}.dropdown-content{background:#0c2036;border:1px solid var(--card-border);border-radius:12px;box-shadow:0 18px 50px #0009}.theme-toggle-btn,.menu-toggle{border-radius:10px;background:rgba(104,199,255,.08);border-color:var(--card-border)}
+.quick-links{gap:16px;margin:8px 0 30px}.link-box{border-radius:18px;justify-content:flex-start;padding:20px 22px;background:linear-gradient(135deg,rgba(30,73,111,.7),rgba(12,28,49,.75));border:1px solid rgba(104,199,255,.2);box-shadow:0 12px 28px rgba(0,0,0,.16);font-size:15px}.link-box:before{content:"↗";font-size:20px;color:var(--accent-teal);margin-right:9px}.link-box.flood{background:linear-gradient(135deg,rgba(18,83,85,.7),rgba(12,28,49,.75))}.link-box.map{background:linear-gradient(135deg,rgba(67,45,111,.7),rgba(12,28,49,.75))}.box,.warning-card,.three-tab-weather-wrap,.weather-map-container{border-radius:22px!important;border:1px solid var(--card-border)!important;box-shadow:0 18px 50px rgba(0,0,0,.2)!important}.warning-card{background:linear-gradient(135deg,rgba(107,20,42,.34),rgba(27,19,38,.7))}.warning-header,.header-orange,.header-blue{padding:17px 22px!important;letter-spacing:.05em}.warning-header{background:rgba(255,71,99,.18)}.box{background:linear-gradient(145deg,rgba(39,31,35,.74),rgba(22,26,39,.82))}.header-orange{background:rgba(255,159,104,.13);color:#ffd1b8}.header-blue{background:rgba(104,199,255,.12)}.content-yellow,.content-blue{padding:20px 22px;font-size:15px}.three-tab-header{background:transparent;border-bottom:1px solid var(--card-border)}.three-tab-item{padding:17px 22px;color:var(--accent-teal);font-weight:800}.weather-map-container{overflow:hidden;background:#0c2036;padding:8px}.weather-map-image{border-radius:16px}.weather-item{background:rgba(255,255,255,.035)!important;border:1px solid rgba(255,255,255,.07);border-radius:14px}.hourly-forecast-section{border-radius:16px;background:rgba(0,0,0,.15);padding:18px}.publishing-time{color:var(--text-muted)}
+/* admin */
+.admin-launch{border:1px solid rgba(255,209,102,.38);background:rgba(255,209,102,.1);color:#ffe6a1;border-radius:10px;padding:9px 13px;font-weight:800;cursor:pointer;font-family:inherit}.admin-launch:hover{background:rgba(255,209,102,.2);transform:translateY(-1px)}.admin-board{display:none;margin:0 0 24px;border:1px solid rgba(255,209,102,.3);border-radius:20px;background:linear-gradient(135deg,rgba(71,53,22,.45),rgba(24,31,47,.8));overflow:hidden}.admin-board.show{display:block}.admin-board-head{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid rgba(255,209,102,.2)}.admin-board-head strong{color:#ffe29a}.admin-board-head small{color:#bfaf85}.admin-notice{padding:19px 20px;border-bottom:1px solid rgba(255,255,255,.08);display:flex;gap:14px;align-items:flex-start}.admin-notice:last-child{border-bottom:0}.notice-badge{font-size:11px;font-weight:900;letter-spacing:.08em;border-radius:999px;padding:5px 9px;background:#ff6b7d;color:#260711;white-space:nowrap}.notice-badge.tip{background:#ffd166;color:#302000}.admin-notice h4{margin:0 0 4px;font-size:16px}.admin-notice p{margin:0;color:#cbd9e8;white-space:pre-line}.admin-notice time{display:block;color:#91a8c1;font-size:12px;margin-top:8px}.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(3,8,16,.76);backdrop-filter:blur(10px);z-index:9000;align-items:center;justify-content:center;padding:20px}.modal-backdrop.open{display:flex}.admin-modal{width:min(560px,100%);background:#0d2036;border:1px solid rgba(104,199,255,.3);border-radius:22px;box-shadow:0 24px 90px #000b;padding:26px}.admin-modal h2{margin:0 0 5px}.admin-modal .sub{color:var(--text-muted);font-size:13px;margin-bottom:20px}.admin-form{display:grid;gap:13px}.admin-form label{font-size:13px;color:#bcd0e4;font-weight:700}.admin-form input,.admin-form textarea,.admin-form select{width:100%;font:inherit;color:#eff8ff;background:#071525;border:1px solid #284763;border-radius:10px;padding:11px 12px;outline:0}.admin-form input:focus,.admin-form textarea:focus{border-color:var(--accent-blue);box-shadow:0 0 0 3px rgba(104,199,255,.12)}.admin-form textarea{min-height:105px;resize:vertical}.admin-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:5px}.admin-actions button{border:0;border-radius:10px;padding:10px 16px;font:inherit;font-weight:800;cursor:pointer}.btn-cancel{background:#193149;color:#bed1e4}.btn-primary{background:linear-gradient(135deg,#45e0c0,#68c7ff);color:#06202a}.btn-danger{background:rgba(255,107,125,.15);color:#ff9aaa}.admin-error{color:#ff9aaa;font-size:13px;min-height:18px}.admin-session{display:none;gap:12px;align-items:center;margin-bottom:14px;padding:11px 14px;border-radius:11px;background:rgba(69,224,192,.09);color:#a7f3dd;font-size:13px}.admin-session.show{display:flex}.admin-session button{margin-left:auto;border:0;background:none;color:#ffb1bd;cursor:pointer}
+body.light-theme{--bg-dark:#f1f6fb;--card-bg:rgba(255,255,255,.88);--card-border:rgba(24,65,96,.14);--text-main:#10263d;--text-muted:#61748b;background:radial-gradient(circle at 10% 0%,#d8effc 0,transparent 32%),#f1f6fb}body.light-theme:before{opacity:.28}body.light-theme .header-nav-container{background:rgba(241,246,251,.82)}body.light-theme .dropdown-content,.light-theme .admin-modal{background:#fff}.light-theme .admin-form input,.light-theme .admin-form textarea,.light-theme .admin-form select{background:#f5f9fc;color:#10263d;border-color:#c7d6e3}.light-theme .admin-notice p{color:#39526b}
+@media(max-width:900px){.header-nav-container{padding:12px 16px}.nav{background:#0c2036}.page-wrapper{padding:18px 14px 80px}.quick-links{grid-template-columns:1fr}.title{font-size:1rem}.title:before{font-size:.5rem}.admin-launch{padding:8px 9px;font-size:12px}}
+</style>
+
 </head>
 
 <body>
@@ -1258,6 +1272,7 @@ body.light-theme .bottom-fixed-bar {
   </div>
 
   <div class="menu-container">
+    <button class="admin-launch" onclick="openAdmin()" title="管理員登入">管理員</button>
     <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
       <svg class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       <svg class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -1328,6 +1343,12 @@ body.light-theme .bottom-fixed-bar {
 </div>
 
 <div class="page-wrapper">
+
+  <section id="adminBoard" class="admin-board" aria-live="polite">
+    <div class="admin-board-head"><strong>📣 最新管理員公告</strong><small id="adminBoardMeta"></small></div>
+    <div id="adminNoticeList"></div>
+  </section>
+
   <div id="activeIconsContent" style="display: none; flex-wrap: wrap; gap: 12px; justify-content: flex-start; margin: 20px 0;"></div>
   <div id="rainAlertBox" style="display: none;">
     <div class="header-blue">
@@ -2826,5 +2847,39 @@ async function updateRegionalWeather() {
 updateRegionalWeather();
 setInterval(updateRegionalWeather, 15 * 60 * 1000);
 </script>
+
+<div id="adminModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+  <div class="admin-modal">
+    <h2 id="adminTitle">管理員工作台</h2>
+    <div class="sub">登入後可在本機發佈即時警告或提示。公告會顯示在頁面頂部。</div>
+    <div id="adminLoginView">
+      <div class="admin-form"><label for="adminPassword">管理員密碼</label><input id="adminPassword" type="password" autocomplete="current-password" placeholder="請輸入密碼" onkeydown="if(event.key==='Enter') adminLogin()"><div id="adminLoginError" class="admin-error"></div></div>
+      <div class="admin-actions"><button class="btn-cancel" onclick="closeAdmin()">取消</button><button class="btn-primary" onclick="adminLogin()">登入管理員</button></div>
+    </div>
+    <div id="adminEditorView" style="display:none">
+      <div class="admin-session show"><span>● 已登入管理員模式</span><button onclick="adminLogout()">登出</button></div>
+      <div class="admin-form"><label>公告類型</label><select id="noticeType"><option value="warning">警告</option><option value="tip">提示</option></select><label>標題</label><input id="noticeTitle" maxlength="80" placeholder="例如：澳門特別天氣提示"><label>內容</label><textarea id="noticeBody" maxlength="600" placeholder="輸入需要向訪客顯示的內容"></textarea><div id="adminPublishError" class="admin-error"></div></div>
+      <div class="admin-actions"><button class="btn-danger" onclick="clearAdminNotices()">清除公告</button><button class="btn-cancel" onclick="closeAdmin()">關閉</button><button class="btn-primary" onclick="publishAdminNotice()">立即發佈</button></div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+/* Local static-site admin console. Change this value before deployment. */
+const MSSO_ADMIN_PASSWORD = 'MSSOadmin2026';
+const ADMIN_NOTICE_KEY = 'msso_admin_notices_v1';
+function openAdmin(){document.getElementById('adminModal').classList.add('open');setTimeout(()=>document.getElementById('adminPassword')?.focus(),50);}
+function closeAdmin(){document.getElementById('adminModal').classList.remove('open');document.getElementById('adminLoginError').textContent='';document.getElementById('adminPublishError').textContent='';}
+function adminLogin(){const p=document.getElementById('adminPassword').value;if(p!==MSSO_ADMIN_PASSWORD){document.getElementById('adminLoginError').textContent='密碼不正確，請重新輸入。';return;}sessionStorage.setItem('msso_admin_session','1');document.getElementById('adminLoginView').style.display='none';document.getElementById('adminEditorView').style.display='block';document.getElementById('adminPassword').value='';}
+function adminLogout(){sessionStorage.removeItem('msso_admin_session');document.getElementById('adminEditorView').style.display='none';document.getElementById('adminLoginView').style.display='block';}
+function readAdminNotices(){try{return JSON.parse(localStorage.getItem(ADMIN_NOTICE_KEY)||'[]')}catch(e){return []}}
+function escAdmin(v){return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+function renderAdminNotices(){const board=document.getElementById('adminBoard'),list=document.getElementById('adminNoticeList'),items=readAdminNotices();if(!items.length){board.classList.remove('show');return;}board.classList.add('show');document.getElementById('adminBoardMeta').textContent=`${items.length} 則公告`;list.innerHTML=items.map(n=>`<article class="admin-notice"><span class="notice-badge ${n.type==='tip'?'tip':''}">${n.type==='tip'?'提示':'警告'}</span><div><h4>${escAdmin(n.title)}</h4><p>${escAdmin(n.body)}</p><time>發佈於 ${escAdmin(n.time)}</time></div></article>`).join('');}
+function publishAdminNotice(){if(sessionStorage.getItem('msso_admin_session')!=='1'){return;}const title=document.getElementById('noticeTitle').value.trim(),body=document.getElementById('noticeBody').value.trim();if(!title||!body){document.getElementById('adminPublishError').textContent='請填寫標題及內容。';return;}const items=readAdminNotices();items.unshift({type:document.getElementById('noticeType').value,title,body,time:new Date().toLocaleString('zh-Hant',{hour12:false})});localStorage.setItem(ADMIN_NOTICE_KEY,JSON.stringify(items.slice(0,10)));document.getElementById('noticeTitle').value='';document.getElementById('noticeBody').value='';document.getElementById('adminPublishError').textContent='已成功發佈。';renderAdminNotices();}
+function clearAdminNotices(){if(confirm('確定要清除所有管理員公告嗎？')){localStorage.removeItem(ADMIN_NOTICE_KEY);renderAdminNotices();}}
+document.addEventListener('DOMContentLoaded',()=>{renderAdminNotices();if(sessionStorage.getItem('msso_admin_session')==='1'){document.getElementById('adminLoginView').style.display='none';document.getElementById('adminEditorView').style.display='block';}document.getElementById('adminModal').addEventListener('click',e=>{if(e.target.id==='adminModal')closeAdmin();});});
+</script>
+
 </body>
 </html>
