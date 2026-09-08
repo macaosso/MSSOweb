@@ -306,7 +306,7 @@ body.light-theme .dropdown-content {
   color: var(--text-muted);
 }
 
-/* 風向圖標底部行 (微調縮小尺寸以符合移動端比例) */
+/* 風向圖標底部行 */
 .wind-icons-row {
   display: flex;
   justify-content: space-between;
@@ -327,7 +327,7 @@ body.light-theme .dropdown-content {
 .wind-badge {
   width: 22px;
   height: 22px;
-  background: #fde047; /* 溫和黃色圓圈 */
+  background: #fde047;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -512,9 +512,33 @@ body.light-theme .bottom-fixed-bar {
 </div>
 
 <div class="page-wrapper" id="mainContainer">
-  <div class="loading-state" id="loadingState">正在從 Open-Meteo 讀取澳門 6 小時 15 分鐘精細天氣預報圖表...</div>
+  <div class="loading-state" id="loadingState">正在從 Open-Meteo 讀取精細天氣與氣壓差預報圖表...</div>
   
-  <!-- 1. 降雨機率趨勢圖卡片 (優先移至上方) -->
+  <!-- 0. 郴州與香港氣壓差 Δp(972) 趨勢與北風潮預測卡片 -->
+  <div class="apple-weather-card" id="cardDeltaP" style="display:none;">
+    <div class="aw-header-row">
+      <div class="aw-titles">
+        <h3>北風潮氣壓差 Δp(972) 趨勢</h3>
+        <span>郴州 (WMO: 57972) 與香港氣壓差</span>
+      </div>
+      <div class="aw-highlight-value">
+        <div class="percentage" id="topDeltaPVal">-- hPa</div>
+        <div class="label" id="deltaPStatus">預測到達: --</div>
+      </div>
+    </div>
+    <div class="aw-chart-container">
+      <canvas id="deltaPChart"></canvas>
+    </div>
+    <div class="aw-footer-row" style="flex-direction: column; align-items: flex-start; gap: 8px; font-size: 0.85rem; font-weight: normal;">
+      <div id="deltaPRuleAlert" style="color: var(--accent-orange); font-weight: 600; display:none;"></div>
+      <div style="display: flex; justify-content: space-between; width: 100%; color: var(--text-muted); font-size: 0.8rem;">
+        <span>對照：6h(18hr) | 7h(15hr) | 8h(12hr) | 9h(9hr)</span>
+        <span>資料來源：Open-Meteo</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 1. 降雨機率趨勢圖卡片 -->
   <div class="apple-weather-card" id="cardProb" style="display:none;">
     <div class="aw-header-row">
       <div class="aw-titles">
@@ -538,7 +562,7 @@ body.light-theme .bottom-fixed-bar {
     </div>
   </div>
 
-  <!-- 2. 降雨量趨勢圖卡片 (優先移至上方) -->
+  <!-- 2. 降雨量趨勢圖卡片 -->
   <div class="apple-weather-card" id="cardRain" style="display:none;">
     <div class="aw-header-row">
       <div class="aw-titles">
@@ -586,7 +610,7 @@ body.light-theme .bottom-fixed-bar {
     </div>
   </div>
 
-  <!-- 4. 風速與風向合併圖卡片 (附帶底部風向轉動圖標) -->
+  <!-- 4. 風速與風向合併圖卡片 -->
   <div class="apple-weather-card" id="cardWind" style="display:none;">
     <div class="aw-header-row">
       <div class="aw-titles">
@@ -601,15 +625,12 @@ body.light-theme .bottom-fixed-bar {
     <div class="aw-chart-container">
       <canvas id="windTrendChart"></canvas>
     </div>
-    <!-- 底部風向旋轉圖標列 (修正轉向角度：氣象風向為來源方向，需 +180 度讓箭頭指向風吹去的方向或配合圖標設計) -->
-    <div class="wind-icons-row" id="windIconsContainer">
-      <!-- 動態生成風向圖標 -->
-    </div>
+    <div class="wind-icons-row" id="windIconsContainer"></div>
   </div>
 
 </div>
 
-<!-- 底部固定導航欄 (Bottom Fixed Bar) -->
+<!-- 底部固定導航欄 -->
 <div class="bottom-fixed-bar">
   <a href="https://macaosso.github.io/MSSOweb/index.html" class="bottom-bar-btn" style="text-decoration: none;">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9z"/></svg>
@@ -631,6 +652,7 @@ body.light-theme .bottom-fixed-bar {
 
 <script>
 let weatherDataCache = null;
+let deltaPCache = null;
 let chartInstances = {};
 
 function applyTheme(theme) {
@@ -641,6 +663,9 @@ function applyTheme(theme) {
   }
   if (weatherDataCache) {
     renderAllCharts(weatherDataCache);
+  }
+  if (deltaPCache) {
+    renderDeltaPChart(deltaPCache);
   }
 }
 
@@ -710,6 +735,140 @@ async function fetchWeatherData() {
   }
 }
 
+async function fetchDeltaPData() {
+  try {
+    // 郴州 (25.8°N, 113.0°E) 與香港 (22.3193°N, 114.1694°E) 氣壓差計算
+    const czUrl = 'https://api.open-meteo.com/v1/forecast?latitude=25.8&longitude=113.0&hourly=surface_pressure&timezone=auto&forecast_days=3';
+    const hkUrl = 'https://api.open-meteo.com/v1/forecast?latitude=22.3193&longitude=114.1694&hourly=surface_pressure&timezone=auto&forecast_days=3';
+
+    const [czRes, hkRes] = await Promise.all([
+      fetch(czUrl).then(r => r.json()),
+      fetch(hkRes).then(r => r.json())
+    ]);
+
+    const times = czRes.hourly.time;
+    const czPressures = czRes.hourly.surface_pressure;
+    const hkPressures = hkRes.hourly.surface_pressure;
+
+    const deltaPValues = times.map((t, i) => {
+      const cz = czPressures[i] || 0;
+      const hk = hkPressures[i] || 0;
+      return Number((cz - hk).toFixed(1));
+    });
+
+    deltaPCache = { times, deltaP: deltaPValues };
+    document.getElementById('cardDeltaP').style.display = 'block';
+    renderDeltaPChart(deltaPCache);
+  } catch (err) {
+    console.error('Failed to fetch pressure data for Delta P:', err);
+  }
+}
+
+function renderDeltaPChart(data) {
+  const { times, deltaP } = data;
+  const currentVal = deltaP[0] || 0;
+  
+  document.getElementById('topDeltaPVal').textContent = currentVal + ' hPa';
+  
+  let arrivalHours = '--';
+  if (currentVal >= 9) arrivalHours = '約 9 小時';
+  else if (currentVal >= 8) arrivalHours = '約 12 小時';
+  else if (currentVal >= 7) arrivalHours = '約 15 小時';
+  else if (currentVal >= 6) arrivalHours = '約 18 小時';
+  else arrivalHours = '北風潮未明顯';
+  
+  document.getElementById('deltaPStatus').textContent = `預測到達: ${arrivalHours}`;
+
+  const now = new Date();
+  let currentIndex = 0;
+  for (let i = 0; i < times.length; i++) {
+    if (new Date(times[i]) >= now) {
+      currentIndex = Math.max(0, i - 1);
+      break;
+    }
+  }
+
+  let past6Rise = false;
+  if (currentIndex >= 6) {
+    const diff6h = currentVal - deltaP[currentIndex - 6];
+    if (diff6h > 2) past6Rise = true;
+  }
+
+  const maxFutureDelta = Math.max(...deltaP.slice(currentIndex, currentIndex + 24));
+  let willExceed10 = maxFutureDelta > 10;
+
+  let stayingAt7 = false;
+  if (currentIndex >= 3) {
+    const recent3 = deltaP.slice(currentIndex - 3, currentIndex + 1);
+    if (recent3.every(v => Math.abs(v - 7) <= 0.5)) stayingAt7 = true;
+  }
+
+  let alerts = [];
+  if (past6Rise) alerts.push('⚠️ 過去 6 小時氣壓差上升超過 2 百帕');
+  if (willExceed10) alerts.push('⚠️ 預料氣壓差將上升至 10 百帕以上，可能帶來強風');
+  if (stayingAt7) alerts.push('ℹ️ Δp(972) 數值停留在 7 百帕左右，到達時間或會延遲');
+
+  const alertEl = document.getElementById('deltaPRuleAlert');
+  if (alerts.length > 0) {
+    alertEl.innerHTML = alerts.join('<br>');
+    alertEl.style.display = 'block';
+  } else {
+    alertEl.style.display = 'none';
+  }
+
+  const labels = times.map((tStr, i) => {
+    const d = new Date(tStr);
+    const hrs = String(d.getHours()).padStart(2, '0');
+    const mins = String(d.getMinutes()).padStart(2, '0');
+    return (mins === '00' && Number(hrs) % 3 === 0) ? `${d.getMonth()+1}/${d.getDate()} ${hrs}:${mins}` : '';
+  });
+
+  const isLight = document.body.classList.contains('light-theme');
+  const gridColor = isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)';
+  const textColor = isLight ? '#64748b' : '#94a3b8';
+
+  const ctx = document.getElementById('deltaPChart').getContext('2d');
+  const grad = ctx.createLinearGradient(0, 0, 0, 180);
+  grad.addColorStop(0, 'rgba(192, 132, 252, 0.35)');
+  grad.addColorStop(1, 'rgba(0,0,0,0)');
+
+  if (chartInstances.deltaP) chartInstances.deltaP.destroy();
+
+  chartInstances.deltaP = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        data: deltaP,
+        fill: true,
+        backgroundColor: grad,
+        borderColor: isLight ? '#9333ea' : '#c084fc',
+        borderWidth: 2,
+        tension: 0.35,
+        pointRadius: 0,
+        pointHoverRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          grid: { color: gridColor },
+          ticks: { color: textColor, font: { size: 10 }, maxRotation: 0 }
+        },
+        y: {
+          grid: { color: gridColor },
+          ticks: { color: textColor, font: { size: 11 }, callback: v => v + ' hPa' },
+          position: 'right'
+        }
+      }
+    }
+  });
+}
+
 function renderAllCharts(data) {
   const m15 = data.minutely_15;
   const times = m15.time;
@@ -722,26 +881,18 @@ function renderAllCharts(data) {
     const d = new Date(tStr);
     const hrs = String(d.getHours()).padStart(2, '0');
     const mins = String(d.getMinutes()).padStart(2, '0');
-    // Show label every hour (when minutes is 00) or default to every 4 steps if timestamps don't align perfectly on the hour
     return (mins === '00' || i % 4 === 0) ? `${hrs}:${mins}` : '';
   });
-
 
   const isLight = document.body.classList.contains('light-theme');
   const gridColor = isLight ? 'rgba(0, 0, 0, 0.06)' : 'rgba(255, 255, 255, 0.06)';
   const textColor = isLight ? '#64748b' : '#94a3b8';
 
-  // 通用互動設定：不顯示點 (pointRadius: 0)，但懸停時可抓取整條線顯示數值 (intersect: false, mode: 'index')
   const sharedOptions = (unitStr) => ({
     responsive: true,
     maintainAspectRatio: false,
-    interaction: {
-      intersect: false,
-      mode: 'index'
-    },
-    plugins: {
-      legend: { display: false }
-    },
+    interaction: { intersect: false, mode: 'index' },
+    plugins: { legend: { display: false } },
     scales: {
       x: {
         grid: { color: gridColor },
@@ -755,7 +906,7 @@ function renderAllCharts(data) {
     }
   });
 
-  // --- 1. 降雨機率趨勢圖 ---
+  // 1. 降雨機率趨勢圖
   const probData = rains.map(r => (r > 0 ? 80 : 0));
   const maxProb = Math.max(...probData);
   document.getElementById('topRainProb').textContent = probData[0] + '%';
@@ -790,7 +941,7 @@ function renderAllCharts(data) {
     options: probOpts
   });
 
-  // --- 2. 降雨量趨勢圖 ---
+  // 2. 降雨量趨勢圖
   let totalRain = 0;
   rains.forEach(r => totalRain += (r || 0));
   document.getElementById('topRainAmountVal').textContent = totalRain.toFixed(1) + ' mm';
@@ -823,7 +974,7 @@ function renderAllCharts(data) {
     options: rainOpts
   });
 
-  // --- 3. 氣溫趨勢圖 ---
+  // 3. 氣溫趨勢圖
   if (temps.length > 0) {
     document.getElementById('topTempVal').textContent = temps[0].toFixed(1) + '°C';
     const minT = Math.min(...temps).toFixed(1);
@@ -855,14 +1006,13 @@ function renderAllCharts(data) {
     });
   }
 
-  // --- 4. 風速與風向合併圖 ---
+  // 4. 風速與風向合併圖
   if (windSpeeds.length > 0) {
     const currentSpeed = windSpeeds[0].toFixed(1);
     const currentDirDeg = windDirs[0] || 0;
     document.getElementById('topWindVal').textContent = currentSpeed + ' km/h';
     document.getElementById('topWindDirText').textContent = `風向: ${getWindDirectionText(currentDirDeg)}`;
 
-    // 渲染底部風向旋轉圖標列 (氣象風向為來源，故圖標旋轉角度修正為 deg + 180 度指向風吹去方向)
     const windIconsContainer = document.getElementById('windIconsContainer');
     windIconsContainer.innerHTML = '';
     times.forEach((tStr, i) => {
@@ -917,7 +1067,11 @@ window.addEventListener('DOMContentLoaded', function(){
     updateHeaderClock();
     setInterval(updateHeaderClock, 1000);
     fetchWeatherData();
-    setInterval(fetchWeatherData, 600000);
+    fetchDeltaPData();
+    setInterval(() => {
+        fetchWeatherData();
+        fetchDeltaPData();
+    }, 600000);
 });
 </script>
 
