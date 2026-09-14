@@ -63,7 +63,7 @@ const tcWarnings = [
 const warnWarnings = [
   {
     icon: "",
-    text: "酷熱警報於本地時間09月07日16時00分發出，預料本澳今日天氣酷熱，最高氣溫約32 - 33度，部分地區34度。"
+    text: ""
   },
   {
     icon: "",
