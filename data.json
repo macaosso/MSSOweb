@@ -1,16 +1,16 @@
 {
-  "datetime": "2026-09-20 22:35",
+  "datetime": "2026-09-20 22:45",
   "pohopolu": {
     "Chinese": "荷蘭園（路邊）",
     "Portuguese": "Conselheiro Ferreira de Almeida (Berma da Estrada)",
     "English": "Conselheiro Ferreira de Almeida (Roadside)",
     "DDTT": "2026092022",
     "CODE": "PO",
+    "HE_PM2_5": "17.000",
     "HE_O3": "55.604",
     "HE_CO": "0.554",
-    "HE_SO2": "1.666",
-    "HE_PM2_5": "17.000",
     "HE_NO2": "80.441",
+    "HE_SO2": "1.666",
     "HE_PM10": "28.000"
   },
   "khhopolu": {
@@ -19,11 +19,11 @@
     "English": "Ka-Hó (Roadside)",
     "DDTT": "2026092022",
     "CODE": "KH",
+    "HE_PM2_5": "15.000",
     "HE_O3": "104.702",
     "HE_CO": "0.628",
-    "HE_SO2": "2.406",
-    "HE_PM2_5": "15.000",
     "HE_NO2": "10.320",
+    "HE_SO2": "2.406",
     "HE_PM10": "18.000"
   },
   "enhopolu": {
@@ -32,11 +32,11 @@
     "English": "Bairro de Tamagnini Barbosa (High Density Residental Area)",
     "DDTT": "2026092022",
     "CODE": "EN",
+    "HE_PM2_5": "16.000",
     "HE_O3": "83.255",
     "HE_CO": "0.783",
-    "HE_SO2": "2.696",
-    "HE_PM2_5": "16.000",
     "HE_NO2": "45.673",
+    "HE_SO2": "2.696",
     "HE_PM10": "29.000"
   },
   "tchopolu": {
@@ -45,11 +45,11 @@
     "English": "Baixa da Taipa (High Density Residental Area)",
     "DDTT": "2026092022",
     "CODE": "TC",
+    "HE_PM2_5": "18.000",
     "HE_O3": "85.726",
     "HE_CO": "0.742",
-    "HE_SO2": "1.245",
-    "HE_PM2_5": "18.000",
     "HE_NO2": "34.590",
+    "HE_SO2": "1.245",
     "HE_PM10": "25.000"
   },
   "tghopolu": {
@@ -58,11 +58,11 @@
     "English": "Taipa Grande (Ambient)",
     "DDTT": "2026092022",
     "CODE": "TG",
+    "HE_PM2_5": "14.000",
     "HE_O3": "107.338",
     "HE_CO": "0.806",
-    "HE_SO2": "1.461",
-    "HE_PM2_5": "14.000",
     "HE_NO2": "17.532",
+    "HE_SO2": "1.461",
     "HE_PM10": "18.000"
   },
   "cdhopolu": {
@@ -71,11 +71,11 @@
     "English": "Seac Pai Van (Ambient)",
     "DDTT": "2026092022",
     "CODE": "CD",
+    "HE_PM2_5": "15.000",
     "HE_O3": "100.046",
     "HE_CO": "0.769",
-    "HE_SO2": "2.282",
-    "HE_PM2_5": "15.000",
     "HE_NO2": "16.399",
+    "HE_SO2": "2.282",
     "HE_PM10": "21.000"
   }
 }
