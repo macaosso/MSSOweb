@@ -2,15 +2,15 @@
 <ActualWeatherBrief>
 <System>
 <SysAuthor>DINF</SysAuthor>
-<SysPubdate>2026-10-22 23:54</SysPubdate>
+<SysPubdate>2026-10-23 03:52</SysPubdate>
 <SysLanguage>0</SysLanguage>
 </System>
 <Custom>
-<ValidFor>2026-10-23 00:00</ValidFor>
+<ValidFor>2026-10-23 04:00</ValidFor>
 <Temperature>
 <MeasureUnit>°C</MeasureUnit>
 <Type>3</Type>
-<Value>24</Value>
+<Value>23</Value>
 </Temperature>
 <Humidity>
 <MeasureUnit>%</MeasureUnit>
@@ -20,8 +20,8 @@
 <WindSpeed>
 <MeasureUnit>km/h</MeasureUnit>
 <Type>3</Type>
-<Value>12</Value>
-<WindSpeedDescription>二級</WindSpeedDescription>
+<Value>17</Value>
+<WindSpeedDescription>三級</WindSpeedDescription>
 </WindSpeed>
 <WindDirection>
 <MeasureUnit>°</MeasureUnit>
@@ -35,7 +35,7 @@
 <IconDescription>天晴</IconDescription>
 </Icon>
 <WeatherStatus>a1</WeatherStatus>
-<FeelsLikeLevel>6</FeelsLikeLevel>
-<FeelsLikeDescription>溫暖</FeelsLikeDescription>
+<FeelsLikeLevel>5</FeelsLikeLevel>
+<FeelsLikeDescription>和暖</FeelsLikeDescription>
 </Custom>
 </ActualWeatherBrief>
