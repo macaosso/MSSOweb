@@ -2,20 +2,20 @@
 <ActualWeatherBrief>
 <System>
 <SysAuthor>DINF</SysAuthor>
-<SysPubdate>2026-10-22 06:10</SysPubdate>
+<SysPubdate>2026-10-22 08:53</SysPubdate>
 <SysLanguage>0</SysLanguage>
 </System>
 <Custom>
-<ValidFor>2026-10-22 06:00</ValidFor>
+<ValidFor>2026-10-22 09:00</ValidFor>
 <Temperature>
 <MeasureUnit>°C</MeasureUnit>
 <Type>3</Type>
-<Value>25</Value>
+<Value>26</Value>
 </Temperature>
 <Humidity>
 <MeasureUnit>%</MeasureUnit>
 <Type>3</Type>
-<Value>75</Value>
+<Value>69</Value>
 </Humidity>
 <WindSpeed>
 <MeasureUnit>km/h</MeasureUnit>
@@ -29,6 +29,11 @@
 <Value>N</Value>
 <WindDescription>北</WindDescription>
 </WindDirection>
+<Temperature>
+<MeasureUnit>°C</MeasureUnit>
+<Type>9</Type>
+<Value>24</Value>
+</Temperature>
 <Icon>
 <IconName>ww-c01.png</IconName>
 <IconURL>https://cdn.dsmg.gov.mo/assets/icons/c01.png</IconURL>
