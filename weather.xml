@@ -2,11 +2,11 @@
 <ActualWeatherBrief>
 <System>
 <SysAuthor>DINF</SysAuthor>
-<SysPubdate>2026-11-07 20:56</SysPubdate>
+<SysPubdate>2026-11-08 01:56</SysPubdate>
 <SysLanguage>0</SysLanguage>
 </System>
 <Custom>
-<ValidFor>2026-11-07 21:00</ValidFor>
+<ValidFor>2026-11-08 02:00</ValidFor>
 <Temperature>
 <MeasureUnit>°C</MeasureUnit>
 <Type>3</Type>
@@ -15,12 +15,12 @@
 <Humidity>
 <MeasureUnit>%</MeasureUnit>
 <Type>3</Type>
-<Value>89</Value>
+<Value>91</Value>
 </Humidity>
 <WindSpeed>
 <MeasureUnit>km/h</MeasureUnit>
 <Type>3</Type>
-<Value>16</Value>
+<Value>19</Value>
 <WindSpeedDescription>三級</WindSpeedDescription>
 </WindSpeed>
 <WindDirection>
@@ -29,16 +29,6 @@
 <Value>ENE</Value>
 <WindDescription>東北偏東</WindDescription>
 </WindDirection>
-<Temperature>
-<MeasureUnit>°C</MeasureUnit>
-<Type>8</Type>
-<Value>28</Value>
-</Temperature>
-<Temperature>
-<MeasureUnit>°C</MeasureUnit>
-<Type>9</Type>
-<Value>23</Value>
-</Temperature>
 <Icon>
 <IconName>ww-c03.png</IconName>
 <IconURL>https://cdn.dsmg.gov.mo/assets/icons/c03.png</IconURL>
