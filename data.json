@@ -1,16 +1,16 @@
 {
-  "datetime": "2026-11-12 06:35",
+  "datetime": "2026-11-12 06:45",
   "pohopolu": {
     "Chinese": "荷蘭園（路邊）",
     "Portuguese": "Conselheiro Ferreira de Almeida (Berma da Estrada)",
     "English": "Conselheiro Ferreira de Almeida (Roadside)",
     "DDTT": "2026111206",
     "CODE": "PO",
-    "HE_PM10": "41.000",
     "HE_PM2_5": "26.000",
     "HE_CO": null,
     "HE_SO2": null,
     "HE_O3": null,
+    "HE_PM10": "41.000",
     "HE_NO2": null
   },
   "khhopolu": {
@@ -19,11 +19,11 @@
     "English": "Ka-Hó (Roadside)",
     "DDTT": "2026111206",
     "CODE": "KH",
-    "HE_PM10": "60.000",
     "HE_PM2_5": "33.000",
     "HE_CO": "0.493",
     "HE_SO2": "4.666",
     "HE_O3": "46.334",
+    "HE_PM10": "60.000",
     "HE_NO2": "47.391"
   },
   "enhopolu": {
@@ -32,11 +32,11 @@
     "English": "Bairro de Tamagnini Barbosa (High Density Residental Area)",
     "DDTT": "2026111206",
     "CODE": "EN",
-    "HE_PM10": "57.000",
     "HE_PM2_5": "25.000",
     "HE_CO": "0.514",
     "HE_SO2": "4.117",
     "HE_O3": "50.594",
+    "HE_PM10": "57.000",
     "HE_NO2": "37.568"
   },
   "tchopolu": {
@@ -45,11 +45,11 @@
     "English": "Baixa da Taipa (High Density Residental Area)",
     "DDTT": "2026111206",
     "CODE": "TC",
-    "HE_PM10": "48.000",
     "HE_PM2_5": "30.000",
     "HE_CO": null,
     "HE_SO2": null,
     "HE_O3": null,
+    "HE_PM10": "48.000",
     "HE_NO2": null
   },
   "tghopolu": {
@@ -58,11 +58,11 @@
     "English": "Taipa Grande (Ambient)",
     "DDTT": "2026111206",
     "CODE": "TG",
-    "HE_PM10": "41.000",
     "HE_PM2_5": "25.000",
     "HE_CO": "0.756",
     "HE_SO2": "1.558",
     "HE_O3": "58.697",
+    "HE_PM10": "41.000",
     "HE_NO2": "34.653"
   },
   "cdhopolu": {
@@ -71,11 +71,11 @@
     "English": "Seac Pai Van (Ambient)",
     "DDTT": "2026111206",
     "CODE": "CD",
-    "HE_PM10": "40.000",
     "HE_PM2_5": "20.000",
     "HE_CO": null,
     "HE_SO2": null,
     "HE_O3": null,
+    "HE_PM10": "40.000",
     "HE_NO2": null
   }
 }
